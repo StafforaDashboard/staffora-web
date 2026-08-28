@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Staffora Dashboard</title>
+<script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";window.API_BASE=window.STAFFORA_API;</script>
+<style>
+body{margin:0;background:#09090b;color:#fafafa;font-family:system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;
+background-image:radial-gradient(800px 400px at 20% 0,rgba(124,58,237,.25),transparent)}
+.box{text-align:center;padding:24px;max-width:440px}
+.btn{display:inline-block;margin:8px;padding:14px 22px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;text-decoration:none;font-weight:600}
+.m{color:#a1a1aa;line-height:1.5;margin:12px 0}
+</style>
+</head>
+<body>
+<div class="box" id="b">
+  <h1>Staffora</h1>
+  <p class="m">Dashboard wird geladen…</p>
+  <a class="btn" href="https://staffora.apps.bot-hosting.cloud/dashboard">Dashboard öffnen</a>
+</div>
+<script>
+(function(){
+  var API="https://staffora.apps.bot-hosting.cloud";
+  var q=new URLSearchParams(location.search||"");
+  var t=q.get("token")||"";
+  if(!t){var m=(location.hash||"").match(/token=([A-Za-z0-9_-]+)/);if(m)t=m[1];}
+  if(t){
+    try{localStorage.setItem("staffora_token",t);}catch(e){}
+    location.replace(API+"/dashboard?token="+encodeURIComponent(t)+"#token="+encodeURIComponent(t));
+    return;
+  }
+  fetch(API+"/dashboard?local=1",{mode:"cors"}).then(function(r){
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return r.text();
+  }).then(function(html){
+    if(html.indexOf("STAFFORA_API")===-1){
+      html=html.replace("<head>","<head><script>window.STAFFORA_API=\""+API+"\";window.API_BASE=window.STAFFORA_API;<\/script>");
+    }
+    document.open();
+    document.write(html);
+    document.close();
+  }).catch(function(){
+    document.getElementById("b").innerHTML="<h1>Staffora</h1><p class=\"m\">Weiterleitung…</p><a class=\"btn\" href=\""+API+"/dashboard\">Dashboard öffnen</a>";
+    setTimeout(function(){ location.href=API+"/dashboard"; }, 600);
+  });
+})();
+</script>
+</body>
+</html>
