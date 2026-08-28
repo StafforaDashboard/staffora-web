@@ -4,24 +4,57 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Staffora Dashboard</title>
-<script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";window.API_BASE=window.STAFFORA_API;</script>
+<script>
+window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";
+window.API_BASE=window.STAFFORA_API;
+window.STAFFORA_CLIENT_ID="1537409443719811112";
+</script>
 <style>
-body{margin:0;background:#09090b;color:#fafafa;font-family:system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;
-background-image:radial-gradient(800px 400px at 20% 0,rgba(124,58,237,.25),transparent)}
-.box{text-align:center;padding:24px;max-width:440px}
-.btn{display:inline-block;margin:8px;padding:14px 22px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;text-decoration:none;font-weight:600}
-.m{color:#a1a1aa;line-height:1.5;margin:12px 0}
+:root{--bg:#09090b;--p:#7c3aed;--text:#fafafa;--muted:#a1a1aa}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);
+background-image:radial-gradient(900px 500px at 15% -10%,rgba(124,58,237,.28),transparent 55%)}
+.wrap{max-width:480px;margin:0 auto;padding:48px 20px;text-align:center}
+h1{font-size:1.9rem;margin:0 0 8px;letter-spacing:-.03em}
+.lead{color:var(--muted);margin:0 0 28px;line-height:1.5}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:14px;
+font-weight:600;font-size:15px;text-decoration:none;color:#fff;margin:6px;border:0;cursor:pointer}
+.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);box-shadow:0 8px 24px rgba(109,40,217,.35)}
+.btn-dc{background:#5865F2}
+.btn-g{background:#18181b;border:1px solid #27272a;color:#e4e4e7}
+.row{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+.note{margin-top:28px;font-size:12px;color:#71717a;line-height:1.5}
+.note a{color:#a78bfa}
+.err{display:none;margin-top:16px;padding:12px;border-radius:12px;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.35);color:#fecaca;font-size:13px;text-align:left}
+code{font-size:11px;word-break:break-all}
 </style>
 </head>
 <body>
-<div class="box" id="b">
+<div class="wrap" id="boot">
   <h1>Staffora</h1>
-  <p class="m">Dashboard wird geladen…</p>
-  <a class="btn" href="https://staffora.apps.bot-hosting.cloud/dashboard">Dashboard öffnen</a>
+  <p class="lead">Team-Dashboard · Tickets · Duty · RP · Bewerbungen</p>
+  <div class="row">
+    <a class="btn btn-p" id="btn-login" href="https://staffora.apps.bot-hosting.cloud/auth/login?return=https%3A%2F%2Fstaffora.apps.bot-hosting.cloud%2Fdashboard">Mit Discord anmelden</a>
+    <a class="btn btn-dc" id="btn-invite" href="https://discord.com/oauth2/authorize?client_id=1537409443719811112&permissions=8&scope=bot%20applications.commands" target="_blank" rel="noopener">Bot einladen</a>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <a class="btn btn-g" href="https://staffora.apps.bot-hosting.cloud/dashboard">Direkt zum Cloud-Dashboard</a>
+  </div>
+  <div class="err" id="err"></div>
+  <p class="note">
+    OAuth läuft über den Bot-Server.<br/>
+    Discord Redirect muss sein:<br/>
+    <code>https://staffora.apps.bot-hosting.cloud/auth/callback</code>
+  </p>
 </div>
 <script>
 (function(){
   var API="https://staffora.apps.bot-hosting.cloud";
+  var CLIENT="1537409443719811112";
+  var LOGIN=API+"/auth/login?return="+encodeURIComponent(API+"/dashboard");
+  var INVITE="https://discord.com/oauth2/authorize?client_id="+CLIENT+"&permissions=8&scope=bot%20applications.commands";
+  document.getElementById("btn-login").href=LOGIN;
+  document.getElementById("btn-invite").href=INVITE;
   var q=new URLSearchParams(location.search||"");
   var t=q.get("token")||"";
   if(!t){var m=(location.hash||"").match(/token=([A-Za-z0-9_-]+)/);if(m)t=m[1];}
@@ -30,20 +63,6 @@ background-image:radial-gradient(800px 400px at 20% 0,rgba(124,58,237,.25),trans
     location.replace(API+"/dashboard?token="+encodeURIComponent(t)+"#token="+encodeURIComponent(t));
     return;
   }
-  fetch(API+"/dashboard?local=1",{mode:"cors"}).then(function(r){
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    return r.text();
-  }).then(function(html){
-    if(html.indexOf("STAFFORA_API")===-1){
-      html=html.replace("<head>","<head><script>window.STAFFORA_API=\""+API+"\";window.API_BASE=window.STAFFORA_API;<\/script>");
-    }
-    document.open();
-    document.write(html);
-    document.close();
-  }).catch(function(){
-    document.getElementById("b").innerHTML="<h1>Staffora</h1><p class=\"m\">Weiterleitung…</p><a class=\"btn\" href=\""+API+"/dashboard\">Dashboard öffnen</a>";
-    setTimeout(function(){ location.href=API+"/dashboard"; }, 600);
-  });
 })();
 </script>
 </body>
