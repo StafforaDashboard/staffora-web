@@ -4,39 +4,51 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Staffora</title>
+<script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";</script>
 <style>
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;background:#09090b;color:#fafafa;text-align:center;padding:24px}
-.box{max-width:420px}
-h1{font-size:2rem;margin:0 0 8px}
-p{color:#a1a1aa;line-height:1.5}
-.btn{display:inline-block;margin:8px;padding:14px 22px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;text-decoration:none;font-weight:600}
-.btn2{background:#18181b;border:1px solid #27272a}
+:root{--bg:#09090b;--card:#16161a;--border:#27272a;--text:#fafafa;--muted:#a1a1aa;--a:#7c3aed}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:#c4b5fd;text-decoration:none}.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600;cursor:pointer;font:inherit}
+.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:0;color:#fff}.btn-sm{padding:7px 12px;font-size:13px}
+.hidden{display:none!important}.top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border)}
+.brand{font-weight:700;display:flex;gap:10px;align-items:center}.logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#4c1d95);display:grid;place-items:center}
+.layout{display:grid;grid-template-columns:200px 1fr;min-height:calc(100vh - 56px)}
+.side{border-right:1px solid var(--border);padding:12px}.side button{display:block;width:100%;text-align:left;background:0;border:0;color:var(--muted);padding:10px;border-radius:10px;cursor:pointer;font:inherit;margin-bottom:4px}
+.side button.active,.side button:hover{background:rgba(124,58,237,.15);color:#fff}
+.main{padding:18px;max-width:1000px}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.lead{color:var(--muted);line-height:1.5}
+.hero{max-width:480px;margin:10vh auto;text-align:center;padding:20px}.hero h1{font-size:2rem;margin:0 0 8px}
+input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0c0c0e;color:var(--text);margin-bottom:8px}
+.table{width:100%;border-collapse:collapse;font-size:13px}.table td,.table th{padding:8px;border-bottom:1px solid var(--border);text-align:left}
+.guild{display:flex;gap:10px;align-items:center;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer}.guild:hover{border-color:var(--a)}
+.badge{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}.on{background:rgba(34,197,94,.15);color:#86efac}.off{background:rgba(161,161,170,.15);color:#d4d4d8}
+.toast{position:fixed;bottom:16px;right:16px;background:#1a1a1f;border:1px solid var(--border);padding:10px 14px;border-radius:10px;opacity:0;transition:.2s}.toast.show{opacity:1}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--border)}.side button{width:auto;white-space:nowrap}}
 </style>
 </head>
 <body>
-<div class="box">
+<div id="v-login" class="hero">
+  <div class="logo" style="margin:0 auto 14px;width:48px;height:48px">S</div>
   <h1>Staffora</h1>
-  <p>Dienstnummern · Team · Roblox Staff</p>
-  <a class="btn" id="login" href="https://staffora.apps.bot-hosting.cloud/auth/login?return=https%3A%2F%2Fstafforadashboard.github.io%2Fstaffora-web%2F">Mit Discord anmelden</a>
-  <a class="btn btn2" id="invite" href="https://discord.com/oauth2/authorize?client_id=1537409443719811112&permissions=8&scope=bot%20applications.commands" target="_blank" rel="noopener">Bot einladen</a>
-  <p style="font-size:12px;margin-top:24px">Nach Login wirst du zurückgeleitet.</p>
+  <p class="lead">Dienstnummern · Team · Roblox Staff · Module</p>
+  <div class="row" style="justify-content:center">
+    <a class="btn btn-p" id="btn-login" href="#">Mit Discord anmelden</a>
+    <a class="btn" id="btn-invite" href="#" target="_blank" rel="noopener">Bot einladen</a>
+  </div>
+  <p class="lead" style="margin-top:20px;font-size:12px">API: <span id="api-label"></span></p>
 </div>
-<script>
-(function(){
-  var API="https://staffora.apps.bot-hosting.cloud";
-  var q=new URLSearchParams(location.search);
-  var t=q.get("token")||"";
-  if(!t){var m=(location.hash||"").match(/token=([A-Fa-f0-9]+)/);if(m)t=m[1];}
-  if(t){
-    try{localStorage.setItem("staffora_token",t);}catch(e){}
-    location.replace(API+"/dashboard?token="+encodeURIComponent(t));
-    return;
-  }
-  document.getElementById("login").href=API+"/auth/login?return="+encodeURIComponent(location.href.split("#")[0]);
-  fetch(API+"/api/invite").then(function(r){return r.json()}).then(function(d){
-    if(d&&d.url)document.getElementById("invite").href=d.url;
-  }).catch(function(){});
-})();
-</script>
+<div id="v-select" class="hidden">
+  <div class="top"><div class="brand"><div class="logo">S</div>Staffora</div>
+    <div class="row"><span id="user-chip" class="lead" style="margin:0;font-size:13px"></span><button class="btn btn-sm" id="btn-out">Logout</button></div></div>
+  <div class="main"><h1>Server wählen</h1><p class="lead">Admin-Rechte nötig.</p><div id="guilds" class="grid"></div></div>
+</div>
+<div id="v-app" class="hidden">
+  <div class="top"><div class="brand"><div class="logo">S</div><span id="gname">Server</span></div>
+    <div class="row"><button class="btn btn-sm" id="btn-back">← Server</button><button class="btn btn-sm" id="btn-out2">Logout</button></div></div>
+  <div class="layout"><aside class="side" id="nav"></aside><main class="main" id="panel"></main></div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
 </body>
 </html>
