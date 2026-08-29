@@ -1,9 +1,8 @@
-# Staffora Web
+# Staffora Dashboard
 
-GitHub Pages dashboard for Staffora.
-
-**Live:** https://u0785621364-dotcom.github.io/staffora-web/
+Live: https://stafforadashboard.github.io/staffora-web/
 
 API: https://staffora.apps.bot-hosting.cloud
 
-Enable Pages: Settings → Pages → Deploy from branch `main` / root
+## GitHub Pages
+Settings → Pages → Deploy from branch: **main** / **/** (root)
