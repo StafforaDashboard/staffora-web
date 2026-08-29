@@ -24,10 +24,10 @@
 <div class="hero"><div class="pill">Team-System</div><h1>Staffora</h1><p>Tickets, Bewerbungen, Team und Büros — ein Dashboard. Speichert sofort. Passt sich an Desktop und Handy an.</p>
 <div class="hero-actions"><a class="btn btn-p" id="btn-login2" href="#">Dashboard öffnen</a><a class="btn btn-ghost" id="btn-invite" href="#" target="_blank" rel="noopener">Bot einladen</a></div><div class="divider">Staffora</div></div>
 <div class="features">
-<div class="feat"><strong>Tickets</strong><span>Kategorien, Support-Rolle, Auslastung. Claim und Logs — alles im Panel.</span></div>
-<div class="feat"><strong>Bewerbungen</strong><span>Fragen per DM, Bestätigung, Highteam-Quiz. Ohne Config-Commands.</span></div>
-<div class="feat"><strong>Team</strong><span>XP, Profile, Fly & Nametag, Büro-Anfragen. Rollen per Dropdown.</span></div>
-<div class="feat"><strong>Häuser & Büros</strong><span>Häuser in Reihenfolge, VC-gated Büros, Join-Anfragen mit Zeitplan.</span></div>
+<div class="feat"><strong>Tickets</strong><span>Kategorien, Support-Rolle, Auslastung.</span></div>
+<div class="feat"><strong>Bewerbungen</strong><span>Fragen, Bestätigung, Highteam-Quiz.</span></div>
+<div class="feat"><strong>Team</strong><span>XP, Profile, Dienst, Warns.</span></div>
+<div class="feat"><strong>Module</strong><span>Dienstnummern, Ausweise, Roblox, Admin Calls.</span></div>
 </div></div>
 <div id="v-select" class="hidden"><div class="select-wrap"><h1>Server wählen</h1><p class="sub">Owner oder Administrator. Bot nicht drauf? Invite öffnet sich.</p><div id="guilds" class="server-list"></div><div class="back-row"><button class="btn btn-ghost" id="btn-out">Zurück</button></div></div></div>
 <div id="v-app" class="hidden"><div class="topbar"><div class="brand"><span class="mark">S</span> <span id="gname">Staffora</span></div><div class="row"><button class="btn btn-sm btn-ghost" id="btn-back">← Server</button><button class="btn btn-sm btn-ghost" id="btn-out2">Logout</button></div></div><div class="shell"><aside class="sidebar" id="nav"></aside><main class="content" id="panel"></main></div></div>
@@ -36,8 +36,5 @@
 (function(){try{var qs=new URLSearchParams(location.search||"");var t=qs.get("token");if(!t){var m=(location.hash||"").match(/token=([a-f0-9]+)/i);if(m)t=m[1];}if(t){localStorage.setItem("staffora_token",t);qs.delete("token");history.replaceState({},"",location.pathname+(qs.toString()?"?"+qs.toString():""));}}catch(e){}})();
 </script>
 <script src="nullsafe.js"></script>
-<script src="f0.js"></script>
-<script src="f1.js"></script>
-<script src="f2.js"></script>
-<script src="f3.js"></script>
+<script src="https://staffora.apps.bot-hosting.cloud/app.js?v=20"></script>
 </body></html>
