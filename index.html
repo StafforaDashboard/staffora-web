@@ -31,7 +31,22 @@
 <div id="v-select" class="hidden"><div class="select-wrap"><h1>Server wählen</h1><p class="sub">Owner oder Administrator. Bot nicht drauf? Invite öffnet sich.</p><div id="guilds" class="server-list"></div><div class="back-row"><button class="btn btn-ghost" id="btn-out">Zurück</button></div></div></div>
 <div id="v-app" class="hidden"><div class="topbar"><div class="brand"><span class="mark">S</span> <span id="gname">Staffora</span></div><div class="row"><button class="btn btn-sm btn-ghost" id="btn-back">← Server</button><button class="btn btn-sm btn-ghost" id="btn-out2">Logout</button></div></div><div class="shell"><aside class="sidebar" id="nav"></aside><main class="content" id="panel"></main></div></div>
 <div class="toast" id="toast"></div>
-<script src="o0.js"></script>
-<script src="o1.js"></script>
-<script src="o2.js"></script>
+<script>
+/* OAuth: token from ?token= or #token= BEFORE app.js runs */
+(function(){
+  try{
+    var qs=new URLSearchParams(location.search||"");
+    var t=qs.get("token");
+    if(!t){var m=(location.hash||"").match(/token=([a-f0-9]+)/i);if(m)t=m[1];}
+    if(t){
+      localStorage.setItem("staffora_token",t);
+      qs.delete("token");
+      var clean=location.pathname+(qs.toString()?"?"+qs.toString():"");
+      history.replaceState({},"",clean);
+    }
+  }catch(e){}
+})();
+</script>
+<script src="app.js"></script>
+<script src="patch.js"></script>
 </body></html>
