@@ -18,6 +18,7 @@
 </head>
 <body>
 <span id="api-label" class="hidden"></span>
+<span id="user-chip" class="hidden"></span>
 <div id="v-login">
 <nav class="nav"><div class="nav-left"><div class="logo">S</div> Staffora</div><div class="nav-right"><a class="btn btn-sm" id="btn-login-nav" href="#">Anmelden</a><a class="btn btn-p btn-sm" id="btn-login" href="#">Dashboard</a></div></nav>
 <div class="hero"><div class="pill">Team-System</div><h1>Staffora</h1><p>Tickets, Bewerbungen, Team und Büros — ein Dashboard. Speichert sofort. Passt sich an Desktop und Handy an.</p>
@@ -32,7 +33,6 @@
 <div id="v-app" class="hidden"><div class="topbar"><div class="brand"><span class="mark">S</span> <span id="gname">Staffora</span></div><div class="row"><button class="btn btn-sm btn-ghost" id="btn-back">← Server</button><button class="btn btn-sm btn-ghost" id="btn-out2">Logout</button></div></div><div class="shell"><aside class="sidebar" id="nav"></aside><main class="content" id="panel"></main></div></div>
 <div class="toast" id="toast"></div>
 <script>
-/* OAuth: token from ?token= or #token= BEFORE app.js runs */
 (function(){
   try{
     var qs=new URLSearchParams(location.search||"");
@@ -41,12 +41,12 @@
     if(t){
       localStorage.setItem("staffora_token",t);
       qs.delete("token");
-      var clean=location.pathname+(qs.toString()?"?"+qs.toString():"");
-      history.replaceState({},"",clean);
+      history.replaceState({},"",location.pathname+(qs.toString()?"?"+qs.toString():""));
     }
   }catch(e){}
 })();
 </script>
+<script src="nullsafe.js"></script>
 <script src="app.js"></script>
 <script src="patch.js"></script>
 </body></html>
