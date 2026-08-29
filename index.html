@@ -2,68 +2,103 @@
 <html lang="de">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>Staffora Dashboard</title>
 <script>
-window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";
-window.API_BASE=window.STAFFORA_API;
-window.STAFFORA_CLIENT_ID="1537409443719811112";
+window.STAFFORA_API = "https://staffora.apps.bot-hosting.cloud";
+window.API_BASE = window.STAFFORA_API;
 </script>
 <style>
-:root{--bg:#09090b;--p:#7c3aed;--text:#fafafa;--muted:#a1a1aa}
+:root{
+  --bg:#09090b;--panel:#111114;--card:#16161a;--border:#27272a;
+  --text:#fafafa;--muted:#a1a1aa;--accent:#7c3aed;--accent2:#6d28d9;
+  --ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;
+}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);
-background-image:radial-gradient(900px 500px at 15% -10%,rgba(124,58,237,.28),transparent 55%)}
-.wrap{max-width:480px;margin:0 auto;padding:48px 20px;text-align:center}
-h1{font-size:1.9rem;margin:0 0 8px;letter-spacing:-.03em}
-.lead{color:var(--muted);margin:0 0 28px;line-height:1.5}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:14px;
-font-weight:600;font-size:15px;text-decoration:none;color:#fff;margin:6px;border:0;cursor:pointer}
-.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);box-shadow:0 8px 24px rgba(109,40,217,.35)}
-.btn-dc{background:#5865F2}
-.btn-g{background:#18181b;border:1px solid #27272a;color:#e4e4e7}
-.row{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
-.note{margin-top:28px;font-size:12px;color:#71717a;line-height:1.5}
-.note a{color:#a78bfa}
-.err{display:none;margin-top:16px;padding:12px;border-radius:12px;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.35);color:#fecaca;font-size:13px;text-align:left}
-code{font-size:11px;word-break:break-all}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:#c4b5fd;text-decoration:none}
+button,.btn{cursor:pointer;font:inherit}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600}
+.btn-p{background:linear-gradient(135deg,#8b5cf6,var(--accent2));border:none;color:#fff}
+.btn-d{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.35);color:#fecaca}
+.btn-sm{padding:7px 12px;font-size:13px;border-radius:10px}
+.hidden{display:none!important}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:rgba(17,17,20,.9);position:sticky;top:0;z-index:20;backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+.logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#4c1d95);display:grid;place-items:center}
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 60px)}
+.side{border-right:1px solid var(--border);padding:16px 12px;background:var(--panel)}
+.side button{width:100%;text-align:left;background:transparent;border:0;color:var(--muted);padding:10px 12px;border-radius:10px;margin-bottom:4px}
+.side button:hover,.side button.active{background:rgba(124,58,237,.15);color:#fff}
+.main{padding:20px;max-width:1100px}
+h1{font-size:1.4rem;margin:0 0 6px}
+h2{font-size:1.1rem;margin:0 0 12px}
+.lead{color:var(--muted);margin:0 0 18px;line-height:1.5}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0c0c0e;color:var(--text)}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th,.table td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:left}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:600}
+.badge-on{background:rgba(34,197,94,.15);color:#86efac}
+.badge-off{background:rgba(161,161,170,.15);color:#d4d4d8}
+.badge-ja{background:rgba(34,197,94,.15);color:#86efac}
+.badge-nein{background:rgba(239,68,68,.15);color:#fecaca}
+.hero{max-width:520px;margin:8vh auto;text-align:center;padding:24px}
+.hero h1{font-size:2rem;letter-spacing:-.03em}
+.guild{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--card);cursor:pointer}
+.guild:hover{border-color:var(--accent)}
+.guild img{width:40px;height:40px;border-radius:10px;background:#222}
+.toast{position:fixed;bottom:20px;right:20px;background:#1a1a1f;border:1px solid var(--border);padding:12px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:.2s}
+.toast.show{opacity:1}
+@media(max-width:800px){
+  .layout{grid-template-columns:1fr}
+  .side{display:flex;gap:6px;overflow:auto;border-right:0;border-bottom:1px solid var(--border)}
+  .side button{width:auto;white-space:nowrap}
+}
 </style>
 </head>
 <body>
-<div class="wrap" id="boot">
+<div id="view-login" class="hero">
+  <div class="logo" style="margin:0 auto 16px;width:48px;height:48px;font-size:20px">S</div>
   <h1>Staffora</h1>
-  <p class="lead">Team-Dashboard · Tickets · Duty · RP · Bewerbungen</p>
-  <div class="row">
-    <a class="btn btn-p" id="btn-login" href="https://staffora.apps.bot-hosting.cloud/auth/login?return=https%3A%2F%2Fstaffora.apps.bot-hosting.cloud%2Fdashboard">Mit Discord anmelden</a>
-    <a class="btn btn-dc" id="btn-invite" href="https://discord.com/oauth2/authorize?client_id=1537409443719811112&permissions=8&scope=bot%20applications.commands" target="_blank" rel="noopener">Bot einladen</a>
+  <p class="lead">Dienstnummern · Team · Roblox Staff · Module<br/>Dashboard auf GitHub Pages · API auf dem Bot-Server</p>
+  <div class="row" style="justify-content:center">
+    <a class="btn btn-p" id="btn-login" href="#">Mit Discord anmelden</a>
+    <a class="btn" id="btn-invite" href="#" target="_blank" rel="noopener">Bot einladen</a>
   </div>
-  <div class="row" style="margin-top:8px">
-    <a class="btn btn-g" href="https://staffora.apps.bot-hosting.cloud/dashboard">Direkt zum Cloud-Dashboard</a>
-  </div>
-  <div class="err" id="err"></div>
-  <p class="note">
-    OAuth läuft über den Bot-Server.<br/>
-    Discord Redirect muss sein:<br/>
-    <code>https://staffora.apps.bot-hosting.cloud/auth/callback</code>
-  </p>
+  <p class="lead" style="margin-top:24px;font-size:12px">API: <span id="api-label"></span></p>
 </div>
-<script>
-(function(){
-  var API="https://staffora.apps.bot-hosting.cloud";
-  var CLIENT="1537409443719811112";
-  var LOGIN=API+"/auth/login?return="+encodeURIComponent(API+"/dashboard");
-  var INVITE="https://discord.com/oauth2/authorize?client_id="+CLIENT+"&permissions=8&scope=bot%20applications.commands";
-  document.getElementById("btn-login").href=LOGIN;
-  document.getElementById("btn-invite").href=INVITE;
-  var q=new URLSearchParams(location.search||"");
-  var t=q.get("token")||"";
-  if(!t){var m=(location.hash||"").match(/token=([A-Za-z0-9_-]+)/);if(m)t=m[1];}
-  if(t){
-    try{localStorage.setItem("staffora_token",t);}catch(e){}
-    location.replace(API+"/dashboard?token="+encodeURIComponent(t)+"#token="+encodeURIComponent(t));
-    return;
-  }
-})();
-</script>
+<div id="view-select" class="hidden">
+  <div class="top">
+    <div class="brand"><div class="logo">S</div>Staffora</div>
+    <div class="row">
+      <span id="user-chip" style="color:var(--muted);font-size:13px"></span>
+      <button class="btn btn-sm" id="btn-logout">Logout</button>
+    </div>
+  </div>
+  <div class="main">
+    <h1>Server wählen</h1>
+    <p class="lead">Nur Server, auf denen du Admin/Manage-Rechte hast.</p>
+    <div id="guild-list" class="grid"></div>
+  </div>
+</div>
+<div id="view-app" class="hidden">
+  <div class="top">
+    <div class="brand"><div class="logo">S</div><span id="guild-name">Server</span></div>
+    <div class="row">
+      <button class="btn btn-sm" id="btn-back">← Server</button>
+      <button class="btn btn-sm" id="btn-logout2">Logout</button>
+    </div>
+  </div>
+  <div class="layout">
+    <aside class="side" id="nav"></aside>
+    <main class="main" id="panel"></main>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
 </body>
 </html>
