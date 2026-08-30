@@ -1,8 +1,9 @@
-# Staffora Dashboard
+# Staffora Dashboard (GitHub Pages)
 
 Live: https://stafforadashboard.github.io/staffora-web/
 
-API: https://staffora.apps.bot-hosting.cloud
+API / OAuth (bot must be online):
+- https://staffora.apps.bot-hosting.cloud
+- Callback: https://staffora.apps.bot-hosting.cloud/auth/callback
 
-## GitHub Pages
-Settings → Pages → Deploy from branch: **main** / **/** (root)
+Upload the bot zip so API + OAuth work with this static UI.
