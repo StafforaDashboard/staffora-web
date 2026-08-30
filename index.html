@@ -7,48 +7,40 @@
 <style>
 body{margin:0;min-height:100vh;background:#08080a;color:#a1a1aa;font-family:system-ui,sans-serif;
 display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
-#st{max-width:420px;line-height:1.5}
-.err{color:#fca5a5}
-</style>
-</head>
+#st{max-width:420px;line-height:1.5}.err{color:#fca5a5}
+</style></head>
 <body>
 <p id="st">Staffora wird geladen…</p>
 <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.min.js"></script>
 <script>
 (function(){
   var st=document.getElementById('st');
-  var n=19;
+  var n=66;
   function fail(m){ st.className='err'; st.textContent='Fehler: '+m; }
-  function inflateBytes(bytes){
-    if(typeof fflate!=='undefined' && fflate.gunzipSync){
-      return Promise.resolve(fflate.gunzipSync(bytes));
-    }
+  function inflate(bytes){
+    if(typeof fflate!=='undefined' && fflate.gunzipSync) return Promise.resolve(fflate.gunzipSync(bytes));
     if(typeof DecompressionStream!=='undefined'){
       return new Response(bytes).arrayBuffer().then(function(buf){
         var stream=new Response(buf).body.pipeThrough(new DecompressionStream('gzip'));
         return new Response(stream).arrayBuffer().then(function(ab){ return new Uint8Array(ab); });
       });
     }
-    return Promise.reject(new Error('Kein Gzip-Support (fflate/DecompressionStream)'));
+    return Promise.reject(new Error('Kein Gzip-Support'));
   }
   Promise.all(Array.from({length:n},function(_,i){
-    return fetch('d'+i+'.txt?v=50').then(function(r){
-      if(!r.ok) throw new Error('d'+i+' '+r.status);
+    return fetch('f'+i+'.txt?v=60').then(function(r){
+      if(!r.ok) throw new Error('f'+i+' '+r.status);
       return r.text();
     });
   })).then(function(parts){
     var bin=atob(parts.join(''));
     var bytes=new Uint8Array(bin.length);
     for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-    return inflateBytes(bytes);
+    return inflate(bytes);
   }).then(function(inflated){
     var html=new TextDecoder().decode(inflated);
-    document.open();
-    document.write(html);
-    document.close();
-  }).catch(function(e){
-    fail(e && e.message ? e.message : String(e));
-  });
+    document.open(); document.write(html); document.close();
+  }).catch(function(e){ fail(e&&e.message?e.message:String(e)); });
 })();
 </script>
 </body></html>
