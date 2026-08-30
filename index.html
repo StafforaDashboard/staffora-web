@@ -1,83 +1,22 @@
 <!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Staffora – Classic Dashboard</title>
-<script>
-window.STAFFORA_API='https://staffora.apps.bot-hosting.cloud';
-window.API_BASE=window.STAFFORA_API;
-(function(){
-  try{
-    var qs=new URLSearchParams(location.search||'');
-    var t=qs.get('token');
-    if(!t){var m=(location.hash||'').match(/token=([a-f0-9]+)/i);if(m)t=m[1];}
-    if(t){localStorage.setItem('staffora_token',t);qs.delete('token');
-      history.replaceState({},'',location.pathname+(qs.toString()?'?'+qs:''));}
-  }catch(e){}
-})();
-</script>
-<style>
-:root{--bg:#08080a;--card:#121215;--line:#25252b;--text:#f4f4f5;--muted:#a1a1aa;--p:#8b5cf6}
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:24px}
-.card{max-width:480px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px}
-h1{font-size:1.4rem;margin-bottom:8px}
-p{color:var(--muted);font-size:14px;line-height:1.55;margin-bottom:14px}
-.btn{display:block;text-align:center;padding:14px;border-radius:12px;background:var(--p);color:#fff;font-weight:600;text-decoration:none;margin:8px 0}
-.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
-.ok{color:#86efac}.err{color:#fca5a5}
-code{background:#1a1a1f;padding:2px 6px;border-radius:6px;font-size:12px}
-ul{color:var(--muted);font-size:13px;margin:0 0 14px 18px}
-</style>
-</head>
-<body>
-<div class="card">
-  <h1>Staffora Dashboard</h1>
-  <p>Klassisches Dashboard (schwarz/grau). Login läuft über den Bot auf bot-hosting.</p>
-  <p id="st">Prüfe Bot…</p>
-  <a class="btn" id="login" href="#">Mit Discord anmelden</a>
-  <a class="btn ghost" href="https://staffora.apps.bot-hosting.cloud/dashboard">Cloud-Dashboard öffnen</a>
-  <p style="margin-top:16px;font-size:12px">Discord OAuth Redirect (exakt):</p>
-  <p><code>https://staffora.apps.bot-hosting.cloud/auth/callback</code></p>
-  <ul>
-    <li>Wenn Login <b>404</b>: die <b>staffora-upload.zip</b> auf bot-hosting hochladen und Bot neu starten</li>
-    <li>Danach diese Seite hard-refreshen (Ctrl+Shift+R)</li>
-  </ul>
-</div>
+<html lang="de"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Staffora</title></head><body style="background:#08080a;color:#a1a1aa;font-family:system-ui;padding:24px">
+<p id="st">Staffora Dashboard wird geladen…</p>
 <script>
 (function(){
-  var API='https://staffora.apps.bot-hosting.cloud';
-  var ret=encodeURIComponent(location.href.split('?')[0].split('#')[0]);
-  document.getElementById('login').href=API+'/auth/login?return='+ret;
-  var st=document.getElementById('st');
-  var tok=localStorage.getItem('staffora_token');
-  Promise.all([
-    fetch(API+'/health').then(function(r){return r.ok;}).catch(function(){return false;}),
-    fetch(API+'/auth/login',{method:'GET',redirect:'manual'}).then(function(r){return r.status;}).catch(function(){return 0})
-  ]).then(function(res){
-    var health=res[0], loginStatus=res[1];
-    if(!health){
-      st.className='err';
-      st.textContent='Bot offline oder nicht erreichbar.';
-      return;
-    }
-    if(loginStatus===404 || loginStatus===0){
-      st.className='err';
-      st.innerHTML='Bot läuft, aber <b>/auth/login = 404</b>. Es ist nicht die volle Staffora-Zip. Bitte <b>staffora-upload.zip</b> hochladen und neu starten.';
-      return;
-    }
-    st.className='ok';
-    st.textContent='Bot OK – Login bereit.';
-    if(tok){
-      st.textContent='Session gefunden – öffne klassisches Dashboard…';
-      location.replace(API+'/dashboard?token='+encodeURIComponent(tok));
-    }
-  }).catch(function(){
-    st.className='err';
-    st.textContent='Bot nicht erreichbar.';
+  var n=3;
+  Promise.all(Array.from({length:n},function(_,i){
+    return fetch('ip'+i+'.txt?v=22').then(function(r){
+      if(!r.ok) throw new Error('ip'+i+' '+r.status);
+      return r.text();
+    });
+  })).then(function(parts){
+    document.open();
+    document.write(parts.join(''));
+    document.close();
+  }).catch(function(e){
+    document.getElementById('st').textContent='Fehler: '+e.message;
   });
 })();
 </script>
-</body>
-</html>
+</body></html>
