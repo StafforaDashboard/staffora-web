@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="de"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="Cache-Control" content="no-cache"/>
 <title>Staffora Login</title>
 <style>
 body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#08080a;color:#f4f4f5;font-family:system-ui,sans-serif}
@@ -18,13 +19,35 @@ body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:c
   var code=qs.get('code'), err=qs.get('error'), msg=document.getElementById('msg');
   if(err){msg.className='err';msg.textContent='Abgebrochen: '+err;return;}
   if(!code){msg.className='err';msg.innerHTML='Kein Code. <a href="'+HOME+'">Zurück</a>';return;}
-  fetch(API+'/api/oauth/exchange',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body:JSON.stringify({code:code,redirect_uri:REDIR})})
-  .then(function(r){return r.text().then(function(t){var d=null;try{d=t?JSON.parse(t):null;}catch(e){}
-    if(!r.ok)throw new Error((d&&(d.error||d.message))||t||('HTTP '+r.status));return d;});})
-  .then(function(d){if(!d||!d.token)throw new Error('Keine Session');
-    try{localStorage.setItem('staffora_token',d.token);}catch(e){}
-    msg.textContent='Erfolgreich – Dashboard lädt…';location.replace(HOME+'?v=40');})
-  .catch(function(e){msg.className='err';msg.innerHTML='Login fehlgeschlagen: '+e.message+'<br><br><a href="'+HOME+'">Erneut</a>';});
+  fetch(API+'/api/oauth/exchange',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify({code:code,redirect_uri:REDIR})
+  })
+  .then(function(r){
+    return r.text().then(function(t){
+      var d=null;
+      try{d=t?JSON.parse(t):null;}catch(e){}
+      if(!r.ok){
+        var m=(d&&(d.error||d.message||d.error_description))||t||('HTTP '+r.status);
+        throw new Error(m);
+      }
+      return d;
+    });
+  })
+  .then(function(d){
+    var tok=d && (d.token || d.session || d.sessionToken);
+    if(!tok){
+      throw new Error('Keine Session'+(d?' (Antwort ohne token – Bot neu deployen)':' (leere Antwort)'));
+    }
+    try{localStorage.setItem('staffora_token',tok);}catch(e){}
+    if(d.user){try{localStorage.setItem('staffora_user',JSON.stringify(d.user));}catch(e){}}
+    msg.textContent='Erfolgreich – Dashboard lädt…';
+    location.replace(HOME+'?v=51');
+  })
+  .catch(function(e){
+    msg.className='err';
+    msg.innerHTML='Login fehlgeschlagen: '+String(e.message||e)+'<br><br><a href="'+HOME+'">Erneut</a>';
+  });
 })();
 </script></body></html>
