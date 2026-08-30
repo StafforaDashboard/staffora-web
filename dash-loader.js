@@ -1,7 +1,7 @@
 (function(){
-  var n=2;
+  var n=3;
   Promise.all(Array.from({length:n},function(_,i){
-    return fetch('zb'+i+'.txt?v=16').then(function(r){
+    return fetch('zb'+i+'.txt?v=20').then(function(r){
       if(!r.ok) throw new Error('Asset zb'+i+' ('+r.status+')');
       return r.text();
     });
@@ -18,6 +18,6 @@
     s.textContent=new TextDecoder().decode(buf);
     document.body.appendChild(s);
   }).catch(function(e){
-    document.body.innerHTML='<div style="padding:32px;font-family:system-ui;background:#08080a;color:#f4f4f5;min-height:100vh"><h1>Staffora</h1><p style="color:#a1a1aa">'+String(e.message||e)+'</p><p style="color:#71717a;margin-top:12px">Hard-Refresh (Ctrl+Shift+R). API muss online sein für Login/Daten.</p></div>';
+    document.body.insertAdjacentHTML('beforeend','<div style="padding:24px;color:#fca5a5;font-family:system-ui">'+String(e.message||e)+'</div>');
   });
 })();
