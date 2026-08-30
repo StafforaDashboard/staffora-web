@@ -1,12 +1,22 @@
-# Staffora Dashboard (GitHub Pages)
+# Staffora Dashboard (GitHub Pages ONLY)
 
 **Live:** https://stafforadashboard.github.io/staffora-web/
 
-Uses the **classic bot dashboard** (all tabs: Tickets, Büros, Duty, Dienstnummern, Ausweise, …).
+This is the **only** dashboard UI. The bot host is API-only.
 
-## Requirements
-1. Bot online on bot-hosting with the latest zip
-2. Discord OAuth redirect: `https://staffora.apps.bot-hosting.cloud/auth/callback`
+## Discord OAuth Redirect
 
-## Flow
-Login → Bot OAuth → return to GitHub Pages with token → classic dashboard loads
+Add exactly:
+
+`https://stafforadashboard.github.io/staffora-web/oauth/callback.html`
+
+## API (bot)
+
+`https://staffora.apps.bot-hosting.cloud`
+
+- `POST /api/oauth/exchange` — code → session token
+- `/api/me`, `/api/guilds`, …
+
+## Deploy bot zip
+
+Upload latest `staffora-upload.zip` so `/api/oauth/exchange` exists.
