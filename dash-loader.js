@@ -2,7 +2,7 @@
   var n=5;
   var idxs=[]; for(var i=0;i<n;i++) idxs.push(i);
   Promise.all(idxs.map(function(i){
-    return fetch('da'+i+'.js?v=12').then(function(r){
+    return fetch('da'+i+'.js?v=14').then(function(r){
       if(!r.ok) throw new Error('da'+i+' '+r.status);
       return r.text();
     });

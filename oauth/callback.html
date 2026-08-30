@@ -26,40 +26,26 @@ a{color:#a78bfa}
   var code = qs.get('code');
   var err = qs.get('error');
   var msg = document.getElementById('msg');
-  if (err) {
-    msg.className = 'err';
-    msg.textContent = 'Discord Login abgebrochen: ' + err;
-    return;
-  }
-  if (!code) {
-    msg.className = 'err';
-    msg.innerHTML = 'Kein Auth-Code. <a href="'+HOME+'">Zurück</a>';
-    return;
-  }
+  if (err) { msg.className='err'; msg.textContent='Discord Login abgebrochen: '+err; return; }
+  if (!code) { msg.className='err'; msg.innerHTML='Kein Auth-Code. <a href="'+HOME+'">Zurück</a>'; return; }
   fetch(API + '/api/oauth/exchange', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify({ code: code, redirect_uri: REDIR })
   }).then(function(r){
     return r.text().then(function(t){
-      var data = null;
-      try { data = t ? JSON.parse(t) : null; } catch(e) {}
-      if (!r.ok) {
-        var m = (data && (data.error || data.message)) || t || ('HTTP ' + r.status);
-        throw new Error(m);
-      }
+      var data=null; try{ data=t?JSON.parse(t):null; }catch(e){}
+      if(!r.ok) throw new Error((data&&(data.error||data.message))||t||('HTTP '+r.status));
       return data;
     });
   }).then(function(data){
-    if (!data || !data.token) throw new Error('Keine Session vom Server');
-    try { localStorage.setItem('staffora_token', data.token); } catch(e) {}
-    msg.className = 'muted';
-    msg.textContent = 'Erfolgreich – Dashboard wird geladen…';
-    location.replace(HOME + '?v=10');
+    if(!data||!data.token) throw new Error('Keine Session');
+    try{ localStorage.setItem('staffora_token', data.token); }catch(e){}
+    msg.textContent='Erfolgreich – Dashboard wird geladen…';
+    location.replace(HOME+'?v=14');
   }).catch(function(e){
-    msg.className = 'err';
-    msg.innerHTML = 'Login fehlgeschlagen: ' + String(e.message || e) +
-      '<br><br><a href="'+HOME+'">Erneut versuchen</a>';
+    msg.className='err';
+    msg.innerHTML='Login fehlgeschlagen: '+String(e.message||e)+'<br><br><a href="'+HOME+'">Erneut versuchen</a>';
   });
 })();
 </script>
