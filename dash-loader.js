@@ -1,8 +1,8 @@
 (function(){
-  var n=5;
+  var n=9;
   Promise.all(Array.from({length:n},function(_,i){
-    return fetch('zp'+i+'.txt?v=21').then(function(r){
-      if(!r.ok) throw new Error('zp'+i+' '+r.status);
+    return fetch('c'+i+'.txt?v=22').then(function(r){
+      if(!r.ok) throw new Error('c'+i+' '+r.status);
       return r.text();
     });
   })).then(function(parts){
