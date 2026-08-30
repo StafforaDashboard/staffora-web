@@ -1,22 +1,36 @@
-# Staffora Dashboard (GitHub Pages ONLY)
+# Staffora Dashboard — GitHub Pages ONLY
 
 **Live:** https://stafforadashboard.github.io/staffora-web/
 
-This is the **only** dashboard UI. The bot host is API-only.
+The **complete classic dashboard** (Leveo black/grey UI, all tabs) runs only here.
 
-## Discord OAuth Redirect
+The bot host is **API-only** (no dashboard UI).
 
-Add exactly:
+## Discord Developer Portal — OAuth2 Redirect
 
-`https://stafforadashboard.github.io/staffora-web/oauth/callback.html`
+Add **exactly**:
 
-## API (bot)
+```
+https://stafforadashboard.github.io/staffora-web/oauth/callback.html
+```
 
-`https://staffora.apps.bot-hosting.cloud`
+Remove old bot-hosting dashboard redirects if you want (optional).
 
-- `POST /api/oauth/exchange` — code → session token
-- `/api/me`, `/api/guilds`, …
+## Bot env
 
-## Deploy bot zip
+```
+OAUTH_REDIRECT_URI=https://stafforadashboard.github.io/staffora-web/oauth/callback.html
+DASHBOARD_URL=https://stafforadashboard.github.io/staffora-web/
+PUBLIC_URL=https://staffora.apps.bot-hosting.cloud
+```
 
-Upload latest `staffora-upload.zip` so `/api/oauth/exchange` exists.
+Upload latest `staffora-upload.zip` so `POST /api/oauth/exchange` exists.
+
+## Files needed on this repo
+
+- `index.html` (classic shell)
+- `dash-loader.js`
+- `zb0.txt` + `zb1.txt` (compressed app)
+- `oauth/callback.html`
+
+If missing, upload `staffora-gh-pages-full.zip` contents into this repo root.
