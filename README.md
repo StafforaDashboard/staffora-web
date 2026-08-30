@@ -1,17 +1,7 @@
-# Staffora Dashboard — GitHub Pages ONLY
+# Staffora Dashboard
 
-**Live:** https://stafforadashboard.github.io/staffora-web/
+Live: https://stafforadashboard.github.io/staffora-web/
 
-## OAuth Redirect (Discord Developer Portal)
+OAuth callback: https://stafforadashboard.github.io/staffora-web/oauth/callback.html
 
-```
-https://stafforadashboard.github.io/staffora-web/oauth/callback.html
-```
-
-## Bot env
-
-```
-OAUTH_REDIRECT_URI=https://stafforadashboard.github.io/staffora-web/oauth/callback.html
-DASHBOARD_URL=https://stafforadashboard.github.io/staffora-web/
-PUBLIC_URL=https://staffora.apps.bot-hosting.cloud
-```
+API: https://staffora.apps.bot-hosting.cloud
