@@ -2,25 +2,166 @@
 <html lang="de">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>Staffora</title>
-<style>html,body,iframe{margin:0;height:100%;width:100%;border:0;background:#08080a}</style>
+<script>
+window.STAFFORA_API='https://staffora.apps.bot-hosting.cloud';
+window.API_BASE=window.STAFFORA_API;
+window.STAFFORA_CLIENT_ID='1537409443719811112';
+(function(){try{
+  var qs=new URLSearchParams(location.search||'');
+  var t=qs.get('token');
+  if(!t){var m=(location.hash||'').match(/token=([a-f0-9]+)/i);if(m)t=m[1];}
+  if(t){localStorage.setItem('staffora_token',t);qs.delete('token');
+    history.replaceState({},'',location.pathname+(qs.toString()?'?'+qs.toString():''));}
+}catch(e){}})();
+</script>
+<style>
+:root{--bg:#08080a;--card:#121215;--line:#25252b;--text:#f4f4f5;--muted:#a1a1aa;--purple:#8b5cf6;--purple2:#a78bfa}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{display:flex;flex-direction:column;min-height:100vh}
+.wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{width:100%;max-width:440px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:32px 28px;text-align:center}
+.logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#4c1d95);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px}
+h1{font-size:1.6rem;margin-bottom:8px}
+.sub{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 18px;border-radius:12px;border:0;font-weight:600;font-size:15px;cursor:pointer;text-decoration:none;color:#fff;background:var(--purple);margin-bottom:10px}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.btn:disabled{opacity:.5;cursor:wait}
+.status{margin-top:16px;font-size:13px;color:var(--muted);min-height:1.4em}
+.status.err{color:#fca5a5}
+.status.ok{color:#86efac}
+.features{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:20px 0;text-align:left}
+.features div{background:#0c0c0e;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--muted)}
+.features strong{display:block;color:var(--text);font-size:13px;margin-bottom:2px}
+#app{display:none;max-width:1100px;width:100%;margin:0 auto;padding:20px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.top h2{font-size:1.25rem}
+.chip{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 6px;font-size:13px}
+.chip img{width:28px;height:28px;border-radius:50%}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:left}
+.gcard h3{font-size:15px;margin-bottom:6px}
+.gcard p{font-size:12px;color:var(--muted);margin-bottom:12px}
+.tag{display:inline-block;font-size:11px;padding:3px 8px;border-radius:999px;background:rgba(139,92,246,.15);color:var(--purple2);margin-bottom:8px}
+.tag.off{background:#1f1f23;color:var(--muted)}
+footer{text-align:center;padding:16px;color:var(--muted);font-size:12px}
+</style>
 </head>
 <body>
-<iframe id="f" title="Staffora" allow="clipboard-write"></iframe>
+<div class="wrap" id="landing">
+  <div class="card">
+    <div class="logo">S</div>
+    <h1>Staffora</h1>
+    <p class="sub">Staff-Dashboard &middot; Tickets, B&uuml;ros, Duty, Dienstnummern, Ausweise und mehr.</p>
+    <div class="features">
+      <div><strong>Tickets</strong>Support &amp; Panels</div>
+      <div><strong>Duty</strong>Clock-In / Checks</div>
+      <div><strong>B&uuml;ros</strong>Warteraum &amp; Anfragen</div>
+      <div><strong>Team</strong>XP &middot; Profile</div>
+    </div>
+    <a class="btn" id="btn-login" href="#">Mit Discord anmelden</a>
+    <a class="btn ghost" id="btn-invite" href="#" target="_blank" rel="noopener">Bot einladen</a>
+    <div class="status" id="status">Verbinde…</div>
+  </div>
+</div>
+<div id="app">
+  <div class="top">
+    <h2>Deine Server</h2>
+    <div class="chip" id="user-chip"><span>User</span></div>
+  </div>
+  <div class="grid" id="guilds"></div>
+  <p class="status" id="app-status" style="margin-top:16px"></p>
+</div>
+<footer>API: staffora.apps.bot-hosting.cloud &middot; GitHub Pages</footer>
 <script>
 (function(){
-  var cloud="https://staffora.apps.bot-hosting.cloud";
-  var qs=new URLSearchParams(location.search||"");
-  var t=qs.get("token");
-  if(t){try{localStorage.setItem("staffora_token",t)}catch(e){}
-    qs.delete("token");history.replaceState({},"",location.pathname+(qs.toString()?"?"+qs:""));}
-  var tok=localStorage.getItem("staffora_token")||t||"";
-  if(!tok){
-    location.replace(cloud+"/auth/login?return="+encodeURIComponent(location.href.split("?")[0].split("#")[0]));
-    return;
+  var API = window.STAFFORA_API;
+  var statusEl = document.getElementById('status');
+  var loginBtn = document.getElementById('btn-login');
+  var inviteBtn = document.getElementById('btn-invite');
+  var ret = encodeURIComponent(location.href.split('#')[0].split('?')[0]);
+  loginBtn.href = API + '/auth/login?return=' + ret;
+  inviteBtn.href = 'https://discord.com/oauth2/authorize?client_id=' + window.STAFFORA_CLIENT_ID + '&permissions=8&scope=bot%20applications.commands';
+
+  function tok(){ try{return localStorage.getItem('staffora_token')||'';}catch(e){return'';} }
+  function setStatus(msg, kind){
+    statusEl.textContent = msg||'';
+    statusEl.className = 'status' + (kind?(' '+kind):'');
   }
-  document.getElementById("f").src=cloud+"/dashboard?token="+encodeURIComponent(tok);
+
+  function api(path){
+    return fetch(API + path, {
+      headers: { Authorization: 'Bearer ' + tok(), Accept: 'application/json' }
+    }).then(async function(r){
+      var text = await r.text();
+      var data = null;
+      try{ data = text ? JSON.parse(text) : null; }catch(e){}
+      if(!r.ok){
+        var err = (data && (data.error||data.message)) || text || ('HTTP '+r.status);
+        throw new Error(err);
+      }
+      return data;
+    });
+  }
+
+  function showApp(me, guilds){
+    document.getElementById('landing').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    var chip = document.getElementById('user-chip');
+    var name = me.username || me.global_name || 'User';
+    var av = me.avatar || '';
+    chip.innerHTML = (av ? '<img src="'+av+'" alt=""/>' : '') + '<span>'+name+'</span>' +
+      ' <a href="#" id="logout" style="color:#a78bfa;margin-left:8px">Logout</a>';
+    document.getElementById('logout').onclick = function(e){
+      e.preventDefault();
+      try{ localStorage.removeItem('staffora_token'); }catch(err){}
+      location.reload();
+    };
+    var box = document.getElementById('guilds');
+    if(!guilds || !guilds.length){
+      box.innerHTML = '<div class="gcard"><h3>Keine Server</h3><p>Lade den Bot auf einen Server ein, auf dem du Admin bist.</p></div>';
+      return;
+    }
+    box.innerHTML = guilds.map(function(g){
+      var online = g.botInGuild !== false;
+      var href = API + '/dashboard?token=' + encodeURIComponent(tok()) + '&guild=' + encodeURIComponent(g.id||'');
+      return '<div class="gcard">' +
+        '<span class="tag '+(online?'':'off')+'">'+(online?'Bot online':'Invite n\u00f6tig')+'</span>' +
+        '<h3>'+(g.name||g.id)+'</h3>' +
+        '<p>'+(g.memberCount!=null?(g.memberCount+' Mitglieder'):'\u00a0')+'</p>' +
+        (online
+          ? '<a class="btn" style="width:auto;display:inline-flex;padding:10px 14px" href="'+href+'">Dashboard \u00f6ffnen</a>'
+          : '<a class="btn ghost" style="width:auto;display:inline-flex;padding:10px 14px" target="_blank" href="'+inviteBtn.href+'">Bot einladen</a>') +
+        '</div>';
+    }).join('');
+  }
+
+  setStatus('Pr\u00fcfe Bot & Session\u2026');
+  fetch(API + '/health').then(function(r){
+    if(!r.ok) throw new Error('Bot offline');
+    return r.text();
+  }).then(function(){
+    setStatus('Bot erreichbar.', 'ok');
+    if(!tok()){
+      setStatus('Bereit \u2013 bitte anmelden.', 'ok');
+      return;
+    }
+    setStatus('Lade Session\u2026');
+    return api('/api/me').then(function(me){
+      return api('/api/guilds').then(function(guilds){
+        showApp(me, Array.isArray(guilds)?guilds:(guilds&&guilds.guilds)||[]);
+      });
+    }).catch(function(e){
+      try{ localStorage.removeItem('staffora_token'); }catch(err){}
+      setStatus('Session ung\u00fcltig: '+e.message+' \u2013 bitte neu anmelden.', 'err');
+    });
+  }).catch(function(e){
+    setStatus('Bot nicht erreichbar ('+e.message+'). Lade die neueste Bot-Zip auf bot-hosting und starte neu.', 'err');
+    loginBtn.style.opacity = '0.7';
+  });
 })();
 </script>
 </body>
