@@ -5,8 +5,8 @@
 <p id="st">Staffora wird geladen…</p>
 <script>
 (function(){
-  var n=57;
-  Promise.all(Array.from({length:n},(_,i)=>fetch('s'+i+'.txt?v=30').then(r=>{if(!r.ok)throw new Error('s'+i+' '+r.status);return r.text();})))
+  var n=19;
+  Promise.all(Array.from({length:n},(_,i)=>fetch('d'+i+'.txt?v=34').then(r=>{if(!r.ok)throw new Error('d'+i+' '+r.status);return r.text();})))
   .then(parts=>{
     var bin=atob(parts.join(''));
     var bytes=new Uint8Array(bin.length);
