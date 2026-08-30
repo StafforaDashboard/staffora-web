@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="de"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Staffora</title></head><body style="background:#08080a;color:#a1a1aa;font-family:system-ui;padding:24px">
-<p id="st">Staffora Dashboard wird geladen…</p>
+<title>Staffora</title></head>
+<body style="margin:0;min-height:100vh;background:#08080a;color:#a1a1aa;font-family:system-ui;display:flex;align-items:center;justify-content:center">
+<p id="st">Staffora wird geladen…</p>
 <script>
 (function(){
-  var n=12;
-  Promise.all(Array.from({length:n},function(_,i){
-    return fetch('ih'+i+'.txt?v=23').then(function(r){
-      if(!r.ok) throw new Error('ih'+i+' '+r.status);
-      return r.text();
-    });
-  })).then(function(parts){
-    var html = decodeURIComponent(escape(atob(parts.join('').trim())));
-    document.open();
-    document.write(html);
-    document.close();
-  }).catch(function(e){
-    document.getElementById('st').textContent='Fehler: '+e.message;
-  });
+  var n=19;
+  Promise.all(Array.from({length:n},(_,i)=>fetch('p'+i+'.txt?v=26').then(r=>{if(!r.ok)throw new Error('p'+i+' '+r.status);return r.text();})))
+  .then(parts=>{
+    var bin=atob(parts.join(''));
+    var bytes=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    return new Response(bytes).arrayBuffer().then(buf=>new Response(buf).body.pipeThrough(new DecompressionStream('gzip')).arrayBuffer());
+  })
+  .then(buf=>{
+    var html=new TextDecoder().decode(buf);
+    document.open();document.write(html);document.close();
+  })
+  .catch(e=>{document.getElementById('st').textContent='Fehler: '+e.message;});
 })();
 </script>
 </body></html>
