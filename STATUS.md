@@ -1,5 +1,5 @@
-# Staffora GH Pages status
+# Staffora Pages status
 
-- Full motion-upgraded Leveo HTML is prepared (166KB, gzip+b64 payload ready).
-- Chunked deploy in progress (pd00+ started).
-- Temporary index links to cloud without forced redirect.
+- Loader on Vercel: https://staffora-dashboard-kimon-louvet.vercel.app
+- Payload chunks: uploading pd00-pd22 to this repo
+- Full single-file deploy: upload index.html from staffora-dashboard-gh-full-deploy.zip
