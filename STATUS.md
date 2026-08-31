@@ -1,6 +1,2 @@
-# Staffora Web (GitHub Pages)
-
-Stable dashboard via `index.html` + `app.js` (no base64/atob chunks).
+Full classic Leveo dashboard restored as single index.html (no base64 chunks).
 API: https://staffora.apps.bot-hosting.cloud
-
-Full classic Leveo dashboard is also served by the bot API itself.
