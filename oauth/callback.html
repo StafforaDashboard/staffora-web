@@ -43,7 +43,7 @@ body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:c
     try{localStorage.setItem('staffora_token',tok);}catch(e){}
     if(d.user){try{localStorage.setItem('staffora_user',JSON.stringify(d.user));}catch(e){}}
     msg.textContent='Erfolgreich – Dashboard lädt…';
-    location.replace(HOME+'?v=51');
+    location.replace(HOME+'?v=270');
   })
   .catch(function(e){
     msg.className='err';

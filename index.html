@@ -17,7 +17,7 @@ display:flex;align-items:center;justify-content:center;text-align:center;padding
 <p id="st">Staffora wird geladen…</p>
 <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.min.js"></script>
 <script>
-/* stable-d-loader-v260-split */
+/* stable-d-loader-v270-split-boot */
 (function(){
   var st=document.getElementById('st');
   var n=19;
@@ -35,12 +35,11 @@ display:flex;align-items:center;justify-content:center;text-align:center;padding
     return Promise.reject(new Error('Kein Gzip-Support'));
   }
   function fetchPart(name){
-    return fetch(name+'?v=260').then(function(r){
+    return fetch(name+'?v=270').then(function(r){
       if(!r.ok) throw new Error(name+' '+r.status);
       return r.text();
     });
   }
-  // d0 and d1 are split into a/b halves to avoid upload corruption
   Promise.all([
     Promise.all([fetchPart('d0a.txt'), fetchPart('d0b.txt')]).then(function(p){ return p.join(''); }),
     Promise.all([fetchPart('d1a.txt'), fetchPart('d1b.txt')]).then(function(p){ return p.join(''); }),
@@ -55,6 +54,10 @@ display:flex;align-items:center;justify-content:center;text-align:center;padding
     return inflateBytes(bytes);
   }).then(function(inflated){
     var html=new TextDecoder().decode(inflated);
+    // inject boot.js so token switches to dashboard view after login
+    if(html.indexOf('boot.js') < 0){
+      html = html.replace('</body>', '<script src="boot.js?v=270"><\/script></body>');
+    }
     document.open();
     document.write(html);
     document.close();
