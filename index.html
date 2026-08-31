@@ -3,14 +3,76 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Staffora</title>
-<meta http-equiv="refresh" content="0;url=https://staffora.apps.bot-hosting.cloud/"/>
+<style>
+body{margin:0;background:#08080a;color:#e8e8ed;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.box{text-align:center;padding:24px}
+.sp{width:32px;height:32px;border:2px solid #333;border-top-color:#8b5cf6;border-radius:50%;animation:s .7s linear infinite;margin:0 auto 14px}
+@keyframes s{to{transform:rotate(360deg)}}
+.bar{width:180px;height:4px;background:#1a1a1f;border-radius:99px;margin:12px auto 0;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#a78bfa);transition:width .2s}
+</style>
+</head><body>
+<div class="box">
+  <div class="sp"></div>
+  <div id="t">Staffora lädt…</div>
+  <div class="bar"><i id="p"></i></div>
+</div>
 <script>
-  var api = 'https://staffora.apps.bot-hosting.cloud';
-  location.replace(api + (location.search||'') + (location.hash||''));
+(function(){
+  var n=4, v='vfull1';
+  function setT(s){var e=document.getElementById('t');if(e)e.textContent=s;}
+  function setP(pct){var e=document.getElementById('p');if(e)e.style.width=pct+'%';}
+  function cleanB64(s){
+    s=String(s).replace(/\s+/g,'');
+    var pad=s.length%4; if(pad) s+='===='.slice(pad);
+    return s;
+  }
+  function b64ToU8(b){
+    b=cleanB64(b);
+    var bin=atob(b), u=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+    return u;
+  }
+  async function inflate(u8){
+    if(typeof DecompressionStream!=='undefined'){
+      try{
+        var ds=new DecompressionStream('gzip');
+        var ab=await new Response(new Blob([u8]).stream().pipeThrough(ds)).arrayBuffer();
+        return new TextDecoder().decode(ab);
+      }catch(e){}
+    }
+    await new Promise(function(res,rej){
+      var s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js';
+      s.onload=res;s.onerror=rej;document.head.appendChild(s);
+    });
+    return new Promise(function(resolve,reject){
+      fflate.gunzip(u8,function(err,out){if(err)reject(err);else resolve(new TextDecoder().decode(out));});
+    });
+  }
+  async function run(){
+    try{
+      setT('Lade Dashboard…');
+      var rs=await Promise.all(Array.from({length:n},function(_,i){
+        return fetch('dash.'+i+'.b64.txt?v='+v).then(function(r){
+          if(!r.ok) throw new Error('Teil '+(i+1)+'/'+n+' fehlt ('+r.status+')');
+          return r.text();
+        });
+      }));
+      setP(70);
+      setT('Entpacken…');
+      var b64=rs.map(function(t){return t.trim();}).join('');
+      if(/[^A-Za-z0-9+/=]/.test(b64.replace(/\s+/g,''))) throw new Error('ungültige Daten');
+      var html=await inflate(b64ToU8(b64));
+      if(!html||(html.indexOf('<html')<0&&html.indexOf('<!DOCTYPE')<0)) throw new Error('HTML ungültig');
+      setP(100);
+      document.open();document.write(html);document.close();
+    }catch(e){
+      console.error(e);
+      setT('Fehler: '+(e&&e.message?e.message:e)+' — hard-reload (Strg+Shift+R)');
+    }
+  }
+  run();
+})();
 </script>
-<style>body{margin:0;background:#08080a;color:#e8e8ed;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh}</style>
-</head>
-<body>
-  <p>Weiterleitung zum Staffora Dashboard… <a href="https://staffora.apps.bot-hosting.cloud/" style="color:#c4b5fd">Hier klicken</a></p>
-</body>
-</html>
+</body></html>

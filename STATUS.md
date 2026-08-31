@@ -1,2 +1,3 @@
-GitHub Pages redirects to the bot-hosted full Leveo dashboard.
-Primary: https://staffora.apps.bot-hosting.cloud/
+Full Leveo dashboard on GitHub Pages (4-part same-build gzip).
+API: https://staffora.apps.bot-hosting.cloud
+No redirect — loads locally then talks to bot API.
