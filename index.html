@@ -10,7 +10,7 @@
 <div class="box"><div class="sp"></div><div id="t">Staffora lädt…</div></div>
 <script>
 (function(){
-  var v='v2part1';
+  var n=4, v='v4p1';
   function setT(s){var e=document.getElementById('t');if(e)e.textContent=s;}
   function cleanB64(s){
     s=String(s).replace(/\s+/g,'');
@@ -43,14 +43,14 @@
   async function run(){
     try{
       setT('Lade Dashboard…');
-      var rs=await Promise.all([
-        fetch('dash.b64.0.txt?v='+v),
-        fetch('dash.b64.1.txt?v='+v)
-      ]);
+      var rs=await Promise.all(Array.from({length:n},function(_,i){
+        return fetch('dash.b64.'+i+'.txt?v='+v);
+      }));
       for(var i=0;i<rs.length;i++) if(!rs[i].ok) throw new Error('dash.b64.'+i+'.txt '+rs[i].status);
       var parts=await Promise.all(rs.map(function(r){return r.text();}));
       var b64=parts.map(function(t){return t.trim();}).join('');
       if(!b64) throw new Error('empty payload');
+      if(/[^A-Za-z0-9+/=]/.test(b64.replace(/\s+/g,''))) throw new Error('invalid base64');
       setT('Entpacken…');
       var html=await inflate(b64ToU8(b64));
       if(!html||(html.indexOf('<html')<0 && html.indexOf('<!DOCTYPE')<0))
