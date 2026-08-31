@@ -10,18 +10,16 @@
 <div class="box"><div class="sp"></div><div id="t">Staffora lädt…</div></div>
 <script>
 (function(){
-  var n=116, v='vclean1';
+  var v='vsingle1';
   function setT(s){var e=document.getElementById('t');if(e)e.textContent=s;}
   function cleanB64(s){
-    s = String(s).replace(/\s+/g,'');
-    var pad = s.length % 4;
-    if(pad) s += '===='.slice(pad);
+    s=String(s).replace(/\s+/g,'');
+    var pad=s.length%4; if(pad) s+='===='.slice(pad);
     return s;
   }
   function b64ToU8(b){
-    b = cleanB64(b);
-    var bin = atob(b);
-    var u = new Uint8Array(bin.length);
+    b=cleanB64(b);
+    var bin=atob(b), u=new Uint8Array(bin.length);
     for(var i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
     return u;
   }
@@ -45,28 +43,18 @@
   async function run(){
     try{
       setT('Lade Dashboard…');
-      var parts=[];
-      for(var i=0;i<n;i++){
-        var r=await fetch('k'+i+'.txt?v='+v);
-        if(!r.ok) throw new Error('chunk k'+i+' '+r.status);
-        var t=await r.text();
-        if(!t || !t.trim()) throw new Error('chunk k'+i+' empty');
-        parts.push(t.trim());
-        if(i%20===0) setT('Lade… '+Math.round(i/n*100)+'%');
-      }
+      var r=await fetch('dash.b64.txt?v='+v);
+      if(!r.ok) throw new Error('dash.b64.txt '+r.status);
+      var b64=await r.text();
+      if(!b64||!b64.trim()) throw new Error('dash.b64.txt empty');
       setT('Entpacken…');
-      var joined = parts.join('');
-      if(/[^A-Za-z0-9+/=]/.test(joined.replace(/\s+/g,''))) {
-        throw new Error('ungültige Base64-Zeichen in Chunks — bitte hard-reload');
-      }
-      var html=await inflate(b64ToU8(joined));
-      if(!html || html.indexOf('<!DOCTYPE')===-1 && html.indexOf('<html')===-1) {
-        throw new Error('Dashboard-HTML ungültig nach Entpacken');
-      }
+      var html=await inflate(b64ToU8(b64.trim()));
+      if(!html||(html.indexOf('<html')<0 && html.indexOf('<!DOCTYPE')<0))
+        throw new Error('HTML ungültig');
       document.open();document.write(html);document.close();
     }catch(e){
       console.error(e);
-      setT('Fehler: '+(e&&e.message?e.message:e)+' — bitte hard-reload (Strg+Shift+R)');
+      setT('Fehler: '+(e&&e.message?e.message:e)+' — hard-reload (Strg+Shift+R)');
     }
   }
   run();
