@@ -1,4 +1,5 @@
-Full animated Leveo dashboard on GitHub Pages.
-Loads from p0.b64…p11.b64 (same gzip build).
-API: https://staffora.apps.bot-hosting.cloud
-No redirect to cloud for the UI shell.
+# Staffora GH Pages status
+
+- Full motion-upgraded Leveo HTML is prepared (166KB, gzip+b64 payload ready).
+- Chunked deploy in progress (pd00+ started).
+- Temporary index links to cloud without forced redirect.
