@@ -1,3 +1,4 @@
-Full Leveo dashboard on GitHub Pages (4-part same-build gzip).
+Full animated Leveo dashboard on GitHub Pages.
+Loads from p0.b64…p11.b64 (same gzip build).
 API: https://staffora.apps.bot-hosting.cloud
-No redirect — loads locally then talks to bot API.
+No redirect to cloud for the UI shell.
