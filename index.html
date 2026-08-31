@@ -10,15 +10,37 @@
 <div class="box"><div class="sp"></div><div id="t">Staffora lädt…</div></div>
 <script>
 (function(){
-  var n=116, v='v116ok';
+  var n=116, v='vclean1';
   function setT(s){var e=document.getElementById('t');if(e)e.textContent=s;}
-  function b64ToU8(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;}
+  function cleanB64(s){
+    s = String(s).replace(/\s+/g,'');
+    var pad = s.length % 4;
+    if(pad) s += '===='.slice(pad);
+    return s;
+  }
+  function b64ToU8(b){
+    b = cleanB64(b);
+    var bin = atob(b);
+    var u = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+    return u;
+  }
   async function inflate(u8){
     if(typeof DecompressionStream!=='undefined'){
-      try{var ds=new DecompressionStream('gzip');var ab=await new Response(new Blob([u8]).stream().pipeThrough(ds)).arrayBuffer();return new TextDecoder().decode(ab);}catch(e){}
+      try{
+        var ds=new DecompressionStream('gzip');
+        var ab=await new Response(new Blob([u8]).stream().pipeThrough(ds)).arrayBuffer();
+        return new TextDecoder().decode(ab);
+      }catch(e){}
     }
-    await new Promise(function(res,rej){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
-    return new Promise(function(resolve,reject){fflate.gunzip(u8,function(err,out){if(err)reject(err);else resolve(new TextDecoder().decode(out));});});
+    await new Promise(function(res,rej){
+      var s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js';
+      s.onload=res;s.onerror=rej;document.head.appendChild(s);
+    });
+    return new Promise(function(resolve,reject){
+      fflate.gunzip(u8,function(err,out){if(err)reject(err);else resolve(new TextDecoder().decode(out));});
+    });
   }
   async function run(){
     try{
@@ -27,13 +49,25 @@
       for(var i=0;i<n;i++){
         var r=await fetch('k'+i+'.txt?v='+v);
         if(!r.ok) throw new Error('chunk k'+i+' '+r.status);
-        parts.push(await r.text());
+        var t=await r.text();
+        if(!t || !t.trim()) throw new Error('chunk k'+i+' empty');
+        parts.push(t.trim());
         if(i%20===0) setT('Lade… '+Math.round(i/n*100)+'%');
       }
       setT('Entpacken…');
-      var html=await inflate(b64ToU8(parts.join('')));
+      var joined = parts.join('');
+      if(/[^A-Za-z0-9+/=]/.test(joined.replace(/\s+/g,''))) {
+        throw new Error('ungültige Base64-Zeichen in Chunks — bitte hard-reload');
+      }
+      var html=await inflate(b64ToU8(joined));
+      if(!html || html.indexOf('<!DOCTYPE')===-1 && html.indexOf('<html')===-1) {
+        throw new Error('Dashboard-HTML ungültig nach Entpacken');
+      }
       document.open();document.write(html);document.close();
-    }catch(e){console.error(e);setT('Fehler: '+(e&&e.message?e.message:e)+' — bitte hard-reload');}
+    }catch(e){
+      console.error(e);
+      setT('Fehler: '+(e&&e.message?e.message:e)+' — bitte hard-reload (Strg+Shift+R)');
+    }
   }
   run();
 })();
