@@ -17,7 +17,7 @@ display:flex;align-items:center;justify-content:center;text-align:center;padding
 <p id="st">Staffora wird geladen…</p>
 <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.min.js"></script>
 <script>
-/* stable-d-loader-v250 */
+/* stable-d-loader-v260-split */
 (function(){
   var st=document.getElementById('st');
   var n=19;
@@ -34,12 +34,21 @@ display:flex;align-items:center;justify-content:center;text-align:center;padding
     }
     return Promise.reject(new Error('Kein Gzip-Support'));
   }
-  Promise.all(Array.from({length:n},function(_,i){
-    return fetch('d'+i+'.txt?v=250').then(function(r){
-      if(!r.ok) throw new Error('d'+i+' '+r.status);
+  function fetchPart(name){
+    return fetch(name+'?v=260').then(function(r){
+      if(!r.ok) throw new Error(name+' '+r.status);
       return r.text();
     });
-  })).then(function(parts){
+  }
+  // d0 and d1 are split into a/b halves to avoid upload corruption
+  Promise.all([
+    Promise.all([fetchPart('d0a.txt'), fetchPart('d0b.txt')]).then(function(p){ return p.join(''); }),
+    Promise.all([fetchPart('d1a.txt'), fetchPart('d1b.txt')]).then(function(p){ return p.join(''); }),
+    Promise.all(Array.from({length:n-2},function(_,i){
+      return fetchPart('d'+(i+2)+'.txt');
+    }))
+  ]).then(function(groups){
+    var parts = [groups[0], groups[1]].concat(groups[2]);
     var bin=atob(parts.join(''));
     var bytes=new Uint8Array(bin.length);
     for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
