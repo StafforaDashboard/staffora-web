@@ -1,1 +1,6 @@
-Single-file gzip+b64 dashboard (dash.b64.txt). No multi-chunk mismatch.
+# Staffora Web (GitHub Pages)
+
+Stable dashboard via `index.html` + `app.js` (no base64/atob chunks).
+API: https://staffora.apps.bot-hosting.cloud
+
+Full classic Leveo dashboard is also served by the bot API itself.

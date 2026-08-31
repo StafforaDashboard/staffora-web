@@ -1,67 +1,54 @@
 <!DOCTYPE html>
-<html lang="de"><head>
+<html lang="de">
+<head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Staffora</title>
-<style>body{margin:0;background:#08080a;color:#e8e8ed;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
-.box{text-align:center;padding:24px}.sp{width:28px;height:28px;border:2px solid #333;border-top-color:#8b5cf6;border-radius:50%;animation:s .7s linear infinite;margin:0 auto 12px}
-@keyframes s{to{transform:rotate(360deg)}}</style>
-</head><body>
-<div class="box"><div class="sp"></div><div id="t">Staffora lädt…</div></div>
-<script>
-(function(){
-  var n=4, v='v4p1';
-  function setT(s){var e=document.getElementById('t');if(e)e.textContent=s;}
-  function cleanB64(s){
-    s=String(s).replace(/\s+/g,'');
-    var pad=s.length%4; if(pad) s+='===='.slice(pad);
-    return s;
-  }
-  function b64ToU8(b){
-    b=cleanB64(b);
-    var bin=atob(b), u=new Uint8Array(bin.length);
-    for(var i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
-    return u;
-  }
-  async function inflate(u8){
-    if(typeof DecompressionStream!=='undefined'){
-      try{
-        var ds=new DecompressionStream('gzip');
-        var ab=await new Response(new Blob([u8]).stream().pipeThrough(ds)).arrayBuffer();
-        return new TextDecoder().decode(ab);
-      }catch(e){}
-    }
-    await new Promise(function(res,rej){
-      var s=document.createElement('script');
-      s.src='https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js';
-      s.onload=res;s.onerror=rej;document.head.appendChild(s);
-    });
-    return new Promise(function(resolve,reject){
-      fflate.gunzip(u8,function(err,out){if(err)reject(err);else resolve(new TextDecoder().decode(out));});
-    });
-  }
-  async function run(){
-    try{
-      setT('Lade Dashboard…');
-      var rs=await Promise.all(Array.from({length:n},function(_,i){
-        return fetch('dash.b64.'+i+'.txt?v='+v);
-      }));
-      for(var i=0;i<rs.length;i++) if(!rs[i].ok) throw new Error('dash.b64.'+i+'.txt '+rs[i].status);
-      var parts=await Promise.all(rs.map(function(r){return r.text();}));
-      var b64=parts.map(function(t){return t.trim();}).join('');
-      if(!b64) throw new Error('empty payload');
-      if(/[^A-Za-z0-9+/=]/.test(b64.replace(/\s+/g,''))) throw new Error('invalid base64');
-      setT('Entpacken…');
-      var html=await inflate(b64ToU8(b64));
-      if(!html||(html.indexOf('<html')<0 && html.indexOf('<!DOCTYPE')<0))
-        throw new Error('HTML ungültig');
-      document.open();document.write(html);document.close();
-    }catch(e){
-      console.error(e);
-      setT('Fehler: '+(e&&e.message?e.message:e)+' — hard-reload (Strg+Shift+R)');
-    }
-  }
-  run();
-})();
-</script>
-</body></html>
+<script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";</script>
+<style>
+:root{--bg:#09090b;--card:#16161a;--border:#27272a;--text:#fafafa;--muted:#a1a1aa;--a:#7c3aed}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:#c4b5fd;text-decoration:none}.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600;cursor:pointer;font:inherit}
+.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:0;color:#fff}.btn-sm{padding:7px 12px;font-size:13px}
+.hidden{display:none!important}.top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border)}
+.brand{font-weight:700;display:flex;gap:10px;align-items:center}.logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#4c1d95);display:grid;place-items:center;font-weight:800}
+.layout{display:grid;grid-template-columns:200px 1fr;min-height:calc(100vh - 56px)}
+.side{border-right:1px solid var(--border);padding:12px}.side button{display:block;width:100%;text-align:left;background:0;border:0;color:var(--muted);padding:10px;border-radius:10px;cursor:pointer;font:inherit;margin-bottom:4px}
+.side button.active,.side button:hover{background:rgba(124,58,237,.15);color:#fff}
+.main{padding:18px;max-width:1000px}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.lead{color:var(--muted);line-height:1.5}
+.hero{max-width:480px;margin:10vh auto;text-align:center;padding:20px}.hero h1{font-size:2rem;margin:0 0 8px}
+input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0c0c0e;color:var(--text);margin-bottom:8px}
+.table{width:100%;border-collapse:collapse;font-size:13px}.table td,.table th{padding:8px;border-bottom:1px solid var(--border);text-align:left}
+.guild{display:flex;gap:10px;align-items:center;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer}.guild:hover{border-color:var(--a)}
+.badge{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}.on{background:rgba(34,197,94,.15);color:#86efac}.off{background:rgba(161,161,170,.15);color:#d4d4d8}
+.toast{position:fixed;bottom:16px;right:16px;background:#1a1a1f;border:1px solid var(--border);padding:10px 14px;border-radius:10px;opacity:0;transition:.2s;z-index:99}.toast.show{opacity:1}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--border)}.side button{width:auto;white-space:nowrap}}
+</style>
+</head>
+<body>
+<div id="v-login" class="hero">
+  <div class="logo" style="margin:0 auto 14px;width:48px;height:48px">S</div>
+  <h1>Staffora</h1>
+  <p class="lead">Dienstnummern · Team · Roblox Staff · Module</p>
+  <div class="row" style="justify-content:center">
+    <a class="btn btn-p" id="btn-login" href="#">Mit Discord anmelden</a>
+    <a class="btn" id="btn-invite" href="#" target="_blank" rel="noopener">Bot einladen</a>
+  </div>
+  <p class="lead" style="margin-top:20px;font-size:12px">API: <span id="api-label"></span></p>
+</div>
+<div id="v-select" class="hidden">
+  <div class="top"><div class="brand"><div class="logo">S</div>Staffora</div>
+    <div class="row"><span id="user-chip" class="lead" style="margin:0;font-size:13px"></span><button class="btn btn-sm" id="btn-out">Logout</button></div></div>
+  <div class="main"><h1>Server wählen</h1><p class="lead">Admin-Rechte nötig.</p><div id="guilds" class="grid"></div></div>
+</div>
+<div id="v-app" class="hidden">
+  <div class="top"><div class="brand"><div class="logo">S</div><span id="gname">Server</span></div>
+    <div class="row"><button class="btn btn-sm" id="btn-back">← Server</button><button class="btn btn-sm" id="btn-out2">Logout</button></div></div>
+  <div class="layout"><aside class="side" id="nav"></aside><main class="main" id="panel"></main></div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="app.js?v=stable1"></script>
+</body>
+</html>
