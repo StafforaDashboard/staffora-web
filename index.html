@@ -17,10 +17,10 @@ display:flex;align-items:center;justify-content:center;text-align:center;padding
 <p id="st">Staffora wird geladen…</p>
 <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.min.js"></script>
 <script>
-/* full-classic-f-loader-v200 */
+/* stable-d-loader-v120 */
 (function(){
   var st=document.getElementById('st');
-  var n=26;
+  var n=19;
   function fail(m){ st.className='err'; st.textContent='Fehler: '+m; }
   function inflateBytes(bytes){
     if(typeof fflate!=='undefined' && fflate.gunzipSync){
@@ -35,8 +35,8 @@ display:flex;align-items:center;justify-content:center;text-align:center;padding
     return Promise.reject(new Error('Kein Gzip-Support'));
   }
   Promise.all(Array.from({length:n},function(_,i){
-    return fetch('f'+i+'.txt?v=200').then(function(r){
-      if(!r.ok) throw new Error('f'+i+' '+r.status);
+    return fetch('d'+i+'.txt?v=120').then(function(r){
+      if(!r.ok) throw new Error('d'+i+' '+r.status);
       return r.text();
     });
   })).then(function(parts){
