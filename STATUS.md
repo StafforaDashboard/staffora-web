@@ -1,11 +1,7 @@
-# Staffora — GitHub Pages only
+# Staffora Web
 
-Deploy target: **GitHub Pages** (not Vercel).
-
-- Full Leveo dashboard with clean animations
-- Organized nav: Allgemein, Discord, Team, Bewerbung, Community, RP / Welt
-- Embeds tab included
-- All module settings
-- API → https://staffora.apps.bot-hosting.cloud (page stays on Pages)
-
-Payload: pd00.b64 … pd22.b64 (same-build v6clean)
+- Live dashboard: bot host `/dashboard` (full Ingame menu + settings)
+- Static mirror: `dash.html`
+- Unban form: `unban.html?guild=SERVER_ID`
+- API default: `https://staffora.apps.bot-hosting.cloud`
+- Override: `?api=https://your-bot-host`

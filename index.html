@@ -4,52 +4,29 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Staffora</title>
 <style>
-body{margin:0;background:#08080a;color:#e8e8ed;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
-.box{text-align:center;padding:24px;max-width:360px}
-.sp{width:36px;height:36px;border:2px solid #333;border-top-color:#8b5cf6;border-radius:50%;animation:s .7s linear infinite;margin:0 auto 16px}
-@keyframes s{to{transform:rotate(360deg)}}
-.sub{color:#71717a;font-size:13px;margin-top:8px}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0b0d;color:#f4f4f5;font-family:system-ui,sans-serif}
+.box{text-align:center;padding:32px;max-width:420px}
+a{display:inline-block;margin:8px 6px 0;padding:12px 18px;border-radius:10px;background:#7c3aed;color:#fff;text-decoration:none;font-weight:600}
+a.sec{background:#1a1a1f;border:1px solid #2a2a30}
+p{color:#9ca3af;line-height:1.5}
 </style>
 </head><body>
-<div class="box"><div class="sp"></div><div id="t">Staffora lädt…</div><div class="sub" id="s">GitHub Pages</div></div>
+<div class="box">
+  <h1>Staffora</h1>
+  <p>Ingame · Warns · Settings · Unban</p>
+  <p id="m">Weiterleitung…</p>
+  <a id="go" href="#">Dashboard öffnen</a>
+  <a class="sec" href="./dash.html">Statische Version</a>
+</div>
 <script>
 (function(){
-  var PARTS=23, v='v6clean';
-  function setT(s){var e=document.getElementById('t');if(e)e.textContent=s;}
-  function cleanB64(s){s=String(s).replace(/\s+/g,'');var p=s.length%4;if(p)s+='===='.slice(p);return s;}
-  function b64ToU8(b){b=cleanB64(b);var bin=atob(b),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;}
-  async function inflate(u8){
-    if(typeof DecompressionStream!=='undefined'){
-      try{var ds=new DecompressionStream('gzip');var ab=await new Response(new Blob([u8]).stream().pipeThrough(ds)).arrayBuffer();return new TextDecoder().decode(ab);}catch(e){}
-    }
-    await new Promise(function(res,rej){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
-    return new Promise(function(resolve,reject){fflate.gunzip(u8,function(err,out){if(err)reject(err);else resolve(new TextDecoder().decode(out));});});
-  }
-  async function run(){
-    try{
-      setT('Lade Dashboard…');
-      var chunks=[];
-      for(var i=0;i<PARTS;i++){
-        var name='pd'+String(i).padStart(2,'0')+'.b64';
-        setT('Teil '+(i+1)+'/'+PARTS+'…');
-        var r=await fetch(name+'?v='+v,{cache:'no-store'});
-        if(!r.ok) throw new Error(name+' '+r.status);
-        chunks.push((await r.text()).trim());
-      }
-      setT('Entpacken…');
-      var b64=chunks.join('');
-      if(b64.length<10000) throw new Error('payload too small: '+b64.length);
-      var html=await inflate(b64ToU8(b64));
-      if(!html||(html.indexOf('<html')<0&&html.indexOf('<!DOCTYPE')<0)) throw new Error('HTML ungültig');
-      document.open();document.write(html);document.close();
-    }catch(e){
-      console.error(e);
-      setT('Fehler: '+(e&&e.message?e.message:e));
-      var s=document.getElementById('s');
-      if(s) s.textContent='Hard-reload (Ctrl+Shift+R)';
-    }
-  }
-  run();
+  var API=(localStorage.getItem("staffora_api")||"https://staffora.apps.bot-hosting.cloud").replace(/\/$/,"");
+  var q=(location.search.match(/[?&]api=([^&]+)/)||[])[1];
+  if(q){try{API=decodeURIComponent(q).replace(/\/$/,"");localStorage.setItem("staffora_api",API);}catch(e){}}
+  var url=API+"/dashboard"+(location.hash||"");
+  document.getElementById("go").href=url;
+  document.getElementById("m").textContent="API: "+API;
+  setTimeout(function(){ location.replace(url); }, 400);
 })();
 </script>
 </body></html>
