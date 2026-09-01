@@ -23,11 +23,11 @@ html,body{margin:0;background:#0b0b0d;color:#f4f4f5;font-family:Inter,system-ui,
 </div></div>
 <script>
 (async function(){
-  var N=10, parts=[];
+  var N=16, parts=[];
   for(var i=0;i<N;i++){
     document.getElementById('st').textContent='Teil '+(i+1)+'/'+N;
     document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-    var r=await fetch('d'+i+'.b64?v=20260901v');
+    var r=await fetch('d'+i+'.b64?v=20260901w');
     if(!r.ok) throw new Error('Datei fehlt: d'+i+'.b64');
     parts.push((await r.text()).replace(/\s+/g,''));
   }
