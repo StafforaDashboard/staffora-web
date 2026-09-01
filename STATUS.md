@@ -1,7 +1,5 @@
-# Staffora Web
+# Staffora Dashboard
 
-- Live dashboard: bot host `/dashboard` (full Ingame menu + settings)
-- Static mirror: `dash.html`
-- Unban form: `unban.html?guild=SERVER_ID`
-- API default: `https://staffora.apps.bot-hosting.cloud`
-- Override: `?api=https://your-bot-host`
+Deployed: 2026-09-01
+Includes: Ingame, Schicht, Abmelden, DN-Gruppen, Team Roblox, Unban.
+API: https://staffora.apps.bot-hosting.cloud
