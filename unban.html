@@ -6,78 +6,100 @@
 <title>Unban-Antrag · Staffora</title>
 <script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";</script>
 <style>
-:root{--bg:#0b0b0d;--card:#16161a;--border:#2a2a30;--text:#f4f4f5;--muted:#9ca3af;--accent:#7c3aed;--accent-h:#6d28d9}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,.12),transparent 55%)}
-.box{width:100%;max-width:440px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px}
-.logo{width:48px;height:48px;border-radius:14px;margin:0 auto 16px;background:linear-gradient(145deg,#8b5cf6,#4c1d95);display:grid;place-items:center;font-weight:800}
-h1{font-size:1.4rem;text-align:center;margin-bottom:6px}.sub{color:var(--muted);text-align:center;margin-bottom:22px;font-size:14px}
-label{display:block;font-size:13px;color:var(--muted);margin:0 0 6px}
-input,textarea{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:#0c0c0e;color:var(--text);font:inherit;margin-bottom:14px}
-textarea{min-height:88px}.btn{display:inline-flex;justify-content:center;width:100%;padding:12px 16px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;font:inherit}
-.btn:hover{background:var(--accent-h)}.btn:disabled{opacity:.5}.btn-sec{background:transparent;border:1px solid var(--border);color:var(--text);margin-top:10px}
-.msg{padding:12px 14px;border-radius:10px;margin-bottom:14px;font-size:14px}
-.msg.err{background:rgba(239,68,68,.12);color:#fecaca}.msg.ok{background:rgba(34,197,94,.12);color:#bbf7d0}.msg.info{background:rgba(124,58,237,.12);color:#ddd6fe}
-.hidden{display:none!important}.code{font-family:ui-monospace,monospace;font-size:1.15rem;text-align:center;padding:14px;border-radius:10px;background:#0c0c0e;border:1px dashed var(--border);margin:10px 0 16px;color:#c4b5fd;user-select:all}
-.server{display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:10px;border-radius:12px;border:1px solid var(--border);background:#0c0c0e;color:var(--text);cursor:pointer;font:inherit}
+:root{--bg:#06060a;--card:rgba(18,18,26,.92);--line:#2a2a36;--text:#f4f4f5;--muted:#94a3b8;--accent:#8b5cf6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;min-height:100vh;color:var(--text);background:var(--bg);background-image:radial-gradient(ellipse 70% 45% at 50% -10%,rgba(139,92,246,.22),transparent 55%)}
+.wrap{min-height:100vh;display:grid;place-items:center;padding:28px 16px}
+.card{width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.logo{width:48px;height:48px;border-radius:14px;margin:0 auto 14px;background:linear-gradient(145deg,#a78bfa,#5b21b6);display:grid;place-items:center;font-weight:800}
+h1{text-align:center;font-size:1.3rem;margin-bottom:4px}.sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:16px}
+label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+input,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#0a0a0e;color:var(--text);font:inherit;margin-bottom:12px}
+.btn{display:inline-flex;justify-content:center;width:100%;padding:12px;border-radius:12px;border:0;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-weight:600;cursor:pointer;font:inherit}
+.btn-sec{background:transparent;border:1px solid var(--line);color:var(--text);margin-top:8px}
+.msg{padding:11px 13px;border-radius:12px;margin-bottom:12px;font-size:13px}
+.msg.err{background:rgba(248,113,113,.1);color:#fecaca}.msg.ok{background:rgba(52,211,153,.1);color:#a7f3d0}.msg.info{background:rgba(139,92,246,.1);color:#ddd6fe}
+.hidden{display:none!important}.code{font-family:monospace;text-align:center;padding:14px;border-radius:12px;background:#0a0a0e;border:1px dashed var(--line);margin:8px 0 14px;color:#c4b5fd;user-select:all}
+.server{display:block;width:100%;text-align:left;padding:14px;margin-bottom:8px;border-radius:12px;border:1px solid var(--line);background:#0a0a0e;color:var(--text);cursor:pointer;font:inherit}
 .server:hover{border-color:var(--accent)}.server strong{display:block}.server span{font-size:12px;color:var(--muted)}
-.steps{display:flex;gap:6px;justify-content:center;margin-bottom:18px}.steps i{width:8px;height:8px;border-radius:50%;background:#2a2a30;display:inline-block}.steps i.on{background:var(--accent)}
-.user-pill{text-align:center;font-size:13px;color:var(--muted);margin-bottom:14px}
+.steps{display:flex;gap:6px;justify-content:center;margin-bottom:14px}.steps i{width:7px;height:7px;border-radius:50%;background:#2a2a36;display:inline-block}.steps i.on{background:var(--accent)}
+.back{text-align:center;margin-top:14px;font-size:13px}.back a{color:#a78bfa}
 </style></head>
 <body>
-<div class="wrap"><div class="box">
+<div class="wrap"><div class="card">
 <div class="logo">S</div>
 <h1>Unban-Antrag</h1>
-<p class="sub">Roblox-Login → Server wählen → Logs → Fragen</p>
+<p class="sub">Roblox-Login → Server → Logs → Fragen</p>
 <div class="steps"><i class="on" id="s1"></i><i id="s2"></i><i id="s3"></i><i id="s4"></i></div>
 <div id="msg" class="msg info hidden"></div>
 <div id="step-login"><label>Roblox Username</label><input id="roblox-user" placeholder="Dein Roblox-Name"/><button class="btn" id="btn-start">Code anfordern</button></div>
-<div id="step-code" class="hidden"><p class="sub" style="text-align:left">Code in die <strong>Roblox-Beschreibung (About)</strong> einfügen, speichern, dann verifizieren:</p><div class="code" id="code-box">—</div><button class="btn" id="btn-verify">Verifizieren</button><button class="btn btn-sec" id="btn-restart">Anderen Account</button></div>
-<div id="step-server" class="hidden"><div class="user-pill" id="user-pill"></div><p class="sub">Wähle den Server</p><div id="server-list"></div><button class="btn btn-sec" id="btn-logout">Abmelden</button></div>
-<div id="step-form" class="hidden"><div class="user-pill" id="form-user"></div><div id="form-status" class="msg info"></div><div id="questions"></div><label>Discord-ID (optional)</label><input id="discord-id"/><button class="btn" id="btn-submit">Antrag senden</button><button class="btn btn-sec" id="btn-back-servers">Anderen Server</button></div>
-<div id="step-done" class="hidden"><div class="msg ok">Antrag gesendet. Staff prüft ihn.</div><button class="btn btn-sec" id="btn-again">Weiteren Antrag</button></div>
+<div id="step-code" class="hidden"><p class="sub" style="text-align:left">Code in <strong>Roblox About</strong> einfügen:</p><div class="code" id="code-box">—</div><button class="btn" id="btn-verify">Verifizieren</button><button class="btn btn-sec" id="btn-restart">Anderer Account</button></div>
+<div id="step-server" class="hidden"><p class="sub" id="user-pill"></p><div id="server-list"></div><button class="btn btn-sec" id="btn-logout">Abmelden</button></div>
+<div id="step-form" class="hidden"><p class="sub" id="form-user"></p><div id="form-status" class="msg info"></div><div id="questions"></div><label>Discord-ID (optional)</label><input id="discord-id"/><button class="btn" id="btn-submit">Senden</button><button class="btn btn-sec" id="btn-back-servers">Anderer Server</button></div>
+<div id="step-done" class="hidden"><div class="msg ok">Antrag gesendet.</div><button class="btn btn-sec" id="btn-again">Weiteren Antrag</button></div>
+<p class="back"><a href="./">← Start</a></p>
 </div></div>
 <script>
 (function(){
-var API=(window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud').replace(/\/$/,'');
+var API='https://staffora.apps.bot-hosting.cloud';
 var state={token:localStorage.getItem('staffora_rbx_token'),name:localStorage.getItem('staffora_rbx_name'),id:localStorage.getItem('staffora_rbx_id'),pendingId:null,guildId:null,questions:[]};
 function $(id){return document.getElementById(id)}
 function showMsg(t,ty){var m=$('msg');m.textContent=t;m.className='msg '+(ty||'info');m.classList.remove('hidden')}
 function hideMsg(){$('msg').classList.add('hidden')}
 function setStep(n){for(var i=1;i<=4;i++){var el=$('s'+i);if(el)el.className=i<=n?'on':''}}
 function hideAll(){['step-login','step-code','step-server','step-form','step-done'].forEach(function(id){$(id).classList.add('hidden')})}
-async function loadServers(){var res=await fetch(API+'/api/public/unban/servers');var data=await res.json();var list=data.servers||[];var box=$('server-list');
-if(!list.length){box.innerHTML='<p class="sub">Kein Server mit Unban aktiv.</p>';return}
-box.innerHTML=list.map(function(s){return '<button type="button" class="server" data-id="'+s.id+'"><strong>'+(s.name||s.id)+'</strong><span>'+s.id+(s.requireActiveBan?' · Ban nötig':'')+'</span></button>'}).join('');
-box.querySelectorAll('.server').forEach(function(btn){btn.onclick=function(){pickServer(btn.getAttribute('data-id'),btn.querySelector('strong').textContent)}})}
-async function pickServer(guildId,name){state.guildId=guildId;hideMsg();
-try{var res=await fetch(API+'/api/public/guilds/'+guildId+'/unban/check',{method:'POST',headers:{'Content-Type':'application/json','X-Roblox-Token':state.token||''},body:'{}'});
-var data=await res.json();if(!res.ok)throw new Error(data.error||'Fehler');
-hideAll();setStep(3);$('step-form').classList.remove('hidden');$('form-user').textContent=state.name+' · '+(name||guildId);
-if(!data.ok){$('form-status').className='msg err';$('form-status').textContent=data.message||data.reason||'Kein Ban/keine Logs';$('questions').innerHTML='';$('btn-submit').classList.add('hidden');return}
-state.questions=data.questions||[];$('btn-submit').classList.remove('hidden');
-var logs=data.logs||{};$('form-status').className='msg info';$('form-status').textContent=(data.hasActiveBan?'Aktiver Ban. ':'Logs vorhanden. ')+'Warns: '+(logs.warns||data.warnCount||0)+' · Bans: '+(logs.bans||0);
-var q='';state.questions.forEach(function(q0){q+='<label>'+(q0.label||q0.key)+(q0.required?' *':'')+'</label><textarea data-key="'+q0.key+'" '+(q0.required?'required':'')+'></textarea>'});
-$('questions').innerHTML=q||'<p class="sub">Keine Fragen</p>';setStep(4)}catch(e){showMsg(e.message,'err')}}
-function goLoggedIn(){hideAll();hideMsg();setStep(2);$('user-pill').textContent='Eingeloggt: '+state.name+' ('+state.id+')';$('step-server').classList.remove('hidden');loadServers().catch(function(e){showMsg(e.message,'err')})}
+async function api(path,opts){
+ opts=opts||{};
+ try{
+  var r=await fetch(API+path,{method:opts.method||'GET',headers:Object.assign({'Content-Type':'application/json'},opts.headers||{}),body:opts.body?JSON.stringify(opts.body):undefined});
+  var data=null;try{data=await r.json()}catch(e){}
+  if(!r.ok) throw new Error((data&&data.error)||('Fehler '+r.status+' — Bot-Zip aktualisieren?'));
+  return data;
+ }catch(e){
+  if(String(e.message||e).indexOf('Failed to fetch')>=0||e.name==='TypeError') throw new Error('Bot offline. Neuestes Zip hochladen und Bot starten.');
+  throw e;
+ }
+}
+async function loadServers(){
+ var data=await api('/api/public/unban/servers');
+ var list=data.servers||[];
+ var box=$('server-list');
+ if(!list.length){box.innerHTML='<p class="sub">Kein Server mit Unban aktiv.</p>';return}
+ box.innerHTML=list.map(function(s){return '<button type="button" class="server" data-id="'+s.id+'"><strong>'+(s.name||s.id)+'</strong><span>'+s.id+'</span></button>'}).join('');
+ box.querySelectorAll('.server').forEach(function(btn){btn.onclick=function(){pickServer(btn.getAttribute('data-id'),btn.querySelector('strong').textContent)}});
+}
+async function pickServer(guildId,name){
+ state.guildId=guildId;hideMsg();
+ try{
+  var data=await api('/api/public/guilds/'+guildId+'/unban/check',{method:'POST',headers:{'X-Roblox-Token':state.token||''},body:{}});
+  hideAll();setStep(3);$('step-form').classList.remove('hidden');$('form-user').textContent=state.name+' · '+name;
+  if(!data.ok){$('form-status').className='msg err';$('form-status').textContent=data.message||data.reason||'Kein Ban';$('questions').innerHTML='';$('btn-submit').classList.add('hidden');return}
+  state.questions=data.questions||[];$('btn-submit').classList.remove('hidden');
+  $('form-status').className='msg info';$('form-status').textContent=(data.hasActiveBan?'Aktiver Ban. ':'Logs ok. ')+'Warns: '+(data.warnCount||0);
+  var q='';state.questions.forEach(function(q0){q+='<label>'+(q0.label||q0.key)+'</label><textarea data-key="'+q0.key+'"></textarea>'});
+  $('questions').innerHTML=q||'<p class="sub">Keine Fragen</p>';setStep(4);
+ }catch(e){showMsg(e.message,'err')}
+}
+function goLoggedIn(){hideAll();hideMsg();setStep(2);$('user-pill').textContent='Eingeloggt: '+state.name;$('step-server').classList.remove('hidden');loadServers().catch(function(e){showMsg(e.message,'err')})}
 if(state.token&&state.name)goLoggedIn();
-$('btn-start').onclick=async function(){var user=$('roblox-user').value.trim();if(!user)return showMsg('Roblox-Name nötig','err');this.disabled=true;hideMsg();
-try{var res=await fetch(API+'/api/public/roblox/login/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({robloxUsername:user})});
-var data=await res.json();if(!res.ok)throw new Error(data.error||'Fehler');
-state.pendingId=data.robloxUserId;$('code-box').textContent=data.code;hideAll();$('step-code').classList.remove('hidden');setStep(1);showMsg(data.instruction||'Code in About einfügen.','info')}catch(e){showMsg(e.message,'err')}finally{this.disabled=false}};
-$('btn-verify').onclick=async function(){this.disabled=true;hideMsg();
-try{var res=await fetch(API+'/api/public/roblox/login/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({robloxUserId:state.pendingId})});
-var data=await res.json();if(!res.ok)throw new Error(data.error||'Fehler');
-state.token=data.token;state.name=data.robloxUsername;state.id=data.robloxUserId;
-localStorage.setItem('staffora_rbx_token',state.token);localStorage.setItem('staffora_rbx_name',state.name);localStorage.setItem('staffora_rbx_id',state.id);goLoggedIn()}catch(e){showMsg(e.message,'err')}finally{this.disabled=false}};
+$('btn-start').onclick=async function(){
+ var user=$('roblox-user').value.trim();if(!user)return showMsg('Name eingeben','err');
+ this.disabled=true;hideMsg();
+ try{var data=await api('/api/public/roblox/login/start',{method:'POST',body:{robloxUsername:user}});state.pendingId=data.robloxUserId;$('code-box').textContent=data.code;hideAll();$('step-code').classList.remove('hidden');setStep(1);showMsg(data.instruction||'Code in About.','info')}catch(e){showMsg(e.message,'err')}finally{this.disabled=false}
+};
+$('btn-verify').onclick=async function(){
+ this.disabled=true;hideMsg();
+ try{var data=await api('/api/public/roblox/login/verify',{method:'POST',body:{robloxUserId:state.pendingId}});state.token=data.token;state.name=data.robloxUsername;state.id=data.robloxUserId;localStorage.setItem('staffora_rbx_token',state.token);localStorage.setItem('staffora_rbx_name',state.name);localStorage.setItem('staffora_rbx_id',state.id);goLoggedIn()}catch(e){showMsg(e.message,'err')}finally{this.disabled=false}
+};
 $('btn-restart').onclick=function(){hideAll();hideMsg();setStep(1);$('step-login').classList.remove('hidden')};
-$('btn-logout').onclick=function(){localStorage.removeItem('staffora_rbx_token');localStorage.removeItem('staffora_rbx_name');localStorage.removeItem('staffora_rbx_id');state.token=state.name=state.id=null;hideAll();setStep(1);$('step-login').classList.remove('hidden')};
+$('btn-logout').onclick=function(){localStorage.clear();location.reload()};
 $('btn-back-servers').onclick=function(){goLoggedIn()};
-$('btn-submit').onclick=async function(){var answers={};var missing=false;document.querySelectorAll('#questions textarea').forEach(function(el){answers[el.getAttribute('data-key')]=el.value.trim();if(el.required&&!el.value.trim())missing=true});
-if(missing)return showMsg('Pflichtfelder ausfüllen','err');this.disabled=true;
-try{var res=await fetch(API+'/api/public/guilds/'+state.guildId+'/unban/submit',{method:'POST',headers:{'Content-Type':'application/json','X-Roblox-Token':state.token||''},body:JSON.stringify({robloxToken:state.token,discordId:$('discord-id').value.trim()||null,answers:answers})});
-var data=await res.json();if(!res.ok)throw new Error(data.error||'Fehler');hideAll();hideMsg();setStep(4);$('step-done').classList.remove('hidden')}catch(e){showMsg(e.message,'err')}finally{this.disabled=false}};
-$('btn-again').onclick=function(){goLoggedIn()}
+$('btn-submit').onclick=async function(){
+ var answers={};document.querySelectorAll('#questions textarea').forEach(function(el){answers[el.getAttribute('data-key')]=el.value.trim()});
+ this.disabled=true;
+ try{await api('/api/public/guilds/'+state.guildId+'/unban/submit',{method:'POST',headers:{'X-Roblox-Token':state.token||''},body:{answers:answers,discordId:$('discord-id').value.trim()||null}});hideAll();hideMsg();setStep(4);$('step-done').classList.remove('hidden')}catch(e){showMsg(e.message,'err')}finally{this.disabled=false}
+};
+$('btn-again').onclick=function(){goLoggedIn()};
 })();
 </script>
 </body>
