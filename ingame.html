@@ -1,11 +1,15 @@
 <!DOCTYPE html><html lang="de"><head><meta charset="utf-8"/><title>Ingame</title>
-<style>body{margin:0;background:#06060a;color:#fff;font-family:system-ui;display:grid;place-items:center;min-height:100vh}</style></head><body>
-<div id="s">Lädt…</div>
+<style>body{margin:0;background:#06060a;color:#fff;font-family:system-ui;min-height:100vh;display:grid;place-items:center}</style></head><body>
+<div id="s">Lädt Ingame…</div>
 <script>
 (async function(){
-  var a=await(await fetch('ing_a.html?v=3')).text();
-  var b=await(await fetch('ing_b.html?v=3')).text();
-  var html=a+b;
+  var parts=[];
+  for (var p of ['xa0','xa1','xa2','xb0','xb1','xb2']) {
+    var r=await fetch(p+'.txt?v=4');
+    if(!r.ok) throw new Error('fehlt '+p+' — lade staffora-gh-pages-static.zip hoch');
+    parts.push(await r.text());
+  }
+  var html=parts.join('');
   try{var m=location.search.match(/[?&]token=([^&]+)/);if(m)localStorage.setItem('staffora_token',decodeURIComponent(m[1]));}catch(e){}
   var d=new DOMParser().parseFromString(html,'text/html');
   document.replaceChild(document.importNode(d.documentElement,true),document.documentElement);
