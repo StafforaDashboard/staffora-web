@@ -5,8 +5,8 @@
 (async function(){
   var parts=[];
   for (var p of ['xa0','xa1','xa2','xb0','xb1','xb2']) {
-    var r=await fetch(p+'.txt?v=4');
-    if(!r.ok) throw new Error('fehlt '+p+' — lade staffora-gh-pages-static.zip hoch');
+    var r=await fetch(p+'.txt?v=5');
+    if(!r.ok) throw new Error('fehlt '+p);
     parts.push(await r.text());
   }
   var html=parts.join('');
