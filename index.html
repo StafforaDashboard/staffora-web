@@ -22,12 +22,12 @@ html,body{margin:0;background:#08080a;color:#f4f4f5;font-family:Inter,system-ui,
 </div></div>
 <script>
 (async function(){
-  var N = 12;
+  var N = 21;
   var parts = [];
   for (var i = 0; i < N; i++) {
     document.getElementById('st').textContent = 'Teil ' + (i+1) + '/' + N;
     document.getElementById('f').style.width = Math.round((i+1)/N*100) + '%';
-    var r = await fetch('p' + i + '.txt?v=20260901p');
+    var r = await fetch('p' + i + '.txt?v=20260901q');
     if (!r.ok) throw new Error('Teil fehlt: p' + i + ' (' + r.status + ')');
     parts.push(await r.text());
   }
