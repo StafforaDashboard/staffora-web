@@ -1,7 +1,11 @@
-# Staffora Dashboard — FULL DEPLOY
+# Staffora — GitHub Pages only
 
-All 23 payload chunks (pd00–pd22) uploaded.
+Deploy target: **GitHub Pages** (not Vercel).
 
-- GitHub Pages: open this repo Pages URL and hard-refresh
-- Vercel: https://staffora-dashboard-kimon-louvet.vercel.app
-- Features: full Leveo UI, motion animations, all settings categories, Embeds, API to cloud (no redirect)
+- Full Leveo dashboard with clean animations
+- Organized nav: Allgemein, Discord, Team, Bewerbung, Community, RP / Welt
+- Embeds tab included
+- All module settings
+- API → https://staffora.apps.bot-hosting.cloud (page stays on Pages)
+
+Payload: pd00.b64 … pd22.b64 (same-build v6clean)

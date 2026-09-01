@@ -11,10 +11,10 @@ body{margin:0;background:#08080a;color:#e8e8ed;font-family:system-ui,sans-serif;
 .sub{color:#71717a;font-size:13px;margin-top:8px}
 </style>
 </head><body>
-<div class="box"><div class="sp"></div><div id="t">Staffora lädt…</div><div class="sub" id="s">Full dashboard · motion</div></div>
+<div class="box"><div class="sp"></div><div id="t">Staffora lädt…</div><div class="sub" id="s">GitHub Pages</div></div>
 <script>
 (function(){
-  var PARTS=23, v='v5full';
+  var PARTS=23, v='v6clean';
   function setT(s){var e=document.getElementById('t');if(e)e.textContent=s;}
   function cleanB64(s){s=String(s).replace(/\s+/g,'');var p=s.length%4;if(p)s+='===='.slice(p);return s;}
   function b64ToU8(b){b=cleanB64(b);var bin=atob(b),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;}
