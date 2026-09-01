@@ -1,49 +1,74 @@
 <!DOCTYPE html>
 <html lang="de"><head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Staffora Dashboard</title>
+<script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";</script>
 <style>
-html,body{margin:0;background:#06060a;color:#f4f4f5;font-family:Inter,system-ui,sans-serif;min-height:100vh}
-#boot{display:grid;place-items:center;min-height:100vh;text-align:center;padding:24px}
-.logo{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;background:linear-gradient(145deg,#a78bfa,#5b21b6);display:grid;place-items:center;font-weight:800;box-shadow:0 12px 36px rgba(139,92,246,.35)}
-.bar{width:240px;height:5px;background:#1a1a1f;border-radius:99px;overflow:hidden;margin:16px auto 0}
-.fill{height:100%;width:0;background:#8b5cf6;transition:width .15s}
-.err{color:#fca5a5;margin-top:12px;font-size:14px}.sub{color:#94a3b8;font-size:14px;margin-top:8px}
+:root{--bg:#06060a;--card:#12121a;--line:#2a2a36;--text:#f4f4f5;--muted:#94a3b8;--accent:#8b5cf6}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;background-image:radial-gradient(ellipse 70% 40% at 50% -10%,rgba(139,92,246,.2),transparent 55%)}
+button,input{font:inherit}.hidden{display:none!important}a{color:#c4b5fd;text-decoration:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:11px 16px;border-radius:12px;border:1px solid var(--line);background:#18181f;color:var(--text);font-weight:600;cursor:pointer;transition:transform .15s}
+.btn:hover{transform:translateY(-1px)}.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:0;color:#fff;box-shadow:0 8px 22px rgba(139,92,246,.3)}
+.login{min-height:100vh;display:grid;place-items:center;padding:24px}
+.card{width:100%;max-width:400px;background:rgba(18,18,26,.92);border:1px solid var(--line);border-radius:18px;padding:28px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.logo{width:52px;height:52px;border-radius:14px;margin:0 auto 14px;background:linear-gradient(145deg,#a78bfa,#5b21b6);display:grid;place-items:center;font-weight:800;box-shadow:0 10px 28px rgba(139,92,246,.35)}
+h1{font-size:1.4rem;margin-bottom:6px}.sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.top{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--line)}
+.main{padding:24px;max-width:900px;margin:0 auto}
+.guild{display:flex;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card);cursor:pointer;margin-bottom:10px;transition:border-color .15s,transform .15s}
+.guild:hover{border-color:var(--accent);transform:translateY(-1px)}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:20px}
+.links a{display:block;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}.links a:hover{border-color:var(--accent)}
+.err{color:#fca5a5;font-size:13px;margin-top:10px}
 </style></head>
 <body>
-<div id="boot"><div>
-<div class="logo">S</div>
-<div style="font-weight:700;font-size:20px">Staffora Dashboard</div>
-<div class="sub" id="st">Lädt…</div>
-<div class="bar"><div class="fill" id="f"></div></div>
-<div class="err" id="e"></div>
+<div id="v-login" class="login"><div class="card">
+<div class="logo">S</div><h1>Staffora</h1>
+<p class="sub">Team · Einstellungen · Module</p>
+<a class="btn btn-p" id="btn-login" href="#" style="width:100%;margin-bottom:8px">Mit Discord anmelden</a>
+<a class="btn" id="btn-invite" href="#" target="_blank" style="width:100%">Bot einladen</a>
+<p class="sub" style="margin-top:14px"><a href="./">← Start</a></p>
+<div class="err" id="err"></div>
+</div></div>
+<div id="v-app" class="hidden">
+<div class="top"><strong>Staffora</strong><div><span id="user" style="color:var(--muted);font-size:13px;margin-right:8px"></span><button class="btn" id="out" style="padding:7px 12px;font-size:13px">Logout</button></div></div>
+<div class="main">
+<h1>Server</h1>
+<p class="sub">Admin / Manage-Rechte für Staff-Dashboard. Ingame-Panel: eigene Rollen.</p>
+<div id="guilds"></div>
+<div class="links">
+<a href="./ingame.html"><strong>Ingame Panel</strong><div class="sub">Bans, Warns, Unbans</div></a>
+<a href="./unban.html"><strong>Unban-Antrag</strong><div class="sub">Spieler-Formular</div></a>
+</div>
 </div></div>
 <script>
+(function(){
+var API=(window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud').replace(/\/$/,'');
+var token=localStorage.getItem('staffora_token')||'';
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])})}
+try{var m=location.search.match(/[?&]token=([^&]+)/);if(m){token=decodeURIComponent(m[1]);localStorage.setItem('staffora_token',token);history.replaceState({},'',location.pathname)}}catch(e){}
+$('btn-login').href=API+'/auth/login?return='+encodeURIComponent('https://stafforadashboard.github.io/staffora-web/dashboard.html');
+$('btn-invite').href=API+'/invite';
+async function api(path){
+ var r;try{r=await fetch(API+path,{headers:token?{Authorization:'Bearer '+token}:{}})}catch(e){throw new Error('Bot offline (Failed to fetch). Zip aktualisieren & Bot starten.')}
+ var d=null;try{d=await r.json()}catch(e){}
+ if(r.status===401){localStorage.removeItem('staffora_token');location.reload();throw new Error('Session abgelaufen')}
+ if(!r.ok)throw new Error((d&&d.error)||('Fehler '+r.status));return d;
+}
+if(!token)return;
+$('v-login').classList.add('hidden');$('v-app').classList.remove('hidden');
+$('out').onclick=function(){localStorage.removeItem('staffora_token');location.href=location.pathname};
 (async function(){
-  var N=8, parts=[];
-  for(var i=0;i<N;i++){
-    document.getElementById('st').textContent='Teil '+(i+1)+'/'+N;
-    document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-    var r=await fetch('db'+i+'.txt?v=20260901u');
-    if(!r.ok) throw new Error('Datei fehlt: db'+i);
-    parts.push((await r.text()).replace(/\s+/g,''));
-  }
-  var plain=decodeURIComponent(escape(atob(parts.join(''))));
-  try{
-    var m=location.search.match(/[?&]token=([^&]+)/);
-    if(m) localStorage.setItem('staffora_token',decodeURIComponent(m[1]));
-  }catch(e){}
-  var doc=new DOMParser().parseFromString(plain,'text/html');
-  document.replaceChild(document.importNode(doc.documentElement,true),document.documentElement);
-  document.querySelectorAll('script').forEach(function(old){
-    var s=document.createElement('script');
-    if(old.src)s.src=old.src; else s.textContent=old.textContent;
-    old.parentNode.replaceChild(s,old);
-  });
-})().catch(function(err){
-  document.getElementById('st').textContent='Fehler';
-  document.getElementById('e').textContent=String(err&&err.message||err);
-});
+ try{
+  var me=await api('/api/me');$('user').textContent=me.username||me.id;
+  var g=await api('/api/guilds');
+  var list=g.guilds||g||[];
+  var box=$('guilds');
+  if(!list.length){box.innerHTML='<p class="err">Keine Server mit Admin-Rechten. Bot einladen?</p>';return}
+  box.innerHTML=list.map(function(x){return '<div class="guild"><div style="width:42px;height:42px;border-radius:10px;background:#222;display:grid;place-items:center;font-weight:700">'+(x.name||'?').slice(0,1)+'</div><div><strong>'+esc(x.name||x.id)+'</strong><div class="sub">'+esc(x.id)+'</div></div></div>'}).join('');
+ }catch(e){$('guilds').innerHTML='<p class="err">'+esc(e.message)+'</p>'}
+})();
+})();
 </script>
 </body></html>
