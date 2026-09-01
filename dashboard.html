@@ -20,12 +20,12 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
 </div></div>
 <script>
 (async function(){
-  var N=118, parts=[];
+  var N=128, parts=[];
   for(var i=0;i<N;i++){
     document.getElementById('st').textContent='Lädt '+(i+1)+'/'+N;
     document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-    var r=await fetch('d'+i+'.b64?v=f25');
-    if(!r.ok) throw new Error('fehlt d'+i+'.b64 — Zip staffora-PREMIUM-v2.zip hochladen');
+    var r=await fetch('d'+i+'.b64?v=duty1');
+    if(!r.ok) throw new Error('fehlt d'+i+'.b64 — Zip staffora-DUTY-panel.zip hochladen');
     parts.push((await r.text()).replace(/\s+/g,''));
   }
   var plain=decodeURIComponent(escape(atob(parts.join(''))));
