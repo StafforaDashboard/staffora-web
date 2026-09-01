@@ -7,7 +7,7 @@ html,body{margin:0;background:#0b0b0d;color:#f4f4f5;font-family:Inter,system-ui,
 #boot{display:grid;place-items:center;min-height:100vh;text-align:center;padding:24px}
 .logo{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;background:linear-gradient(145deg,#8b5cf6,#4c1d95);display:grid;place-items:center;font-weight:800}
 .bar{width:260px;height:5px;background:#1a1a1f;border-radius:99px;overflow:hidden;margin:16px auto 0}
-.fill{height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#a78bfa);transition:width .1s}
+.fill{height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#a78bfa);transition:width .08s}
 .sub{color:#94a3b8;font-size:14px;margin-top:8px}.err{color:#fca5a5;margin-top:12px}
 </style></head>
 <body>
@@ -20,12 +20,12 @@ html,body{margin:0;background:#0b0b0d;color:#f4f4f5;font-family:Inter,system-ui,
 </div></div>
 <script>
 (async function(){
-  var N=12, parts=[];
+  var N=36, parts=[];
   for(var i=0;i<N;i++){
     document.getElementById('st').textContent='Lädt '+(i+1)+'/'+N;
     document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-    var r=await fetch('u'+i+'.b64?v=c48');
-    if(!r.ok) throw new Error('fehlt u'+i+'.b64');
+    var r=await fetch('u'+i+'.b64?v=fullchunk');
+    if(!r.ok) throw new Error('fehlt u'+i+'.b64 — Zip hochladen');
     parts.push((await r.text()).replace(/\s+/g,''));
   }
   var plain=decodeURIComponent(escape(atob(parts.join(''))));
