@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="de"><head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Ingame Panel</title>
 <style>
 html,body{margin:0;background:#0b0b0d;color:#f4f4f5;font-family:Inter,system-ui,sans-serif;min-height:100vh}
@@ -15,18 +14,18 @@ html,body{margin:0;background:#0b0b0d;color:#f4f4f5;font-family:Inter,system-ui,
 <div id="boot"><div>
 <div class="logo">S</div>
 <div style="font-weight:700;font-size:20px">Ingame Panel</div>
-<div class="sub" id="st">Lädt vollständige Seite…</div>
+<div class="sub" id="st">Lädt…</div>
 <div class="bar"><div class="fill" id="f"></div></div>
 <div class="err" id="e"></div>
 </div></div>
 <script>
 (async function(){
-  var N=6, parts=[];
+  var N=8, parts=[];
   for(var i=0;i<N;i++){
     document.getElementById('st').textContent='Lädt '+(i+1)+'/'+N;
     document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-    var r=await fetch('g'+i+'.b64?v=full20260902');
-    if(!r.ok) throw new Error('Teil fehlt: g'+i+'.b64');
+    var r=await fetch('g'+i+'.b64?v=chunk20260902');
+    if(!r.ok) throw new Error('fehlt g'+i+'.b64');
     parts.push((await r.text()).replace(/\s+/g,''));
   }
   var plain=decodeURIComponent(escape(atob(parts.join(''))));
@@ -35,7 +34,7 @@ html,body{margin:0;background:#0b0b0d;color:#f4f4f5;font-family:Inter,system-ui,
   document.replaceChild(document.importNode(doc.documentElement,true),document.documentElement);
   document.querySelectorAll('script').forEach(function(old){
     var s=document.createElement('script');
-    if(old.src) s.src=old.src; else s.textContent=old.textContent;
+    if(old.src)s.src=old.src; else s.textContent=old.textContent;
     old.parentNode.replaceChild(s,old);
   });
 })().catch(function(err){
