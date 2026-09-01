@@ -1,5 +1,7 @@
-# Staffora Pages status
+# Staffora Dashboard — FULL DEPLOY
 
-- Loader on Vercel: https://staffora-dashboard-kimon-louvet.vercel.app
-- Payload chunks: uploading pd00-pd22 to this repo
-- Full single-file deploy: upload index.html from staffora-dashboard-gh-full-deploy.zip
+All 23 payload chunks (pd00–pd22) uploaded.
+
+- GitHub Pages: open this repo Pages URL and hard-refresh
+- Vercel: https://staffora-dashboard-kimon-louvet.vercel.app
+- Features: full Leveo UI, motion animations, all settings categories, Embeds, API to cloud (no redirect)
