@@ -5,33 +5,28 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Staffora</title>
 <style>
-:root{--bg:#07070a;--card:#121218;--line:#26262f;--text:#f4f4f5;--muted:#9ca3af;--accent:#8b5cf6}
+:root{--bg:#06060a;--card:#121218;--line:#2a2a36;--text:#f4f4f5;--muted:#94a3b8}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
-  background-image:radial-gradient(ellipse 80% 50% at 50% -15%,rgba(139,92,246,.2),transparent 55%),
-  radial-gradient(ellipse 40% 30% at 90% 80%,rgba(59,130,246,.08),transparent)}
+background-image:radial-gradient(ellipse 70% 45% at 50% -10%,rgba(139,92,246,.22),transparent 55%)}
 .wrap{max-width:960px;margin:0 auto;padding:48px 20px 80px}
-.hero{text-align:center;margin-bottom:48px;animation:up .5s ease both}
-@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-.logo{width:64px;height:64px;border-radius:18px;margin:0 auto 18px;background:linear-gradient(145deg,#a78bfa,#5b21b6);
-  display:grid;place-items:center;font-weight:800;font-size:24px;box-shadow:0 16px 40px rgba(139,92,246,.35)}
-h1{font-size:2.2rem;letter-spacing:-.03em;margin-bottom:10px}
-.sub{color:var(--muted);font-size:1.05rem;max-width:480px;margin:0 auto 28px}
-.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
-.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 20px;border-radius:12px;
-  font-weight:600;text-decoration:none;transition:transform .15s,box-shadow .15s}
+.hero{text-align:center;margin-bottom:40px;animation:up .5s ease}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.logo{width:64px;height:64px;border-radius:18px;margin:0 auto 16px;background:linear-gradient(145deg,#a78bfa,#5b21b6);display:grid;place-items:center;font-weight:800;font-size:24px;box-shadow:0 16px 40px rgba(139,92,246,.35)}
+h1{font-size:2.1rem;letter-spacing:-.03em;margin-bottom:8px}
+.sub{color:var(--muted);margin-bottom:24px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:36px}
+.btn{display:inline-flex;padding:12px 20px;border-radius:12px;font-weight:600;text-decoration:none;transition:transform .15s}
 .btn:hover{transform:translateY(-2px)}
-.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 8px 24px rgba(139,92,246,.35)}
+.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 8px 24px rgba(139,92,246,.3)}
 .btn-g{background:var(--card);color:var(--text);border:1px solid var(--line)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-.card{background:rgba(18,18,24,.9);border:1px solid var(--line);border-radius:16px;padding:22px;
-  transition:transform .15s,border-color .15s;animation:up .5s ease both}
-.card:hover{transform:translateY(-3px);border-color:#3f3f4a}
-.card .ic{font-size:1.5rem;margin-bottom:10px}
-.card h2{font-size:1.1rem;margin-bottom:6px}
-.card p{color:var(--muted);font-size:14px;margin-bottom:14px}
+.card{background:rgba(18,18,24,.92);border:1px solid var(--line);border-radius:16px;padding:22px;animation:up .5s ease}
+.card:hover{border-color:#3f3f4a}
+.card h2{font-size:1.1rem;margin:8px 0}
+.card p{color:var(--muted);font-size:14px;margin-bottom:12px}
 .card a{color:#c4b5fd;font-weight:600;font-size:14px}
-.foot{text-align:center;margin-top:48px;color:#6b7280;font-size:13px}
+.foot{text-align:center;margin-top:40px;color:#64748b;font-size:13px}
 </style>
 </head>
 <body>
@@ -39,32 +34,17 @@ h1{font-size:2.2rem;letter-spacing:-.03em;margin-bottom:10px}
   <div class="hero">
     <div class="logo">S</div>
     <h1>Staffora</h1>
-    <p class="sub">Team · Ingame · Unban · Alles auf einer Plattform</p>
+    <p class="sub">Team · Ingame · Unban</p>
     <div class="actions">
-      <a class="btn btn-p" href="./dashboard/">Staff Dashboard</a>
+      <a class="btn btn-p" href="./dashboard.html">Staff Dashboard</a>
       <a class="btn btn-g" href="./ingame.html">Ingame Panel</a>
       <a class="btn btn-g" href="./unban.html">Unban-Antrag</a>
     </div>
   </div>
   <div class="grid">
-    <div class="card" style="animation-delay:.05s">
-      <div class="ic">🎛️</div>
-      <h2>Staff Dashboard</h2>
-      <p>Module, Rollen, Tickets, Team, Einstellungen. Für Admins &amp; Manager.</p>
-      <a href="./dashboard/">Öffnen →</a>
-    </div>
-    <div class="card" style="animation-delay:.1s">
-      <div class="ic">🎮</div>
-      <h2>Ingame Panel</h2>
-      <p>Bans, Warns, Verknüpfungen, Archiv. Nur freigeschaltete Rollen — kein Admin nötig.</p>
-      <a href="./ingame.html">Öffnen →</a>
-    </div>
-    <div class="card" style="animation-delay:.15s">
-      <div class="ic">🔓</div>
-      <h2>Unban-Antrag</h2>
-      <p>Roblox-Login, Server wählen, Logs prüfen, Fragen beantworten.</p>
-      <a href="./unban.html">Antrag stellen →</a>
-    </div>
+    <div class="card"><div style="font-size:1.4rem">🎛️</div><h2>Staff Dashboard</h2><p>Module, Rollen, Tickets, Einstellungen.</p><a href="./dashboard.html">Öffnen →</a></div>
+    <div class="card"><div style="font-size:1.4rem">🎮</div><h2>Ingame Panel</h2><p>Bans, Warns, Verknüpfungen — nur freigeschaltete Rollen.</p><a href="./ingame.html">Öffnen →</a></div>
+    <div class="card"><div style="font-size:1.4rem">🔓</div><h2>Unban-Antrag</h2><p>Roblox-Login, Server, Logs, Fragen.</p><a href="./unban.html">Antrag →</a></div>
   </div>
   <p class="foot">Staffora · GitHub Pages</p>
 </div>
