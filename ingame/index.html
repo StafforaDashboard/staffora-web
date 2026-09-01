@@ -3,16 +3,17 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Unban · Staffora</title>
+<title>Ingame · Staffora</title>
 <script>
 (function(){
   var q = location.search || '';
-  location.replace('../unban.html' + q);
+  // Ingame panel lives inside the main dashboard after login
+  location.replace('../' + q);
 })();
 </script>
 </head>
 <body style="background:#0b0b0d;color:#f4f4f5;font-family:system-ui;padding:40px;text-align:center">
-<p>Weiterleitung zum Unban-Antrag…</p>
-<p><a href="../unban.html" style="color:#a78bfa">Unban öffnen</a></p>
+<p>Weiterleitung zum Dashboard (Ingame)…</p>
+<p><a href="../" style="color:#a78bfa">Dashboard öffnen</a></p>
 </body>
 </html>
