@@ -2,7 +2,7 @@
 <html lang="de"><head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Ingame Panel</title>
+<title>Staffora Dashboard</title>
 <style>
 html,body{margin:0;background:#06060a;color:#f4f4f5;font-family:Inter,system-ui,sans-serif;min-height:100vh}
 #boot{display:grid;place-items:center;min-height:100vh;text-align:center;padding:24px}
@@ -15,25 +15,29 @@ html,body{margin:0;background:#06060a;color:#f4f4f5;font-family:Inter,system-ui,
 <body>
 <div id="boot"><div>
 <div class="logo">S</div>
-<div style="font-weight:700;font-size:20px">Ingame Panel</div>
+<div style="font-weight:700;font-size:20px">Staffora Dashboard</div>
 <div class="sub" id="st">Lädt…</div>
 <div class="bar"><div class="fill" id="f"></div></div>
 <div class="err" id="e"></div>
 </div></div>
 <script>
 (async function(){
-  var N=4, parts=[];
+  var N=8, parts=[];
   for(var i=0;i<N;i++){
     document.getElementById('st').textContent='Teil '+(i+1)+'/'+N;
     document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-    var r=await fetch('i'+i+'.txt?v=20260901s');
-    if(!r.ok) throw new Error('Datei fehlt: i'+i+' ('+r.status+')');
+    var r=await fetch('d'+i+'.txt?v=20260901s');
+    if(!r.ok) throw new Error('Datei fehlt: d'+i+' ('+r.status+')');
     parts.push(await r.text());
   }
   var plain=parts.join('');
   try{
     var m=location.search.match(/[?&]token=([^&]+)/);
     if(m) localStorage.setItem('staffora_token',decodeURIComponent(m[1]));
+    if(location.hash&&location.hash.indexOf('token=')>=0){
+      var hm=location.hash.match(/token=([^&]+)/);
+      if(hm) localStorage.setItem('staffora_token',decodeURIComponent(hm[1]));
+    }
   }catch(e){}
   var doc=new DOMParser().parseFromString(plain,'text/html');
   document.replaceChild(document.importNode(doc.documentElement,true),document.documentElement);
