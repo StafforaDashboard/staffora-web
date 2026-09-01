@@ -1,31 +1,31 @@
 <!DOCTYPE html>
 <html lang="de"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Staffora Dashboard</title>
+<title>STAFFORA BOT · Dashboard</title>
 <style>
-html,body{margin:0;background:#0b0b0d;color:#f4f4f5;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,sans-serif;min-height:100vh}
 #boot{display:grid;place-items:center;min-height:100vh;text-align:center;padding:24px}
-.logo{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;background:linear-gradient(145deg,#8b5cf6,#4c1d95);display:grid;place-items:center;font-weight:800}
-.bar{width:260px;height:5px;background:#1a1a1f;border-radius:99px;overflow:hidden;margin:16px auto 0}
-.fill{height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#a78bfa);transition:width .08s}
-.sub{color:#94a3b8;font-size:14px;margin-top:8px}.err{color:#fca5a5;margin-top:12px}
+.logo{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;background:linear-gradient(145deg,#a78bfa,#6d28d9);display:grid;place-items:center;font-size:24px}
+.bar{width:260px;height:5px;background:#1a1a22;border-radius:99px;overflow:hidden;margin:16px auto 0}
+.fill{height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#22d3ee);transition:width .08s}
+.sub{color:#8b8b9a;font-size:14px;margin-top:8px}.err{color:#f87171;margin-top:12px;font-size:13px}
 </style></head>
 <body>
 <div id="boot"><div>
-<div class="logo">S</div>
-<div style="font-weight:700;font-size:20px">Staffora Dashboard</div>
+<div class="logo">🤖</div>
+<div style="font-weight:700;font-size:18px">STAFFORA BOT</div>
 <div class="sub" id="st">Lädt…</div>
 <div class="bar"><div class="fill" id="f"></div></div>
 <div class="err" id="e"></div>
 </div></div>
 <script>
 (async function(){
-  var N=138, parts=[];
+  var N=82, parts=[];
   for(var i=0;i<N;i++){
     document.getElementById('st').textContent='Lädt '+(i+1)+'/'+N;
     document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-    var r=await fetch('d'+i+'.b64?v=fullchunk');
-    if(!r.ok) throw new Error('fehlt d'+i+'.b64 — Zip staffora-FULL-chunks-deploy.zip hochladen');
+    var r=await fetch('d'+i+'.b64?v=prem1');
+    if(!r.ok) throw new Error('fehlt d'+i+'.b64 — Zip staffora-PREMIUM-deploy.zip hochladen');
     parts.push((await r.text()).replace(/\s+/g,''));
   }
   var plain=decodeURIComponent(escape(atob(parts.join(''))));
