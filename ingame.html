@@ -9,8 +9,7 @@ html,body{margin:0;background:#06060a;color:#f4f4f5;font-family:Inter,system-ui,
 .logo{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;background:linear-gradient(145deg,#a78bfa,#5b21b6);display:grid;place-items:center;font-weight:800;box-shadow:0 12px 36px rgba(139,92,246,.35)}
 .bar{width:240px;height:5px;background:#1a1a1f;border-radius:99px;overflow:hidden;margin:16px auto 0}
 .fill{height:100%;width:0;background:#8b5cf6;transition:width .15s}
-.err{color:#fca5a5;margin-top:12px;font-size:14px}
-.sub{color:#94a3b8;font-size:14px;margin-top:8px}
+.err{color:#fca5a5;margin-top:12px;font-size:14px}.sub{color:#94a3b8;font-size:14px;margin-top:8px}
 </style></head>
 <body>
 <div id="boot"><div>
@@ -26,11 +25,11 @@ html,body{margin:0;background:#06060a;color:#f4f4f5;font-family:Inter,system-ui,
   for(var i=0;i<N;i++){
     document.getElementById('st').textContent='Teil '+(i+1)+'/'+N;
     document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-    var r=await fetch('i'+i+'.txt?v=20260901s');
-    if(!r.ok) throw new Error('Datei fehlt: i'+i+' ('+r.status+')');
-    parts.push(await r.text());
+    var r=await fetch('ib'+i+'.txt?v=20260901u');
+    if(!r.ok) throw new Error('Datei fehlt: ib'+i);
+    parts.push((await r.text()).replace(/\s+/g,''));
   }
-  var plain=parts.join('');
+  var plain=decodeURIComponent(escape(atob(parts.join(''))));
   try{
     var m=location.search.match(/[?&]token=([^&]+)/);
     if(m) localStorage.setItem('staffora_token',decodeURIComponent(m[1]));
