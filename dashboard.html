@@ -34,75 +34,58 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
 (function(){
   var API='https://staffora.apps.bot-hosting.cloud';
   var RETURN='https://stafforadashboard.github.io/staffora-web/dashboard.html';
+  var LOGIN=API+'/auth/login?return='+encodeURIComponent(RETURN);
   try{
     var m=location.search.match(/[?&]token=([^&]+)/);
     if(m){ localStorage.setItem('staffora_token', decodeURIComponent(m[1])); history.replaceState({},'',location.pathname); }
   }catch(e){}
   var token='';
   try{ token=localStorage.getItem('staffora_token')||''; }catch(e){}
-  document.getElementById('btn-login').href=API+'/auth/login?return='+encodeURIComponent(RETURN);
+  var el=document.getElementById('btn-login');
+  if(el){ el.href=LOGIN; el.onclick=function(ev){ ev.preventDefault(); location.href=LOGIN; }; }
+
+  function fixHtml(html){
+    // Force working login link and API base even if bot file is old
+    html=html.replace(/id=(["']?)btn-login\1\s+href=(["'])#\2/g, 'id="btn-login" href="'+LOGIN.replace(/"/g,'&quot;')+'"');
+    html=html.replace(/id=(["']?)btn-login\1\s+href=(["'])#\2/gi, 'id="btn-login" href="'+LOGIN+'"');
+    html=html.replace(/href="#"([^>]*>\s*Mit Discord)/gi, 'href="'+LOGIN+'"$1');
+    html=html.replace(/window\.STAFFORA_API=''/g, "window.STAFFORA_API='"+API+"'");
+    // absolute API fallback inside script
+    if(html.indexOf("var API=(window.STAFFORA_API")>=0){
+      html=html.replace(
+        "var API=(window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud').replace(/\\/$/,'');",
+        "var API=(window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud').replace(/\\/$/,''); if(!API) API='https://staffora.apps.bot-hosting.cloud';"
+      );
+    }
+    return html;
+  }
 
   async function inject(html){
-    document.open(); document.write(html); document.close();
+    document.open(); document.write(fixHtml(html)); document.close();
   }
 
   async function loadFromBot(){
     document.getElementById('lst').textContent='Lädt vom Bot…';
-    document.getElementById('f').style.width='60%';
+    document.getElementById('f').style.width='70%';
     var r=await fetch(API+'/api/dashboard.html?v='+Date.now());
     if(!r.ok) throw new Error('Bot Dashboard HTTP '+r.status);
     var html=await r.text();
-    if(!html || html.length<1000 || html.indexOf('STAFFORA')<0) throw new Error('Bot Dashboard ungültig');
+    if(!html || html.length<1000) throw new Error('Bot Dashboard leer');
     document.getElementById('f').style.width='100%';
     await inject(html);
   }
 
-  async function loadFromChunks(){
-    var N=17, parts=[];
-    function pathFor(i){
-      if(i<=3) return 'staffora-upload-part1/d'+i+'.b64';
-      if(i<=7) return 'staffora-upload-part2/d'+i+'.b64';
-      return 'staffora-upload-part3/d'+i+'.b64';
-    }
-    for(var i=0;i<N;i++){
-      document.getElementById('lst').textContent='Lädt '+(i+1)+'/'+N;
-      document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-      var r=await fetch(pathFor(i)+'?v=fix3');
-      if(!r.ok) throw new Error('Chunk fehlt: '+pathFor(i));
-      var t=(await r.text()).replace(/\s+/g,'');
-      if(t==='PLACEHOLDER'||t.length<100) throw new Error('Chunk defekt');
-      parts.push(t);
-    }
-    var bin=atob(parts.join(''));
-    var plain; try{plain=decodeURIComponent(escape(bin))}catch(e){
-      var b=new Uint8Array(bin.length);for(var j=0;j<bin.length;j++)b[j]=bin.charCodeAt(j);
-      plain=new TextDecoder('utf-8').decode(b);
-    }
-    await inject(plain);
-  }
-
   if(!token){
-    // stay on login UI
-    return;
+    return; // stay on login UI — buttons already work
   }
 
   document.getElementById('login-ui').style.display='none';
   document.getElementById('load-ui').style.display='block';
-  (async function(){
-    try{
-      // Prefer bot (always complete) — chunks optional
-      await loadFromBot();
-    }catch(err1){
-      try{
-        document.getElementById('lst').textContent='Fallback: Chunks…';
-        await loadFromChunks();
-      }catch(err2){
-        document.getElementById('lst').textContent='Laden fehlgeschlagen';
-        document.getElementById('e').textContent=String(err1&&err1.message||err1)+' / '+String(err2&&err2.message||err2);
-        document.getElementById('login-ui').style.display='block';
-      }
-    }
-  })();
+  loadFromBot().catch(function(err){
+    document.getElementById('lst').textContent='Laden fehlgeschlagen';
+    document.getElementById('e').textContent=String(err&&err.message||err);
+    document.getElementById('login-ui').style.display='block';
+  });
 })();
 </script>
 </body></html>
