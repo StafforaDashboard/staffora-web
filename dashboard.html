@@ -6,13 +6,14 @@
 html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,sans-serif;min-height:100vh}
 #boot{display:grid;place-items:center;min-height:100vh;text-align:center;padding:24px}
 .logo{width:64px;height:64px;border-radius:18px;margin:0 auto 16px;background:linear-gradient(145deg,#a78bfa,#6d28d9);display:grid;place-items:center;font-size:28px}
-.sub{color:#8b8b9a;font-size:14px;margin:8px 0 20px}
+.sub{color:#8b8b9a;font-size:14px;margin:8px 0 16px}
 .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 22px;border-radius:12px;font-weight:600;text-decoration:none;margin:6px 0;min-width:240px;border:0;cursor:pointer;font-size:14px}
 .btn-p{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 8px 24px rgba(124,58,237,.35)}
 .btn-g{background:#16161a;color:#f4f4f5;border:1px solid #2a2a30}
 .bar{width:260px;height:5px;background:#1a1a22;border-radius:99px;overflow:hidden;margin:16px auto 0}
 .fill{height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#22d3ee);transition:width .12s}
-.err{color:#f87171;margin-top:12px;font-size:13px;max-width:440px;margin-left:auto;margin-right:auto;word-break:break-word}
+.err{color:#f87171;margin-top:12px;font-size:13px;max-width:460px;margin-left:auto;margin-right:auto;word-break:break-word}
+.ok{color:#34d399;font-size:13px;margin-top:8px}
 </style></head>
 <body>
 <div id="boot"><div>
@@ -23,11 +24,13 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
   <a class="btn btn-p" id="btn-login" href="https://staffora.apps.bot-hosting.cloud/auth/login?return=https%3A%2F%2Fstafforadashboard.github.io%2Fstaffora-web%2Fdashboard.html">Mit Discord anmelden</a><br/>
   <a class="btn btn-g" href="./ingame.html">Ingame Panel</a><br/>
   <a class="btn btn-g" href="./unban.html">Unban Request</a>
+  <div class="err" id="login-err"></div>
 </div>
 <div id="load-ui" style="display:none">
-  <div class="sub" id="lst">Lädt Dashboard…</div>
+  <div class="sub" id="lst">Login erkannt — Dashboard wird geladen…</div>
   <div class="bar"><div class="fill" id="f"></div></div>
   <div class="err" id="e"></div>
+  <div class="ok" id="ok"></div>
 </div>
 </div></div>
 <script>
@@ -35,56 +38,97 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
   var API='https://staffora.apps.bot-hosting.cloud';
   var RETURN='https://stafforadashboard.github.io/staffora-web/dashboard.html';
   var LOGIN=API+'/auth/login?return='+encodeURIComponent(RETURN);
-  try{
-    var m=location.search.match(/[?&]token=([^&]+)/);
-    if(m){ localStorage.setItem('staffora_token', decodeURIComponent(m[1])); history.replaceState({},'',location.pathname); }
-  }catch(e){}
-  var token='';
-  try{ token=localStorage.getItem('staffora_token')||''; }catch(e){}
-  var el=document.getElementById('btn-login');
-  if(el){ el.href=LOGIN; el.onclick=function(ev){ ev.preventDefault(); location.href=LOGIN; }; }
 
-  function fixHtml(html){
-    // Force working login link and API base even if bot file is old
-    html=html.replace(/id=(["']?)btn-login\1\s+href=(["'])#\2/g, 'id="btn-login" href="'+LOGIN.replace(/"/g,'&quot;')+'"');
-    html=html.replace(/id=(["']?)btn-login\1\s+href=(["'])#\2/gi, 'id="btn-login" href="'+LOGIN+'"');
-    html=html.replace(/href="#"([^>]*>\s*Mit Discord)/gi, 'href="'+LOGIN+'"$1');
-    html=html.replace(/window\.STAFFORA_API=''/g, "window.STAFFORA_API='"+API+"'");
-    // absolute API fallback inside script
-    if(html.indexOf("var API=(window.STAFFORA_API")>=0){
-      html=html.replace(
-        "var API=(window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud').replace(/\\/$/,'');",
-        "var API=(window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud').replace(/\\/$/,''); if(!API) API='https://staffora.apps.bot-hosting.cloud';"
-      );
+  function extractToken(){
+    var t='';
+    try{
+      var m=location.search.match(/[?&]token=([^&#]+)/);
+      if(m) t=decodeURIComponent(m[1]);
+    }catch(e){}
+    if(!t){
+      try{
+        var h=String(location.hash||'').replace(/^#/,'');
+        // supports #token=xxx or #token=xxx&other
+        var m2=h.match(/(?:^|[&#])token=([^&#]+)/);
+        if(m2) t=decodeURIComponent(m2[1]);
+      }catch(e){}
     }
-    return html;
+    if(!t){
+      try{ t=localStorage.getItem('staffora_token')||''; }catch(e){}
+    }
+    if(!t){
+      try{ t=sessionStorage.getItem('staffora_token')||''; }catch(e){}
+    }
+    if(t){
+      try{ localStorage.setItem('staffora_token', t); }catch(e){}
+      try{ sessionStorage.setItem('staffora_token', t); }catch(e){}
+    }
+    return t;
   }
 
-  async function inject(html){
-    document.open(); document.write(fixHtml(html)); document.close();
+  var token=extractToken();
+  var el=document.getElementById('btn-login');
+  if(el){
+    el.href=LOGIN;
+    el.addEventListener('click', function(ev){ ev.preventDefault(); location.href=LOGIN; });
   }
 
-  async function loadFromBot(){
-    document.getElementById('lst').textContent='Lädt vom Bot…';
-    document.getElementById('f').style.width='70%';
-    var r=await fetch(API+'/api/dashboard.html?v='+Date.now());
-    if(!r.ok) throw new Error('Bot Dashboard HTTP '+r.status);
+  // Debug: show if we returned from oauth without token
+  if(!token && /[?&]error=/.test(location.search)){
+    document.getElementById('login-err').textContent='Discord Login Fehler: '+location.search;
+  }
+
+  function inject(html, tok){
+    // Prepend token bootstrap so injected dashboard ALWAYS has the session
+    var boot='<script>try{localStorage.setItem("staffora_token",'+JSON.stringify(tok)+');window.__STAFFORA_TOKEN='+JSON.stringify(tok)+';}catch(e){}\u003c/script>';
+    // Force login href + API base in case bot file is stale
+    html=String(html)
+      .replace(/id=(["']?)btn-login\1\s+href=(["'])#\2/gi,'id="btn-login" href="'+LOGIN+'"')
+      .replace(/href="#"([^>]*>\s*Mit Discord)/gi,'href="'+LOGIN+'"$1')
+      .replace(/window\.STAFFORA_API=''/g,"window.STAFFORA_API='"+API+"'");
+    document.open();
+    document.write(boot+html);
+    document.close();
+  }
+
+  async function loadFromBot(tok){
+    document.getElementById('lst').textContent='Lädt Dashboard vom Bot…';
+    document.getElementById('f').style.width='40%';
+    var r=await fetch(API+'/api/dashboard.html?v='+Date.now(), {cache:'no-store'});
+    document.getElementById('f').style.width='80%';
+    if(!r.ok) throw new Error('Bot HTTP '+r.status);
     var html=await r.text();
-    if(!html || html.length<1000) throw new Error('Bot Dashboard leer');
+    if(!html || html.length<1000) throw new Error('Dashboard-HTML vom Bot ist leer/ungültig');
+    // Quick session check
+    try{
+      var me=await fetch(API+'/api/me',{headers:{Authorization:'Bearer '+tok},cache:'no-store'});
+      if(me.status===401){
+        try{localStorage.removeItem('staffora_token');sessionStorage.removeItem('staffora_token');}catch(e){}
+        throw new Error('Session ungültig (401). Bitte erneut anmelden.');
+      }
+      document.getElementById('ok').textContent= me.ok ? 'Session OK' : 'Session-Check: '+me.status;
+    }catch(e){
+      if(String(e.message||e).indexOf('401')>=0) throw e;
+      // network errors still try to show UI
+      document.getElementById('ok').textContent='Hinweis: '+String(e.message||e);
+    }
     document.getElementById('f').style.width='100%';
-    await inject(html);
+    // Clean URL after we have token stored
+    try{ history.replaceState({},'', location.pathname); }catch(e){}
+    inject(html, tok);
   }
 
   if(!token){
-    return; // stay on login UI — buttons already work
+    return; // show login buttons
   }
 
   document.getElementById('login-ui').style.display='none';
   document.getElementById('load-ui').style.display='block';
-  loadFromBot().catch(function(err){
-    document.getElementById('lst').textContent='Laden fehlgeschlagen';
+  loadFromBot(token).catch(function(err){
+    document.getElementById('lst').textContent='Dashboard konnte nicht geladen werden';
     document.getElementById('e').textContent=String(err&&err.message||err);
     document.getElementById('login-ui').style.display='block';
+    try{localStorage.removeItem('staffora_token');sessionStorage.removeItem('staffora_token');}catch(e){}
   });
 })();
 </script>
