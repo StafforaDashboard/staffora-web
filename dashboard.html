@@ -21,7 +21,7 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
 <script>
 (async function(){
   try{
-    var N=15, parts=[];
+    var N=17, parts=[];
     function pathFor(i){
       if(i<=3) return 'staffora-upload-part1/d'+i+'.b64';
       if(i<=7) return 'staffora-upload-part2/d'+i+'.b64';
@@ -30,8 +30,8 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
     for(var i=0;i<N;i++){
       document.getElementById('st').textContent='Lädt '+(i+1)+'/'+N;
       document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-      var r=await fetch(pathFor(i)+'?v=split1');
-      if(!r.ok) throw new Error('Chunk fehlt: '+pathFor(i)+' — part1-3 neu hochladen');
+      var r=await fetch(pathFor(i)+'?v=fullset');
+      if(!r.ok) throw new Error('Chunk fehlt: '+pathFor(i)+' — lade part1-3 neu');
       parts.push((await r.text()).replace(/\s+/g,''));
     }
     var bin=atob(parts.join(''));
