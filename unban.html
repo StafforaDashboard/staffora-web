@@ -8,8 +8,7 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
 .logo{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;background:linear-gradient(145deg,#a78bfa,#6d28d9);display:grid;place-items:center;font-size:24px}
 .bar{width:260px;height:5px;background:#1a1a22;border-radius:99px;overflow:hidden;margin:16px auto 0}
 .fill{height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#22d3ee);transition:width .1s}
-.sub{color:#8b8b9a;font-size:14px;margin-top:8px}
-.err{color:#f87171;margin-top:12px;font-size:13px;max-width:440px;margin-left:auto;margin-right:auto;word-break:break-word}
+.sub{color:#8b8b9a;font-size:14px;margin-top:8px}.err{color:#f87171;margin-top:12px;font-size:13px}
 </style></head>
 <body>
 <div id="boot"><div>
@@ -22,25 +21,20 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
 <script>
 (async function(){
   try{
-    var N=4, parts=[];
+    var N=2, parts=[];
     for(var i=0;i<N;i++){
       document.getElementById('st').textContent='Lädt '+(i+1)+'/'+N;
       document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-      var r=await fetch('staffora-upload-part4/u'+i+'.b64?v=fix3');
-      if(!r.ok) throw new Error('fehlt u'+i+'.b64 (HTTP '+r.status+')');
+      var r=await fetch('staffora-upload-part4/u'+i+'.b64?v=nouauth');
+      if(!r.ok) throw new Error('fehlt u'+i+' — part4 neu hochladen');
       parts.push((await r.text()).replace(/\s+/g,''));
     }
     var bin=atob(parts.join(''));
-    var plain;
-    try{ plain=decodeURIComponent(escape(bin)); }
-    catch(e1){
-      var bytes=new Uint8Array(bin.length);
-      for(var j=0;j<bin.length;j++) bytes[j]=bin.charCodeAt(j);
-      plain=new TextDecoder('utf-8').decode(bytes);
+    var plain; try{plain=decodeURIComponent(escape(bin))}catch(e){
+      var b=new Uint8Array(bin.length);for(var j=0;j<bin.length;j++)b[j]=bin.charCodeAt(j);
+      plain=new TextDecoder('utf-8').decode(b);
     }
-    document.open();
-    document.write(plain);
-    document.close();
+    document.open();document.write(plain);document.close();
   }catch(err){
     document.getElementById('st').textContent='Fehler';
     document.getElementById('e').textContent=String(err&&err.message||err);
