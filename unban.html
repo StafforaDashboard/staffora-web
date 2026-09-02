@@ -24,8 +24,9 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
   for(var i=0;i<N;i++){
     document.getElementById('st').textContent='Lädt '+(i+1)+'/'+N;
     document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-    var r=await fetch('u'+i+'.b64?v=few1');
-    if(!r.ok) throw new Error('fehlt u'+i+'.b64');
+    var url='staffora-upload-part4/u'+i+'.b64?v=fix2';
+    var r=await fetch(url);
+    if(!r.ok) throw new Error('fehlt '+url);
     parts.push((await r.text()).replace(/\s+/g,''));
   }
   var plain=decodeURIComponent(escape(atob(parts.join(''))));
