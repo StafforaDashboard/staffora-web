@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>STAFFORA BOT · Premium Moderation</title>
+<style>
+:root{--bg:#07070a;--card:#14141a;--line:#26262f;--text:#f4f4f5;--muted:#8b8b9a;--accent:#8b5cf6;--accent2:#a78bfa}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(7,7,10,.75);backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:.25s}
+.nav.scrolled{border-bottom-color:var(--line);background:rgba(7,7,10,.92)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+.logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(145deg,#a78bfa,#6d28d9);display:grid;place-items:center;font-size:16px}
+.nav-links{display:flex;gap:8px;align-items:center}
+.nav-links a{padding:8px 12px;color:var(--muted);font-size:14px;font-weight:500;border-radius:8px}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:12px;font-weight:600;font-size:14px;border:0;cursor:pointer;transition:.18s}
+.btn-p{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 8px 28px rgba(124,58,237,.35)}
+.btn-p:hover{transform:translateY(-2px)}
+.btn-g{background:var(--card);color:var(--text);border:1px solid var(--line)}
+.btn-g:hover{border-color:#3f3f4a}
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:100px 20px 60px;background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(139,92,246,.22),transparent 55%),radial-gradient(ellipse 40% 30% at 85% 70%,rgba(34,211,238,.08),transparent 50%)}
+.badge{display:inline-block;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;color:var(--accent2);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);margin-bottom:20px}
+.hero h1{font-size:clamp(2.2rem,5vw,3.4rem);letter-spacing:-.04em;font-weight:800;max-width:720px;line-height:1.15;margin-bottom:16px}
+.hero h1 span{background:linear-gradient(90deg,#a78bfa,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);font-size:1.1rem;max-width:520px;margin:0 auto 28px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.scroll-hint{margin-top:48px;color:var(--muted);font-size:13px;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+section{padding:80px 20px;max-width:1100px;margin:0 auto}
+.sec-title{text-align:center;margin-bottom:40px}
+.sec-title h2{font-size:1.85rem;margin-bottom:8px}
+.sec-title p{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:rgba(20,20,26,.85);border:1px solid var(--line);border-radius:16px;padding:24px;transition:transform .2s,border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:#3f3f4a}
+.card .ic{font-size:1.6rem;margin-bottom:12px}
+.card h3{font-size:1.1rem;margin-bottom:8px}
+.card p{color:var(--muted);font-size:14px}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}.reveal.d4{transition-delay:.32s}
+.cta{text-align:center;padding:80px 20px;margin:40px 20px;border-radius:24px;background:linear-gradient(145deg,rgba(139,92,246,.15),rgba(34,211,238,.06));border:1px solid rgba(139,92,246,.2)}
+.cta h2{font-size:1.8rem;margin-bottom:12px}
+.cta p{color:var(--muted);margin-bottom:24px}
+footer{text-align:center;padding:40px 20px 60px;color:#5c5c6a;font-size:13px;border-top:1px solid var(--line)}
+footer a{color:var(--accent2)}
+@media(max-width:640px){.nav-links a.hide-m{display:none}}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav">
+  <div class="brand"><div class="logo">🤖</div> STAFFORA BOT</div>
+  <div class="nav-links">
+    <a class="hide-m" href="#features">Features</a>
+    <a class="hide-m" href="#modules">Module</a>
+    <a class="btn btn-g" href="./unban.html">Unban</a>
+    <a class="btn btn-p" href="./dashboard.html">Dashboard</a>
+  </div>
+</nav>
+<header class="hero">
+  <div class="badge">Premium Moderation · Discord + Roblox</div>
+  <h1>Moderation, die <span>zusammenarbeitet</span></h1>
+  <p>Teamverwaltung, Ingame-Panel, Warn-/Ban-System, Unban-Requests und Live-Duty – alles in einem System.</p>
+  <div class="hero-actions">
+    <a class="btn btn-p" href="./dashboard.html">Zum Dashboard</a>
+    <a class="btn btn-g" href="./ingame.html">Ingame Panel</a>
+    <a class="btn btn-g" href="./unban.html">Unban Request</a>
+  </div>
+  <div class="scroll-hint">↓ Scroll für Features</div>
+</header>
+<section id="features">
+  <div class="sec-title reveal"><h2>Alles an einem Ort</h2><p>Saubere Workflows statt Chaos in Tickets und DMs</p></div>
+  <div class="grid">
+    <div class="card reveal d1"><div class="ic">🟢</div><h3>Duty Online Panel</h3><p>On/Off Duty. Auto-Update. Mit oder ohne Ingame-Admin-Rechte.</p></div>
+    <div class="card reveal d2"><div class="ic">🛡️</div><h3>Warn · Kick · Ban</h3><p>Konfigurierbare Stufen, Akten, Logs und Webhooks.</p></div>
+    <div class="card reveal d3"><div class="ic">🎮</div><h3>Ingame Panel</h3><p>Spieler suchen, Akte, Ban-Liste – nur freigeschaltete Rollen.</p></div>
+    <div class="card reveal d4"><div class="ic">📝</div><h3>Unban Requests</h3><p>Roblox-Login, Serverwahl, konfigurierbare Fragen.</p></div>
+  </div>
+</section>
+<section id="modules">
+  <div class="sec-title reveal"><h2>Module</h2><p>Für Notruf Hamburg &amp; private Staff-Server</p></div>
+  <div class="grid">
+    <div class="card reveal d1"><div class="ic">📡</div><h3>Webhook Ingest</h3><p>Notruf-Hamburg-Webhooks → Auto-Logs.</p></div>
+    <div class="card reveal d2"><div class="ic">🎫</div><h3>Tickets &amp; Transcripts</h3><p>Support mit Transcripts und Warteraum-Musik.</p></div>
+    <div class="card reveal d3"><div class="ic">⏱️</div><h3>Schicht &amp; Abmelden</h3><p>Clock-in, Abmelden mit Timer und Rollen-Restore.</p></div>
+    <div class="card reveal d4"><div class="ic">🔢</div><h3>Dienstnummern</h3><p>Gruppen, Zuweisung und Roblox-Verknüpfung.</p></div>
+  </div>
+</section>
+<div class="cta reveal">
+  <h2>Bereit für STAFFORA?</h2>
+  <p>Dashboard öffnen und Server verbinden.</p>
+  <a class="btn btn-p" href="./dashboard.html">Dashboard öffnen</a>
+</div>
+<footer>
+  <strong>STAFFORA BOT</strong> · Premium Moderation &amp; Security<br/>
+  <a href="./dashboard.html">Dashboard</a> · <a href="./ingame.html">Ingame</a> · <a href="./unban.html">Unban</a>
+</footer>
+<script>
+(function(){
+  var nav=document.getElementById('nav');
+  window.addEventListener('scroll',function(){nav.classList.toggle('scrolled',window.scrollY>20);},{passive:true});
+  var els=document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+    },{threshold:0.12,rootMargin:'0px 0px -40px 0px'});
+    els.forEach(function(el){io.observe(el);});
+  } else els.forEach(function(el){el.classList.add('in');});
+})();
+</script>
+</body>
+</html>
