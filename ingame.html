@@ -7,7 +7,7 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
 #boot{display:grid;place-items:center;min-height:100vh;text-align:center;padding:24px}
 .logo{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;background:linear-gradient(145deg,#a78bfa,#6d28d9);display:grid;place-items:center;font-size:24px}
 .bar{width:260px;height:5px;background:#1a1a22;border-radius:99px;overflow:hidden;margin:16px auto 0}
-.fill{height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#22d3ee);transition:width .08s}
+.fill{height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#22d3ee);transition:width .1s}
 .sub{color:#8b8b9a;font-size:14px;margin-top:8px}.err{color:#f87171;margin-top:12px}
 </style></head>
 <body>
@@ -20,11 +20,11 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
 </div></div>
 <script>
 (async function(){
-  var N=39, parts=[];
+  var N=4, parts=[];
   for(var i=0;i<N;i++){
     document.getElementById('st').textContent='Lädt '+(i+1)+'/'+N;
     document.getElementById('f').style.width=Math.round((i+1)/N*100)+'%';
-    var r=await fetch('g'+i+'.b64?v=dep2');
+    var r=await fetch('g'+i+'.b64?v=few1');
     if(!r.ok) throw new Error('fehlt g'+i+'.b64');
     parts.push((await r.text()).replace(/\s+/g,''));
   }
