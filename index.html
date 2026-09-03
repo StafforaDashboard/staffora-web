@@ -3,139 +3,161 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>STAFFORA BOT · Premium Moderation</title>
+<title>Staffora</title>
 <style>
-:root{
-  --bg:#07070a;--panel:#0f0f14;--card:#14141a;--line:#26262f;
-  --text:#f4f4f5;--muted:#8b8b9a;--accent:#8b5cf6;--accent2:#a78bfa;--cyan:#22d3ee;
-}
+:root{--bg:#07070a;--card:#121218;--line:#26262f;--text:#f4f4f5;--muted:#9ca3af;--accent:#8b5cf6}
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;overflow-x:hidden}
-a{color:inherit;text-decoration:none}
-.nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
-  padding:14px 28px;background:rgba(7,7,10,.75);backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:.25s}
-.nav.scrolled{border-bottom-color:var(--line);background:rgba(7,7,10,.92)}
-.brand{display:flex;align-items:center;gap:10px;font-weight:700}
-.logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(145deg,#a78bfa,#6d28d9);display:grid;place-items:center;font-size:16px}
-.nav-links{display:flex;gap:8px;align-items:center}
-.nav-links a{padding:8px 12px;color:var(--muted);font-size:14px;font-weight:500;border-radius:8px}
-.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:12px;font-weight:600;font-size:14px;border:0;cursor:pointer;transition:.18s}
-.btn-p{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 8px 28px rgba(124,58,237,.35)}
-.btn-p:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(124,58,237,.45)}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+  background-image:radial-gradient(ellipse 80% 50% at 50% -15%,rgba(139,92,246,.22),transparent 55%),
+  radial-gradient(ellipse 40% 30% at 90% 80%,rgba(59,130,246,.08),transparent)}
+.wrap{max-width:1000px;margin:0 auto;padding:48px 20px 100px}
+.hero{text-align:center;margin-bottom:36px;animation:up .55s ease both}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes glow{0%,100%{box-shadow:0 16px 40px rgba(139,92,246,.3)}50%{box-shadow:0 16px 48px rgba(139,92,246,.5)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes lineIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+@keyframes shimmer{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+@keyframes bounceY{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+.logo{width:64px;height:64px;border-radius:18px;margin:0 auto 18px;background:linear-gradient(145deg,#a78bfa,#5b21b6);
+  display:grid;place-items:center;font-weight:800;font-size:24px;animation:up .55s ease both,glow 3s ease-in-out infinite}
+h1{font-size:2.2rem;letter-spacing:-.03em;margin-bottom:10px}
+.sub{color:var(--muted);font-size:1.05rem;max-width:480px;margin:0 auto 28px;line-height:1.5}
+.actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 22px;border-radius:12px;
+  font-weight:600;text-decoration:none;transition:transform .15s,box-shadow .15s;border:none;cursor:pointer;font-size:15px}
+.btn:hover{transform:translateY(-2px)}
+.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 8px 24px rgba(139,92,246,.35)}
 .btn-g{background:var(--card);color:var(--text);border:1px solid var(--line)}
-.btn-g:hover{border-color:#3f3f4a;transform:translateY(-1px)}
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:100px 20px 60px;
-  background:
-    radial-gradient(ellipse 70% 50% at 50% -10%,rgba(139,92,246,.22),transparent 55%),
-    radial-gradient(ellipse 40% 30% at 85% 70%,rgba(34,211,238,.08),transparent 50%);
+.sec{margin:8px 0 14px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;font-weight:700;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:rgba(18,18,24,.9);border:1px solid var(--line);border-radius:16px;padding:20px;
+  transition:transform .2s,border-color .2s,box-shadow .2s;opacity:0;animation:up .55s ease both}
+.card:hover{transform:translateY(-4px);border-color:#4c1d95;box-shadow:0 12px 28px rgba(139,92,246,.12)}
+.card .ic{font-size:1.35rem;margin-bottom:8px;display:inline-block;transition:transform .2s}
+.card:hover .ic{transform:scale(1.12)}
+.card h2{font-size:1.05rem;margin-bottom:6px}
+.card p{color:var(--muted);font-size:13.5px;line-height:1.45;margin:0}
+.corner{position:fixed;right:16px;bottom:16px;z-index:50;display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:11px}
+.corner a{color:#6b7280;text-decoration:none;padding:2px 0;transition:color .15s}
+.corner a:hover{color:#a1a1aa}
+
+.promo{
+  margin:8px 0 8px;padding:32px 26px 28px;border-radius:20px;
+  background:linear-gradient(160deg,rgba(24,24,32,.95),rgba(15,15,20,.98));
+  border:1px solid var(--line);position:relative;overflow:hidden;
+  opacity:0;transform:translateY(20px);transition:opacity .65s ease,transform .65s ease;
 }
-.hero .badge{display:inline-block;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;color:var(--accent2);
-  background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);margin-bottom:20px}
-.hero h1{font-size:clamp(2.2rem,5vw,3.4rem);letter-spacing:-.04em;font-weight:800;max-width:720px;line-height:1.15;margin-bottom:16px}
-.hero h1 span{background:linear-gradient(90deg,#a78bfa,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p{color:var(--muted);font-size:1.1rem;max-width:520px;margin:0 auto 28px}
-.hero-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
-.scroll-hint{margin-top:48px;color:var(--muted);font-size:13px;animation:bob 2s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
-section{padding:80px 20px;max-width:1100px;margin:0 auto}
-.sec-title{text-align:center;margin-bottom:40px}
-.sec-title h2{font-size:1.85rem;letter-spacing:-.03em;margin-bottom:8px}
-.sec-title p{color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-.card{background:rgba(20,20,26,.85);border:1px solid var(--line);border-radius:16px;padding:24px;transition:transform .2s,border-color .2s,box-shadow .2s}
-.card:hover{transform:translateY(-4px);border-color:#3f3f4a;box-shadow:0 16px 40px rgba(0,0,0,.35)}
-.card .ic{font-size:1.6rem;margin-bottom:12px}
-.card h3{font-size:1.1rem;margin-bottom:8px}
-.card p{color:var(--muted);font-size:14px}
-.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
-.reveal.in{opacity:1;transform:none}
-.reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}.reveal.d4{transition-delay:.32s}
-.cta{text-align:center;padding:80px 20px;margin:40px 20px;border-radius:24px;
-  background:linear-gradient(145deg,rgba(139,92,246,.15),rgba(34,211,238,.06));border:1px solid rgba(139,92,246,.2)}
-.cta h2{font-size:1.8rem;margin-bottom:12px}
-.cta p{color:var(--muted);margin-bottom:24px}
-footer{text-align:center;padding:40px 20px 60px;color:#5c5c6a;font-size:13px;border-top:1px solid var(--line)}
-footer a{color:var(--accent2)}
-@media(max-width:640px){.nav-links a.hide-m{display:none}}
+.promo.in{opacity:1;transform:none}
+.promo::before{
+  content:'';position:absolute;inset:-40% -20% auto auto;width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(139,92,246,.22),transparent 70%);pointer-events:none;
+  animation:float 6s ease-in-out infinite;
+}
+.promo::after{
+  content:'';position:absolute;left:0;top:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,#8b5cf6,transparent);
+  transform-origin:left;animation:lineIn .8s ease .2s both;
+}
+.promo-head{text-align:center;margin-bottom:18px;position:relative;z-index:1}
+.promo-head .bot{font-size:1.75rem;margin-bottom:8px;display:inline-block;animation:float 3.5s ease-in-out infinite}
+.promo-head h2{
+  font-size:1.3rem;margin-bottom:10px;letter-spacing:-.02em;
+  background:linear-gradient(90deg,#e9d5ff,#a78bfa,#c4b5fd,#e9d5ff);
+  background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shimmer 4s linear infinite;
+}
+.promo-head p{color:var(--muted);font-size:14.5px;max-width:540px;margin:0 auto;line-height:1.55}
+.promo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:18px 0 6px;position:relative;z-index:1}
+.promo-item{
+  padding:12px 14px;border-radius:12px;background:rgba(10,10,14,.55);border:1px solid #22222a;
+  transition:transform .2s,border-color .2s;
+  opacity:0;transform:translateY(10px);
+}
+.promo.in .promo-item{animation:up .45s ease both}
+.promo.in .promo-item:nth-child(1){animation-delay:.06s}
+.promo.in .promo-item:nth-child(2){animation-delay:.1s}
+.promo.in .promo-item:nth-child(3){animation-delay:.14s}
+.promo.in .promo-item:nth-child(4){animation-delay:.18s}
+.promo.in .promo-item:nth-child(5){animation-delay:.22s}
+.promo.in .promo-item:nth-child(6){animation-delay:.26s}
+.promo-item:hover{transform:translateY(-2px);border-color:#5b21b6}
+.promo-item strong{display:block;font-size:13.5px;margin-bottom:3px}
+.promo-item span{color:var(--muted);font-size:12px;line-height:1.35}
+
+.more-arrow{
+  text-align:center;margin:22px 0 10px;color:#a78bfa;font-size:13px;font-weight:600;
+  letter-spacing:.04em;opacity:0;animation:up .5s ease .3s both;
+}
+.more-arrow .arr{
+  display:block;font-size:18px;margin-top:4px;color:#8b5cf6;
+  animation:bounceY 1.4s ease-in-out infinite;
+}
+.foot{text-align:center;margin-top:40px;color:#6b7280;font-size:13px}
 </style>
 </head>
 <body>
-<nav class="nav" id="nav">
-  <div class="brand"><div class="logo">🤖</div> STAFFORA BOT</div>
-  <div class="nav-links">
-    <a class="hide-m" href="#features">Features</a>
-    <a class="hide-m" href="#modules">Module</a>
-    <a class="btn btn-g" href="./unban.html">Unban</a>
-    <a class="btn btn-p" href="./dashboard.html">Dashboard</a>
+<div class="wrap">
+  <div class="hero">
+    <div class="logo">S</div>
+    <h1>Staffora</h1>
+    <p class="sub">Discord-Moderation und Server-Verwaltung.</p>
+    <div class="actions">
+      <a class="btn btn-p" href="./dashboard.html">Dashboard</a>
+      <a class="btn btn-g" href="https://staffora.apps.bot-hosting.cloud/auth/login?return=https%3A%2F%2Fstafforadashboard.github.io%2Fstaffora-web%2Fdashboard.html">Mit Discord anmelden</a>
+    </div>
   </div>
-</nav>
 
-<header class="hero">
-  <div class="badge">Premium Moderation · Discord + Roblox</div>
-  <h1>Moderation, die <span>zusammenarbeitet</span></h1>
-  <p>Teamverwaltung, Ingame-Panel, Warn-/Ban-System, Unban-Requests und Live-Duty – alles in einem System.</p>
-  <div class="hero-actions">
-    <a class="btn btn-p" href="./dashboard.html">Zum Dashboard</a>
-    <a class="btn btn-g" href="./ingame.html">Ingame Panel</a>
-    <a class="btn btn-g" href="./unban.html">Unban Request</a>
-  </div>
-  <div class="scroll-hint">↓ Scroll für Features</div>
-</header>
+  <section class="promo" id="promo">
+    <div class="promo-head">
+      <div class="bot">🤖</div>
+      <h2>Der All-in-One Discord Bot für deinen Server</h2>
+      <p>Moderation, Team und IC an einem Ort – über Dashboard und Discord steuerbar.</p>
+    </div>
+    <div class="promo-grid">
+      <div class="promo-item"><strong>🛡️ Moderation</strong><span>Warns, Bans, Logs, Ban Appeals</span></div>
+      <div class="promo-item"><strong>👥 Team</strong><span>Rollen, Bewerbungen, Teamlist, Duty</span></div>
+      <div class="promo-item"><strong>🎫 Tickets</strong><span>Support, Übernehmen, Transcript</span></div>
+      <div class="promo-item"><strong>⭐ XP &amp; Ränge</strong><span>XP, Feedback-Sterne, Auto-Nick</span></div>
+      <div class="promo-item"><strong>🪪 Ausweis</strong><span>Anträge und Personalausweis-Karte</span></div>
+      <div class="promo-item"><strong>🎮 IC Panel</strong><span>Lookup, Duty, Online Admin</span></div>
+    </div>
+  </section>
 
-<section id="features">
-  <div class="sec-title reveal">
-    <h2>Alles an einem Ort</h2>
-    <p>Saubere Workflows statt Chaos in Tickets und DMs</p>
+  <div class="more-arrow">
+    Mehr Features
+    <span class="arr">↓</span>
   </div>
+
+  <div class="sec">Module &amp; Features</div>
   <div class="grid">
-    <div class="card reveal d1"><div class="ic">🟢</div><h3>Duty Online Panel</h3><p>On/Off Duty. Auto-Update. Mit oder ohne Ingame-Admin-Rechte – konfigurierbare Rollen.</p></div>
-    <div class="card reveal d2"><div class="ic">🛡️</div><h3>Warn · Kick · Ban</h3><p>Konfigurierbare Stufen, Akten, Logs und Webhooks – ohne Auto-Ban-Überraschungen.</p></div>
-    <div class="card reveal d3"><div class="ic">🎮</div><h3>Ingame Panel</h3><p>Spieler suchen, Akte, Ban-Liste, Verknüpfungen – nur für freigeschaltete Rollen.</p></div>
-    <div class="card reveal d4"><div class="ic">📝</div><h3>Unban Requests</h3><p>Roblox-Login, Serverwahl, Fragen konfigurierbar, Prüfung auf bestehende Logs.</p></div>
+    <div class="card" style="animation-delay:.05s"><div class="ic">⭐</div><h2>XP-System</h2><p>XP für Chat, Voice, Dienst, Tickets und Admin Calls. Am Periodenende Uprank für die höchste XP (abschaltbar).</p></div>
+    <div class="card" style="animation-delay:.08s"><div class="ic">💜</div><h2>Feedback</h2><p>Teammitglied bewerten (1–5 Sterne + Text). Eintrag im Log-Kanal. Gute Sterne mehr XP, 1–2 Sterne Abzug.</p></div>
+    <div class="card" style="animation-delay:.11s"><div class="ic">👮</div><h2>Online Admin</h2><p>On/Off Duty. Liste mit Admin-Rolle und ohne. Gleicher Status wie im IC Panel.</p></div>
+    <div class="card" style="animation-delay:.14s"><div class="ic">🎫</div><h2>Tickets</h2><p>Support öffnen, übernehmen, schließen mit Transcript.</p></div>
+    <div class="card" style="animation-delay:.17s"><div class="ic">🪪</div><h2>Ausweis</h2><p>Anträge für Ausweis, Führerschein, Waffenschein. Genehmigung und Karte als Embed.</p></div>
+    <div class="card" style="animation-delay:.2s"><div class="ic">🎵</div><h2>Warteraum-Musik</h2><p>Musik im Support-Warteraum. URL oder Datei im Dashboard.</p></div>
+    <div class="card" style="animation-delay:.23s"><div class="ic">🏷️</div><h2>Auto-Nick &amp; Ränge</h2><p>Nickname nach Rang. Befördern und Degradieren über die Rang-Laufbahn.</p></div>
+    <div class="card" style="animation-delay:.26s"><div class="ic">🤝</div><h2>Partner &amp; Team</h2><p>Partner-Stufen, Bewerbungen, Teamlist, Abmelden, Fraktionen.</p></div>
+    <div class="card" style="animation-delay:.29s"><div class="ic">🔓</div><h2>Ban Appeal</h2><p>Spieler stellt Unban-Anfrage per Roblox-Name. Team prüft im Dashboard.</p></div>
+    <div class="card" style="animation-delay:.32s"><div class="ic">📞</div><h2>Admin Calls</h2><p>Warteraum-Ping, Übernehmen, Logs und optional Musik.</p></div>
   </div>
-</section>
 
-<section id="modules">
-  <div class="sec-title reveal">
-    <h2>Module</h2>
-    <p>Für Notruf Hamburg &amp; private Staff-Server</p>
-  </div>
-  <div class="grid">
-    <div class="card reveal d1"><div class="ic">📡</div><h3>Webhook Ingest</h3><p>Notruf-Hamburg-Webhooks → Auto-Logs im Ingame-Dashboard.</p></div>
-    <div class="card reveal d2"><div class="ic">🎫</div><h3>Tickets &amp; Transcripts</h3><p>Support mit Transcripts und Warteraum-Musik.</p></div>
-    <div class="card reveal d3"><div class="ic">⏱️</div><h3>Schicht &amp; Abmelden</h3><p>Clock-in, Abmelden mit Timer und Rollen-Restore per DM.</p></div>
-    <div class="card reveal d4"><div class="ic">🔢</div><h3>Dienstnummern</h3><p>Gruppen, Zuweisung und Teamliste mit Roblox-Verknüpfung.</p></div>
-  </div>
-</section>
-
-<div class="cta reveal">
-  <h2>Bereit für STAFFORA?</h2>
-  <p>Dashboard öffnen und Server verbinden.</p>
-  <a class="btn btn-p" href="./dashboard.html">Dashboard öffnen</a>
+  <p class="foot">STAFFORA BOT</p>
 </div>
 
-<footer>
-  <strong>STAFFORA BOT</strong> · Premium Moderation &amp; Security<br/>
-  <a href="./dashboard.html">Dashboard</a> · <a href="./ingame.html">Ingame</a> · <a href="./unban.html">Unban</a>
-</footer>
-
+<div class="corner">
+  <a href="./ingame.html">IC Panel</a>
+  <a href="./unban.html">Ban Appeal</a>
+</div>
 <script>
 (function(){
-  var nav=document.getElementById('nav');
-  window.addEventListener('scroll',function(){
-    nav.classList.toggle('scrolled', window.scrollY>20);
-  },{passive:true});
-  var els=document.querySelectorAll('.reveal');
-  if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(entries){
-      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
-    },{threshold:0.12, rootMargin:'0px 0px -40px 0px'});
-    els.forEach(function(el){ io.observe(el); });
-  } else {
-    els.forEach(function(el){ el.classList.add('in'); });
-  }
+  var el=document.getElementById('promo');
+  if(!el) return;
+  if(!('IntersectionObserver' in window)){ el.classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ el.classList.add('in'); io.disconnect(); } });
+  },{threshold:0.12});
+  io.observe(el);
 })();
 </script>
 </body>
