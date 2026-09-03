@@ -270,6 +270,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
   if(!token) return;
   $('v-login').classList.add('hidden'); $('v-app').classList.remove('hidden');
+  // boot after UI wired
   if(window.matchMedia('(max-width:900px)').matches){
     $('btn-menu').style.display='inline-flex';
     $('btn-menu').onclick=function(){$('sidebar').classList.toggle('open')};
@@ -279,18 +280,16 @@ tr:hover td{background:rgba(255,255,255,.02)}
     b.onclick=function(){page=b.getAttribute('data-p');syncNav();render()};
   });
   function syncNav(){document.querySelectorAll('.nav-btn[data-p]').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-p')===page)})}
-  updateSideMini();
-  $('guild-sel').onchange=function(){guildId=this.value;updateSideMini();render()};
-
-  async 
   function updateSideMini(){
     var el=$('side-mini');
     if(!el) return;
     if(guildId) el.classList.add('show');
     else el.classList.remove('show');
   }
+  updateSideMini();
+  $('guild-sel').onchange=function(){guildId=this.value;updateSideMini();render()};
 
-  function boot(){
+  async function boot(){
     try{
       me=await api('/api/me');
       $('user-label').textContent=me.username||me.id;
@@ -299,12 +298,18 @@ tr:hover td{background:rgba(255,255,255,.02)}
       var sel=$('guild-sel');
       sel.innerHTML=guilds.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name||x.id)+'</option>'}).join('');
       if(guilds.length){guildId=guilds[0].id;sel.value=guildId;updateSideMini()}else{updateSideMini()}
+      // clean token from URL after success
+      try{ history.replaceState({},'', location.pathname + (location.hash&&location.hash.indexOf('token=')<0?location.hash:'')); }catch(e){}
       render();
     }catch(e){
       var msg=esc(e.message||e);
-      $('panel').innerHTML='<div class="card"><p style="color:var(--err);margin-bottom:12px">'+msg+'</p>'+
+      $('v-login').classList.remove('hidden');
+      $('v-app').classList.add('hidden');
+      toast(msg,'err');
+      var panel=$('panel');
+      if(panel) panel.innerHTML='<div class="card"><p style="color:var(--err);margin-bottom:12px">'+msg+'</p>'+
         '<button type="button" class="btn btn-p" id="relogin">Erneut anmelden</button></div>';
-      var b=$('relogin'); if(b) b.onclick=function(){try{localStorage.removeItem('staffora_token')}catch(x){}; location.href='/auth/login?return='+encodeURIComponent(location.origin+'/dashboard');};
+      var b=$('relogin'); if(b) b.onclick=function(){try{localStorage.removeItem('staffora_token')}catch(x){}; location.href=API+'/auth/login?return='+encodeURIComponent('https://stafforadashboard.github.io/staffora-web/dashboard.html');};
     }
   }
 

@@ -125,6 +125,8 @@ h1{text-align:center;font-size:1.35rem;margin-bottom:6px}
       $('server-list').innerHTML = '<p class="sub">Kein Server verfügbar.</p>';
       return;
     }
+    var seen={};
+    list = list.filter(function(g){ var id=String(g.id); if(seen[id]) return false; seen[id]=1; return true; });
     $('server-list').innerHTML = list.map(function(g){
       return '<button type="button" class="server-btn" data-gid="'+g.id+'">'+(g.name||g.id)+'</button>';
     }).join('');
