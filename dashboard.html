@@ -11,7 +11,7 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
 .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 22px;border-radius:12px;font-weight:600;text-decoration:none;margin:6px 0;min-width:240px;border:0;cursor:pointer;font-size:14px}
 .btn-p{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 8px 24px rgba(124,58,237,.35)}
 .btn-g{background:#16161a;color:#f4f4f5;border:1px solid #2a2a30}
-.err{color:#f87171;margin-top:12px;font-size:13px;max-width:420px;margin-left:auto;margin-right:auto;word-break:break-word}
+.err{color:#f87171;margin-top:12px;font-size:13px}
 </style></head>
 <body>
 <div id="boot"><div>
@@ -43,8 +43,9 @@ html,body{margin:0;background:#07070a;color:#f4f4f5;font-family:Inter,system-ui,
     location.replace(DASH+'?token='+encodeURIComponent(tok));
     return;
   }
-  document.getElementById('btn-login').href=API+'/auth/login?return='+encodeURIComponent(DASH);
-  document.getElementById('btn-login').onclick=function(ev){ev.preventDefault();location.href=API+'/auth/login?return='+encodeURIComponent(DASH);};
+  var login=API+'/auth/login?return='+encodeURIComponent(DASH);
+  document.getElementById('btn-login').href=login;
+  document.getElementById('btn-login').onclick=function(ev){ev.preventDefault();location.href=login;};
 })();
 </script>
 </body></html>
