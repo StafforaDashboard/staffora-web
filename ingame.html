@@ -101,8 +101,14 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
 <div class="toast" id="toast"></div>
 <script>
 (function(){
-  var API=window.STAFFORA_API||'';
-  var token=localStorage.getItem('staffora_token')||'';
+  var API=window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud';
+  var token='';
+  try{
+    var m=location.search.match(/[?&]token=([^&#]+)/);
+    if(m) token=decodeURIComponent(m[1]);
+  }catch(e){}
+  if(!token){ try{ token=localStorage.getItem('staffora_token')||''; }catch(e){} }
+  if(token){ try{ localStorage.setItem('staffora_token', token); }catch(e){} }
   var guildId=localStorage.getItem('staffora_ingame_guild')||'';
   var page='duty';
   var dutyTimer=null;
@@ -129,7 +135,7 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
 
   $('btn-login').onclick=function(){
     var ret=encodeURIComponent(location.href.split('#')[0]);
-    location.href=API+'/auth/login?return='+ret;
+    location.href=API+'/auth/login?return='+encodeURIComponent('https://stafforadashboard.github.io/staffora-web/ingame.html');
   };
   $('btn-out').onclick=function(){
     token=''; localStorage.removeItem('staffora_token'); localStorage.removeItem('staffora_ingame_guild');

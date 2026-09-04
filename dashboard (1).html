@@ -211,20 +211,22 @@ tr:hover td{background:rgba(255,255,255,.02)}
   var API=(window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud').replace(/\/$/,'');
   if(!API) API='https://staffora.apps.bot-hosting.cloud';
   var token='';
-  try{ if(window.__STAFFORA_TOKEN) token=String(window.__STAFFORA_TOKEN); }catch(e){}
+  // URL token ALWAYS wins (fresh OAuth) — never let stale localStorage block login
+  try{
+    var m=location.search.match(/[?&]token=([^&#]+)/);
+    if(m) token=decodeURIComponent(m[1]).replace(/\+/g,' ');
+    if(!token && location.hash){
+      var hm=location.hash.match(/(?:^|#|&)token=([^&]+)/);
+      if(hm) token=decodeURIComponent(hm[1]);
+    }
+  }catch(e){}
+  try{ if(!token && window.__STAFFORA_TOKEN) token=String(window.__STAFFORA_TOKEN); }catch(e){}
   if(!token){ try{ token=localStorage.getItem('staffora_token')||''; }catch(e){ token=''; } }
   if(!token){ try{ token=sessionStorage.getItem('staffora_token')||''; }catch(e){} }
-  if(!token){
-    try{
-      var m=location.search.match(/[?&]token=([^&#]+)/);
-      if(m) token=decodeURIComponent(m[1]);
-      if(!token && location.hash){
-        var hm=location.hash.match(/token=([^&]+)/);
-        if(hm) token=decodeURIComponent(hm[1]);
-      }
-    }catch(e){}
+  if(token){
+    try{ localStorage.setItem('staffora_token', token); }catch(e){}
+    try{ sessionStorage.setItem('staffora_token', token); }catch(e){}
   }
-  if(token){ try{ localStorage.setItem('staffora_token', token); }catch(e){} }
   var me=null, guilds=[], guildId=null, page='overview';
 
   function $(id){return document.getElementById(id)}
@@ -273,8 +275,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
   }
 
   if(!token) return;
-  $('v-login').classList.add('hidden'); $('v-app').classList.remove('hidden');
-  // boot after UI wired
+  // keep login visible until boot() succeeds
   if(window.matchMedia('(max-width:900px)').matches){
     $('btn-menu').style.display='inline-flex';
     $('btn-menu').onclick=function(){$('sidebar').classList.toggle('open')};
@@ -295,25 +296,40 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
   async function boot(){
     try{
+      var loginBox=$('v-login');
+      if(loginBox){
+        var sub=loginBox.querySelector('.sub');
+        if(sub) sub.textContent='Anmeldung wird geprüft…';
+      }
       me=await api('/api/me');
+      $('v-login').classList.add('hidden');
+      $('v-app').classList.remove('hidden');
       $('user-label').textContent=me.username||me.id;
       $('side-user').textContent='@'+(me.username||me.id);
       var g=await api('/api/guilds'); guilds=g.guilds||g||[];
       var sel=$('guild-sel');
+      if(!guilds.length){
+        sel.innerHTML='<option value="">Keine Server</option>';
+        $('panel').innerHTML='<div class="card"><p>Kein Server gefunden. Bot muss auf dem Server sein und du brauchst Admin- oder Manage-Server-Rechte.</p></div>';
+        updateSideMini();
+        return;
+      }
       sel.innerHTML=guilds.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name||x.id)+'</option>'}).join('');
-      if(guilds.length){guildId=guilds[0].id;sel.value=guildId;updateSideMini()}else{updateSideMini()}
-      // clean token from URL after success
-      try{ history.replaceState({},'', location.pathname + (location.hash&&location.hash.indexOf('token=')<0?location.hash:'')); }catch(e){}
+      guildId=guilds[0].id;sel.value=guildId;updateSideMini();
+      try{ history.replaceState({},'', location.pathname); }catch(e){}
       render();
     }catch(e){
-      var msg=esc(e.message||e);
+      var msg=String(e.message||e);
+      console.error('[staffora boot]', e);
+      try{ localStorage.removeItem('staffora_token'); sessionStorage.removeItem('staffora_token'); }catch(x){}
       $('v-login').classList.remove('hidden');
       $('v-app').classList.add('hidden');
+      var box=$('v-login');
+      if(box){
+        var sub=box.querySelector('.sub');
+        if(sub) sub.innerHTML='<span style="color:#f87171">'+esc(msg)+'</span><br><span style="font-size:12px;color:#8b8b9a">Erneut anmelden oder Bot neu starten.</span>';
+      }
       toast(msg,'err');
-      var panel=$('panel');
-      if(panel) panel.innerHTML='<div class="card"><p style="color:var(--err);margin-bottom:12px">'+msg+'</p>'+
-        '<button type="button" class="btn btn-p" id="relogin">Erneut anmelden</button></div>';
-      var b=$('relogin'); if(b) b.onclick=function(){try{localStorage.removeItem('staffora_token')}catch(x){}; location.href=API+'/auth/login?return='+encodeURIComponent('https://stafforadashboard.github.io/staffora-web/dashboard.html');};
     }
   }
 
@@ -454,13 +470,13 @@ tr:hover td{background:rgba(255,255,255,.02)}
       try{
         var cfg=await api('/api/guilds/'+guildId+'/config');
         var s=cfg.settings||{};
-        $('oa-roles').value=(s.Rollen mit Ingame-Admin-Rechten||[]).join(', ');
+        $('oa-roles').value=(s.ingameAdminRoleIds||[]).join(', ');
       }catch(e){}
     }
     $('oa-save').onclick=async function(){
       var ids=$('oa-roles').value.split(/[,\s]+/).filter(Boolean);
       try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{Rollen mit Ingame-Admin-Rechten:ids}});
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{ingameAdminRoleIds:ids}});
         toast('Admin-Rollen gespeichert','ok');
         refresh();
       }catch(e){toast(e.message,'err')}
@@ -1407,7 +1423,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     ss('ss-abgive',1,s.abmeldenGiveRoleIds,null,roles,'Rollen suchen…');
     ss('ss-schicht',1,s.schichtRoleIds,null,roles,'Schicht…');
     ss('ss-ing',1,s.ingameAccessRoleIds,null,roles,'Ingame-Rollen mit Zugang zum Ingame-Panel…');
-    ss('ss-ingad',1,s.Rollen mit Ingame-Admin-Rechten,null,roles,'Rollen suchen…');
+    ss('ss-ingad',1,s.ingameAdminRoleIds,null,roles,'Rollen suchen…');
     ss('ss-blog',0,null,s.ingameBanLogChannelId,ch,'Ban-Log suchen…');
     ss('ss-dizch',0,null,s.ingameDizzyChannelId,ch,'Dizzy Control Kanal…');
     ss('ss-dizzy',1,s.dizzyControllerRoleIds,null,roles,'Dizzy Control Rolle…');
@@ -1492,7 +1508,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         abmeldenNickPrefix:$('s-nick').value.trim()||null,
         schichtRoleIds:g('ss-schicht')||[],
         ingameAccessRoleIds:g('ss-ing')||[],
-        Rollen mit Ingame-Admin-Rechten:g('ss-ingad')||[],
+        ingameAdminRoleIds:g('ss-ingad')||[],
         ingameBanLogChannelId:g('ss-blog')||null,
         ingameWarnSteps:$('s-wsteps').value.trim(),
         ingameDizzyControl:$('s-dizzy-on').checked,
