@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>STAFFORA BOT · Dashboard</title>
+<script>
+(function(){
+  var cloud='https://staffora.apps.bot-hosting.cloud';
+  try{
+    var host=location.hostname||'';
+    if(host.indexOf('bot-hosting.cloud')>=0||host==='localhost'||host==='127.0.0.1'){
+      window.STAFFORA_API='';
+    } else { window.STAFFORA_API=cloud; }
+  }catch(e){window.STAFFORA_API=cloud;}
+})();
+</script>
+<style>
+:root{
+  --bg:#07070a;--panel:#0f0f14;--card:#14141a;--card2:#1a1a22;
+  --border:#26262f;--border2:#32323e;--text:#f4f4f5;--muted:#8b8b9a;--faint:#5c5c6e;
+  --accent:#8b5cf6;--accent2:#a78bfa;--accent-h:#7c3aed;--cyan:#22d3ee;--cyan2:#67e8f9;
+  --ok:#34d399;--warn:#fbbf24;--err:#f87171;--info:#60a5fa;--r:14px;--r2:10px;
+  --font:Inter,ui-sans-serif,system-ui,sans-serif;--shadow:0 8px 32px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.45}
+a{color:var(--accent2);text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,.2)}
+input::placeholder,textarea::placeholder{color:var(--faint)}
+.hidden{display:none!important}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,.35)}50%{box-shadow:0 0 0 8px rgba(139,92,246,0)}}
+.login-wrap{min-height:100vh;display:grid;place-items:center;padding:24px;
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(139,92,246,.18),transparent 55%)}
+.login-box{width:100%;max-width:400px;text-align:center;animation:scaleIn .45s cubic-bezier(.22,1,.36,1)}
+.logo-mark{width:64px;height:64px;border-radius:18px;margin:0 auto 18px;
+  background:linear-gradient(145deg,#a78bfa,#6d28d9 60%,#22d3ee);display:grid;place-items:center;font-size:28px;animation:glowPulse 2.8s ease-in-out infinite}
+.login-box h1{font-size:1.6rem;font-weight:700}
+.login-box .sub{color:var(--muted);margin:8px 0 28px;font-size:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:var(--r2);
+  border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600;cursor:pointer;
+  transition:transform .15s,box-shadow .15s,background .15s,border-color .15s}
+.btn:hover{border-color:var(--border2);transform:translateY(-1px)}
+.btn:active{transform:scale(.97)}
+.btn-p{background:linear-gradient(135deg,var(--accent),var(--accent-h));border:0;color:#fff;box-shadow:0 6px 20px rgba(124,58,237,.3)}
+.btn-p:hover{box-shadow:0 10px 28px rgba(124,58,237,.4)}
+.btn-d{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3);color:#fecaca}
+.btn-c{background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.25);color:var(--cyan2)}
+.btn-sm{padding:7px 12px;font-size:13px;border-radius:8px}
+.btn-block{width:100%}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.app-shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.sidebar{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden}
+.side-brand{display:flex;align-items:center;gap:12px;padding:18px 16px;border-bottom:1px solid var(--border)}
+.side-brand .mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(145deg,#a78bfa,#6d28d9);display:grid;place-items:center;font-size:16px}
+.side-brand strong{font-size:14px}.side-brand span{display:block;font-size:11px;color:var(--muted);font-weight:500}
+.side-nav{flex:1;overflow-y:auto;padding:10px 10px 20px}
+.nav-sec{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);padding:14px 12px 6px;font-weight:700}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:0;border:0;color:var(--muted);
+  padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13.5px;margin-bottom:2px;transition:background .15s,color .15s,transform .12s}
+.nav-btn:hover{background:rgba(255,255,255,.04);color:var(--text);transform:translateX(2px)}
+.nav-btn.active{background:rgba(139,92,246,.14);color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+.nav-btn .ic{width:18px;text-align:center;opacity:.85}
+.side-foot{padding:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.main{display:flex;flex-direction:column;min-width:0;background:var(--bg)}
+.topbar{height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px;
+  border-bottom:1px solid var(--border);background:rgba(15,15,20,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:40}
+.guild-sel{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:7px 12px;color:var(--text);min-width:180px;cursor:pointer}
+.guild-sel:focus{outline:0;border-color:var(--accent)}
+.user-chip{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.content{padding:22px 24px 48px;max-width:1180px;animation:fadeUp .3s ease}
+.content h1{font-size:1.35rem;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.content .desc{color:var(--muted);font-size:13.5px;margin-bottom:20px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+.grid-2{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;transition:border-color .15s,transform .15s}
+.stat:hover{border-color:var(--border2);transform:translateY(-2px)}
+.stat .lbl{font-size:12px;color:var(--muted);margin-bottom:6px}
+.stat .val{font-size:1.45rem;font-weight:700}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:14px}
+.card h2{font-size:14px;font-weight:600;margin-bottom:12px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500}
+.field input,.field select,.field textarea,input,select,textarea{
+  width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--border);background:#0a0a0e;color:var(--text)}
+.field input:focus,.field select:focus,.field textarea:focus,input:focus,select:focus,textarea:focus{
+  outline:0;border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+textarea{min-height:80px;resize:vertical}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:left}
+th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+tr:hover td{background:rgba(255,255,255,.02)}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600}
+.pill-ok{background:rgba(52,211,153,.12);color:var(--ok)}
+.pill-warn{background:rgba(251,191,36,.12);color:var(--warn)}
+.pill-err{background:rgba(248,113,113,.12);color:var(--err)}
+.pill-info{background:rgba(96,165,250,.12);color:var(--info)}
+.pill-mut{background:rgba(139,139,154,.12);color:var(--muted)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.search{flex:1;min-width:180px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);display:grid;place-items:center;z-index:100;padding:16px}
+.modal{width:100%;max-width:520px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow);animation:scaleIn .25s ease;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:1.1rem;margin-bottom:6px}
+.modal .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+#toasts{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.toast{min-width:260px;max-width:360px;padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:var(--card2);box-shadow:var(--shadow);animation:toastIn .25s ease;font-size:13px}
+.toast.ok{border-color:rgba(52,211,153,.3)}.toast.err{border-color:rgba(248,113,113,.3)}.toast.warn{border-color:rgba(251,191,36,.3)}
+.empty{text-align:center;padding:32px 16px;color:var(--muted);font-size:14px}
+.spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+.row-act{display:flex;gap:6px;flex-wrap:wrap}
+.profile-head{display:flex;gap:16px;align-items:center;margin-bottom:16px}
+.avatar{width:56px;height:56px;border-radius:14px;background:var(--card2);display:grid;place-items:center;font-weight:700;font-size:20px;border:1px solid var(--border)}
+.activity-item{display:flex;gap:12px;padding:12px 8px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:8px}
+.activity-item:hover{background:rgba(255,255,255,.03)}
+.activity-item .icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--card2);flex-shrink:0}
+.codebox{font-family:ui-monospace,monospace;font-size:12px;background:#0a0a0e;border:1px dashed var(--border);border-radius:10px;padding:12px;word-break:break-all;color:var(--cyan2);user-select:all}
+.hist-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.hist-item .t{font-size:11px;color:var(--muted)}
+.perm-grid{display:grid;grid-template-columns:1fr repeat(5,56px);gap:4px;font-size:12px;align-items:center}
+.perm-grid .h{color:var(--muted);font-weight:600;text-align:center;font-size:10px}
+.perm-grid .cell{text-align:center}
+.check{width:16px;height:16px;accent-color:var(--accent)}
+@media(max-width:900px){
+  .app-shell{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:0;top:0;z-index:50;transform:translateX(-100%);transition:transform .25s;width:260px}
+  .sidebar.open{transform:none}
+  .content{padding:16px}
+  .perm-grid{grid-template-columns:1fr repeat(3,48px);overflow-x:auto}
+}
+
+/* searchable select */
+.ss-wrap{position:relative;width:100%}
+.ss-wrap input.ss-q{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--border);background:#0a0a0e;color:var(--text)}
+.ss-wrap input.ss-q:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+.ss-list{position:absolute;left:0;right:0;top:100%;margin-top:4px;max-height:220px;overflow:auto;background:var(--card2);border:1px solid var(--border);border-radius:10px;z-index:80;display:none;box-shadow:var(--shadow)}
+.ss-list.open{display:block}
+.ss-item{padding:9px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;gap:8px}
+.ss-item:hover,.ss-item.active{background:rgba(139,92,246,.12)}
+.ss-item .meta{color:var(--muted);font-size:11px}
+.ss-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ss-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);font-size:12px}
+.ss-tag button{background:0;border:0;color:var(--muted);cursor:pointer;font-size:14px;line-height:1}
+
+.side-mini{margin-top:auto;padding:12px 14px 8px;border-top:1px solid var(--border,#26262f);display:none;flex-direction:column;gap:4px}
+.side-mini a{color:#6b7280;text-decoration:none;font-size:11px;line-height:1.4;padding:2px 0;transition:color .15s}
+.side-mini a:hover{color:#a1a1aa}
+.side-mini.show{display:flex}
+</style>
+</head>
+<body>
+<div id="v-login" class="login-wrap">
+  <div class="login-box">
+    <div class="logo-mark">🤖</div>
+    <h1>STAFFORA BOT</h1>
+    <p class="sub">Premium Moderation · Discord + Roblox</p>
+    <a class="btn btn-p btn-block" id="btn-login" href="https://staffora.apps.bot-hosting.cloud/auth/login?return=https%3A%2F%2Fstafforadashboard.github.io%2Fstaffora-web%2Fdashboard.html">Mit Discord anmelden</a>
+  </div>
+</div>
+
+<div id="v-app" class="app-shell hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-brand">
+      <div class="mark">🤖</div>
+      <div><strong>STAFFORA BOT</strong><span>Moderation Platform</span></div>
+    </div>
+    <nav class="side-nav">
+      <div class="nav-sec">Dashboard</div>
+      <button type="button" class="nav-btn active" data-p="overview"><span class="ic">📊</span> Übersicht</button>
+      <button type="button" class="nav-btn" data-p="activity"><span class="ic">⚡</span> Live Activity</button>
+      <div class="nav-sec">Moderation</div>
+      <div class="nav-sec">Ingame</div>
+      <a class="nav-btn" href="./ingame.html" style="text-decoration:none"><span class="ic">🎮</span> IC Panel →</a>
+      <div class="nav-sec">Management</div>
+      <button type="button" class="nav-btn" data-p="team"><span class="ic">👥</span> Team</button>
+      <button type="button" class="nav-btn" data-p="factions"><span class="ic">🏛️</span> Fraktionen / DN</button>
+      <button type="button" class="nav-btn" data-p="perms"><span class="ic">🛡️</span> Berechtigungen</button>
+      <button type="button" class="nav-btn" data-p="panels"><span class="ic">📨</span> Panels</button>
+      <button type="button" class="nav-btn" data-p="tickets"><span class="ic">🎫</span> Tickets</button>
+      <button type="button" class="nav-btn" data-p="settings"><span class="ic">⚙️</span> Einstellungen</button>
+    </nav>
+    <div class="side-mini" id="side-mini">
+        <a href="./ingame.html">IC Panel</a>
+        <a href="./unban.html">Ban Appeal</a>
+      </div>
+      <div class="side-foot" id="side-user">—</div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button type="button" class="btn btn-sm" id="btn-menu" style="display:none">☰</button>
+        <select class="guild-sel" id="guild-sel"></select>
+      </div>
+      <div class="user-chip"><span id="user-label"></span>
+        <button type="button" class="btn btn-sm" id="btn-logout">Logout</button></div>
+    </header>
+    <main class="content" id="panel"></main>
+  </div>
+</div>
+<div id="toasts"></div>
+<div id="modal-root"></div>
+
+<script>
+(function(){
+  var API=(window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud').replace(/\/$/,'');
+  if(!API) API='https://staffora.apps.bot-hosting.cloud';
+  var token='';
+  // URL token ALWAYS wins (fresh OAuth) — never let stale localStorage block login
+  try{
+    var m=location.search.match(/[?&]token=([^&#]+)/);
+    if(m) token=decodeURIComponent(m[1]).replace(/\+/g,' ');
+    if(!token && location.hash){
+      var hm=location.hash.match(/(?:^|#|&)token=([^&]+)/);
+      if(hm) token=decodeURIComponent(hm[1]);
+    }
+  }catch(e){}
+  try{ if(!token && window.__STAFFORA_TOKEN) token=String(window.__STAFFORA_TOKEN); }catch(e){}
+  if(!token){ try{ token=localStorage.getItem('staffora_token')||''; }catch(e){ token=''; } }
+  if(!token){ try{ token=sessionStorage.getItem('staffora_token')||''; }catch(e){} }
+  if(token){
+    try{ localStorage.setItem('staffora_token', token); }catch(e){}
+    try{ sessionStorage.setItem('staffora_token', token); }catch(e){}
+  }
+  var me=null, guilds=[], guildId=null, page='overview';
+
+  function $(id){return document.getElementById(id)}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
+  function fmtTime(ts){
+    if(!ts) return '—';
+    var d=new Date(typeof ts==='number'?ts:Date.parse(ts));
+    if(isNaN(d)) return String(ts);
+    return d.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  }
+  function toast(msg,ty){
+    var t=document.createElement('div'); t.className='toast '+(ty||'ok'); t.textContent=msg;
+    $('toasts').appendChild(t); setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.remove()},300)},3200);
+  }
+  function closeModal(){$('modal-root').innerHTML=''}
+  function modal(title, bodyHtml, actions){
+    $('modal-root').innerHTML='<div class="modal-bg" id="mbg"><div class="modal"><h3>'+esc(title)+'</h3>'+bodyHtml+
+      '<div class="modal-actions">'+(actions||'')+'</div></div></div>';
+    $('mbg').onclick=function(e){if(e.target.id==='mbg')closeModal()};
+  }
+
+  try{var m=location.search.match(/[?&]token=([^&#]+)/);if(m){token=decodeURIComponent(m[1]);localStorage.setItem('staffora_token',token);}else if(location.hash){var hm=location.hash.match(/token=([^&]+)/);if(hm){token=decodeURIComponent(hm[1]);localStorage.setItem('staffora_token',token);}}}catch(e){}
+  try{
+    var loginBtn=$('btn-login');
+    if(loginBtn){
+      loginBtn.href=API+'/auth/login?return='+encodeURIComponent('https://stafforadashboard.github.io/staffora-web/dashboard.html');
+      loginBtn.addEventListener('click', function(ev){
+        if(!loginBtn.href || loginBtn.href.slice(-1)==='#'){
+          ev.preventDefault();
+          location.href=API+'/auth/login?return='+encodeURIComponent('https://stafforadashboard.github.io/staffora-web/dashboard.html');
+        }
+      });
+    }
+  }catch(e){}
+
+  async function api(path, opts){
+    opts=opts||{};
+    var headers=Object.assign({'Content-Type':'application/json'},opts.headers||{});
+    if(token) headers.Authorization='Bearer '+token;
+    var r; try{r=await fetch(API+path,{method:opts.method||'GET',headers:headers,credentials:'include',body:opts.body?JSON.stringify(opts.body):undefined})}
+    catch(e){throw new Error('Bot offline (Failed to fetch). Bot-Zip deployen.')}
+    var data=null; try{data=await r.json()}catch(e){}
+    if(r.status===401){throw new Error('Session abgelaufen — bitte erneut anmelden')}
+    if(!r.ok) throw new Error((data&&data.error)||('Fehler '+r.status));
+    return data;
+  }
+
+  if(!token) return;
+  // keep login visible until boot() succeeds
+  if(window.matchMedia('(max-width:900px)').matches){
+    $('btn-menu').style.display='inline-flex';
+    $('btn-menu').onclick=function(){$('sidebar').classList.toggle('open')};
+  }
+  $('btn-logout').onclick=async function(){try{await api('/api/logout',{method:'POST'})}catch(e){} localStorage.removeItem('staffora_token');location.reload()};
+  document.querySelectorAll('.nav-btn[data-p]').forEach(function(b){
+    b.onclick=function(){page=b.getAttribute('data-p');syncNav();render()};
+  });
+  function syncNav(){document.querySelectorAll('.nav-btn[data-p]').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-p')===page)})}
+  function updateSideMini(){
+    var el=$('side-mini');
+    if(!el) return;
+    if(guildId) el.classList.add('show');
+    else el.classList.remove('show');
+  }
+  updateSideMini();
+  $('guild-sel').onchange=function(){guildId=this.value;updateSideMini();render()};
+
+  async function boot(){
+    try{
+      try{
+        var m2=location.search.match(/[?&]token=([^&#]+)/);
+        if(m2){ token=decodeURIComponent(m2[1]); localStorage.setItem('staffora_token',token); }
+      }catch(e){}
+      var loginBox=$('v-login');
+      if(loginBox){
+        var sub=loginBox.querySelector('.sub');
+        if(sub) sub.textContent='Anmeldung wird geprüft…';
+      }
+      me=await api('/api/me');
+      $('v-login').classList.add('hidden');
+      $('v-app').classList.remove('hidden');
+      $('user-label').textContent=me.username||me.id;
+      $('side-user').textContent='@'+(me.username||me.id);
+      var g=await api('/api/guilds'); guilds=g.guilds||g||[];
+      var sel=$('guild-sel');
+      if(!guilds.length){
+        sel.innerHTML='<option value="">Keine Server</option>';
+        $('panel').innerHTML='<div class="card"><p>Kein Server gefunden. Bot muss auf dem Server sein und du brauchst Admin- oder Manage-Server-Rechte.</p></div>';
+        updateSideMini();
+        return;
+      }
+      sel.innerHTML=guilds.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name||x.id)+'</option>'}).join('');
+      guildId=guilds[0].id;sel.value=guildId;updateSideMini();
+      try{ history.replaceState({},'', location.pathname); }catch(e){}
+      render();
+    }catch(e){
+      var msg=String(e.message||e);
+      console.error('[staffora boot]', e);
+      try{ localStorage.removeItem('staffora_token'); sessionStorage.removeItem('staffora_token'); }catch(x){}
+      $('v-login').classList.remove('hidden');
+      $('v-app').classList.add('hidden');
+      var box=$('v-login');
+      if(box){
+        var sub=box.querySelector('.sub');
+        if(sub) sub.innerHTML='<span style="color:#f87171">'+esc(msg)+'</span><br><span style="font-size:12px;color:#8b8b9a">Erneut anmelden oder Bot neu starten.</span>';
+      }
+      toast(msg,'err');
+    }
+  }
+
+  async function render(){
+    var p=$('panel');
+    if(!guildId){p.innerHTML='<div class="empty">Kein Server</div>';return}
+    stopOnlineTimer();
+    p.innerHTML='<div class="empty"><span class="spinner"></span> Laden…</div>';
+    try{
+      if(page==='overview') await pageOverview(p);
+      else if(page==='online') await pageOnline(p);
+      else if(page==='activity') await pageActivity(p);
+      else if(page==='search') await pageSearch(p);
+      else if(page==='bans') await pageBans(p);
+      else if(page==='unban-req') await pageUnbanReq(p);
+      else if(page==='links') await pageLinks(p);
+      else if(page==='webhook') await pageWebhook(p);
+      else if(page==='team') await pageTeam(p);
+      else if(page==='factions') await pageFactions(p);
+      else if(page==='perms') await pagePerms(p);
+      else if(page==='panels') await pagePanels(p);
+      else if(page==='tickets') await pageTickets(p);
+      else if(page==='settings') await pageSettings(p);
+      else p.innerHTML='<div class="empty">—</div>';
+    }catch(e){
+      p.innerHTML='<div class="card"><p style="color:var(--err)">'+esc(e.message)+'</p><button type="button" class="btn btn-sm" id="retry">Erneut</button></div>';
+      $('retry').onclick=render;
+    }
+  }
+
+  function stat(lbl,val,ic){return '<div class="stat"><div class="lbl">'+ic+' '+esc(lbl)+'</div><div class="val">'+esc(val)+'</div></div>'}
+
+  
+  
+  var _discordCache=null;
+  async function loadDiscord(){
+    if(_discordCache) return _discordCache;
+    _discordCache=await api('/api/guilds/'+guildId+'/discord');
+    return _discordCache;
+  }
+  /** Searchable single or multi select for roles/channels */
+  function makeSearchSelect(container, opts){
+    // opts: {items:[{id,name,meta}], multi, value, values, placeholder, onChange}
+    var multi=!!opts.multi;
+    var selected= multi ? (opts.values||[]).map(String) : (opts.value?String(opts.value):'');
+    var items=opts.items||[];
+    container.innerHTML='';
+    var wrap=document.createElement('div'); wrap.className='ss-wrap';
+    var input=document.createElement('input'); input.className='ss-q'; input.placeholder=opts.placeholder||'Suchen…'; input.autocomplete='off';
+    var list=document.createElement('div'); list.className='ss-list';
+    var tags=document.createElement('div'); tags.className='ss-tags';
+    wrap.appendChild(input); wrap.appendChild(list); if(multi) wrap.appendChild(tags);
+    container.appendChild(wrap);
+
+    function labelOf(id){
+      var it=items.find(function(x){return String(x.id)===String(id)});
+      return it?it.name:id;
+    }
+    function syncInput(){
+      if(multi){
+        input.value='';
+        tags.innerHTML=selected.map(function(id){
+          return '<span class="ss-tag">'+esc(labelOf(id))+' <button type="button" data-rm="'+esc(id)+'">×</button></span>';
+        }).join('');
+        tags.querySelectorAll('[data-rm]').forEach(function(btn){
+          btn.onclick=function(e){e.stopPropagation(); selected=selected.filter(function(x){return x!==btn.getAttribute('data-rm')}); syncInput(); fire();};
+        });
+      } else {
+        input.value=selected?labelOf(selected):'';
+      }
+    }
+    function fire(){
+      if(opts.onChange) opts.onChange(multi?selected.slice():selected);
+    }
+    function renderList(q){
+      q=(q||'').toLowerCase();
+      var filtered=items.filter(function(it){
+        var hay=(it.name+' '+(it.meta||'')+' '+it.id).toLowerCase();
+        return !q || hay.indexOf(q)>=0;
+      }).slice(0,80);
+      list.innerHTML=filtered.length?filtered.map(function(it){
+        var on= multi ? selected.indexOf(String(it.id))>=0 : String(selected)===String(it.id);
+        return '<div class="ss-item'+(on?' active':'')+'" data-id="'+esc(it.id)+'"><span>'+esc(it.name)+'</span><span class="meta">'+esc(it.meta||it.id)+'</span></div>';
+      }).join(''):'<div class="ss-item"><span class="meta">Keine Treffer</span></div>';
+      list.querySelectorAll('.ss-item[data-id]').forEach(function(el){
+        el.onmousedown=function(e){
+          e.preventDefault();
+          var id=el.getAttribute('data-id');
+          if(multi){
+            if(selected.indexOf(id)>=0) selected=selected.filter(function(x){return x!==id});
+            else selected.push(id);
+          } else {
+            selected=id; list.classList.remove('open');
+          }
+          syncInput(); fire();
+        };
+      });
+    }
+    input.onfocus=function(){ list.classList.add('open'); renderList(multi?'':input.value); };
+    input.oninput=function(){ list.classList.add('open'); renderList(input.value); };
+    input.onblur=function(){ setTimeout(function(){ list.classList.remove('open'); if(!multi) syncInput(); },150); };
+    syncInput();
+    return {
+      getValue:function(){return multi?selected.slice():selected;},
+      setItems:function(arr){items=arr||[]; syncInput();}
+    };
+  }
+  function roleItems(roles){
+    return (roles||[]).map(function(r){return {id:r.id,name:r.name,meta:'Rolle'};});
+  }
+  function channelItems(channels, types){
+    return (channels||[]).filter(function(c){
+      if(!types) return true;
+      return types.indexOf(c.type)>=0 || types.indexOf(String(c.type))>=0;
+    }).map(function(c){
+      var meta=c.parentName?('Kategorie: '+c.parentName):'Kanal';
+      return {id:c.id,name:'#'+c.name,meta:meta};
+    });
+  }
+
+
+  var onlineTimer=null;
+  function stopOnlineTimer(){ if(onlineTimer){ clearInterval(onlineTimer); onlineTimer=null; } }
+
+  async function pageOnline(p){
+    stopOnlineTimer();
+    p.innerHTML='<h1>Online / Duty</h1><p class="desc">Auto-Update alle 12s · On Duty → Bot prüft Ingame-Admin-Rolle</p>'+
+      '<div class="card" id="duty-me"><span class="spinner"></span></div>'+
+      '<div class="grid-2">'+
+        '<div class="card"><h2>🟢 Online <span style="color:var(--ok)">mit</span> Ingame-Rechten</h2><div id="on-admin"><span class="spinner"></span></div></div>'+
+        '<div class="card"><h2>🟡 Online <span style="color:var(--warn)">ohne</span> Admin-Rechte</h2><div id="on-plain"><span class="spinner"></span></div></div>'+
+      '</div>'+
+      '<div class="card"><h2>Einstellungen</h2><p class="desc">Discord-Rollen mit Ingame-Admin-Rechten</p>'+
+        '<div class="field"><label>Rollen mit Ingame-Admin-Rechten</label><input id="oa-roles" placeholder="123456789,987654321"/></div>'+
+        '<button type="button" class="btn btn-p btn-sm" id="oa-save">Rollen speichern</button></div>';
+
+    async function loadCfg(){
+      try{
+        var cfg=await api('/api/guilds/'+guildId+'/config');
+        var s=cfg.settings||{};
+        $('oa-roles').value=(s.ingameAdminRoleIds||[]).join(', ');
+      }catch(e){}
+    }
+    $('oa-save').onclick=async function(){
+      var ids=$('oa-roles').value.split(/[,\s]+/).filter(Boolean);
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{ingameAdminRoleIds:ids}});
+        toast('Admin-Rollen gespeichert','ok');
+        refresh();
+      }catch(e){toast(e.message,'err')}
+    };
+
+    function staffRow(u){
+      var since=u.since?('seit '+fmtTime(u.since)):'';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'+
+        (u.avatar?'<img src="'+esc(u.avatar)+'" width="32" height="32" style="border-radius:8px"/>':'<div class="avatar" style="width:32px;height:32px;font-size:12px">'+(u.username||'?').slice(0,1)+'</div>')+
+        '<div style="flex:1"><strong>'+esc(u.username||u.discordId)+'</strong>'+
+        '<div style="font-size:11px;color:var(--muted)">'+esc(u.robloxUsername||'')+' '+since+'</div></div></div>';
+    }
+
+    async function refresh(){
+      if(page!=='online'){ stopOnlineTimer(); return; }
+      try{
+        var d=await api('/api/guilds/'+guildId+'/team/online');
+        var me=d.me||{};
+        $('duty-me').innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">'+
+          '<div><strong>Dein Status:</strong> '+(me.onDuty?'<span class="pill pill-ok">On Duty</span>':'<span class="pill pill-mut">Off Duty</span>')+
+          (me.since&&me.onDuty?' <span style="font-size:12px;color:var(--muted)">seit '+fmtTime(me.since)+'</span>':'')+
+          '</div><div class="row-act">'+
+          '<button type="button" class="btn btn-p btn-sm" id="duty-on">On Duty</button>'+
+          '<button type="button" class="btn btn-sm" id="duty-off">Off Duty</button></div></div>'+
+          '<p class="desc" style="margin:10px 0 0">On Duty: Mit Admin-Rolle erscheinst du unter „mit Rechten“, sonst „ohne“.</p>';
+        $('duty-on').onclick=async function(){
+          try{await api('/api/guilds/'+guildId+'/team/duty/self',{method:'POST',body:{onDuty:true}});toast('On Duty','ok');refresh()}catch(e){toast(e.message,'err')}
+        };
+        $('duty-off').onclick=async function(){
+          try{await api('/api/guilds/'+guildId+'/team/duty/self',{method:'POST',body:{onDuty:false}});toast('Off Duty','ok');refresh()}catch(e){toast(e.message,'err')}
+        };
+        var wa=d.withAdmin||[], wo=d.withoutAdmin||[];
+        $('on-admin').innerHTML=wa.length?wa.map(staffRow).join(''):'<div class="empty">Niemand online mit Admin-Rechten</div>';
+        $('on-plain').innerHTML=wo.length?wo.map(staffRow).join(''):'<div class="empty">Niemand online ohne Admin-Rechte</div>';
+      }catch(e){
+        if($('duty-me')) $('duty-me').innerHTML='<p style="color:var(--err)">'+esc(e.message)+'</p>';
+      }
+    }
+
+    await loadCfg();
+    await refresh();
+    onlineTimer=setInterval(refresh, 12000);
+  }
+
+  async function pageOverview(p){
+    var ov={}; try{ov=await api('/api/guilds/'+guildId+'/ingame/overview')}catch(e){}
+    var bans={}; try{bans=await api('/api/guilds/'+guildId+'/ingame/bans?activeOnly=1')}catch(e){bans={bans:[]}}
+    var reqs={}; try{reqs=await api('/api/guilds/'+guildId+'/ingame/unban-requests')}catch(e){reqs={requests:[]}}
+    var links={}; try{links=await api('/api/guilds/'+guildId+'/ingame/links')}catch(e){links={links:[]}}
+    var openReq=(reqs.requests||[]).filter(function(r){return !r.status||r.status==='pending'||r.status==='open'}).length;
+    p.innerHTML='<h1>Übersicht</h1><p class="desc">STAFFORA BOT · Live-Status</p>'+
+      '<div class="card" id="sys-status" style="margin-bottom:14px">Status wird geladen…</div>'+
+      '<div class="grid">'+
+      stat('Aktive Bans',ov.activeBans!=null?ov.activeBans:(bans.bans||[]).length,'🔨')+
+      stat('Permanent',ov.permaBans||0,'♾️')+
+      stat('Abgelaufen',ov.expired||0,'⏱️')+
+      stat('Warns',ov.warns||ov.warnCount||0,'⚠️')+
+      stat('Ban Appeals',openReq,'📨')+
+      stat('Verknüpfungen',(links.links||[]).length||ov.links||0,'🔗')+
+      stat('Webhooks 7d',ov.webhookLogs7d||ov.webhookEvents||0,'📡')+
+      '</div>'+
+      '<div class="card" style="margin-top:18px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">'+
+      '<div><strong>Action History</strong><div style="font-size:12px;color:var(--muted)">Bans, Kicks, Warns, Unbans · Live</div></div>'+
+      '<button type="button" class="btn btn-sm" id="ah-refresh">Aktualisieren</button></div>'+
+      '<div id="action-history" style="max-height:420px;overflow:auto"></div></div>';
+    async function loadSysStatus(){
+      var box=$('sys-status'); if(!box) return;
+      try{
+        var st=await api('/api/status');
+        function pill(label,ok){return '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:14px"><span style="width:8px;height:8px;border-radius:50%;background:'+(ok?'var(--ok)':'var(--err)')+'"></span><strong>'+label+':</strong> '+(ok?'Online':'Offline')+'</span>'}
+        box.innerHTML=pill('Bot',st.bot==='online')+pill('Web',st.web==='online')+pill('API',st.api==='online')+
+          '<span style="color:var(--muted);font-size:12px">Server: '+(st.guilds||0)+' · Uptime: '+Math.floor((st.uptime||0)/60)+'m</span>';
+      }catch(e){ box.innerHTML='<span style="color:var(--err)">Status: '+esc(e.message)+'</span>'; }
+    }
+    loadSysStatus();
+    async function loadActionHistory(){
+      var box=$('action-history');
+      if(!box) return;
+      box.innerHTML='<div class="empty"><span class="spinner"></span> Laden…</div>';
+      var items=[];
+      try{
+        var allBans={bans:[]}; try{allBans=await api('/api/guilds/'+guildId+'/ingame/bans')}catch(e){}
+        var wlogs={logs:[]}; try{wlogs=await api('/api/guilds/'+guildId+'/ingame/webhook-logs?days=30')}catch(e){}
+        var alogs={logs:[]}; try{alogs=await api('/api/guilds/'+guildId+'/logs?limit=80')}catch(e){}
+        (allBans.bans||[]).forEach(function(b){
+          var kind=b.is_perma||b.permanent?'PERMA BAN':(b.active===false||b.status==='expired'||b.status==='unbanned'?'BAN (Ende)':'BAN');
+          items.push({t:b.created_at||b.createdAt||0,icon:b.is_perma?'♾️':'🔨',title:kind+' · '+(b.roblox_username||'—'),sub:(b.reason||'—')+' · '+(b.duration_label||b.durationLabel||'—'),user:b.roblox_username});
+        });
+        (wlogs.logs||[]).forEach(function(l){
+          var a=String(l.action||'event').toLowerCase();
+          var icon=a.indexOf('kick')>=0?'👢':a.indexOf('warn')>=0?'⚠️':a.indexOf('unban')>=0?'🔓':a.indexOf('ban')>=0?'🔨':'📡';
+          items.push({t:l.created_at||l.createdAt||0,icon:icon,title:String(l.action||'EVENT').toUpperCase()+' · '+(l.roblox_username||'—'),sub:l.reason||l.details||'—',user:l.roblox_username});
+        });
+        (alogs.logs||[]).forEach(function(l){
+          items.push({t:l.created_at||0,icon:'📋',title:String(l.action||l.module||'LOG')+' · '+(l.roblox_username||l.target_id||'—'),sub:l.reason||'—',user:l.roblox_username});
+        });
+      }catch(e){ box.innerHTML='<div class="empty" style="color:var(--err)">'+esc(e.message)+'</div>'; return; }
+      items.sort(function(a,b){return (b.t||0)-(a.t||0)});
+      var seen={}; items=items.filter(function(it){var k=(it.title||'')+'|'+(it.t||0); if(seen[k]) return false; seen[k]=1; return true;});
+      if(!items.length){ box.innerHTML='<div class="empty">Noch keine Aktionen</div>'; return; }
+      box.innerHTML=items.slice(0,60).map(function(it){
+        return '<div class="activity-item" style="display:flex;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border)">'+
+          '<div class="icon" style="width:28px;text-align:center">'+it.icon+'</div>'+
+          '<div style="flex:1;min-width:0"><strong style="font-size:13px">'+esc(it.title)+'</strong>'+
+          '<div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(it.sub)+' · '+fmtTime(it.t)+'</div></div></div>';
+      }).join('');
+    }
+    loadActionHistory();
+    var rb=$('ah-refresh'); if(rb) rb.onclick=function(){loadActionHistory()};
+    if(window.__ahTimer) clearInterval(window.__ahTimer);
+    window.__ahTimer=setInterval(function(){ if(page==='overview') loadActionHistory(); }, 15000);
+  }
+
+  
+    var mup=$('btn-mupload');
+    if(mup){
+      mup.onclick=async function(){
+        var f=($('s-mfile')||{}).files; f=f&&f[0];
+        var st=$('mupload-status');
+        if(!f){ if(st) st.textContent='Bitte Datei wählen.'; return; }
+        if(f.size>10*1024*1024){ if(st) st.textContent='Max. 10 MB.'; return; }
+        if(st) st.textContent='Upload…';
+        try{
+          var b64=await new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){ res(String(r.result||'')); }; r.onerror=rej; r.readAsDataURL(f); });
+          var out=await api('/api/guilds/'+guildId+'/music/upload',{method:'POST',body:{filename:f.name,data:b64}});
+          if($('s-murl')) $('s-murl').value=out.url||'';
+          if(st) st.textContent='Gespeichert: '+(out.filename||'')+' ('+Math.round((out.size||0)/1024)+' KB)';
+          toast('Musik hochgeladen','ok');
+        }catch(e){ if(st) st.textContent='Fehler: '+e.message; toast(e.message,'err'); }
+      };
+    }
+
+  async function pageActivity(p){
+    var bans={bans:[]}; try{bans=await api('/api/guilds/'+guildId+'/ingame/bans')}catch(e){}
+    var logs={logs:[]}; try{logs=await api('/api/guilds/'+guildId+'/ingame/webhook-logs?days=14')}catch(e){}
+    var items=[];
+    (bans.bans||[]).slice(0,20).forEach(function(b){
+      items.push({t:b.created_at,icon:'🔨',title:'BAN · '+b.roblox_username,sub:(b.reason||'—')+' · '+ (b.duration_label||b.durationLabel||(b.is_perma?'Perma':'—')),user:b.roblox_username,banId:b.id});
+    });
+    (logs.logs||[]).slice(0,20).forEach(function(l){
+      items.push({t:l.created_at,icon:l.action==='kick'?'👢':l.action==='warn'?'⚠️':l.action==='unban'?'🔓':'📡',title:String(l.action||'').toUpperCase()+' · '+(l.roblox_username||'—'),sub:l.reason||'—',user:l.roblox_username});
+    });
+    items.sort(function(a,b){return (b.t||0)-(a.t||0)});
+    p.innerHTML='<h1>Live Activity</h1><p class="desc">Bans & Webhook-Events</p><div class="card" id="act"></div>';
+    var box=$('act');
+    if(!items.length){box.innerHTML='<div class="empty">Keine Aktivität</div>';return}
+    box.innerHTML=items.slice(0,40).map(function(it){
+      return '<div class="activity-item" data-u="'+esc(it.user||'')+'" data-ban="'+(it.banId||'')+'">'+
+        '<div class="icon">'+it.icon+'</div><div style="flex:1"><strong>'+esc(it.title)+'</strong>'+
+        '<div style="font-size:12px;color:var(--muted)">'+esc(it.sub)+' · '+fmtTime(it.t)+'</div></div></div>';
+    }).join('');
+    box.querySelectorAll('.activity-item').forEach(function(el){
+      el.onclick=function(){
+        if(el.getAttribute('data-ban')) openBanDetail(el.getAttribute('data-ban'));
+        else if(el.getAttribute('data-u')) openPlayer(el.getAttribute('data-u'));
+      };
+    });
+  }
+
+  async function pageSearch(p){
+    p.innerHTML='<h1>Spieler suchen</h1><p class="desc">Roblox Username / ID · öffnet die Spielerakte</p>'+
+      '<div class="card"><div class="toolbar"><input class="search" id="sq" placeholder="Roblox Username, Discord Name oder ID…"/>'+
+      '<button type="button" class="btn btn-p" id="sgo">Suchen</button></div></div><div id="sres"></div>';
+    $('sgo').onclick=doSearch; $('sq').onkeydown=function(e){if(e.key==='Enter')doSearch()};
+  }
+  async function doSearch(){
+    var q=$('sq').value.trim(); if(!q) return toast('Suchbegriff','warn');
+    var box=$('sres'); box.innerHTML='<div class="empty"><span class="spinner"></span></div>';
+    try{
+      var d=await api('/api/guilds/'+guildId+'/ingame/search?username='+encodeURIComponent(q));
+      box.innerHTML=await renderPlayerCase(d,q);
+    }catch(e){box.innerHTML='<div class="card" style="color:var(--err)">'+esc(e.message)+'</div>'}
+  }
+  async function openPlayer(username){
+    page='search'; syncNav();
+    await pageSearch($('panel'));
+    $('sq').value=username||'';
+    if(username) await doSearch();
+  }
+
+  async function renderPlayerCase(d, q){
+    var pr=d.profile||d;
+    var name=pr.robloxUsername||pr.username||pr.roblox_username||q;
+    var warns=pr.warnings||pr.warns||[];
+    if(!Array.isArray(warns) && pr.warnCount!=null) warns=[];
+    var warnCount=pr.warnCount!=null?pr.warnCount:warns.length;
+    var max=pr.maxWarns||3;
+    var bans=pr.bans||[];
+    var unbans=pr.unbans||[];
+    var hooks=pr.webhookLogs||pr.webhook_logs||[];
+    // if search only returns summary, fetch bans filtered
+    if(!bans.length){
+      try{var bd=await api('/api/guilds/'+guildId+'/ingame/bans?target='+encodeURIComponent(name)); bans=bd.bans||[]}catch(e){}
+    }
+    if(!hooks.length){
+      try{var hl=await api('/api/guilds/'+guildId+'/ingame/webhook-logs?days=90'); hooks=(hl.logs||[]).filter(function(l){return (l.roblox_username||'').toLowerCase()===name.toLowerCase()})}catch(e){}
+    }
+    var html='<div class="card"><div class="profile-head"><div class="avatar">'+(name||'?').slice(0,1).toUpperCase()+'</div><div>'+
+      '<strong style="font-size:1.15rem">'+esc(name)+'</strong>'+
+      '<div style="font-size:12px;color:var(--muted)">Roblox ID: '+esc(pr.robloxUserId||pr.roblox_user_id||pr.id||'—')+
+      ' · Discord: '+esc(pr.discordId||pr.discord_id||pr.discordUsername||'—')+'</div>'+
+      '<div style="margin-top:6px"><span class="pill pill-warn">Warns '+warnCount+'/'+max+'</span> '+
+      (pr.banned||bans.some(function(b){return !b.archived&&(b.is_perma||!b.expires_at||b.expires_at>Date.now())})?'<span class="pill pill-err">Gebannt</span>':'<span class="pill pill-ok">Kein aktiver Ban</span>')+
+      '</div></div></div>'+
+      '<div class="row-act">'+
+        '<button type="button" class="btn btn-sm" id="pc-warn">⚠️ Warn</button>'+
+        '<button type="button" class="btn btn-sm" id="pc-ban">🔨 Ban</button>'+
+        '<button type="button" class="btn btn-sm" id="pc-unban">🔓 Unban</button>'+
+        '<button type="button" class="btn btn-sm" id="pc-clear">Warns löschen</button>'+
+      '</div></div>';
+
+    html+='<div class="card"><h2>Moderation History</h2>';
+    var hist=[];
+    (warns||[]).forEach(function(w){hist.push({t:w.created_at||w.createdAt,icon:'⚠️',label:'WARN',text:(w.reason||'—')+' · '+(w.actor_tag||w.actorTag||'')})});
+    (bans||[]).forEach(function(b){hist.push({t:b.created_at||b.createdAt,icon:'🔨',label:'BAN',text:(b.reason||'—')+' · '+(b.duration_label||b.durationLabel||(b.is_perma||b.isPerma?'Perma':'—')),banId:b.id})});
+    (unbans||[]).forEach(function(u){hist.push({t:u.created_at||u.createdAt,icon:'🔓',label:'UNBAN',text:u.reason||'—'})});
+    (hooks||[]).forEach(function(h){hist.push({t:h.created_at,icon:'📡',label:String(h.action||'EVENT').toUpperCase(),text:h.reason||'—'})});
+    hist.sort(function(a,b){return (b.t||0)-(a.t||0)});
+    if(!hist.length) html+='<div class="empty">Keine Einträge in der Akte</div>';
+    else html+=hist.map(function(h){
+      return '<div class="hist-item">'+(h.banId?'<a href="#" data-ban="'+h.banId+'">':'')+
+        '<strong>'+h.icon+' '+esc(h.label)+'</strong>'+(h.banId?'</a>':'')+
+        ' — '+esc(h.text)+'<div class="t">'+fmtTime(h.t)+'</div></div>';
+    }).join('');
+    html+='</div>';
+    // wire after inject
+    setTimeout(function(){
+      var w=$('pc-warn'); if(w) w.onclick=function(){openWarnModal(name)};
+      var b=$('pc-ban'); if(b) b.onclick=function(){openBanModal(name)};
+      var u=$('pc-unban'); if(u) u.onclick=function(){doUnban(name)};
+      var c=$('pc-clear'); if(c) c.onclick=async function(){
+        if(!confirm('Alle aktiven Warns löschen?')) return;
+        try{await api('/api/guilds/'+guildId+'/ingame/warn/clear',{method:'POST',body:{robloxUsername:name}});toast('Warns gelöscht','ok');openPlayer(name)}
+        catch(e){toast(e.message,'err')}
+      };
+      document.querySelectorAll('[data-ban]').forEach(function(a){
+        a.onclick=function(e){e.preventDefault();openBanDetail(a.getAttribute('data-ban'))};
+      });
+    },0);
+    return html;
+  }
+
+  function openWarnModal(username){
+    modal('Warn aussprechen','<p class="sub">Spieler: <strong>'+esc(username)+'</strong></p>'+
+      '<div class="field"><label>Grund</label><textarea id="m-reason"></textarea></div>',
+      '<button type="button" class="btn" id="m-c">Abbrechen</button><button type="button" class="btn btn-p" id="m-ok">Warn</button>');
+    $('m-c').onclick=closeModal;
+    $('m-ok').onclick=async function(){
+      var reason=$('m-reason').value.trim(); if(!reason) return toast('Grund','warn');
+      this.disabled=true;
+      try{
+        var r=await api('/api/guilds/'+guildId+'/ingame/warn',{method:'POST',body:{robloxUsername:username,reason:reason}});
+        closeModal(); toast('Warn '+(r.count||'')+'/'+(r.max||3)+(r.hasAction?' · '+r.actionLabel:''),'ok');
+        if(r.hasAction) toast(r.actionLabel||'Aktion','warn');
+        openPlayer(username);
+      }catch(e){toast(e.message,'err');this.disabled=false}
+    };
+  }
+  function openBanModal(username){
+    modal('Ban erstellen','<p class="sub">Spieler: <strong>'+esc(username)+'</strong> — Dauer Pflicht</p>'+
+      '<div class="field"><label>Grund *</label><textarea id="m-reason"></textarea></div>'+
+      '<div class="field"><label>Dauer *</label><select id="m-dur">'+
+        '<option value="1h">1 Stunde</option><option value="6h">6 Stunden</option><option value="12h">12 Stunden</option>'+
+        '<option value="1d">1 Tag</option><option value="3d">3 Tage</option><option value="7d" selected>7 Tage</option>'+
+        '<option value="14d">14 Tage</option><option value="30d">30 Tage</option><option value="perma">Permanent</option></select></div>',
+      '<button type="button" class="btn" id="m-c">Abbrechen</button><button type="button" class="btn btn-d" id="m-ok">Ban</button>');
+    $('m-c').onclick=closeModal;
+    $('m-ok').onclick=async function(){
+      var reason=$('m-reason').value.trim(), dur=$('m-dur').value;
+      if(!reason) return toast('Grund Pflicht','warn');
+      this.disabled=true;
+      var isPerma=dur==='perma';
+      var labels={'1h':'1 Stunde','6h':'6 Stunden','12h':'12 Stunden','1d':'1 Tag','3d':'3 Tage','7d':'7 Tage','14d':'14 Tage','30d':'30 Tage','perma':'Permanent'};
+      var ms={'1h':36e5,'6h':216e5,'12h':432e5,'1d':864e5,'3d':2592e5,'7d':6048e5,'14d':12096e5,'30d':2592e6};
+      var body={robloxUsername:username,reason:reason,isPerma:isPerma,durationLabel:labels[dur]};
+      if(!isPerma) body.expiresAt=new Date(Date.now()+ms[dur]).toISOString();
+      try{await api('/api/guilds/'+guildId+'/ingame/bans',{method:'POST',body:body});closeModal();toast('Ban erstellt','ok');openPlayer(username)}
+      catch(e){toast(e.message,'err');this.disabled=false}
+    };
+  }
+  async function doUnban(username){
+    modal('Unban','<p class="sub"><strong>'+esc(username)+'</strong> entbannen?</p><div class="field"><label>Notiz</label><input id="m-note"/></div>',
+      '<button type="button" class="btn" id="m-c">Abbrechen</button><button type="button" class="btn btn-p" id="m-ok">Unban</button>');
+    $('m-c').onclick=closeModal;
+    $('m-ok').onclick=async function(){
+      this.disabled=true;
+      try{await api('/api/guilds/'+guildId+'/ingame/unbans',{method:'POST',body:{robloxUsername:username,note:$('m-note').value.trim()}});closeModal();toast('Unban ok','ok');openPlayer(username)}
+      catch(e){toast(e.message,'err');this.disabled=false}
+    };
+  }
+
+  /* ── Ban list + detail ── */
+  async function pageBans(p){
+    p.innerHTML='<h1>Ban-Liste</h1><p class="desc">Filter · Detail · verlängern / verkürzen</p>'+
+      '<div class="toolbar">'+
+        '<select id="bf-st"><option value="">Alle</option><option value="active">Aktiv</option><option value="expired">Abgelaufen</option><option value="perma">Permanent</option></select>'+
+        '<input id="bf-q" class="search" placeholder="Spieler / Grund…"/>'+
+        '<button type="button" class="btn btn-p btn-sm" id="bf-go">Filtern</button>'+
+        '<button type="button" class="btn btn-sm" id="bf-new">+ Ban</button></div><div class="card" id="blist"></div>';
+    async function load(){
+      var q='?';
+      var st=$('bf-st').value;
+      if(st==='active') q+='activeOnly=1&';
+      else if(st) q+='status='+st+'&';
+      if($('bf-q').value.trim()) q+='q='+encodeURIComponent($('bf-q').value.trim())+'&';
+      var d=await api('/api/guilds/'+guildId+'/ingame/bans'+q);
+      var rows=d.bans||[];
+      var box=$('blist');
+      if(!rows.length){box.innerHTML='<div class="empty">Keine Bans</div>';return}
+      box.innerHTML='<table><thead><tr><th>Spieler</th><th>Grund</th><th>Dauer</th><th>Status</th><th></th></tr></thead><tbody>'+
+        rows.map(function(b){
+          var active=!b.archived&&(b.is_perma||b.isPerma||!b.expires_at||b.expires_at>Date.now());
+          return '<tr><td><strong>'+esc(b.roblox_username||b.robloxUsername)+'</strong></td><td>'+esc(b.reason||'—')+'</td>'+
+            '<td>'+esc(b.duration_label||b.durationLabel||(b.is_perma||b.isPerma?'Perma':'—'))+'</td>'+
+            '<td><span class="pill '+(active?'pill-err':'pill-mut')+'">'+(active?'Aktiv':'Ende')+'</span></td>'+
+            '<td><button type="button" class="btn btn-sm" data-id="'+b.id+'">Detail</button></td></tr>';
+        }).join('')+'</tbody></table>';
+      box.querySelectorAll('[data-id]').forEach(function(btn){btn.onclick=function(){openBanDetail(btn.getAttribute('data-id'))}});
+    }
+    $('bf-go').onclick=function(){load().catch(function(e){toast(e.message,'err')})};
+    $('bf-new').onclick=function(){var u=prompt('Roblox Username');if(u)openBanModal(u.trim())};
+    await load();
+  }
+
+  async function openBanDetail(banId){
+    try{
+      var d=await api('/api/guilds/'+guildId+'/ingame/bans/'+banId);
+      var b=d.ban;
+      var active=!b.archived&&(b.is_perma||!b.expires_at||b.expires_at>Date.now());
+      var rest='—';
+      if(b.expires_at&&!b.is_perma){
+        var ms=b.expires_at-Date.now();
+        if(ms>0){var days=Math.floor(ms/864e5);var hrs=Math.floor((ms%864e5)/36e5);rest=days+'d '+hrs+'h'}
+        else rest='Abgelaufen';
+      } else if(b.is_perma) rest='Permanent';
+      modal('Ban-Detail',
+        '<p class="sub">BAN-'+esc(String(b.id).padStart(6,'0'))+'</p>'+
+        '<div class="field"><label>Spieler</label><div><strong>'+esc(b.roblox_username)+'</strong> · '+esc(b.roblox_user_id||'—')+'</div></div>'+
+        '<div class="field"><label>Grund</label><div>'+esc(b.reason||'—')+'</div></div>'+
+        '<div class="field"><label>Moderator</label><div>'+esc(b.author_tag||b.author_id||'—')+'</div></div>'+
+        '<div class="field"><label>Start</label><div>'+fmtTime(b.created_at)+'</div></div>'+
+        '<div class="field"><label>Ablauf</label><div>'+(b.is_perma?'Permanent':fmtTime(b.expires_at))+'</div></div>'+
+        '<div class="field"><label>Restzeit</label><div>'+esc(rest)+'</div></div>'+
+        '<div class="field"><label>Status</label><div><span class="pill '+(active?'pill-ok':'pill-mut')+'">'+(active?'Aktiv':'Inaktiv')+'</span></div></div>'+
+        '<div class="field"><label>Neue Dauer</label><select id="bd-dur">'+
+          '<option value="1d">+1 Tag ab jetzt</option><option value="3d">+3 Tage</option><option value="7d" selected>+7 Tage</option>'+
+          '<option value="14d">+14 Tage</option><option value="30d">+30 Tage</option><option value="perma">Permanent</option></select></div>',
+        '<button type="button" class="btn" id="m-c">Schließen</button>'+
+        '<button type="button" class="btn btn-sm" id="bd-player">Akte</button>'+
+        '<button type="button" class="btn btn-c btn-sm" id="bd-ext">Dauer setzen</button>'+
+        '<button type="button" class="btn btn-d btn-sm" id="bd-unban">Unban</button>'
+      );
+      $('m-c').onclick=closeModal;
+      $('bd-player').onclick=function(){closeModal();openPlayer(b.roblox_username)};
+      $('bd-ext').onclick=async function(){
+        var dur=$('bd-dur').value;
+        var body={};
+        if(dur==='perma'){body.isPerma=true;body.expiresAt=null;body.durationLabel='Permanent'}
+        else{
+          var ms={'1d':864e5,'3d':2592e5,'7d':6048e5,'14d':12096e5,'30d':2592e6};
+          body.isPerma=false; body.expiresAt=new Date(Date.now()+ms[dur]).toISOString();
+          body.durationLabel=dur;
+        }
+        try{await api('/api/guilds/'+guildId+'/ingame/bans/'+banId,{method:'PATCH',body:body});toast('Ban aktualisiert','ok');closeModal();if(page==='bans')render();else openBanDetail(banId)}
+        catch(e){toast(e.message,'err')}
+      };
+      $('bd-unban').onclick=async function(){
+        if(!confirm('Ban wirklich aufheben?')) return;
+        try{await api('/api/guilds/'+guildId+'/ingame/bans/'+banId+'/unban',{method:'POST',body:{reason:'Dashboard Unban'}});toast('Unban ok','ok');closeModal();render()}
+        catch(e){toast(e.message,'err')}
+      };
+    }catch(e){toast(e.message,'err')}
+  }
+
+  async function pageUnbanReq(p){
+    p.innerHTML='<h1>Ban Appeals</h1><p class="desc"><a href="./unban.html">Öffentliches Formular</a></p>'+
+      '<div class="toolbar"><select id="ur-st"><option value="">Alle</option><option value="pending">Offen</option><option value="approved">Angenommen</option><option value="rejected">Abgelehnt</option></select>'+
+      '<button type="button" class="btn btn-sm" id="ur-go">Aktualisieren</button></div><div class="card" id="urlist"></div>';
+    async function load(){
+      var st=$('ur-st').value;
+      var d=await api('/api/guilds/'+guildId+'/ingame/unban-requests'+(st?'?status='+st:''));
+      var rows=d.requests||[]; var box=$('urlist');
+      if(!rows.length){box.innerHTML='<div class="empty">Keine Anträge</div>';return}
+      box.innerHTML=rows.map(function(r){
+        var st=r.status||'pending'; var pill=st==='approved'?'pill-ok':st==='rejected'?'pill-err':'pill-warn';
+        return '<div style="padding:12px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">'+
+          '<div><strong>'+esc(r.roblox_username||r.robloxUsername||'—')+'</strong> <span class="pill '+pill+'">'+esc(st)+'</span>'+
+          '<div style="font-size:12px;color:var(--muted);margin-top:4px">'+esc(r.reason||'')+'</div></div>'+
+          ((st==='pending'||st==='open')?'<div class="row-act"><button type="button" class="btn btn-sm btn-p" data-a="1" data-id="'+r.id+'">Annehmen</button>'+
+          '<button type="button" class="btn btn-sm btn-d" data-a="0" data-id="'+r.id+'">Ablehnen</button></div>':'')+'</div></div>';
+      }).join('');
+      box.querySelectorAll('[data-id]').forEach(function(b){
+        b.onclick=async function(){
+          var approved=b.getAttribute('data-a')==='1';
+          var note=approved?'':(prompt('Ablehnungsgrund')||'');
+          if(!approved&&!note) return toast('Grund Pflicht','warn');
+          try{await api('/api/guilds/'+guildId+'/ingame/unban-requests/'+b.getAttribute('data-id')+'/review',{method:'POST',body:{approved:approved,note:note}});toast(approved?'Angenommen':'Abgelehnt','ok');load()}
+          catch(e){toast(e.message,'err')}
+        };
+      });
+    }
+    $('ur-go').onclick=function(){load().catch(function(e){toast(e.message,'err')})};
+    await load();
+  }
+
+  async function pageLinks(p){
+    var d=await api('/api/guilds/'+guildId+'/ingame/links');
+    var rows=d.links||[];
+    p.innerHTML='<h1>Roblox ↔ Discord</h1><div class="card">'+(rows.length?
+      '<table><thead><tr><th>Roblox</th><th>Discord</th><th></th></tr></thead><tbody>'+
+      rows.map(function(l){return '<tr><td>'+esc(l.roblox_username||l.robloxUsername)+'</td><td>'+esc(l.discord_id||l.discordId||'—')+'</td>'+
+        '<td><button type="button" class="btn btn-sm btn-d" data-del="'+l.id+'">Entfernen</button></td></tr>'}).join('')+'</tbody></table>':'<div class="empty">Keine</div>')+'</div>';
+    document.querySelectorAll('[data-del]').forEach(function(b){
+      b.onclick=async function(){
+        if(!confirm('Verknüpfung löschen?'))return;
+        try{await api('/api/guilds/'+guildId+'/ingame/links/'+b.getAttribute('data-del'),{method:'DELETE'});toast('Gelöscht','ok');render()}
+        catch(e){toast(e.message,'err')}
+      };
+    });
+  }
+
+  /* ── Webhook setup + logs (Notruf Hamburg) ── */
+  async function pageWebhook(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var secret=s.ingameWebhookSecret||'';
+    var ingest=API+'/api/public/ingame/webhook/'+guildId+(secret?('?secret='+encodeURIComponent(secret)):'');
+    p.innerHTML='<h1>Notruf Hamburg · Webhook</h1><p class="desc">Logs vom Notruf-Hamburg-Server ins Dashboard — nicht umgekehrt einen eigenen Bot-Webhook auf dem Spielserver erfinden.</p>'+
+      '<div class="card"><h2>1. Webhook vom Notruf-Hamburg-Server</h2>'+
+      '<p class="desc">Wenn Notruf Hamburg / der Private Server einen Discord-Webhook für Bans/Kicks ausgibt: hier einfügen. STAFFORA kann Logs dorthin spiegeln und parallel im Dashboard speichern.</p>'+
+      '<div class="field"><label>Notruf-Hamburg Discord-Webhook URL</label><input id="nh-wh" placeholder="https://discord.com/api/webhooks/..." value="'+esc(s.notrufHamburgWebhookUrl||'')+'"/></div>'+
+      '<button type="button" class="btn btn-p btn-sm" id="nh-save">Webhook speichern</button></div>'+
+      '<div class="card"><h2>2. Dashboard-Empfang (Server → STAFFORA)</h2>'+
+      '<p class="desc">Diese URL im Notruf-Hamburg-System / Proxy als Ziel eintragen, damit Ban/Kick/Warn automatisch in der Spielerakte landen.</p>'+
+      '<div class="field"><label>Empfangs-URL (in NH eintragen)</label><div class="codebox" id="wh-url">'+esc(ingest)+'</div></div>'+
+      '<div class="field"><label>Secret (optional)</label><input id="wh-sec" value="'+esc(secret)+'" placeholder="Secret"/></div>'+
+      '<div class="row-act">'+
+        '<button type="button" class="btn btn-sm" id="wh-save">Secret speichern</button>'+
+        '<button type="button" class="btn btn-sm" id="wh-gen">Secret generieren</button>'+
+        '<button type="button" class="btn btn-c btn-sm" id="wh-test">Test-Event</button></div></div>'+
+      '<div class="card"><h2>Letzte Webhook-Logs</h2><div id="wh-logs"><span class="spinner"></span></div></div>';
+
+    $('nh-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{notrufHamburgWebhookUrl:$('nh-wh').value.trim()||null}});
+        toast('Notruf-Webhook gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+    function refreshUrl(sec){
+      var u=API+'/api/public/ingame/webhook/'+guildId+(sec?('?secret='+encodeURIComponent(sec)):'');
+      $('wh-url').textContent=u;
+    }
+    $('wh-gen').onclick=function(){
+      var sec=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
+      $('wh-sec').value=sec; refreshUrl(sec);
+    };
+    $('wh-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{ingameWebhookSecret:$('wh-sec').value.trim()||null}});
+        toast('Secret gespeichert','ok'); refreshUrl($('wh-sec').value.trim());
+      }catch(e){toast(e.message,'err')}
+    };
+    $('wh-test').onclick=async function(){
+      try{
+        await api('/api/public/ingame/webhook/'+guildId+($('wh-sec').value.trim()?('?secret='+encodeURIComponent($('wh-sec').value.trim())):''),{
+          method:'POST',body:{event_id:'test-'+Date.now(),action:'warn',robloxUsername:'TestSpieler',reason:'Dashboard-Test',source:'dashboard'}
+        });
+        toast('Test gesendet','ok'); loadLogs();
+      }catch(e){toast(e.message,'err')}
+    };
+    async function loadLogs(){
+      try{
+        var d=await api('/api/guilds/'+guildId+'/ingame/webhook-logs');
+        var rows=d.logs||d||[];
+        $('wh-logs').innerHTML=rows.length?'<table><tr><th>Zeit</th><th>Action</th><th>Spieler</th><th>Grund</th></tr>'+
+          rows.slice(0,30).map(function(l){return '<tr><td>'+esc(fmtTime(l.created_at||l.ts))+'</td><td>'+esc(l.action||'')+'</td><td>'+esc(l.roblox_username||l.robloxUsername||'')+'</td><td>'+esc(l.reason||'')+'</td></tr>'}).join('')+'</table>':
+          '<div class="empty">Noch keine Webhook-Logs</div>';
+      }catch(e){$('wh-logs').innerHTML='<p style="color:var(--err)">'+esc(e.message)+'</p>'}
+    }
+    loadLogs();
+  }
+
+
+  async function pageTeam(p){
+    var d={}; try{d=await api('/api/guilds/'+guildId+'/team')}catch(e){d={}}
+    var rows=d.team||d.members||[];
+    p.innerHTML='<h1>Teamverwaltung</h1><p class="desc">Duty · Warn · Suspend · Fire</p>'+
+      '<div class="card">'+(Array.isArray(rows)&&rows.length?
+        '<table><thead><tr><th>Member</th><th>Status</th><th></th></tr></thead><tbody>'+
+        rows.map(function(m){
+          var id=m.discord_id||m.discordId||m.id;
+          return '<tr><td>'+esc(m.tag||m.username||id)+'</td><td>'+esc(m.on_duty||m.onDuty?'Im Dienst':'—')+'</td>'+
+            '<td class="row-act">'+
+            '<button type="button" class="btn btn-sm" data-duty="1" data-id="'+esc(id)+'">Duty an</button>'+
+            '<button type="button" class="btn btn-sm" data-duty="0" data-id="'+esc(id)+'">Duty aus</button>'+
+            '</td></tr>';
+        }).join('')+'</tbody></table>':
+        '<div class="empty">Keine Team-Daten (oder Modul inaktiv). JSON:</div><pre style="font-size:11px;color:var(--muted);white-space:pre-wrap">'+esc(JSON.stringify(d,null,2).slice(0,2500))+'</pre>')+
+      '</div>';
+    document.querySelectorAll('[data-duty]').forEach(function(b){
+      b.onclick=async function(){
+        try{
+          await api('/api/guilds/'+guildId+'/team/duty',{method:'POST',body:{discordId:b.getAttribute('data-id'),onDuty:b.getAttribute('data-duty')==='1'}});
+          toast('Duty aktualisiert','ok'); render();
+        }catch(e){toast(e.message,'err')}
+      };
+    });
+  }
+
+  async function pageFactions(p){
+    var d={groups:[]}; try{d=await api('/api/guilds/'+guildId+'/dn-groups')}catch(e){}
+    var groups=d.groups||d||[];
+    if(!Array.isArray(groups)) groups=[];
+    p.innerHTML='<h1>Fraktionen / Dienstnummern-Gruppen</h1><p class="desc">Gruppen für DN-Pools</p>'+
+      '<div class="card"><div class="toolbar">'+
+      '<input id="fg-name" placeholder="Name (z.B. Polizei)" style="max-width:160px"/>'+
+      '<input id="fg-prefix" placeholder="Prefix SW-" style="max-width:100px"/>'+
+      '<button type="button" class="btn btn-p btn-sm" id="fg-add">Gruppe anlegen</button></div>'+
+      '<div id="fg-list"></div></div>';
+    function draw(){
+      var box=$('fg-list');
+      if(!groups.length){box.innerHTML='<div class="empty">Keine Gruppen</div>';return}
+      box.innerHTML='<table><thead><tr><th>Name</th><th>Prefix</th><th></th></tr></thead><tbody>'+
+        groups.map(function(g){return '<tr><td>'+esc(g.name)+'</td><td>'+esc(g.prefix)+'</td>'+
+          '<td><button type="button" class="btn btn-sm btn-d" data-del="'+g.id+'">Löschen</button></td></tr>'}).join('')+'</tbody></table>';
+      box.querySelectorAll('[data-del]').forEach(function(b){
+        b.onclick=async function(){
+          if(!confirm('Gruppe löschen?'))return;
+          try{await api('/api/guilds/'+guildId+'/dn-groups/'+b.getAttribute('data-del'),{method:'DELETE'});toast('Gelöscht','ok');pageFactions(p)}
+          catch(e){toast(e.message,'err')}
+        };
+      });
+    }
+    $('fg-add').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/dn-groups',{method:'POST',body:{name:$('fg-name').value.trim()||'Gruppe',prefix:$('fg-prefix').value.trim()||'SW-',digits:2}});
+        toast('Gruppe erstellt','ok'); pageFactions(p);
+      }catch(e){toast(e.message,'err')}
+    };
+    draw();
+  }
+
+  async function pagePerms(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={roles:[]}; try{disc=await loadDiscord()}catch(e){}
+    var roles=(disc.roles||[]).map(function(r){return {id:r.id,name:r.name||r.id}});
+    function rowPerm(name,a,b,c,d,e){
+      function cell(v){return '<div class="cell">'+(v?'✓':'—')+'</div>'}
+      return '<div>'+name+'</div>'+cell(a)+cell(b)+cell(c)+cell(d)+cell(e);
+    }
+    p.innerHTML='<h1>Rollen & Berechtigungen</h1><p class="desc">Rollen per Suche auswählen — keine IDs eintippen.</p>'+
+      '<div class="card"><h2>Ingame Access</h2>'+
+      '<div class="field"><label>Rollen mit Zugang zum Ingame-Panel</label><div id="p-roles"></div></div>'+
+      '<div class="field"><label>Rollen für Link-Bestätigung</label><div id="p-link"></div></div></div>'+
+      '<div class="card"><h2>Team</h2>'+
+      '<div class="field"><label>Staff-Rollen</label><div id="p-staff"></div></div>'+
+      '<div class="field"><label>Admin-Rollen</label><div id="p-admin"></div></div>'+
+      '<button type="button" class="btn btn-p" id="p-save">Speichern</button></div>'+
+      '<div class="card"><h2>Matrix (Referenz)</h2>'+
+      '<div class="perm-grid">'+
+      '<div></div><div class="h">Owner</div><div class="h">Admin</div><div class="h">Mod</div><div class="h">Support</div><div class="h">Viewer</div>'+
+      rowPerm('Spieler suchen',1,1,1,1,1)+
+      rowPerm('Spielerakte',1,1,1,1,1)+
+      rowPerm('Warn',1,1,1,0,0)+
+      rowPerm('Kick / Ban',1,1,1,0,0)+
+      rowPerm('Unban',1,1,1,0,0)+
+      rowPerm('Ban Appeals',1,1,1,0,0)+
+      rowPerm('Webhooks',1,1,0,0,0)+
+      rowPerm('Rollen verwalten',1,1,0,0,0)+
+      rowPerm('Einstellungen',1,1,0,0,0)+
+      '</div><p class="desc" style="margin-top:12px">Rechte werden über die gewählten Discord-Rollen gesteuert.</p></div>';
+    var P={};
+    function ss(id, multi, values, value, items, ph){
+      P[id]=makeSearchSelect($(id),{items:items,multi:multi,values:values||[],value:value||'',placeholder:ph||'Suchen…'});
+    }
+    ss('p-roles',1,s.ingameAccessRoleIds||[],null,roles,'Ingame Access…');
+    ss('p-link',1,s.ingameLinkConfirmRoleIds||[],null,roles,'Link-Bestätigung…');
+    ss('p-staff',1,s.staffRoleIds||[],null,roles,'Staff…');
+    ss('p-admin',1,s.adminRoleIds||[],null,roles,'Admin…');
+    $('p-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          ingameAccessRoleIds:P['p-roles']?P['p-roles'].getValue():[],
+          ingameLinkConfirmRoleIds:P['p-link']?P['p-link'].getValue():[],
+          staffRoleIds:P['p-staff']?P['p-staff'].getValue():[],
+          adminRoleIds:P['p-admin']?P['p-admin'].getValue():[]
+        }});
+        toast('Berechtigungen gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pagePanels(p){
+    p.innerHTML='<h1>Panels</h1><p class="desc">Panel in einen Kanal senden</p>'+
+      '<div class="card"><h2>Panel wählen & senden</h2>'+
+        '<div class="field"><label>Channel</label><div id="ss-pch"></div></div>'+
+        '<div class="field"><label>Panel-Typ</label><select id="p-type">'+
+          '<option value="tickets">Tickets</option>'+
+          '<option value="bewerbung">Bewerbung</option>'+
+          '<option value="ausweis">Ausweis</option>'+
+          '<option value="feedback">Feedback</option>'+
+          '<option value="online_admin">Online Admin (Duty)</option>'+
+          '<option value="duty">Dienst-Status</option>'+
+          '<option value="clock">Schicht</option>'+
+          '<option value="abmelden">Abmelden</option>'+
+          '<option value="admincall">Admin Call / Warteraum</option>'+
+          '<option value="roblox_register">Roblox verbinden</option>'+
+        '</select></div>'+
+        '<button type="button" class="btn btn-p" id="p-send">Panel senden</button></div>'+
+      '<div class="card"><h2>Feedback-Panel</h2>'+
+        '<div class="field"><label>Feedback-Log-Kanal (wo Bewertungen landen)</label><div id="ss-fblog"></div></div>'+
+        '<div class="field"><label>Panel-Titel</label><input id="fb-title" placeholder="Feedback geben"/></div>'+
+        '<div class="field"><label>Panel-Text</label><textarea id="fb-text" rows="3"></textarea></div>'+
+        '<button type="button" class="btn btn-sm" id="fb-save">Feedback-Settings speichern</button></div>'+
+      '<div class="card"><h2>Dienst-Panel</h2>'+
+        '<div class="field"><label>Dienst-Panel Kanal</label><div id="ss-dch"></div></div>'+
+        '<div class="field"><label>Titel</label><input id="d-title" placeholder="Dienst"/></div>'+
+        '<div class="field"><label>Rollen für den Dienst (wer clocken darf)</label><div id="ss-droles"></div></div>'+
+        '<button type="button" class="btn btn-sm" id="d-save">Speichern</button></div>';
+    var cfg={}, discord={roles:[],channels:[]};
+    try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    try{discord=await loadDiscord()}catch(e){}
+    var s=cfg.settings||{};
+    var roles=roleItems(discord.roles);
+    var ch=channelItems(discord.channels,null);
+    $('d-title').value=s.dutyPanelTitle||'Dienst';
+    var pickCh=makeSearchSelect($('ss-pch'),{items:ch,multi:false,value:s.ticketPanelChannelId||s.dutyPanelChannelId||'',placeholder:'Channel suchen…'});
+    var pickDch=makeSearchSelect($('ss-dch'),{items:ch,multi:false,value:s.dutyPanelChannelId||'',placeholder:'Dienst-Panel Kanal…'});
+    var pickDr=makeSearchSelect($('ss-droles'),{items:roles,multi:true,values:s.dutyRoleIds||[],placeholder:'Rollen für den Dienst…'});
+    var pickFb=makeSearchSelect($('ss-fblog'),{items:ch,multi:false,value:s.feedbackLogChannelId||'',placeholder:'Feedback-Log-Kanal…'});
+    if($('fb-title')) $('fb-title').value=s.feedbackPanelTitle||'Feedback geben';
+    if($('fb-text')) $('fb-text').value=s.feedbackPanelText||'Hast du Lob, Kritik oder Verbesserungsvorschläge für unser Team?\nKlicke unten auf den Button, um dein Feedback einzureichen.';
+    if($('fb-save')) $('fb-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          feedbackLogChannelId:pickFb.getValue()||null,
+          feedbackPanelTitle:($('fb-title').value||'').trim()||'Feedback geben',
+          feedbackPanelText:($('fb-text').value||'').trim()
+        }});
+        toast('Feedback-Settings gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+    $('p-send').onclick=async function(){
+      var channelId=pickCh.getValue();
+      if(!channelId) return toast('Channel wählen','err');
+      try{
+        var r=await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:$('p-type').value,channelId:channelId}});
+        toast('Panel gesendet ('+(r.messageId||'ok')+')','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+    $('d-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          dutyPanelChannelId:pickDch.getValue()||null,
+          dutyPanelTitle:$('d-title').value.trim()||'Dienst',
+          dutyRoleIds:pickDr.getValue()
+        }});
+        toast('Duty-Settings gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pageTickets(p){
+    p.innerHTML='<h1>Tickets</h1><p class="desc">Ticket-Kanäle und Support-Rollen</p>'+
+      '<div class="card"><h2>Tickets</h2>'+
+        '<div class="field"><label>Ticket-Kategorie</label><div id="ss-tcat"></div></div>'+
+        '<div class="field"><label>Ticket-Log</label><div id="ss-tlog2"></div></div>'+
+        '<div class="field"><label>Support-Rollen</label><div id="ss-tsup"></div></div>'+
+        '<div class="field"><label>Panel-Kanal</label><div id="ss-tpanel"></div></div>'+
+        '<div class="field"><label>Panel-Titel</label><input id="t-title"/></div>'+
+        '<div class="field"><label>Panel-Text</label><textarea id="t-text"></textarea></div></div>'+
+      '<div class="card"><h2>Bewerbungen</h2>'+
+        '<div class="field"><label>Bewerbungs-Kanal</label><div id="ss-app"></div></div>'+
+        '<div class="field"><label>Bewerbungs-Log</label><div id="ss-applog"></div></div></div>'+
+      '<div class="row-act"><button type="button" class="btn btn-p" id="t-save">Speichern</button></div>';
+    var cfg={}, discord={roles:[],channels:[]};
+    try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){toast(e.message,'err')}
+    try{discord=await loadDiscord()}catch(e){}
+    var s=cfg.settings||{};
+    var roles=roleItems(discord.roles);
+    var ch=channelItems(discord.channels,null);
+    $('t-title').value=s.ticketPanelTitle||'';
+    $('t-text').value=s.ticketPanelText||'';
+    var picks={};
+    picks.tcat=makeSearchSelect($('ss-tcat'),{items:ch,multi:false,value:s.ticketCategoryId||'',placeholder:'Kategorie suchen…'});
+    picks.tlog=makeSearchSelect($('ss-tlog2'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log-Kanal…'});
+    picks.tsup=makeSearchSelect($('ss-tsup'),{items:roles,multi:true,values:s.ticketSupportRoleIds||[],placeholder:'Support-Rollen…'});
+    picks.tpanel=makeSearchSelect($('ss-tpanel'),{items:ch,multi:false,value:s.ticketPanelChannelId||'',placeholder:'Panel-Kanal…'});
+    picks.app=makeSearchSelect($('ss-app'),{items:ch,multi:false,value:s.appChannelId||'',placeholder:'Bewerbungs-Kanal…'});
+    picks.applog=makeSearchSelect($('ss-applog'),{items:ch,multi:false,value:s.appLogChannelId||'',placeholder:'Bewerbungs-Log…'});
+    $('t-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          ticketCategoryId:picks.tcat.getValue()||null,
+          ticketLogChannelId:picks.tlog.getValue()||null,
+          ticketSupportRoleIds:picks.tsup.getValue(),
+          ticketPanelChannelId:picks.tpanel.getValue()||null,
+          ticketPanelTitle:$('t-title').value.trim(),
+          ticketPanelText:$('t-text').value.trim(),
+          appChannelId:picks.app.getValue()||null,
+          appLogChannelId:picks.applog.getValue()||null
+        }});
+        toast('Tickets gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pageSettings(p){
+    p.innerHTML='<h1>Einstellungen</h1><p class="desc">Module, Rollen und Kanäle einrichten</p>'+
+      '<div class="card"><h2>Module</h2><div id="mod-grid" class="grid"></div></div>'+
+      '<div class="card"><h2>Allgemein</h2>'+
+        '<div class="field"><label>System-Name</label><input id="s-name"/></div>'+
+        '<div class="field"><label>Log-Kanal</label><div id="ss-log"></div></div>'+
+        '<div class="field"><label>Team-Rollen</label><div id="ss-staff"></div></div>'+
+        '<div class="field"><label>Admin-Rollen</label><div id="ss-admin"></div></div></div>'+
+      '<div class="card"><h2>Dienstnummern</h2>'+
+        '<div class="field"><label>Prefix</label><input id="s-prefix"/></div>'+
+        '<div class="field"><label>Stellen</label><input id="s-digits" type="number" min="1" max="6"/></div>'+
+        '<div class="field"><label>Label</label><input id="s-nlabel"/></div>'+
+        '<div class="field"><label>Anzeige-Format</label><input id="s-fmt" placeholder="{number} | {name}"/></div></div>'+
+      '<div class="card"><h2>Tickets</h2>'+
+        '<div class="field"><label>Kategorie</label><div id="ss-tcat"></div></div>'+
+        '<div class="field"><label>Log-Kanal</label><div id="ss-tlog"></div></div>'+
+        '<div class="field"><label>Support-Rollen</label><div id="ss-tsup"></div></div>'+
+        '<div class="field"><label>Panel-Kanal</label><div id="ss-tpanel"></div></div>'+
+        '<div class="field"><label>Panel-Titel</label><input id="s-ttitle"/></div>'+
+        '<div class="field"><label>Panel-Text</label><textarea id="s-ttext"></textarea></div></div>'+
+      '<div class="card"><h2>Bewerbungen</h2>'+
+        '<div class="field"><label>Bewerbungs-Kanal</label><div id="ss-app"></div></div>'+
+        '<div class="field"><label>Bewerbungs-Log</label><div id="ss-applog"></div></div>'+
+        '<div class="field"><label>Min. Punkte</label><input id="s-minp" type="number"/></div>'+
+        '<div class="field"><label>Sperre nach Ablehnung (Tage)</label><input id="s-rejban" type="number"/></div>'+
+        '<div class="field"><label>Rolle nach Ablehnung</label><div id="ss-rejrole"></div></div>'+
+        '<div class="field"><label>Panel-Titel</label><input id="s-btitle"/><label>Panel-Text</label><textarea id="s-btext"></textarea></div></div>'+
+      '<div class="card"><h2>Ausweis</h2>'+
+        '<div class="field"><label>Ausweis-Kanal</label><div id="ss-aus"></div></div>'+
+        '<div class="field"><label>Team-Rollen</label><div id="ss-ausstaff"></div></div>'+
+        '<div class="field"><label>Panel-Titel</label><input id="s-atitle"/><label>Panel-Text</label><textarea id="s-atext"></textarea></div></div>'+
+      '<div class="card"><h2>Admin Calls / Warteraum</h2>'+
+        '<div class="field"><label>Warteraum</label><div id="ss-wait"></div></div>'+
+        '<div class="field"><label>Zu benachrichtigende Rollen</label><div id="ss-aping"></div></div>'+
+        '<div class="field"><label>Log-Kanal</label><div id="ss-alog"></div></div>'+
+        '<label class="row"><input type="checkbox" id="s-wmusic"/> Warteraum-Musik</label>'+
+        '<div class="field"><label>Musik-Link (URL)</label><input id="s-murl" placeholder="https://…/music.mp3"/></div>'+
+        '<div class="field"><label>Oder Datei hochladen (mp3/ogg/wav, max 10MB)</label><input id="s-mfile" type="file" accept="audio/*,.mp3,.ogg,.wav,.webm,.m4a"/></div>'+
+        '<button type="button" class="btn btn-sm" id="btn-mupload">Musik hochladen</button>'+
+        '<p class="desc" id="mupload-status">Datei wird auf dem Bot gespeichert und für den Warteraum genutzt.</p></div>'+
+      '<div class="card"><h2>Partner-System</h2>'+
+        '<div class="field"><label>Partner-Manager Rollen</label><div id="ss-pman"></div></div>'+
+        '<div class="field"><label>Partner-Antrags-Kanal</label><div id="ss-papp"></div></div>'+
+        '<div class="field"><label>Partner-Tiers (JSON)</label><textarea id="s-ptiers" rows="8" placeholder=\'[{"key":"small","name":"Small Partner","minMembers":0,"maxMembers":499,"categoryId":"","channelId":"","roleId":"","adChannelId":"","adFormat":"🤝 {server} ({tier})\\n{invite}\\n{ad}"}]\'></textarea></div>'+
+        '<p class="desc">Pro Tier: key, name, minMembers, maxMembers, categoryId, channelId, roleId, adChannelId, adFormat ({tier} {server} {invite} {members} {ad})</p></div>'+
+      '<div class="card"><h2>IC Panel</h2>'+
+        '<p class="desc">Zugang und Rechte für das IC Panel (Website).</p>'+
+        '<div class="field"><label>Zugang (wer das Panel öffnen darf)</label><div id="ss-ingame-access"></div></div>'+
+        '<div class="field"><label>Ingame-Admin (mit Admin-Rechten in Online/Duty)</label><div id="ss-ingame-admin"></div></div>'+
+        '<div class="field"><label>Lookup / Warnen</label><div id="ss-ingame-mod"></div></div>'+
+        '<label class="row"><input type="checkbox" id="s-ingame-duty"/> On/Off Duty im IC Panel</label>'+
+        '<label class="row"><input type="checkbox" id="s-ingame-lookup"/> Spieler-Suche &amp; Akte</label>'+
+        '<label class="row"><input type="checkbox" id="s-ingame-warn"/> Warnungen erteilen</label>'+
+        '<label class="row"><input type="checkbox" id="s-ingame-ban"/> Ban / Unban</label>'+
+        '<label class="row"><input type="checkbox" id="s-ingame-unban-req"/> Unban-Anfragen bearbeiten</label>'+
+        '</div>'+
+      '<div class="card"><h2>XP-System</h2>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px">'+
+          '<button type="button" class="btn btn-p" id="btn-xp-master">XP-System: …</button>'+
+          '<span class="desc" id="xp-master-label">Master-Schalter für das gesamte XP-System</span>'+
+        '</div>'+
+        '<label class="row"><input type="checkbox" id="s-xp-enabled"/> XP-System aktiv</label>'+
+        '<label class="row"><input type="checkbox" id="s-xp-uprank"/> Auto-Uprank (meiste XP am Periodenende)</label>'+
+        '<div class="field"><label>Periode (Tage)</label><input id="s-xp-days" type="number" min="1" max="90" placeholder="7"/></div>'+
+        '<div class="field"><label>XP pro Nachricht</label><input id="s-xp-msg" type="number" min="0" placeholder="1"/></div>'+
+        '<div class="field"><label>Cooldown Nachricht (Sek.)</label><input id="s-xp-cd" type="number" min="0" placeholder="60"/></div>'+
+        '<div class="field"><label>XP pro Dienst-Stunde</label><input id="s-xp-duty" type="number" min="0" placeholder="10"/></div>'+
+        '<div class="field"><label>XP pro VC-Minute</label><input id="s-xp-vc" type="number" min="0" placeholder="2"/></div>'+
+        '<div class="field"><label>XP Ticket übernehmen</label><input id="s-xp-tclaim" type="number" min="0" placeholder="15"/></div>'+
+        '<div class="field"><label>XP Ticket schließen</label><input id="s-xp-tclose" type="number" min="0" placeholder="8"/></div>'+
+        '<div class="field"><label>XP Admin Call übernehmen</label><input id="s-xp-aclaim" type="number" min="0" placeholder="20"/></div>'+
+        '<div class="field"><label>XP Feedback 1 Stern (negativ)</label><input id="s-xp-fb1" type="number" placeholder="-15"/></div>'+
+        '<div class="field"><label>XP Feedback 2 Sterne</label><input id="s-xp-fb2" type="number" placeholder="-5"/></div>'+
+        '<div class="field"><label>XP Feedback 3 Sterne</label><input id="s-xp-fb3" type="number" placeholder="8"/></div>'+
+        '<div class="field"><label>XP Feedback 4 Sterne</label><input id="s-xp-fb4" type="number" placeholder="15"/></div>'+
+        '<div class="field"><label>XP Feedback 5 Sterne</label><input id="s-xp-fb5" type="number" placeholder="25"/></div>'+
+        
+        '<div class="field"><label>Ankündigungs-Kanal</label><div id="ss-xpch"></div></div>'+
+        '<p class="desc">XP für Nachrichten, VC, Tickets, Admin Calls und Feedback. Am Periodenende: Uprank für meiste XP (optional).</p>'+
+        '<div id="xp-board" class="desc">Leaderboard lädt…</div></div>'+
+      '<div class="card"><h2>Rang-Laufbahn (Team)</h2>'+
+        '<div class="field"><label>rankCareer (JSON)</label><textarea id="s-career" rows="6" placeholder=\'[{"key":"mod","name":"Moderator","roleId":"","order":1}]\'></textarea></div>'+
+        '<label class="row"><input type="checkbox" id="s-autonick"/> Auto-Nicknames</label>'+
+        '<div class="field"><label>Nick-Format</label><input id="s-nickfmt" placeholder="[{rank}] {name}"/></div></div>'+
+      '<div class="card"><h2>Fraktionen</h2>'+
+        '<div class="field"><label>factions (JSON)</label><textarea id="s-factions" rows="8" placeholder=\'[{"id":"pd","key":"pd","name":"Polizei","leaderRoleIds":[],"ranks":[{"key":"recruit","name":"Anwärter","order":0,"roleId":""}]}]\'></textarea></div>'+
+        '<div class="field"><label>Fraktions-Leader Rollen (global)</label><div id="ss-flead"></div></div></div>'+
+      '<div class="card"><h2>Dienst-Panel</h2>'+
+        '<div class="field"><label>Channel</label><div id="ss-duty"></div></div>'+
+        '<div class="field"><label>Titel</label><input id="s-dtitle"/></div>'+
+        '<div class="field"><label>Rollen für den Dienst</label><div id="ss-dutyroles"></div></div></div>'+
+      '<div class="card"><h2>Roblox Online-Panel</h2>'+
+        '<div class="field"><label>Channel</label><div id="ss-status"></div></div>'+
+        '<div class="field"><label>Aktualisierung (Sekunden)</label><input id="s-ssec" type="number"/></div>'+
+        '<div class="field"><label>Zu benachrichtigende Rollen</label><div id="ss-sping"></div></div></div>'+
+      '<div class="card"><h2>Roblox-Gruppe</h2>'+
+        '<div class="field"><label>Gruppen-ID</label><input id="s-rgid"/></div>'+
+        '<div class="field"><label>Mindest-Rang</label><input id="s-rmin" type="number"/></div>'+
+        '<div class="field"><label>Rang-Name</label><input id="s-rname"/></div></div>'+
+      '<div class="card"><h2>Büros</h2>'+
+        '<div class="field"><label>Wartebereich</label><div id="ss-owait"></div></div>'+
+        '<div class="field"><label>Zu benachrichtigende Rolle</label><div id="ss-oping"></div></div>'+
+        '<div class="field"><label>Log</label><div id="ss-olog"></div></div></div>'+
+      '<div class="card"><h2>Abmelden / Schicht</h2>'+
+        '<div class="field"><label>Rollen die beim Abmelden entfernt werden</label><div id="ss-abrem"></div></div>'+
+        '<div class="field"><label>Rollen die beim Abmelden vergeben werden</label><div id="ss-abgive"></div></div>'+
+        '<div class="field"><label>Namens-Zusatz beim Abmelden</label><input id="s-nick"/></div>'+
+        '<div class="field"><label>Rollen für die Schicht</label><div id="ss-schicht"></div></div></div>'+
+      '<div class="card"><h2>Ingame-Panel Zugang</h2>'+
+        '<div class="field"><label>Rollen mit Zugang zum Ingame-Panel</label><div id="ss-ing"></div></div>'+
+        '<div class="field"><label>Rollen mit Ingame-Admin-Rechten</label><div id="ss-ingad"></div></div>'+
+        '<div class="field"><label>Ban-Log-Kanal</label><div id="ss-blog"></div></div>'+
+        '<div class="field"><label>Warn-Stufen (z. B. —|kick|banned)</label><input id="s-wsteps" placeholder="—|kick|banned"/></div></div>'+
+      '<div class="card"><h2>Dizzy Control</h2>'+
+        '<p class="desc">Spieler schreibt den Roblox-Namen in den Kanal. Danach Verknüpfung oder Discord-Kontrolle.</p>'+
+        '<label class="row" style="margin-bottom:12px"><input type="checkbox" id="s-dizzy-on"/> Dizzy Control aktiv</label>'+
+        '<div class="field"><label>Dizzy Control Kanal</label><div id="ss-dizch"></div></div>'+
+        '<div class="field"><label>Dizzy Control Rolle</label><div id="ss-dizzy"></div></div>'+
+        '<div class="field"><label>Dizzy Control Log-Kanal</label><div id="ss-dizlog"></div></div></div>'+
+      '<div class="card"><h2>Rang-Laufbahn</h2>'+
+        '<p class="desc">JSON: [{"key":"mod","name":"Moderator","roleId":"...","order":1}]</p>'+
+        '<div class="field"><label>rankCareer</label><textarea id="s-career" rows="4"></textarea></div></div>'+
+      '<div class="card"><h2>Auto-Nicknames</h2>'+
+        '<label class="row" style="margin-bottom:10px"><input type="checkbox" id="s-autonick"/> Auto-Nick aktiv</label>'+
+        '<div class="field"><label>Format</label><input id="s-nickfmt" placeholder="[{rank}] {name}"/></div></div>'+
+      '<div class="card"><h2>Partner</h2>'+
+        '<label class="row" style="margin-bottom:10px"><input type="checkbox" id="s-partner"/> Partner aktiv</label>'+
+        '<div class="field"><label>Antrags-Kanal</label><div id="ss-papp"></div></div>'+
+        '<div class="field"><label>Partner-Manager Rollen</label><div id="ss-pmgr"></div></div>'+
+        '<div class="field"><label>Tiers JSON</label><textarea id="s-ptiers" rows="3" placeholder="[{key,name,minMembers,maxMembers,channelId}]"></textarea></div></div>'+
+      '<div class="row-act" style="position:sticky;bottom:12px;background:var(--bg);padding:12px 0;z-index:5">'+
+        '<button type="button" class="btn btn-p" id="set-save">Alles speichern</button></div>';
+
+    var cfg={}, discord={roles:[],channels:[]};
+    try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){toast(e.message,'err')}
+    try{discord=await loadDiscord()}catch(e){toast('Discord: '+e.message,'err')}
+    var s=cfg.settings||{}, mods=cfg.modules||{};
+    var roles=roleItems(discord.roles);
+    var ch=channelItems(discord.channels,null);
+
+    var modKeys=['dienstnummern','teamverwaltung','bewerbungen','robloxStaff','statusPanel','logs','adminCalls','tickets','ausweis','keywords','offices','panels','dutyPanel','ingameManagement','abmelden','schicht','warteraumMusic'];
+    $('mod-grid').innerHTML=modKeys.map(function(k){
+      return '<label class="stat" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px">'+
+        '<input type="checkbox" data-mod="'+k+'" '+(mods[k]?'checked':'')+'/> <span style="font-size:13px">'+k+'</span></label>';
+    }).join('');
+
+    function val(id,v){var el=$(id); if(el) el.value=v==null?'':v}
+    val('s-name',s.systemName); val('s-prefix',s.numberPrefix); val('s-digits',s.numberDigits); val('s-nlabel',s.numberLabel); val('s-fmt',s.displayFormat);
+    val('s-ttitle',s.ticketPanelTitle); val('s-ttext',s.ticketPanelText);
+    val('s-minp',s.appMinPoints); val('s-rejban',s.appRejectBanDays); val('s-btitle',s.bewerbungPanelTitle); val('s-btext',s.bewerbungPanelText);
+    val('s-atitle',s.ausweisPanelTitle); val('s-atext',s.ausweisPanelText);
+    $('s-wmusic').checked=!!s.warteraumMusicEnabled; val('s-murl',s.warteraumMusicUrl);
+    val('s-dtitle',s.dutyPanelTitle); val('s-ssec',s.statusIntervalSec||60);
+    val('s-rgid',s.robloxGroupId); val('s-rmin',s.robloxMinRank); val('s-rname',s.robloxRankName);
+    val('s-nick',s.abmeldenNickPrefix); val('s-wsteps',s.ingameWarnSteps);
+    $('s-dizzy-on').checked=!!s.ingameDizzyControl;
+    try{$('s-career').value=JSON.stringify(s.rankCareer||[],null,0)}catch(e){$('s-career').value='[]'}
+    $('s-autonick').checked=!!s.autoNickEnabled;
+    val('s-nickfmt',s.autoNickFormat||'[{rank}] {name}');
+    $('s-partner').checked=s.partnerEnabled!==false;
+    try{$('s-ptiers').value=JSON.stringify(s.partnerTiers||[],null,0)}catch(e){$('s-ptiers').value='[]'}
+
+
+    var P={};
+    function ss(id, multi, values, value, items, ph){
+      P[id]=makeSearchSelect($(id),{items:items,multi:multi,values:values||[],value:value||'',placeholder:ph||'Suchen…'});
+    }
+    ss('ss-log',0,null,s.logChannelId,ch,'Log-Kanal…');
+    ss('ss-staff',1,s.staffRoleIds,null,roles,'Staff…');
+    ss('ss-admin',1,s.adminRoleIds,null,roles,'Admin…');     ss('ss-teamlist',0,null,s.teamlistChannelId,ch,'Teamlist-Kanal…');
+    ss('ss-pman',1,s.partnerManagerRoleIds,null,roles,'Partner-Manager…');
+    ss('ss-papp',0,null,s.partnerAppChannelId,ch,'Partner-Antrag…');
+    ss('ss-flead',1,s.factionLeaderRoleIds,null,roles,'Fraktions-Leader…');
+    var pt=$('s-ptiers'); if(pt) pt.value=JSON.stringify(s.partnerTiers||[],null,2);
+    var sc=$('s-career'); if(sc) sc.value=JSON.stringify(s.rankCareer||[],null,2);
+    var sf=$('s-factions'); if(sf) sf.value=JSON.stringify(s.factions||[],null,2);
+    var an=$('s-autonick'); if(an) an.checked=s.autoNickEnabled!==false;
+    var nf=$('s-nickfmt'); if(nf) nf.value=s.autoNickFormat||'[{rank}] {name}';
+    var wm=$('s-wmusic'); if(wm) wm.checked=!!s.warteraumMusicEnabled;
+    var mu=$('s-murl'); if(mu) mu.value=s.warteraumMusicUrl||'';
+    var xpe=$('s-xp-enabled'); if(xpe) xpe.checked=s.xpEnabled!==false;
+    var xpu=$('s-xp-uprank'); if(xpu) xpu.checked=s.xpAutoUprank!==false;
+    var xpd=$('s-xp-days'); if(xpd) xpd.value=s.xpPeriodDays||7;
+    var xpm=$('s-xp-msg'); if(xpm) xpm.value=s.xpPerMessage||1;
+    var xpc=$('s-xp-cd'); if(xpc) xpc.value=s.xpMessageCooldownSec||60;
+    var xpduty=$('s-xp-duty'); if(xpduty) xpduty.value=s.xpPerDutyHour||10;
+    var xpvc=$('s-xp-vc'); if(xpvc) xpvc.value=s.xpPerVcMinute||2;
+    var xptc=$('s-xp-tclaim'); if(xptc) xptc.value=s.xpTicketClaim||15;
+    var xptcl=$('s-xp-tclose'); if(xptcl) xptcl.value=s.xpTicketClose||8;
+    var xpac=$('s-xp-aclaim'); if(xpac) xpac.value=s.xpAdminCallClaim||20;
+    var fb1=$('s-xp-fb1'); if(fb1) fb1.value=s.xpFeedbackStar1!=null?s.xpFeedbackStar1:-15;
+    var fb2=$('s-xp-fb2'); if(fb2) fb2.value=s.xpFeedbackStar2!=null?s.xpFeedbackStar2:-5;
+    var fb3=$('s-xp-fb3'); if(fb3) fb3.value=s.xpFeedbackStar3!=null?s.xpFeedbackStar3:8;
+    var fb4=$('s-xp-fb4'); if(fb4) fb4.value=s.xpFeedbackStar4!=null?s.xpFeedbackStar4:15;
+    var fb5=$('s-xp-fb5'); if(fb5) fb5.value=s.xpFeedbackStar5!=null?s.xpFeedbackStar5:25;
+    var xpfb=$('s-xp-fb'); if(xpfb) xpfb.value=s.xpFeedback||10;
+    (function(){ var b=$('btn-xp-master'); var on=s.xpEnabled!==false; if(b){ b.textContent=on?'XP-System: AN':'XP-System: AUS'; b.onclick=function(){ var c=$('s-xp-enabled'); if(c){c.checked=!c.checked; b.textContent=c.checked?'XP-System: AN':'XP-System: AUS';} }; } })();
+        ss('ss-ingame-access',1,s.ingameAccessRoleIds||[],null,roles,'Zugang Ingame…');
+    ss('ss-ingame-admin',1,s.ingameAdminRoleIds||s.adminRoleIds||[],null,roles,'Ingame-Admin…');
+    ss('ss-ingame-mod',1,s.ingameModRoleIds||s.staffRoleIds||[],null,roles,'Lookup/Warn…');
+    var igd=$('s-ingame-duty'); if(igd) igd.checked=s.ingameDutyEnabled!==false;
+    var igl=$('s-ingame-lookup'); if(igl) igl.checked=s.ingameLookupEnabled!==false;
+    var igw=$('s-ingame-warn'); if(igw) igw.checked=s.ingameWarnEnabled!==false;
+    var igb=$('s-ingame-ban'); if(igb) igb.checked=s.ingameBanEnabled!==false;
+    var igu=$('s-ingame-unban-req'); if(igu) igu.checked=s.ingameUnbanReqEnabled!==false;
+    ss('ss-xpch',0,null,s.xpAnnounceChannelId,ch,'XP-Ankündigung…');
+    (async function(){ try{
+      var lb=await api('/api/guilds/'+guildId+'/xp/leaderboard');
+      var box=$('xp-board'); if(box){
+        if(!lb.list||!lb.list.length) box.textContent='Noch keine XP in dieser Periode.';
+        else box.innerHTML='<strong>Leaderboard</strong><br/>'+lb.list.slice(0,10).map(function(x,i){return (i+1)+'. <@'+x.user_id+'> — '+x.xp+' XP';}).join('<br/>').replace(/<@/g,''); // show ids
+          box.innerHTML='<strong>Leaderboard (Periode)</strong><ol style="margin:8px 0 0 18px">'+lb.list.slice(0,10).map(function(x){return '<li><code>'+esc(x.user_id)+'</code> — <strong>'+x.xp+' XP</strong></li>';}).join('')+'</ol>';
+      }
+    }catch(e){ var box=$('xp-board'); if(box) box.textContent='Leaderboard: '+e.message; } })();
+    ss('ss-tcat',0,null,s.ticketCategoryId,ch,'Kategorie…');
+    ss('ss-tlog',0,null,s.ticketLogChannelId,ch,'Ticket-Log suchen…');
+    ss('ss-tsup',1,s.ticketSupportRoleIds,null,roles,'Support…');
+    ss('ss-tpanel',0,null,s.ticketPanelChannelId,ch,'Panel…');
+    ss('ss-app',0,null,s.appChannelId,ch,'App…');
+    ss('ss-applog',0,null,s.appLogChannelId,ch,'Bewerbungs-Log…');
+    ss('ss-rejrole',0,null,s.appRejectRoleId,roles,'Rolle nach Ablehnung…');
+    ss('ss-aus',0,null,s.ausweisChannelId,ch,'Ausweis…');
+    ss('ss-ausstaff',1,s.ausweisStaffRoleIds,null,roles,'Ausweis-Staff…');
+    ss('ss-wait',0,null,s.adminCallWaitingChannelId,ch,'Warteraum…');
+    ss('ss-aping',1,s.adminCallPingRoleIds,null,roles,'Ping…');
+    ss('ss-alog',0,null,s.adminCallLogChannelId,ch,'AdminCall-Log…');
+    ss('ss-duty',0,null,s.dutyPanelChannelId,ch,'Dienst-Panel Kanal…');
+    ss('ss-dutyroles',1,s.dutyRoleIds,null,roles,'Rollen für den Dienst…');
+    ss('ss-status',0,null,s.statusChannelId,ch,'Status…');
+    ss('ss-sping',1,s.statusPingRoleIds,null,roles,'Zu benachrichtigende Rollen…');
+    ss('ss-owait',0,null,s.officeWaitingChannelId,ch,'Wartebereich suchen…');
+    ss('ss-oping',0,null,s.officePingRoleId,roles,'Rolle suchen…');
+    ss('ss-olog',0,null,s.officeLogChannelId,ch,'Log-Kanal suchen…');
+    ss('ss-abrem',1,s.abmeldenRoleIds,null,roles,'Rollen suchen…');
+    ss('ss-abgive',1,s.abmeldenGiveRoleIds,null,roles,'Rollen suchen…');
+    ss('ss-schicht',1,s.schichtRoleIds,null,roles,'Schicht…');
+    ss('ss-ing',1,s.ingameAccessRoleIds,null,roles,'Ingame-Rollen mit Zugang zum Ingame-Panel…');
+    ss('ss-ingad',1,s.ingameAdminRoleIds,null,roles,'Rollen suchen…');
+    ss('ss-blog',0,null,s.ingameBanLogChannelId,ch,'Ban-Log suchen…');
+    ss('ss-dizch',0,null,s.ingameDizzyChannelId,ch,'Dizzy Control Kanal…');
+    ss('ss-dizzy',1,s.dizzyControllerRoleIds,null,roles,'Dizzy Control Rolle…');
+    ss('ss-dizlog',0,null,s.dizzyLogChannelId,ch,'Dizzy Control Log…');
+    ss('ss-papp',0,null,s.partnerApplicationChannelId,ch,'Partner-Antrags-Kanal…');
+    ss('ss-pmgr',1,s.partnerManagerRoleIds,null,roles,'Partner-Manager…');
+
+    $('set-save').onclick=async function(){
+      var newMods={};
+      document.querySelectorAll('[data-mod]').forEach(function(el){newMods[el.getAttribute('data-mod')]=el.checked});
+      function g(id){return P[id]?P[id].getValue():null}
+      var body={
+        ingameAccessRoleIds:P['ss-ingame-access']?P['ss-ingame-access'].getValue():[],
+        ingameAdminRoleIds:P['ss-ingame-admin']?P['ss-ingame-admin'].getValue():[],
+        ingameModRoleIds:P['ss-ingame-mod']?P['ss-ingame-mod'].getValue():[],
+        ingameDutyEnabled:!!($('s-ingame-duty')||{}).checked,
+        ingameLookupEnabled:!!($('s-ingame-lookup')||{}).checked,
+        ingameWarnEnabled:!!($('s-ingame-warn')||{}).checked,
+        ingameBanEnabled:!!($('s-ingame-ban')||{}).checked,
+        ingameUnbanReqEnabled:!!($('s-ingame-unban-req')||{}).checked,
+        systemName:$('s-name').value.trim(),
+        numberPrefix:$('s-prefix').value.trim(),
+        numberDigits:Number($('s-digits').value)||2,
+        numberLabel:$('s-nlabel').value.trim(),
+        displayFormat:$('s-fmt').value.trim(),
+        logChannelId:g('ss-log')||null,
+        staffRoleIds:g('ss-staff')||[],
+        adminRoleIds:g('ss-admin')||[], teamlistChannelId:g('ss-teamlist')||null,
+        partnerManagerRoleIds:g('ss-pman')||[],
+        partnerAppChannelId:g('ss-papp')||null,
+        factionLeaderRoleIds:g('ss-flead')||[],
+        partnerTiers:(function(){try{return JSON.parse(($('s-ptiers')||{}).value||'[]')}catch(e){return []}})(),
+        rankCareer:(function(){try{return JSON.parse(($('s-career')||{}).value||'[]')}catch(e){return []}})(),
+        factions:(function(){try{return JSON.parse(($('s-factions')||{}).value||'[]')}catch(e){return []}})(),
+        autoNickEnabled:!($('s-autonick')||{}).checked?false:true,
+        autoNickFormat:(($('s-nickfmt')||{}).value||'[{rank}] {name}'),
+        warteraumMusicEnabled:!!($('s-wmusic')||{}).checked,
+        warteraumMusicUrl:(($('s-murl')||{}).value||'').trim()||null,
+        xpEnabled:!!($('s-xp-enabled')||{}).checked,
+        xpAutoUprank:!!($('s-xp-uprank')||{}).checked,
+        xpPeriodDays:Number(($('s-xp-days')||{}).value)||7,
+        xpPerMessage:Number(($('s-xp-msg')||{}).value)||1,
+        xpMessageCooldownSec:Number(($('s-xp-cd')||{}).value)||60,
+        xpPerDutyHour:Number(($('s-xp-duty')||{}).value)||10,
+        xpAnnounceChannelId:g('ss-xpch')||null,
+        ticketCategoryId:g('ss-tcat')||null,
+        ticketLogChannelId:g('ss-tlog')||null,
+        ticketSupportRoleIds:g('ss-tsup')||[],
+        ticketPanelChannelId:g('ss-tpanel')||null,
+        ticketPanelTitle:$('s-ttitle').value.trim(),
+        ticketPanelText:$('s-ttext').value.trim(),
+        appChannelId:g('ss-app')||null,
+        appLogChannelId:g('ss-applog')||null,
+        appMinPoints:Number($('s-minp').value)||0,
+        appRejectBanDays:Number($('s-rejban').value)||0,
+        appRejectRoleId:g('ss-rejrole')||null,
+        bewerbungPanelTitle:$('s-btitle').value.trim(),
+        bewerbungPanelText:$('s-btext').value.trim(),
+        ausweisChannelId:g('ss-aus')||null,
+        ausweisStaffRoleIds:g('ss-ausstaff')||[],
+        ausweisPanelTitle:$('s-atitle').value.trim(),
+        ausweisPanelText:$('s-atext').value.trim(),
+        adminCallWaitingChannelId:g('ss-wait')||null,
+        adminCallPingRoleIds:g('ss-aping')||[],
+        adminCallLogChannelId:g('ss-alog')||null,
+        warteraumMusicEnabled:$('s-wmusic').checked,
+        warteraumMusicUrl:$('s-murl').value.trim()||null,
+        dutyPanelChannelId:g('ss-duty')||null,
+        dutyPanelTitle:$('s-dtitle').value.trim()||'Dienst',
+        dutyRoleIds:g('ss-dutyroles')||[],
+        statusChannelId:g('ss-status')||null,
+        statusIntervalSec:Number($('s-ssec').value)||60,
+        statusPingRoleIds:g('ss-sping')||[],
+        robloxGroupId:$('s-rgid').value.trim()||null,
+        robloxMinRank:Number($('s-rmin').value)||0,
+        robloxRankName:$('s-rname').value.trim()||null,
+        officeWaitingChannelId:g('ss-owait')||null,
+        officePingRoleId:g('ss-oping')||null,
+        officeLogChannelId:g('ss-olog')||null,
+        abmeldenRoleIds:g('ss-abrem')||[],
+        abmeldenGiveRoleIds:g('ss-abgive')||[],
+        abmeldenNickPrefix:$('s-nick').value.trim()||null,
+        schichtRoleIds:g('ss-schicht')||[],
+        ingameAccessRoleIds:g('ss-ing')||[],
+        ingameAdminRoleIds:g('ss-ingad')||[],
+        ingameBanLogChannelId:g('ss-blog')||null,
+        ingameWarnSteps:$('s-wsteps').value.trim(),
+        ingameDizzyControl:$('s-dizzy-on').checked,
+        ingameDizzyChannelId:g('ss-dizch')||null,
+        dizzyControllerRoleIds:g('ss-dizzy')||[],
+        dizzyLogChannelId:g('ss-dizlog')||null,
+        rankCareer:(function(){try{return JSON.parse($('s-career').value||'[]')}catch(e){return []}})(),
+        autoNickEnabled:$('s-autonick').checked,
+        autoNickFormat:$('s-nickfmt').value.trim()||'[{rank}] {name}',
+        partnerEnabled:$('s-partner').checked,
+        partnerApplicationChannelId:g('ss-papp')||null,
+        partnerManagerRoleIds:g('ss-pmgr')||[],
+        partnerTiers:(function(){try{return JSON.parse($('s-ptiers').value||'[]')}catch(e){return []}})()
+      };
+      try{
+        await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:newMods});
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
+        _discordCache=null;
+        toast('Alle Settings gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  // Fix permissions page matrix after definition
+  var _pagePerms = pagePerms;
+  pagePerms = async function(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var matrix=[
+      ['Spieler suchen',1,1,1,1,1],
+      ['Spielerakte',1,1,1,1,1],
+      ['Warn',1,1,1,0,0],
+      ['Kick / Ban',1,1,1,0,0],
+      ['Unban',1,1,1,0,0],
+      ['Ban Appeals',1,1,1,0,0],
+      ['Webhooks',1,1,0,0,0],
+      ['Rollen',1,1,0,0,0],
+      ['Einstellungen',1,1,0,0,0]
+    ];
+    var grid='<div class="perm-grid"><div></div><div class="h">Owner</div><div class="h">Admin</div><div class="h">Mod</div><div class="h">Support</div><div class="h">Viewer</div>';
+    matrix.forEach(function(row){
+      grid+='<div>'+row[0]+'</div>';
+      for(var i=1;i<=5;i++) grid+='<div class="cell">'+(row[i]?'✓':'—')+'</div>';
+    });
+    grid+='</div>';
+    p.innerHTML='<h1>Rollen & Berechtigungen</h1><p class="desc">Ingame-Rollen mit Zugang zum Ingame-Panel</p>'+
+      '<div class="card"><h2>Rollen</h2>'+
+      '<div class="field"><label>Ingame Access</label><input id="p-roles" value="'+esc((s.ingameAccessRoleIds||[]).join(', '))+'"/></div>'+
+      '<div class="field"><label>Link-Bestätigung</label><input id="p-link" value="'+esc((s.ingameLinkConfirmRoleIds||[]).join(', '))+'"/></div>'+
+      '<div class="field"><label>Staff</label><input id="p-staff" value="'+esc((s.staffRoleIds||[]).join(', '))+'"/></div>'+
+      '<div class="field"><label>Admin</label><input id="p-admin" value="'+esc((s.adminRoleIds||[]).join(', '))+'"/></div>'+
+      '<button type="button" class="btn btn-p" id="p-save">Speichern</button></div>'+
+      '<div class="card"><h2>Matrix (Referenz)</h2>'+grid+
+      '<p class="desc" style="margin-top:12px">Rechte steuerst du über die Discord-Rollen oben.</p></div>';
+    $('p-save').onclick=async function(){
+      function ids(v){return v.split(/[,\s]+/).filter(Boolean)}
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          ingameAccessRoleIds:ids($('p-roles').value),
+          ingameLinkConfirmRoleIds:ids($('p-link').value),
+          staffRoleIds:ids($('p-staff').value),
+          adminRoleIds:ids($('p-admin').value)
+        }});
+        toast('Gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  };
+
+  boot();
+})();
+</script>
+</body>
+</html>
