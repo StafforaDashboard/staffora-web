@@ -218,6 +218,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
     try{
       var m=location.search.match(/[?&]token=([^&#]+)/);
       if(m) token=decodeURIComponent(m[1]);
+      if(!token && location.hash){
+        var hm=location.hash.match(/token=([^&]+)/);
+        if(hm) token=decodeURIComponent(hm[1]);
+      }
     }catch(e){}
   }
   if(token){ try{ localStorage.setItem('staffora_token', token); }catch(e){} }
@@ -242,7 +246,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     $('mbg').onclick=function(e){if(e.target.id==='mbg')closeModal()};
   }
 
-  try{var m=location.search.match(/[?&]token=([^&#]+)/);if(m){token=decodeURIComponent(m[1]);localStorage.setItem('staffora_token',token);}}catch(e){}
+  try{var m=location.search.match(/[?&]token=([^&#]+)/);if(m){token=decodeURIComponent(m[1]);localStorage.setItem('staffora_token',token);}else if(location.hash){var hm=location.hash.match(/token=([^&]+)/);if(hm){token=decodeURIComponent(hm[1]);localStorage.setItem('staffora_token',token);}}}catch(e){}
   try{
     var loginBtn=$('btn-login');
     if(loginBtn){
@@ -450,13 +454,13 @@ tr:hover td{background:rgba(255,255,255,.02)}
       try{
         var cfg=await api('/api/guilds/'+guildId+'/config');
         var s=cfg.settings||{};
-        $('oa-roles').value=(s.Rollen mit Ingame-Admin-Rechten||[]).join(', ');
+        $('oa-roles').value=(s.ingameAdminRoleIds||[]).join(', ');
       }catch(e){}
     }
     $('oa-save').onclick=async function(){
       var ids=$('oa-roles').value.split(/[,\s]+/).filter(Boolean);
       try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{Rollen mit Ingame-Admin-Rechten:ids}});
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{ingameAdminRoleIds:ids}});
         toast('Admin-Rollen gespeichert','ok');
         refresh();
       }catch(e){toast(e.message,'err')}
@@ -1403,7 +1407,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     ss('ss-abgive',1,s.abmeldenGiveRoleIds,null,roles,'Rollen suchen…');
     ss('ss-schicht',1,s.schichtRoleIds,null,roles,'Schicht…');
     ss('ss-ing',1,s.ingameAccessRoleIds,null,roles,'Ingame-Rollen mit Zugang zum Ingame-Panel…');
-    ss('ss-ingad',1,s.Rollen mit Ingame-Admin-Rechten,null,roles,'Rollen suchen…');
+    ss('ss-ingad',1,s.ingameAdminRoleIds,null,roles,'Rollen suchen…');
     ss('ss-blog',0,null,s.ingameBanLogChannelId,ch,'Ban-Log suchen…');
     ss('ss-dizch',0,null,s.ingameDizzyChannelId,ch,'Dizzy Control Kanal…');
     ss('ss-dizzy',1,s.dizzyControllerRoleIds,null,roles,'Dizzy Control Rolle…');
@@ -1488,7 +1492,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         abmeldenNickPrefix:$('s-nick').value.trim()||null,
         schichtRoleIds:g('ss-schicht')||[],
         ingameAccessRoleIds:g('ss-ing')||[],
-        Rollen mit Ingame-Admin-Rechten:g('ss-ingad')||[],
+        ingameAdminRoleIds:g('ss-ingad')||[],
         ingameBanLogChannelId:g('ss-blog')||null,
         ingameWarnSteps:$('s-wsteps').value.trim(),
         ingameDizzyControl:$('s-dizzy-on').checked,
