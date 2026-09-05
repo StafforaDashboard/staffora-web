@@ -9,9 +9,11 @@
   var cloud='https://staffora.apps.bot-hosting.cloud';
   try{
     var h=location.hostname||'';
-    if(h.indexOf('bot-hosting.cloud')>=0||h==='localhost'||h==='127.0.0.1') window.STAFFORA_API='';
-    else window.STAFFORA_API=cloud;window.STAFFORA_RETURN=location.origin+(location.pathname.replace(/[^/]+$/,'')||'/')+'dashboard.html';
-  }catch(e){window.STAFFORA_API=cloud}
+    if(h.indexOf('bot-hosting')>=0||h==='localhost'||h==='127.0.0.1') window.STAFFORA_API='';
+    else window.STAFFORA_API=cloud;
+    var base=location.origin+(location.pathname.replace(/[^/]+$/,'')||'/');
+    window.STAFFORA_RETURN=base+(base.slice(-1)==='/'?'':'/')+'ingame.html';
+  }catch(e){window.STAFFORA_API=cloud;window.STAFFORA_RETURN='https://staffora.apps.bot-hosting.cloud/ingame'}
 })();
 </script>
 <style>
@@ -101,7 +103,8 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
 <div class="toast" id="toast"></div>
 <script>
 (function(){
-  var API=window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud';
+  var API=(typeof window.STAFFORA_API==='string')?window.STAFFORA_API:'https://staffora.apps.bot-hosting.cloud';
+  API=String(API).replace(/\/$/,'');
   var token='';
   try{
     var m=location.search.match(/[?&]token=([^&#]+)/);
@@ -122,8 +125,26 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
     opts=opts||{};
     var headers={'Content-Type':'application/json'};
     if(token) headers['Authorization']='Bearer '+token;
-    var r=await fetch(API+path,{method:opts.method||'GET',headers:headers,credentials:'include',body:opts.body?JSON.stringify(opts.body):undefined});
-    var data=null; try{data=await r.json()}catch(e){}
+    var r, tries=0;
+    while(true){
+      tries++;
+      try{
+        r=await fetch(API+path,{
+          method:opts.method||'GET',
+          headers:headers,
+          credentials:'include',
+          body:opts.body?JSON.stringify(opts.body):undefined,
+          cache:'no-store'
+        });
+        break;
+      }catch(e){
+        if(tries<3){ await new Promise(function(x){setTimeout(x,400*tries)}); continue; }
+        throw new Error('Bot offline (Failed to fetch)');
+      }
+    }
+    var data=null;
+    try{data=await r.json()}catch(e){}
+    if(r.status===401) throw new Error('Session ungültig — bitte erneut anmelden');
     if(!r.ok) throw new Error((data&&(data.error||data.message))||('HTTP '+r.status));
     return data;
   }
@@ -135,7 +156,7 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
 
   $('btn-login').onclick=function(){
     var ret=encodeURIComponent(location.href.split('#')[0]);
-    location.href=API+'/auth/login?return='+encodeURIComponent(window.STAFFORA_RETURN||(location.href.split('#')[0]));
+    location.href=API+'/auth/login?return='+encodeURIComponent(window.STAFFORA_RETURN||(location.origin+location.pathname));
   };
   $('btn-out').onclick=function(){
     token=''; localStorage.removeItem('staffora_token'); localStorage.removeItem('staffora_ingame_guild');
@@ -153,14 +174,29 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
 
   async function boot(){
     try{
-      var m=location.search.match(/[?&]token=([^&]+)/);
-      if(m){token=decodeURIComponent(m[1]);localStorage.setItem('staffora_token',token);history.replaceState({},'',location.pathname)}
+      var m=location.search.match(/[?&]token=([^&#]+)/);
+      if(m){
+        token=decodeURIComponent(m[1].replace(/\+/g,' '));
+        try{ localStorage.setItem('staffora_token', token); sessionStorage.setItem('staffora_token', token); }catch(e){}
+      }
     }catch(e){}
-    if(!token){show('view-login');return}
+    if(!token){ try{ token=localStorage.getItem('staffora_token')||sessionStorage.getItem('staffora_token')||''; }catch(e){} }
+    if(!token){ show('view-login'); return; }
     try{
+      var box=document.querySelector('#view-login .desc');
+      if(box) box.textContent='Anmeldung wird geprüft…';
       await api('/api/me');
+      try{ history.replaceState({},'', location.pathname); }catch(e){}
     }catch(e){
-      token=''; localStorage.removeItem('staffora_token'); show('view-login'); return;
+      console.error('[ingame boot]', e);
+      var msg=String(e.message||e);
+      if(/401|ungültig|Unauthorized/i.test(msg)){
+        token=''; try{ localStorage.removeItem('staffora_token'); }catch(x){}
+      }
+      show('view-login');
+      var d=document.querySelector('#view-login .desc');
+      if(d) d.innerHTML='<span style="color:#f87171">'+String(msg).replace(/</g,'')+'</span>';
+      return;
     }
     if(!guildId){ await pickGuild(); return; }
     show('view-app'); render();

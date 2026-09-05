@@ -297,19 +297,26 @@ tr:hover td{background:rgba(255,255,255,.02)}
     var headers={'Content-Type':'application/json'};
     if(token) headers['Authorization']='Bearer '+token;
     var r;
-    try{
-      r=await fetch(API+path,{
-        method:opts.method||'GET',
-        headers:headers,
-        credentials:'include',
-        body:opts.body?JSON.stringify(opts.body):undefined
-      });
-    }catch(e){
-      throw new Error('Bot offline (Failed to fetch)');
+    var tries=0;
+    while(true){
+      tries++;
+      try{
+        r=await fetch(API+path,{
+          method:opts.method||'GET',
+          headers:headers,
+          credentials:'include',
+          body:opts.body?JSON.stringify(opts.body):undefined,
+          cache:'no-store'
+        });
+        break;
+      }catch(e){
+        if(tries<3){ await new Promise(function(res){setTimeout(res,400*tries)}); continue; }
+        throw new Error('Bot offline (Failed to fetch) — API: '+(API||location.origin));
+      }
     }
     var data=null;
     try{ data=await r.json(); }catch(e){}
-    if(r.status===401) throw new Error('Session abgelaufen — bitte erneut anmelden');
+    if(r.status===401) throw new Error('Session ungültig (401) — bitte erneut anmelden');
     if(!r.ok) throw new Error((data&&(data.error||data.message))||('HTTP '+r.status));
     return data;
   }
@@ -347,6 +354,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
       return;
     }
     try{
+      var sub0=$('v-login')&&$('v-login').querySelector('.sub');
+      if(sub0) sub0.innerHTML='<span style="color:#a78bfa">Anmeldung wird geprüft…</span>';
       me=await api('/api/me');
       try{ history.replaceState({},'', location.pathname); }catch(e0){}
       $('v-login').classList.add('hidden');
