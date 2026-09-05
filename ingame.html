@@ -10,7 +10,7 @@
   try{
     var h=location.hostname||'';
     if(h.indexOf('bot-hosting.cloud')>=0||h==='localhost'||h==='127.0.0.1') window.STAFFORA_API='';
-    else window.STAFFORA_API=cloud;
+    else window.STAFFORA_API=cloud;window.STAFFORA_RETURN=location.origin+(location.pathname.replace(/[^/]+$/,'')||'/')+'dashboard.html';
   }catch(e){window.STAFFORA_API=cloud}
 })();
 </script>
@@ -135,7 +135,7 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
 
   $('btn-login').onclick=function(){
     var ret=encodeURIComponent(location.href.split('#')[0]);
-    location.href=API+'/auth/login?return='+encodeURIComponent('https://stafforadashboard.github.io/staffora-web/ingame.html');
+    location.href=API+'/auth/login?return='+encodeURIComponent(window.STAFFORA_RETURN||(location.href.split('#')[0]));
   };
   $('btn-out').onclick=function(){
     token=''; localStorage.removeItem('staffora_token'); localStorage.removeItem('staffora_ingame_guild');
