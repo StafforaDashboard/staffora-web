@@ -193,27 +193,29 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <button type="button" class="nav-btn active" data-p="overview"><span class="ic">📊</span> Übersicht</button>
       <button type="button" class="nav-btn" data-p="activity"><span class="ic">⚡</span> Live Activity</button>
       <button type="button" class="nav-btn" data-p="online"><span class="ic">🟢</span> Online-Status</button>
-      <div class="nav-sec">Einstellungen</div>
-      <button type="button" class="nav-btn" data-p="settings"><span class="ic">⚙️</span> Alle Einstellungen</button>
-      <button type="button" class="nav-btn" data-p="webhook"><span class="ic">📡</span> Webhook / Logs</button>
-      <button type="button" class="nav-btn" data-p="unban-q"><span class="ic">❓</span> Unban-Fragen</button>
+      <div class="nav-sec">Server</div>
+      <button type="button" class="nav-btn" data-p="settings"><span class="ic">⚙️</span> Allgemein</button>
+      <button type="button" class="nav-btn" data-p="modules"><span class="ic">🧩</span> Module</button>
+      <button type="button" class="nav-btn" data-p="perms"><span class="ic">🛡️</span> Berechtigungen</button>
+      <button type="button" class="nav-btn" data-p="panels"><span class="ic">📨</span> Panels senden</button>
+      <div class="nav-sec">Systeme</div>
       <button type="button" class="nav-btn" data-p="tickets"><span class="ic">🎫</span> Tickets</button>
       <button type="button" class="nav-btn" data-p="feedback"><span class="ic">⭐</span> Feedback</button>
-      <button type="button" class="nav-btn" data-p="duty"><span class="ic">⏱️</span> Duty / Panel</button>
+      <button type="button" class="nav-btn" data-p="duty"><span class="ic">⏱️</span> Duty</button>
+      <button type="button" class="nav-btn" data-p="dizzy"><span class="ic">🎮</span> Dizzy Control</button>
       <button type="button" class="nav-btn" data-p="partner"><span class="ic">🤝</span> Partnerschaft</button>
-      <div class="nav-sec">Team &amp; Server</div>
-      <button type="button" class="nav-btn" data-p="team"><span class="ic">👥</span> Teamverwaltung</button>
       <button type="button" class="nav-btn" data-p="factions"><span class="ic">🏛️</span> Fraktionen</button>
       <button type="button" class="nav-btn" data-p="dn"><span class="ic">🔢</span> Dienstnummern</button>
-      <button type="button" class="nav-btn" data-p="perms"><span class="ic">🛡️</span> Berechtigungen</button>
-      <button type="button" class="nav-btn" data-p="modules"><span class="ic">🧩</span> Module</button>
-      <div class="nav-sec">Moderation (Info)</div>
+      <button type="button" class="nav-btn" data-p="team"><span class="ic">👥</span> Team</button>
+      <button type="button" class="nav-btn" data-p="webhook"><span class="ic">📡</span> Webhook</button>
+      <button type="button" class="nav-btn" data-p="unban-q"><span class="ic">❓</span> Unban-Fragen</button>
+      <div class="nav-sec">Moderation</div>
       <button type="button" class="nav-btn" data-p="search"><span class="ic">🔍</span> Roblox-Suche</button>
       <button type="button" class="nav-btn" data-p="bans"><span class="ic">🔨</span> Bans</button>
       <button type="button" class="nav-btn" data-p="unban-req"><span class="ic">🔓</span> Ban Appeals</button>
       <button type="button" class="nav-btn" data-p="links"><span class="ic">🔗</span> Roblox Links</button>
       <div class="nav-sec">IC Panel</div>
-      <a class="nav-btn" href="ingame.html" style="text-decoration:none"><span class="ic">🎮</span> IC Panel öffnen →</a>
+      <a class="nav-btn" href="ingame.html" style="text-decoration:none"><span class="ic">🎮</span> IC Panel →</a>
     </nav>
     <div class="side-mini" id="side-mini">
         <a href="./ingame.html">IC Panel</a>
@@ -415,10 +417,11 @@ tr:hover td{background:rgba(255,255,255,.02)}
       else if(page==='links') await pageLinks(p);
       else if(page==='webhook') await pageWebhook(p);
       else if(page==='team') await pageTeam(p);
-      else if(page==='factions') await pageDn(p);
+      else if(page==='factions') await pageFactions(p);
       else if(page==='dn') await pageDn(p);
       else if(page==='unban-q') await pageUnbanQuestions(p);
       else if(page==='duty') await pageDutyCfg(p);
+      else if(page==='dizzy') await pageDizzy(p);
       else if(page==='partner') await pagePartner(p);
       else if(page==='feedback') await pageFeedbackCfg(p);
       else if(page==='modules') await pageSettings(p);
@@ -974,26 +977,6 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
   /* ── Webhook setup + logs (Notruf Hamburg) ── */
   
-  async function pageFactions(p){
-    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
-    var s=cfg.settings||{};
-    var disc={roles:[]}; try{disc=await loadDiscord()}catch(e){}
-    var roles=roleItems(disc.roles);
-    p.innerHTML='<h1>Fraktionen</h1><p class="desc">Fraktions-Struktur getrennt von Dienstnummern</p>'+
-      '<div class="card"><h2>Fraktionen (JSON)</h2>'+
-      '<div class="field"><label>Definition</label><textarea id="fac-json" rows="12" placeholder=\'[{"id":"pd","name":"Polizei","leaderRoleIds":[],"ranks":[]}]\'></textarea></div>'+
-      '<div class="field"><label>Fraktions-Leader Rollen</label><div id="fac-lead"></div></div>'+
-      '<button type="button" class="btn btn-p" id="fac-save">Speichern</button></div>';
-    try{$('fac-json').value=JSON.stringify(s.factions||[],null,2)}catch(e){$('fac-json').value='[]'}
-    var pickLead=makeSearchSelect($('fac-lead'),{items:roles,multi:true,values:s.factionLeaderRoleIds||[],placeholder:'Leader-Rolle suchen…'});
-    $('fac-save').onclick=async function(){
-      try{
-        var factions=JSON.parse($('fac-json').value||'[]');
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{factions:factions,factionLeaderRoleIds:pickLead.getValue()}});
-        toast('Fraktionen gespeichert','ok');
-      }catch(e){toast(e.message||'JSON ungültig','err')}
-    };
-  }
 
   async function pageUnbanQuestions(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
@@ -1064,56 +1047,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
     };
   }
 
-  async function pagePartner(p){
-    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
-    var s=cfg.settings||{};
-    var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
-    var data={applications:[],partners:[],tiers:[]};
-    try{data=await api('/api/guilds/'+guildId+'/partners')}catch(e){}
-    p.innerHTML='<h1>Partnerschaft</h1><p class="desc">Tiers, Anträge und Übersicht</p>'+
-      '<div class="card"><h2>Einstellungen</h2>'+
-      '<label class="row"><input type="checkbox" id="pa-en"/> Partnerschaft aktiv</label>'+
-      '<div class="field"><label>Partner-Manager Rollen</label><div id="pa-man"></div></div>'+
-      '<div class="field"><label>Antrags-Kanal</label><div id="pa-app"></div></div>'+
-      '<div class="field"><label>Partner-Tiers (JSON)</label><textarea id="pa-tiers" rows="6"></textarea></div>'+
-      '<button type="button" class="btn btn-p" id="pa-save">Speichern</button></div>'+
-      '<div class="card"><h2>Übersicht</h2><div id="pa-list"></div></div>';
-    $('pa-en').checked=s.partnerEnabled!==false;
-    try{$('pa-tiers').value=JSON.stringify(s.partnerTiers||data.tiers||[],null,2)}catch(e){$('pa-tiers').value='[]'}
-    var pickM=makeSearchSelect($('pa-man'),{items:roleItems(disc.roles),multi:true,values:s.partnerManagerRoleIds||[],placeholder:'Manager…'});
-    var pickA=makeSearchSelect($('pa-app'),{items:channelItems(disc.channels),multi:false,value:s.partnerAppChannelId||s.partnerApplicationChannelId||'',placeholder:'Kanal…'});
-    var apps=data.applications||[];
-    var partners=data.partners||[];
-    $('pa-list').innerHTML=
-      '<p class="desc">Partner: <strong>'+partners.length+'</strong> · Offene Anträge: <strong>'+apps.length+'</strong></p>'+
-      (partners.length?('<table><thead><tr><th>Partner</th><th>Tier</th></tr></thead><tbody>'+
-        partners.map(function(x){return '<tr><td>'+esc(x.name||x.guildName||x.id)+'</td><td>'+esc(x.tier||'—')+'</td></tr>'}).join('')+
-        '</tbody></table>'):'<div class="empty">Keine Partner</div>');
-    $('pa-save').onclick=async function(){
-      try{
-        var tiers=JSON.parse($('pa-tiers').value||'[]');
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          partnerEnabled:$('pa-en').checked,
-          partnerManagerRoleIds:pickM.getValue(),
-          partnerAppChannelId:pickA.getValue()||null,
-          partnerApplicationChannelId:pickA.getValue()||null,
-          partnerTiers:tiers
-        }});
-        toast('Partnerschaft gespeichert','ok');
-      }catch(e){toast(e.message||'JSON Fehler','err')}
-    };
-  }
 
-  async function pageFeedbackCfg(p){
-    // Jump into settings-style feedback card by reusing panels page if exists
-    if(typeof pagePanels==='function'){
-      await pagePanels(p);
-      return;
-    }
-    p.innerHTML='<h1>Feedback</h1><p class="desc">Siehe Einstellungen → Feedback</p>';
-  }
-
-async function pageWebhook(p){
+  async function pageWebhook(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var secret=s.ingameWebhookSecret||'';
@@ -1276,521 +1211,7 @@ async function pageWebhook(p){
     draw();
   }
 
-  async function pagePerms(p){
-    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
-    var s=cfg.settings||{};
-    var disc={roles:[]}; try{disc=await loadDiscord()}catch(e){}
-    var roles=(disc.roles||[]).map(function(r){return {id:r.id,name:r.name||r.id}});
-    function rowPerm(name,a,b,c,d,e){
-      function cell(v){return '<div class="cell">'+(v?'✓':'—')+'</div>'}
-      return '<div>'+name+'</div>'+cell(a)+cell(b)+cell(c)+cell(d)+cell(e);
-    }
-    p.innerHTML='<h1>Rollen & Berechtigungen</h1><p class="desc">Rollen per Suche auswählen — keine IDs eintippen.</p>'+
-      '<div class="card"><h2>Ingame Access</h2>'+
-      '<div class="field"><label>Rollen mit Zugang zum Ingame-Panel</label><div id="p-roles"></div></div>'+
-      '<div class="field"><label>Rollen für Link-Bestätigung</label><div id="p-link"></div></div></div>'+
-      '<div class="card"><h2>Team</h2>'+
-      '<div class="field"><label>Staff-Rollen</label><div id="p-staff"></div></div>'+
-      '<div class="field"><label>Admin-Rollen</label><div id="p-admin"></div></div>'+
-      '<button type="button" class="btn btn-p" id="p-save">Speichern</button></div>'+
-      '<div class="card"><h2>Matrix (Referenz)</h2>'+
-      '<div class="perm-grid">'+
-      '<div></div><div class="h">Owner</div><div class="h">Admin</div><div class="h">Mod</div><div class="h">Support</div><div class="h">Viewer</div>'+
-      rowPerm('Spieler suchen',1,1,1,1,1)+
-      rowPerm('Spielerakte',1,1,1,1,1)+
-      rowPerm('Warn',1,1,1,0,0)+
-      rowPerm('Kick / Ban',1,1,1,0,0)+
-      rowPerm('Unban',1,1,1,0,0)+
-      rowPerm('Ban Appeals',1,1,1,0,0)+
-      rowPerm('Webhooks',1,1,0,0,0)+
-      rowPerm('Rollen verwalten',1,1,0,0,0)+
-      rowPerm('Einstellungen',1,1,0,0,0)+
-      '</div><p class="desc" style="margin-top:12px">Rechte werden über die gewählten Discord-Rollen gesteuert.</p></div>';
-    var P={};
-    function ss(id, multi, values, value, items, ph){
-      P[id]=makeSearchSelect($(id),{items:items,multi:multi,values:values||[],value:value||'',placeholder:ph||'Suchen…'});
-    }
-    ss('p-roles',1,s.ingameAccessRoleIds||[],null,roles,'Ingame Access…');
-    ss('p-link',1,s.ingameLinkConfirmRoleIds||[],null,roles,'Link-Bestätigung…');
-    ss('p-staff',1,s.staffRoleIds||[],null,roles,'Staff…');
-    ss('p-admin',1,s.adminRoleIds||[],null,roles,'Admin…');
-    $('p-save').onclick=async function(){
-      try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          ingameAccessRoleIds:P['p-roles']?P['p-roles'].getValue():[],
-          ingameLinkConfirmRoleIds:P['p-link']?P['p-link'].getValue():[],
-          staffRoleIds:P['p-staff']?P['p-staff'].getValue():[],
-          adminRoleIds:P['p-admin']?P['p-admin'].getValue():[]
-        }});
-        toast('Berechtigungen gespeichert','ok');
-      }catch(e){toast(e.message,'err')}
-    };
-  }
 
-  async function pagePanels(p){
-    p.innerHTML='<h1>Panels</h1><p class="desc">Panel in einen Kanal senden</p>'+
-      '<div class="card"><h2>Panel wählen & senden</h2>'+
-        '<div class="field"><label>Channel</label><div id="ss-pch"></div></div>'+
-        '<div class="field"><label>Panel-Typ</label><select id="p-type">'+
-          '<option value="tickets">Tickets</option>'+
-          '<option value="bewerbung">Bewerbung</option>'+
-          '<option value="ausweis">Ausweis</option>'+
-          '<option value="feedback">Feedback</option>'+
-          '<option value="online_admin">Online Admin (Duty)</option>'+
-          '<option value="duty">Dienst-Status</option>'+
-          '<option value="clock">Schicht</option>'+
-          '<option value="abmelden">Abmelden</option>'+
-          '<option value="admincall">Admin Call / Warteraum</option>'+
-          '<option value="roblox_register">Roblox verbinden</option>'+
-        '</select></div>'+
-        '<button type="button" class="btn btn-p" id="p-send">Panel senden</button></div>'+
-      '<div class="card"><h2>Feedback-Panel</h2>'+
-        '<div class="field"><label>Feedback-Log-Kanal (wo Bewertungen landen)</label><div id="ss-fblog"></div></div>'+
-        '<div class="field"><label>Panel-Titel</label><input id="fb-title" placeholder="Feedback geben"/></div>'+
-        '<div class="field"><label>Panel-Text</label><textarea id="fb-text" rows="3"></textarea></div>'+
-        '<button type="button" class="btn btn-sm" id="fb-save">Feedback-Settings speichern</button></div>'+
-      '<div class="card"><h2>Dienst-Panel</h2>'+
-        '<div class="field"><label>Dienst-Panel Kanal</label><div id="ss-dch"></div></div>'+
-        '<div class="field"><label>Titel</label><input id="d-title" placeholder="Dienst"/></div>'+
-        '<div class="field"><label>Rollen für den Dienst (wer clocken darf)</label><div id="ss-droles"></div></div>'+
-        '<button type="button" class="btn btn-sm" id="d-save">Speichern</button></div>';
-    var cfg={}, discord={roles:[],channels:[]};
-    try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
-    try{discord=await loadDiscord()}catch(e){}
-    var s=cfg.settings||{};
-    var roles=roleItems(discord.roles);
-    var ch=channelItems(discord.channels,null);
-    $('d-title').value=s.dutyPanelTitle||'Dienst';
-    var pickCh=makeSearchSelect($('ss-pch'),{items:ch,multi:false,value:s.ticketPanelChannelId||s.dutyPanelChannelId||'',placeholder:'Channel suchen…'});
-    var pickDch=makeSearchSelect($('ss-dch'),{items:ch,multi:false,value:s.dutyPanelChannelId||'',placeholder:'Dienst-Panel Kanal…'});
-    var pickDr=makeSearchSelect($('ss-droles'),{items:roles,multi:true,values:s.dutyRoleIds||[],placeholder:'Rollen für den Dienst…'});
-    var pickFb=makeSearchSelect($('ss-fblog'),{items:ch,multi:false,value:s.feedbackLogChannelId||'',placeholder:'Feedback-Log-Kanal…'});
-    if($('fb-title')) $('fb-title').value=s.feedbackPanelTitle||'Feedback geben';
-    if($('fb-text')) $('fb-text').value=s.feedbackPanelText||'Hast du Lob, Kritik oder Verbesserungsvorschläge für unser Team?\nKlicke unten auf den Button, um dein Feedback einzureichen.';
-    if($('fb-save')) $('fb-save').onclick=async function(){
-      try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          feedbackLogChannelId:pickFb.getValue()||null,
-          feedbackPanelTitle:($('fb-title').value||'').trim()||'Feedback geben',
-          feedbackPanelText:($('fb-text').value||'').trim()
-        }});
-        toast('Feedback-Settings gespeichert','ok');
-      }catch(e){toast(e.message,'err')}
-    };
-    $('p-send').onclick=async function(){
-      var channelId=pickCh.getValue();
-      if(!channelId) return toast('Channel wählen','err');
-      try{
-        var r=await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:$('p-type').value,channelId:channelId}});
-        toast('Panel gesendet ('+(r.messageId||'ok')+')','ok');
-      }catch(e){toast(e.message,'err')}
-    };
-    $('d-save').onclick=async function(){
-      try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          dutyPanelChannelId:pickDch.getValue()||null,
-          dutyPanelTitle:$('d-title').value.trim()||'Dienst',
-          dutyRoleIds:pickDr.getValue()
-        }});
-        toast('Duty-Settings gespeichert','ok');
-      }catch(e){toast(e.message,'err')}
-    };
-  }
-
-  async function pageTickets(p){
-    p.innerHTML='<h1>Tickets</h1><p class="desc">Ticket-Kanäle und Support-Rollen</p>'+
-      '<div class="card"><h2>Tickets</h2>'+
-        '<div class="field"><label>Ticket-Kategorie</label><div id="ss-tcat"></div></div>'+
-        '<div class="field"><label>Ticket-Log</label><div id="ss-tlog2"></div></div>'+
-        '<div class="field"><label>Support-Rollen</label><div id="ss-tsup"></div></div>'+
-        '<div class="field"><label>Panel-Kanal</label><div id="ss-tpanel"></div></div>'+
-        '<div class="field"><label>Panel-Titel</label><input id="t-title"/></div>'+
-        '<div class="field"><label>Panel-Text</label><textarea id="t-text"></textarea></div></div>'+
-      '<div class="card"><h2>Bewerbungen</h2>'+
-        '<div class="field"><label>Bewerbungs-Kanal</label><div id="ss-app"></div></div>'+
-        '<div class="field"><label>Bewerbungs-Log</label><div id="ss-applog"></div></div></div>'+
-      '<div class="row-act"><button type="button" class="btn btn-p" id="t-save">Speichern</button></div>';
-    var cfg={}, discord={roles:[],channels:[]};
-    try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){toast(e.message,'err')}
-    try{discord=await loadDiscord()}catch(e){}
-    var s=cfg.settings||{};
-    var roles=roleItems(discord.roles);
-    var ch=channelItems(discord.channels,null);
-    $('t-title').value=s.ticketPanelTitle||'';
-    $('t-text').value=s.ticketPanelText||'';
-    var picks={};
-    picks.tcat=makeSearchSelect($('ss-tcat'),{items:ch,multi:false,value:s.ticketCategoryId||'',placeholder:'Kategorie suchen…'});
-    picks.tlog=makeSearchSelect($('ss-tlog2'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log-Kanal…'});
-    picks.tsup=makeSearchSelect($('ss-tsup'),{items:roles,multi:true,values:s.ticketSupportRoleIds||[],placeholder:'Support-Rollen…'});
-    picks.tpanel=makeSearchSelect($('ss-tpanel'),{items:ch,multi:false,value:s.ticketPanelChannelId||'',placeholder:'Panel-Kanal…'});
-    picks.app=makeSearchSelect($('ss-app'),{items:ch,multi:false,value:s.appChannelId||'',placeholder:'Bewerbungs-Kanal…'});
-    picks.applog=makeSearchSelect($('ss-applog'),{items:ch,multi:false,value:s.appLogChannelId||'',placeholder:'Bewerbungs-Log…'});
-    $('t-save').onclick=async function(){
-      try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          ticketCategoryId:picks.tcat.getValue()||null,
-          ticketLogChannelId:picks.tlog.getValue()||null,
-          ticketSupportRoleIds:picks.tsup.getValue(),
-          ticketPanelChannelId:picks.tpanel.getValue()||null,
-          ticketPanelTitle:$('t-title').value.trim(),
-          ticketPanelText:$('t-text').value.trim(),
-          appChannelId:picks.app.getValue()||null,
-          appLogChannelId:picks.applog.getValue()||null
-        }});
-        toast('Tickets gespeichert','ok');
-      }catch(e){toast(e.message,'err')}
-    };
-  }
-
-  async function pageSettings(p){
-    p.innerHTML='<h1>Einstellungen</h1><p class="desc">Module, Rollen und Kanäle einrichten</p>'+
-      '<div class="card"><h2>Module</h2><div id="mod-grid" class="grid"></div></div>'+
-      '<div class="card"><h2>Allgemein</h2>'+
-        '<div class="field"><label>System-Name</label><input id="s-name"/></div>'+
-        '<div class="field"><label>Log-Kanal</label><div id="ss-log"></div></div>'+
-        '<div class="field"><label>Team-Rollen</label><div id="ss-staff"></div></div>'+
-        '<div class="field"><label>Admin-Rollen</label><div id="ss-admin"></div></div></div>'+
-      '<div class="card"><h2>Dienstnummern</h2>'+
-        '<div class="field"><label>Prefix</label><input id="s-prefix"/></div>'+
-        '<div class="field"><label>Stellen</label><input id="s-digits" type="number" min="1" max="6"/></div>'+
-        '<div class="field"><label>Label</label><input id="s-nlabel"/></div>'+
-        '<div class="field"><label>Anzeige-Format</label><input id="s-fmt" placeholder="{number} | {name}"/></div></div>'+
-      '<div class="card"><h2>Tickets</h2>'+
-        '<div class="field"><label>Kategorie</label><div id="ss-tcat"></div></div>'+
-        '<div class="field"><label>Log-Kanal</label><div id="ss-tlog"></div></div>'+
-        '<div class="field"><label>Support-Rollen</label><div id="ss-tsup"></div></div>'+
-        '<div class="field"><label>Panel-Kanal</label><div id="ss-tpanel"></div></div>'+
-        '<div class="field"><label>Panel-Titel</label><input id="s-ttitle"/></div>'+
-        '<div class="field"><label>Panel-Text</label><textarea id="s-ttext"></textarea></div></div>'+
-      '<div class="card"><h2>Bewerbungen</h2>'+
-        '<div class="field"><label>Bewerbungs-Kanal</label><div id="ss-app"></div></div>'+
-        '<div class="field"><label>Bewerbungs-Log</label><div id="ss-applog"></div></div>'+
-        '<div class="field"><label>Min. Punkte</label><input id="s-minp" type="number"/></div>'+
-        '<div class="field"><label>Sperre nach Ablehnung (Tage)</label><input id="s-rejban" type="number"/></div>'+
-        '<div class="field"><label>Rolle nach Ablehnung</label><div id="ss-rejrole"></div></div>'+
-        '<div class="field"><label>Panel-Titel</label><input id="s-btitle"/><label>Panel-Text</label><textarea id="s-btext"></textarea></div></div>'+
-      '<div class="card"><h2>Ausweis</h2>'+
-        '<div class="field"><label>Ausweis-Kanal</label><div id="ss-aus"></div></div>'+
-        '<div class="field"><label>Team-Rollen</label><div id="ss-ausstaff"></div></div>'+
-        '<div class="field"><label>Panel-Titel</label><input id="s-atitle"/><label>Panel-Text</label><textarea id="s-atext"></textarea></div></div>'+
-      '<div class="card"><h2>Admin Calls / Warteraum</h2>'+
-        '<div class="field"><label>Warteraum</label><div id="ss-wait"></div></div>'+
-        '<div class="field"><label>Zu benachrichtigende Rollen</label><div id="ss-aping"></div></div>'+
-        '<div class="field"><label>Log-Kanal</label><div id="ss-alog"></div></div>'+
-        '<label class="row"><input type="checkbox" id="s-wmusic"/> Warteraum-Musik</label>'+
-        '<div class="field"><label>Musik-Link (URL)</label><input id="s-murl" placeholder="https://…/music.mp3"/></div>'+
-        '<div class="field"><label>Oder Datei hochladen (mp3/ogg/wav, max 10MB)</label><input id="s-mfile" type="file" accept="audio/*,.mp3,.ogg,.wav,.webm,.m4a"/></div>'+
-        '<button type="button" class="btn btn-sm" id="btn-mupload">Musik hochladen</button>'+
-        '<p class="desc" id="mupload-status">Datei wird auf dem Bot gespeichert und für den Warteraum genutzt.</p></div>'+
-      '<div class="card"><h2>Partner-System</h2>'+
-        '<div class="field"><label>Partner-Manager Rollen</label><div id="ss-pman"></div></div>'+
-        '<div class="field"><label>Partner-Antrags-Kanal</label><div id="ss-papp"></div></div>'+
-        '<div class="field"><label>Partner-Tiers (JSON)</label><textarea id="s-ptiers" rows="8" placeholder=\'[{"key":"small","name":"Small Partner","minMembers":0,"maxMembers":499,"categoryId":"","channelId":"","roleId":"","adChannelId":"","adFormat":"🤝 {server} ({tier})\\n{invite}\\n{ad}"}]\'></textarea></div>'+
-        '<p class="desc">Pro Tier: key, name, minMembers, maxMembers, categoryId, channelId, roleId, adChannelId, adFormat ({tier} {server} {invite} {members} {ad})</p></div>'+
-      '<div class="card"><h2>IC Panel</h2>'+
-        '<p class="desc">Zugang und Rechte für das IC Panel (Website).</p>'+
-        '<div class="field"><label>Zugang (wer das Panel öffnen darf)</label><div id="ss-ingame-access"></div></div>'+
-        '<div class="field"><label>Ingame-Admin (mit Admin-Rechten in Online/Duty)</label><div id="ss-ingame-admin"></div></div>'+
-        '<div class="field"><label>Lookup / Warnen</label><div id="ss-ingame-mod"></div></div>'+
-        '<label class="row"><input type="checkbox" id="s-ingame-duty"/> On/Off Duty im IC Panel</label>'+
-        '<label class="row"><input type="checkbox" id="s-ingame-lookup"/> Spieler-Suche &amp; Akte</label>'+
-        '<label class="row"><input type="checkbox" id="s-ingame-warn"/> Warnungen erteilen</label>'+
-        '<label class="row"><input type="checkbox" id="s-ingame-ban"/> Ban / Unban</label>'+
-        '<label class="row"><input type="checkbox" id="s-ingame-unban-req"/> Unban-Anfragen bearbeiten</label>'+
-        '</div>'+
-      '<div class="card"><h2>XP-System</h2>'+
-        '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px">'+
-          '<button type="button" class="btn btn-p" id="btn-xp-master">XP-System: …</button>'+
-          '<span class="desc" id="xp-master-label">Master-Schalter für das gesamte XP-System</span>'+
-        '</div>'+
-        '<label class="row"><input type="checkbox" id="s-xp-enabled"/> XP-System aktiv</label>'+
-        '<label class="row"><input type="checkbox" id="s-xp-uprank"/> Auto-Uprank (meiste XP am Periodenende)</label>'+
-        '<div class="field"><label>Periode (Tage)</label><input id="s-xp-days" type="number" min="1" max="90" placeholder="7"/></div>'+
-        '<div class="field"><label>XP pro Nachricht</label><input id="s-xp-msg" type="number" min="0" placeholder="1"/></div>'+
-        '<div class="field"><label>Cooldown Nachricht (Sek.)</label><input id="s-xp-cd" type="number" min="0" placeholder="60"/></div>'+
-        '<div class="field"><label>XP pro Dienst-Stunde</label><input id="s-xp-duty" type="number" min="0" placeholder="10"/></div>'+
-        '<div class="field"><label>XP pro VC-Minute</label><input id="s-xp-vc" type="number" min="0" placeholder="2"/></div>'+
-        '<div class="field"><label>XP Ticket übernehmen</label><input id="s-xp-tclaim" type="number" min="0" placeholder="15"/></div>'+
-        '<div class="field"><label>XP Ticket schließen</label><input id="s-xp-tclose" type="number" min="0" placeholder="8"/></div>'+
-        '<div class="field"><label>XP Admin Call übernehmen</label><input id="s-xp-aclaim" type="number" min="0" placeholder="20"/></div>'+
-        '<div class="field"><label>XP Feedback 1 Stern (negativ)</label><input id="s-xp-fb1" type="number" placeholder="-15"/></div>'+
-        '<div class="field"><label>XP Feedback 2 Sterne</label><input id="s-xp-fb2" type="number" placeholder="-5"/></div>'+
-        '<div class="field"><label>XP Feedback 3 Sterne</label><input id="s-xp-fb3" type="number" placeholder="8"/></div>'+
-        '<div class="field"><label>XP Feedback 4 Sterne</label><input id="s-xp-fb4" type="number" placeholder="15"/></div>'+
-        '<div class="field"><label>XP Feedback 5 Sterne</label><input id="s-xp-fb5" type="number" placeholder="25"/></div>'+
-        
-        '<div class="field"><label>Ankündigungs-Kanal</label><div id="ss-xpch"></div></div>'+
-        '<p class="desc">XP für Nachrichten, VC, Tickets, Admin Calls und Feedback. Am Periodenende: Uprank für meiste XP (optional).</p>'+
-        '<div id="xp-board" class="desc">Leaderboard lädt…</div></div>'+
-      '<div class="card"><h2>Rang-Laufbahn (Team)</h2>'+
-        '<div class="field"><label>rankCareer (JSON)</label><textarea id="s-career" rows="6" placeholder=\'[{"key":"mod","name":"Moderator","roleId":"","order":1}]\'></textarea></div>'+
-        '<label class="row"><input type="checkbox" id="s-autonick"/> Auto-Nicknames</label>'+
-        '<div class="field"><label>Nick-Format</label><input id="s-nickfmt" placeholder="[{rank}] {name}"/></div></div>'+
-      '<div class="card"><h2>Fraktionen</h2>'+
-        '<div class="field"><label>factions (JSON)</label><textarea id="s-factions" rows="8" placeholder=\'[{"id":"pd","key":"pd","name":"Polizei","leaderRoleIds":[],"ranks":[{"key":"recruit","name":"Anwärter","order":0,"roleId":""}]}]\'></textarea></div>'+
-        '<div class="field"><label>Fraktions-Leader Rollen (global)</label><div id="ss-flead"></div></div></div>'+
-      '<div class="card"><h2>Dienst-Panel</h2>'+
-        '<div class="field"><label>Channel</label><div id="ss-duty"></div></div>'+
-        '<div class="field"><label>Titel</label><input id="s-dtitle"/></div>'+
-        '<div class="field"><label>Rollen für den Dienst</label><div id="ss-dutyroles"></div></div></div>'+
-      '<div class="card"><h2>Roblox Online-Panel</h2>'+
-        '<div class="field"><label>Channel</label><div id="ss-status"></div></div>'+
-        '<div class="field"><label>Aktualisierung (Sekunden)</label><input id="s-ssec" type="number"/></div>'+
-        '<div class="field"><label>Zu benachrichtigende Rollen</label><div id="ss-sping"></div></div></div>'+
-      '<div class="card"><h2>Roblox-Gruppe</h2>'+
-        '<div class="field"><label>Gruppen-ID</label><input id="s-rgid"/></div>'+
-        '<div class="field"><label>Mindest-Rang</label><input id="s-rmin" type="number"/></div>'+
-        '<div class="field"><label>Rang-Name</label><input id="s-rname"/></div></div>'+
-      '<div class="card"><h2>Büros</h2>'+
-        '<div class="field"><label>Wartebereich</label><div id="ss-owait"></div></div>'+
-        '<div class="field"><label>Zu benachrichtigende Rolle</label><div id="ss-oping"></div></div>'+
-        '<div class="field"><label>Log</label><div id="ss-olog"></div></div></div>'+
-      '<div class="card"><h2>Abmelden / Schicht</h2>'+
-        '<div class="field"><label>Rollen die beim Abmelden entfernt werden</label><div id="ss-abrem"></div></div>'+
-        '<div class="field"><label>Rollen die beim Abmelden vergeben werden</label><div id="ss-abgive"></div></div>'+
-        '<div class="field"><label>Namens-Zusatz beim Abmelden</label><input id="s-nick"/></div>'+
-        '<div class="field"><label>Rollen für die Schicht</label><div id="ss-schicht"></div></div></div>'+
-      '<div class="card"><h2>Ingame-Panel Zugang</h2>'+
-        '<div class="field"><label>Rollen mit Zugang zum Ingame-Panel</label><div id="ss-ing"></div></div>'+
-        '<div class="field"><label>Rollen mit Ingame-Admin-Rechten</label><div id="ss-ingad"></div></div>'+
-        '<div class="field"><label>Ban-Log-Kanal</label><div id="ss-blog"></div></div>'+
-        '<div class="field"><label>Warn-Stufen (z. B. —|kick|banned)</label><input id="s-wsteps" placeholder="—|kick|banned"/></div></div>'+
-      '<div class="card"><h2>Dizzy Control</h2>'+
-        '<p class="desc">Spieler schreibt den Roblox-Namen in den Kanal. Danach Verknüpfung oder Discord-Kontrolle.</p>'+
-        '<label class="row" style="margin-bottom:12px"><input type="checkbox" id="s-dizzy-on"/> Dizzy Control aktiv</label>'+
-        '<div class="field"><label>Dizzy Control Kanal</label><div id="ss-dizch"></div></div>'+
-        '<div class="field"><label>Dizzy Control Rolle</label><div id="ss-dizzy"></div></div>'+
-        '<div class="field"><label>Dizzy Control Log-Kanal</label><div id="ss-dizlog"></div></div></div>'+
-      '<div class="card"><h2>Rang-Laufbahn</h2>'+
-        '<p class="desc">JSON: [{"key":"mod","name":"Moderator","roleId":"...","order":1}]</p>'+
-        '<div class="field"><label>rankCareer</label><textarea id="s-career" rows="4"></textarea></div></div>'+
-      '<div class="card"><h2>Auto-Nicknames</h2>'+
-        '<label class="row" style="margin-bottom:10px"><input type="checkbox" id="s-autonick"/> Auto-Nick aktiv</label>'+
-        '<div class="field"><label>Format</label><input id="s-nickfmt" placeholder="[{rank}] {name}"/></div></div>'+
-      '<div class="card"><h2>Partner</h2>'+
-        '<label class="row" style="margin-bottom:10px"><input type="checkbox" id="s-partner"/> Partner aktiv</label>'+
-        '<div class="field"><label>Antrags-Kanal</label><div id="ss-papp"></div></div>'+
-        '<div class="field"><label>Partner-Manager Rollen</label><div id="ss-pmgr"></div></div>'+
-        '<div class="field"><label>Tiers JSON</label><textarea id="s-ptiers" rows="3" placeholder="[{key,name,minMembers,maxMembers,channelId}]"></textarea></div></div>'+
-      '<div class="row-act" style="position:sticky;bottom:12px;background:var(--bg);padding:12px 0;z-index:5">'+
-        '<button type="button" class="btn btn-p" id="set-save">Alles speichern</button></div>';
-
-    var cfg={}, discord={roles:[],channels:[]};
-    try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){toast(e.message,'err')}
-    try{discord=await loadDiscord()}catch(e){toast('Discord: '+e.message,'err')}
-    var s=cfg.settings||{}, mods=cfg.modules||{};
-    var roles=roleItems(discord.roles);
-    var ch=channelItems(discord.channels,null);
-
-    var modKeys=['dienstnummern','teamverwaltung','bewerbungen','robloxStaff','statusPanel','logs','adminCalls','tickets','ausweis','keywords','offices','panels','dutyPanel','ingameManagement','abmelden','schicht','warteraumMusic','autoNick','partner'];
-    $('mod-grid').innerHTML=modKeys.map(function(k){
-      return '<label class="stat" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px">'+
-        '<input type="checkbox" data-mod="'+k+'" '+(mods[k]?'checked':'')+'/> <span style="font-size:13px">'+k+'</span></label>';
-    }).join('');
-
-    function val(id,v){var el=$(id); if(el) el.value=v==null?'':v}
-    val('s-name',s.systemName); val('s-prefix',s.numberPrefix); val('s-digits',s.numberDigits); val('s-nlabel',s.numberLabel); val('s-fmt',s.displayFormat);
-    val('s-ttitle',s.ticketPanelTitle); val('s-ttext',s.ticketPanelText);
-    val('s-minp',s.appMinPoints); val('s-rejban',s.appRejectBanDays); val('s-btitle',s.bewerbungPanelTitle); val('s-btext',s.bewerbungPanelText);
-    val('s-atitle',s.ausweisPanelTitle); val('s-atext',s.ausweisPanelText);
-    $('s-wmusic').checked=!!s.warteraumMusicEnabled; val('s-murl',s.warteraumMusicUrl);
-    val('s-dtitle',s.dutyPanelTitle); val('s-ssec',s.statusIntervalSec||60);
-    val('s-rgid',s.robloxGroupId); val('s-rmin',s.robloxMinRank); val('s-rname',s.robloxRankName);
-    val('s-nick',s.abmeldenNickPrefix); val('s-wsteps',s.ingameWarnSteps);
-    $('s-dizzy-on').checked=!!s.ingameDizzyControl;
-    try{$('s-career').value=JSON.stringify(s.rankCareer||[],null,0)}catch(e){$('s-career').value='[]'}
-    $('s-autonick').checked=!!s.autoNickEnabled;
-    val('s-nickfmt',s.autoNickFormat||'[{rank}] {name}');
-    $('s-partner').checked=s.partnerEnabled!==false;
-    try{$('s-ptiers').value=JSON.stringify(s.partnerTiers||[],null,0)}catch(e){$('s-ptiers').value='[]'}
-
-
-    var P={};
-    function ss(id, multi, values, value, items, ph){
-      P[id]=makeSearchSelect($(id),{items:items,multi:multi,values:values||[],value:value||'',placeholder:ph||'Suchen…'});
-    }
-    ss('ss-log',0,null,s.logChannelId,ch,'Log-Kanal…');
-    try{ss('ss-fblog',0,null,s.feedbackLogChannelId,ch,'Feedback-Log…');}catch(e){}
-    try{ss('ss-fbroles',1,s.feedbackRoleIds,null,roles,'Feedback-Rollen…');}catch(e){}
-    ss('ss-staff',1,s.staffRoleIds,null,roles,'Staff…');
-    ss('ss-admin',1,s.adminRoleIds,null,roles,'Admin…');     ss('ss-teamlist',0,null,s.teamlistChannelId,ch,'Teamlist-Kanal…');
-    ss('ss-pman',1,s.partnerManagerRoleIds,null,roles,'Partner-Manager…');
-    ss('ss-papp',0,null,s.partnerAppChannelId,ch,'Partner-Antrag…');
-    ss('ss-flead',1,s.factionLeaderRoleIds,null,roles,'Fraktions-Leader…');
-    var pt=$('s-ptiers'); if(pt) pt.value=JSON.stringify(s.partnerTiers||[],null,2);
-    var sc=$('s-career'); if(sc) sc.value=JSON.stringify(s.rankCareer||[],null,2);
-    var sf=$('s-factions'); if(sf) sf.value=JSON.stringify(s.factions||[],null,2);
-    var an=$('s-autonick'); if(an) an.checked=s.autoNickEnabled!==false;
-    var nf=$('s-nickfmt'); if(nf) nf.value=s.autoNickFormat||'[{rank}] {name}';
-    var wm=$('s-wmusic'); if(wm) wm.checked=!!s.warteraumMusicEnabled;
-    var mu=$('s-murl'); if(mu) mu.value=s.warteraumMusicUrl||'';
-    var xpe=$('s-xp-enabled'); if(xpe) xpe.checked=s.xpEnabled!==false;
-    var xpu=$('s-xp-uprank'); if(xpu) xpu.checked=s.xpAutoUprank!==false;
-    var xpd=$('s-xp-days'); if(xpd) xpd.value=s.xpPeriodDays||7;
-    var xpm=$('s-xp-msg'); if(xpm) xpm.value=s.xpPerMessage||1;
-    var xpc=$('s-xp-cd'); if(xpc) xpc.value=s.xpMessageCooldownSec||60;
-    var xpduty=$('s-xp-duty'); if(xpduty) xpduty.value=s.xpPerDutyHour||10;
-    var xpvc=$('s-xp-vc'); if(xpvc) xpvc.value=s.xpPerVcMinute||2;
-    var xptc=$('s-xp-tclaim'); if(xptc) xptc.value=s.xpTicketClaim||15;
-    var xptcl=$('s-xp-tclose'); if(xptcl) xptcl.value=s.xpTicketClose||8;
-    var xpac=$('s-xp-aclaim'); if(xpac) xpac.value=s.xpAdminCallClaim||20;
-    var fb1=$('s-xp-fb1'); if(fb1) fb1.value=s.xpFeedbackStar1!=null?s.xpFeedbackStar1:-15;
-    var fb2=$('s-xp-fb2'); if(fb2) fb2.value=s.xpFeedbackStar2!=null?s.xpFeedbackStar2:-5;
-    var fb3=$('s-xp-fb3'); if(fb3) fb3.value=s.xpFeedbackStar3!=null?s.xpFeedbackStar3:8;
-    var fb4=$('s-xp-fb4'); if(fb4) fb4.value=s.xpFeedbackStar4!=null?s.xpFeedbackStar4:15;
-    var fb5=$('s-xp-fb5'); if(fb5) fb5.value=s.xpFeedbackStar5!=null?s.xpFeedbackStar5:25;
-    var xpfb=$('s-xp-fb'); if(xpfb) xpfb.value=s.xpFeedback||10;
-    (function(){ var b=$('btn-xp-master'); var on=s.xpEnabled!==false; if(b){ b.textContent=on?'XP-System: AN':'XP-System: AUS'; b.onclick=function(){ var c=$('s-xp-enabled'); if(c){c.checked=!c.checked; b.textContent=c.checked?'XP-System: AN':'XP-System: AUS';} }; } })();
-        ss('ss-ingame-access',1,s.ingameAccessRoleIds||[],null,roles,'Zugang Ingame…');
-    ss('ss-ingame-admin',1,s.ingameAdminRoleIds||s.adminRoleIds||[],null,roles,'Ingame-Admin…');
-    ss('ss-ingame-mod',1,s.ingameModRoleIds||s.staffRoleIds||[],null,roles,'Lookup/Warn…');
-    var igd=$('s-ingame-duty'); if(igd) igd.checked=s.ingameDutyEnabled!==false;
-    var igl=$('s-ingame-lookup'); if(igl) igl.checked=s.ingameLookupEnabled!==false;
-    var igw=$('s-ingame-warn'); if(igw) igw.checked=s.ingameWarnEnabled!==false;
-    var igb=$('s-ingame-ban'); if(igb) igb.checked=s.ingameBanEnabled!==false;
-    var igu=$('s-ingame-unban-req'); if(igu) igu.checked=s.ingameUnbanReqEnabled!==false;
-    ss('ss-xpch',0,null,s.xpAnnounceChannelId,ch,'XP-Ankündigung…');
-    (async function(){ try{
-      var lb=await api('/api/guilds/'+guildId+'/xp/leaderboard');
-      var box=$('xp-board'); if(box){
-        if(!lb.list||!lb.list.length) box.textContent='Noch keine XP in dieser Periode.';
-        else box.innerHTML='<strong>Leaderboard</strong><br/>'+lb.list.slice(0,10).map(function(x,i){return (i+1)+'. <@'+x.user_id+'> — '+x.xp+' XP';}).join('<br/>').replace(/<@/g,''); // show ids
-          box.innerHTML='<strong>Leaderboard (Periode)</strong><ol style="margin:8px 0 0 18px">'+lb.list.slice(0,10).map(function(x){return '<li><code>'+esc(x.user_id)+'</code> — <strong>'+x.xp+' XP</strong></li>';}).join('')+'</ol>';
-      }
-    }catch(e){ var box=$('xp-board'); if(box) box.textContent='Leaderboard: '+e.message; } })();
-    ss('ss-tcat',0,null,s.ticketCategoryId,ch,'Kategorie…');
-    ss('ss-tlog',0,null,s.ticketLogChannelId,ch,'Ticket-Log suchen…');
-    ss('ss-tsup',1,s.ticketSupportRoleIds,null,roles,'Support…');
-    ss('ss-tpanel',0,null,s.ticketPanelChannelId,ch,'Panel…');
-    ss('ss-app',0,null,s.appChannelId,ch,'App…');
-    ss('ss-applog',0,null,s.appLogChannelId,ch,'Bewerbungs-Log…');
-    ss('ss-rejrole',0,null,s.appRejectRoleId,roles,'Rolle nach Ablehnung…');
-    ss('ss-aus',0,null,s.ausweisChannelId,ch,'Ausweis…');
-    ss('ss-ausstaff',1,s.ausweisStaffRoleIds,null,roles,'Ausweis-Staff…');
-    ss('ss-wait',0,null,s.adminCallWaitingChannelId,ch,'Warteraum…');
-    ss('ss-aping',1,s.adminCallPingRoleIds,null,roles,'Ping…');
-    ss('ss-alog',0,null,s.adminCallLogChannelId,ch,'AdminCall-Log…');
-    ss('ss-duty',0,null,s.dutyPanelChannelId,ch,'Dienst-Panel Kanal…');
-    ss('ss-dutyroles',1,s.dutyRoleIds,null,roles,'Rollen für den Dienst…');
-    ss('ss-status',0,null,s.statusChannelId,ch,'Status…');
-    ss('ss-sping',1,s.statusPingRoleIds,null,roles,'Zu benachrichtigende Rollen…');
-    ss('ss-owait',0,null,s.officeWaitingChannelId,ch,'Wartebereich suchen…');
-    ss('ss-oping',0,null,s.officePingRoleId,roles,'Rolle suchen…');
-    ss('ss-olog',0,null,s.officeLogChannelId,ch,'Log-Kanal suchen…');
-    ss('ss-abrem',1,s.abmeldenRoleIds,null,roles,'Rollen suchen…');
-    ss('ss-abgive',1,s.abmeldenGiveRoleIds,null,roles,'Rollen suchen…');
-    ss('ss-schicht',1,s.schichtRoleIds,null,roles,'Schicht…');
-    ss('ss-ing',1,s.ingameAccessRoleIds,null,roles,'Ingame-Rollen mit Zugang zum Ingame-Panel…');
-    ss('ss-ingad',1,s.ingameAdminRoleIds,null,roles,'Rollen suchen…');
-    ss('ss-blog',0,null,s.ingameBanLogChannelId,ch,'Ban-Log suchen…');
-    ss('ss-dizch',0,null,s.ingameDizzyChannelId,ch,'Dizzy Control Kanal…');
-    ss('ss-dizzy',1,s.dizzyControllerRoleIds,null,roles,'Dizzy Control Rolle…');
-    ss('ss-dizlog',0,null,s.dizzyLogChannelId,ch,'Dizzy Control Log…');
-    ss('ss-papp',0,null,s.partnerApplicationChannelId,ch,'Partner-Antrags-Kanal…');
-    ss('ss-pmgr',1,s.partnerManagerRoleIds,null,roles,'Partner-Manager…');
-
-    $('set-save').onclick=async function(){
-      var newMods={};
-      document.querySelectorAll('[data-mod]').forEach(function(el){newMods[el.getAttribute('data-mod')]=el.checked});
-      function g(id){if(!P[id])return null;var v=P[id].getValue();if(v===''||v===undefined)return null;if(Array.isArray(v)&&!v.length)return [];return v;}
-      var body={
-        ingameAccessRoleIds:P['ss-ingame-access']?P['ss-ingame-access'].getValue():[],
-        ingameAdminRoleIds:P['ss-ingame-admin']?P['ss-ingame-admin'].getValue():[],
-        ingameModRoleIds:P['ss-ingame-mod']?P['ss-ingame-mod'].getValue():[],
-        ingameDutyEnabled:!!($('s-ingame-duty')||{}).checked,
-        ingameLookupEnabled:!!($('s-ingame-lookup')||{}).checked,
-        ingameWarnEnabled:!!($('s-ingame-warn')||{}).checked,
-        ingameBanEnabled:!!($('s-ingame-ban')||{}).checked,
-        ingameUnbanReqEnabled:!!($('s-ingame-unban-req')||{}).checked,
-        systemName:$('s-name').value.trim(),
-        numberPrefix:$('s-prefix').value.trim(),
-        numberDigits:Number($('s-digits').value)||2,
-        numberLabel:$('s-nlabel').value.trim(),
-        displayFormat:$('s-fmt').value.trim(),
-        logChannelId:g('ss-log')||null,
-        feedbackLogChannelId:g('ss-fblog')||null,
-        feedbackRoleIds:g('ss-fbroles')||[],
-        staffRoleIds:g('ss-staff')||[],
-        adminRoleIds:g('ss-admin')||[], teamlistChannelId:g('ss-teamlist')||null,
-        partnerManagerRoleIds:g('ss-pman')||[],
-        partnerAppChannelId:g('ss-papp')||null,
-        factionLeaderRoleIds:g('ss-flead')||[],
-        partnerTiers:(function(){try{return JSON.parse(($('s-ptiers')||{}).value||'[]')}catch(e){return []}})(),
-        rankCareer:(function(){try{return JSON.parse(($('s-career')||{}).value||'[]')}catch(e){return []}})(),
-        factions:(function(){try{return JSON.parse(($('s-factions')||{}).value||'[]')}catch(e){return []}})(),
-        autoNickEnabled:!($('s-autonick')||{}).checked?false:true,
-        autoNickFormat:(($('s-nickfmt')||{}).value||'[{rank}] {name}'),
-        warteraumMusicEnabled:!!($('s-wmusic')||{}).checked,
-        warteraumMusicUrl:(($('s-murl')||{}).value||'').trim()||null,
-        xpEnabled:!!($('s-xp-enabled')||{}).checked,
-        xpAutoUprank:!!($('s-xp-uprank')||{}).checked,
-        xpPeriodDays:Number(($('s-xp-days')||{}).value)||7,
-        xpPerMessage:Number(($('s-xp-msg')||{}).value)||1,
-        xpMessageCooldownSec:Number(($('s-xp-cd')||{}).value)||60,
-        xpPerDutyHour:Number(($('s-xp-duty')||{}).value)||10,
-        xpAnnounceChannelId:g('ss-xpch')||null,
-        ticketCategoryId:g('ss-tcat')||null,
-        ticketLogChannelId:g('ss-tlog')||null,
-        ticketSupportRoleIds:g('ss-tsup')||[],
-        ticketPanelChannelId:g('ss-tpanel')||null,
-        ticketPanelTitle:$('s-ttitle').value.trim(),
-        ticketPanelText:$('s-ttext').value.trim(),
-        appChannelId:g('ss-app')||null,
-        appLogChannelId:g('ss-applog')||null,
-        appMinPoints:Number($('s-minp').value)||0,
-        appRejectBanDays:Number($('s-rejban').value)||0,
-        appRejectRoleId:g('ss-rejrole')||null,
-        bewerbungPanelTitle:$('s-btitle').value.trim(),
-        bewerbungPanelText:$('s-btext').value.trim(),
-        ausweisChannelId:g('ss-aus')||null,
-        ausweisStaffRoleIds:g('ss-ausstaff')||[],
-        ausweisPanelTitle:$('s-atitle').value.trim(),
-        ausweisPanelText:$('s-atext').value.trim(),
-        adminCallWaitingChannelId:g('ss-wait')||null,
-        adminCallPingRoleIds:g('ss-aping')||[],
-        adminCallLogChannelId:g('ss-alog')||null,
-        warteraumMusicEnabled:$('s-wmusic').checked,
-        warteraumMusicUrl:$('s-murl').value.trim()||null,
-        dutyPanelChannelId:g('ss-duty')||null,
-        dutyPanelTitle:$('s-dtitle').value.trim()||'Dienst',
-        dutyRoleIds:g('ss-dutyroles')||[],
-        statusChannelId:g('ss-status')||null,
-        statusIntervalSec:Number($('s-ssec').value)||60,
-        statusPingRoleIds:g('ss-sping')||[],
-        robloxGroupId:$('s-rgid').value.trim()||null,
-        robloxMinRank:Number($('s-rmin').value)||0,
-        robloxRankName:$('s-rname').value.trim()||null,
-        officeWaitingChannelId:g('ss-owait')||null,
-        officePingRoleId:g('ss-oping')||null,
-        officeLogChannelId:g('ss-olog')||null,
-        abmeldenRoleIds:g('ss-abrem')||[],
-        abmeldenGiveRoleIds:g('ss-abgive')||[],
-        abmeldenNickPrefix:$('s-nick').value.trim()||null,
-        schichtRoleIds:g('ss-schicht')||[],
-        ingameAccessRoleIds:g('ss-ing')||[],
-        ingameAdminRoleIds:g('ss-ingad')||[],
-        ingameBanLogChannelId:g('ss-blog')||null,
-        ingameWarnSteps:$('s-wsteps').value.trim(),
-        ingameDizzyControl:$('s-dizzy-on').checked,
-        ingameDizzyChannelId:g('ss-dizch')||null,
-        dizzyControllerRoleIds:g('ss-dizzy')||[],
-        dizzyLogChannelId:g('ss-dizlog')||null,
-        rankCareer:(function(){try{return JSON.parse($('s-career').value||'[]')}catch(e){return []}})(),
-        autoNickEnabled:$('s-autonick').checked,
-        autoNickFormat:$('s-nickfmt').value.trim()||'[{rank}] {name}',
-        partnerEnabled:$('s-partner').checked,
-        partnerApplicationChannelId:g('ss-papp')||null,
-        partnerManagerRoleIds:g('ss-pmgr')||[],
-        partnerTiers:(function(){try{return JSON.parse($('s-ptiers').value||'[]')}catch(e){return []}})()
-      };
-      try{
-        await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:newMods});
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
-        _discordCache=null;
-        toast('Alle Settings gespeichert','ok');
-      }catch(e){toast(e.message,'err')}
-    };
-  }
 
   // Fix permissions page matrix after definition
   var _pagePerms = pagePerms;
@@ -1836,6 +1257,366 @@ async function pageWebhook(p){
       }catch(e){toast(e.message,'err')}
     };
   };
+
+
+  async function pageFactions(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var list=Array.isArray(s.factions)?s.factions.slice():[];
+    function draw(){
+      p.innerHTML='<h1>Fraktionen</h1><p class="desc">Name, Beschreibung, Discord-Link, Owner — getrennt von Dienstnummern</p>'+
+        '<div class="card"><h2>Neue Fraktion</h2>'+
+        '<div class="field"><label>Name</label><input id="f-name" placeholder="z.B. Polizei"/></div>'+
+        '<div class="field"><label>Beschreibung</label><textarea id="f-desc" rows="2" placeholder="Kurzbeschreibung"></textarea></div>'+
+        '<div class="field"><label>Discord-Link</label><input id="f-link" placeholder="https://discord.gg/…"/></div>'+
+        '<div class="field"><label>Owner (Discord-User-ID oder @Name)</label><input id="f-owner" placeholder="Owner"/></div>'+
+        '<div class="field"><label>Anwärter (optional, Komma-getrennt)</label><input id="f-apps" placeholder=""/></div>'+
+        '<button type="button" class="btn btn-p btn-sm" id="f-add">Hinzufügen</button></div>'+
+        '<div class="card"><h2>Fraktionen</h2><div id="f-list"></div></div>'+
+        '<div class="card"><h2>Leader-Rollen (global)</h2><div id="f-lead"></div>'+
+        '<button type="button" class="btn btn-p btn-sm" id="f-save-lead" style="margin-top:10px">Leader-Rollen speichern</button></div>';
+      var box=$('f-list');
+      if(!list.length) box.innerHTML='<div class="empty">Keine Fraktionen</div>';
+      else box.innerHTML='<table><thead><tr><th>Name</th><th>Owner</th><th>Link</th><th>Anwärter</th><th></th></tr></thead><tbody>'+
+        list.map(function(f,i){
+          return '<tr><td><strong>'+esc(f.name)+'</strong><div class="desc">'+esc(f.description||'')+'</div></td>'+
+            '<td>'+esc(f.owner||'—')+'</td><td>'+(f.discordLink?('<a href="'+esc(f.discordLink)+'" target="_blank">Link</a>'):'—')+'</td>'+
+            '<td>'+esc((f.applicants||[]).join(', ')||'—')+'</td>'+
+            '<td><button type="button" class="btn btn-sm btn-d" data-i="'+i+'">Löschen</button></td></tr>';
+        }).join('')+'</tbody></table>';
+      box.querySelectorAll('[data-i]').forEach(function(b){
+        b.onclick=async function(){
+          list.splice(+b.getAttribute('data-i'),1);
+          await saveList();
+          draw();
+        };
+      });
+      $('f-add').onclick=async function(){
+        var name=$('f-name').value.trim();
+        if(!name) return toast('Name fehlt','err');
+        list.push({
+          id:'f_'+Date.now(),
+          name:name,
+          description:$('f-desc').value.trim(),
+          discordLink:$('f-link').value.trim(),
+          owner:$('f-owner').value.trim(),
+          applicants:$('f-apps').value.split(',').map(function(x){return x.trim()}).filter(Boolean)
+        });
+        await saveList();
+        draw();
+      };
+      (async function(){
+        var disc={roles:[]}; try{disc=await loadDiscord()}catch(e){}
+        window._fLead=makeSearchSelect($('f-lead'),{items:roleItems(disc.roles),multi:true,values:s.factionLeaderRoleIds||[],placeholder:'Leader-Rolle…'});
+        $('f-save-lead').onclick=async function(){
+          try{
+            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{factionLeaderRoleIds:window._fLead.getValue()}});
+            toast('Gespeichert','ok');
+          }catch(e){toast(e.message,'err')}
+        };
+      })();
+    }
+    async function saveList(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{factions:list}});
+        toast('Fraktionen gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    }
+    draw();
+  }
+
+  async function pageDizzy(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    p.innerHTML='<h1>Dizzy Control</h1><p class="desc">Roblox-Name im Kanal → Controlle oder Verknüpfung</p>'+
+      '<div class="card">'+
+      '<label class="row"><input type="checkbox" id="dz-on"/> Dizzy Control aktiv</label>'+
+      '<div class="field"><label>Dizzy-Kanal</label><div id="dz-ch"></div></div>'+
+      '<div class="field"><label>Dizzy-Log-Kanal</label><div id="dz-log"></div></div>'+
+      '<div class="field"><label>Rollen die completen dürfen</label><div id="dz-roles"></div></div>'+
+      '<button type="button" class="btn btn-p" id="dz-save">Speichern</button></div>';
+    $('dz-on').checked=!!(s.ingameDizzyControl||s.ingameDizzyChannelId);
+    var pickCh=makeSearchSelect($('dz-ch'),{items:channelItems(disc.channels),multi:false,value:s.ingameDizzyChannelId||'',placeholder:'Kanal…'});
+    var pickLog=makeSearchSelect($('dz-log'),{items:channelItems(disc.channels),multi:false,value:s.dizzyLogChannelId||'',placeholder:'Log-Kanal…'});
+    var pickR=makeSearchSelect($('dz-roles'),{items:roleItems(disc.roles),multi:true,values:s.dizzyControllerRoleIds||[],placeholder:'Rollen…'});
+    $('dz-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          ingameDizzyControl:$('dz-on').checked,
+          ingameDizzyChannelId:pickCh.getValue()||null,
+          dizzyLogChannelId:pickLog.getValue()||null,
+          dizzyControllerRoleIds:pickR.getValue()
+        }});
+        toast('Dizzy gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pagePartner(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    var data={applications:[],partners:[],tiers:[]};
+    try{data=await api('/api/guilds/'+guildId+'/partners')}catch(e){}
+    p.innerHTML='<h1>Partnerschaft</h1><p class="desc">Anträge, Tiers und Manager</p>'+
+      '<div class="card"><h2>Einstellungen</h2>'+
+      '<label class="row"><input type="checkbox" id="pa-en"/> Partnerschaft aktiv</label>'+
+      '<div class="field"><label>Partner-Manager</label><div id="pa-man"></div></div>'+
+      '<div class="field"><label>Antrags-Kanal</label><div id="pa-app"></div></div>'+
+      '<div class="field"><label>Kanal-Typ</label><select id="pa-type"><option value="text">Text-Kanal</option><option value="thread">Thread</option></select></div>'+
+      '<div class="field"><label>Tiers (eine Zeile: Name | Min | Max)</label><textarea id="pa-tiers" rows="5" placeholder="Bronze | 0 | 50&#10;Silber | 51 | 150"></textarea></div>'+
+      '<button type="button" class="btn btn-p" id="pa-save">Speichern</button></div>'+
+      '<div class="card"><h2>Übersicht</h2><div id="pa-list"></div></div>';
+    $('pa-en').checked=s.partnerEnabled!==false;
+    $('pa-type').value=s.partnerChannelType||'text';
+    var tiers=s.partnerTiers||data.tiers||[];
+    if(Array.isArray(tiers)&&tiers.length&&typeof tiers[0]==='object'){
+      $('pa-tiers').value=tiers.map(function(x){return (x.name||x.key||'')+' | '+(x.minMembers!=null?x.minMembers:x.min||0)+' | '+(x.maxMembers!=null?x.maxMembers:x.max||9999)}).join('\\n');
+    } else $('pa-tiers').value='';
+    var pickM=makeSearchSelect($('pa-man'),{items:roleItems(disc.roles),multi:true,values:s.partnerManagerRoleIds||[],placeholder:'Manager…'});
+    var pickA=makeSearchSelect($('pa-app'),{items:channelItems(disc.channels),multi:false,value:s.partnerAppChannelId||s.partnerApplicationChannelId||'',placeholder:'Kanal…'});
+    var apps=data.applications||[];
+    var partners=data.partners||[];
+    $('pa-list').innerHTML='<p class="desc">Partner: <strong>'+partners.length+'</strong> · Anträge: <strong>'+apps.length+'</strong></p>'+
+      (partners.length?'<table><thead><tr><th>Partner</th><th>Tier</th></tr></thead><tbody>'+partners.map(function(x){return '<tr><td>'+esc(x.name||x.server_name||x.id)+'</td><td>'+esc(x.tier||'—')+'</td></tr>'}).join('')+'</tbody></table>':'<div class="empty">Keine Partner</div>');
+    $('pa-save').onclick=async function(){
+      var lines=$('pa-tiers').value.split('\\n').map(function(l){return l.trim()}).filter(Boolean);
+      var parsed=lines.map(function(l,i){
+        var p=l.split('|').map(function(x){return x.trim()});
+        return {key:'t'+i,name:p[0]||('Tier '+i),minMembers:parseInt(p[1],10)||0,maxMembers:parseInt(p[2],10)||9999};
+      });
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          partnerEnabled:$('pa-en').checked,
+          partnerManagerRoleIds:pickM.getValue(),
+          partnerAppChannelId:pickA.getValue()||null,
+          partnerApplicationChannelId:pickA.getValue()||null,
+          partnerChannelType:$('pa-type').value,
+          partnerTiers:parsed
+        }});
+        toast('Partnerschaft gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pageFeedbackCfg(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    p.innerHTML='<h1>Feedback</h1><p class="desc">Sterne-Feedback-Panel und Log-Kanal</p>'+
+      '<div class="card">'+
+      '<div class="field"><label>Feedback-Log-Kanal</label><div id="fb-log"></div></div>'+
+      '<div class="field"><label>Rollen die Feedback geben dürfen (leer = alle)</label><div id="fb-roles"></div></div>'+
+      '<div class="field"><label>Panel-Titel</label><input id="fb-title"/></div>'+
+      '<div class="field"><label>Panel-Text</label><textarea id="fb-text" rows="3"></textarea></div>'+
+      '<button type="button" class="btn btn-p" id="fb-save">Speichern</button></div>'+
+      '<p class="desc">Panel senden: Tab „Panels senden“.</p>';
+    $('fb-title').value=s.feedbackPanelTitle||'Feedback geben';
+    $('fb-text').value=s.feedbackPanelText||'';
+    var pickL=makeSearchSelect($('fb-log'),{items:channelItems(disc.channels),multi:false,value:s.feedbackLogChannelId||'',placeholder:'Log-Kanal…'});
+    var pickR=makeSearchSelect($('fb-roles'),{items:roleItems(disc.roles),multi:true,values:s.feedbackRoleIds||[],placeholder:'Rollen…'});
+    $('fb-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          feedbackLogChannelId:pickL.getValue()||null,
+          feedbackRoleIds:pickR.getValue(),
+          feedbackPanelTitle:$('fb-title').value.trim()||'Feedback geben',
+          feedbackPanelText:$('fb-text').value.trim()
+        }});
+        toast('Feedback gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pagePanels(p){
+    var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    p.innerHTML='<h1>Panels senden</h1><p class="desc">Nur hier — nicht in den System-Einstellungen</p>'+
+      '<div class="card">'+
+      '<div class="field"><label>Panel-Typ</label><select id="pn-type">'+
+        '<option value="ticket">Tickets</option>'+
+        '<option value="feedback">Feedback</option>'+
+        '<option value="bewerbung">Bewerbung</option>'+
+        '<option value="ausweis">Ausweis</option>'+
+        '<option value="duty">Duty / Online</option>'+
+        '<option value="partner">Partnerschaft</option>'+
+        '<option value="verify">Verify</option>'+
+      '</select></div>'+
+      '<div class="field"><label>Kanal</label><div id="pn-ch"></div></div>'+
+      '<button type="button" class="btn btn-p" id="pn-send">Senden</button></div>';
+    var pick=makeSearchSelect($('pn-ch'),{items:channelItems(disc.channels),multi:false,value:'',placeholder:'Kanal…'});
+    $('pn-send').onclick=async function(){
+      var channelId=pick.getValue();
+      if(!channelId) return toast('Kanal wählen','err');
+      try{
+        var r=await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:$('pn-type').value,channelId:channelId}});
+        toast('Panel gesendet','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pageTickets(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    var roles=roleItems(disc.roles);
+    var ch=channelItems(disc.channels,null);
+    var types=Array.isArray(s.ticketTypes)?s.ticketTypes.slice():[
+      {id:'support',name:'Support',categoryId:s.ticketCategoryId||'',supportRoleIds:s.ticketSupportRoleIds||[]}
+    ];
+    function draw(){
+      p.innerHTML='<h1>Tickets</h1><p class="desc">Kategorien, Support-Rollen, mehrere Ticket-Arten</p>'+
+        '<div class="card"><h2>Global</h2>'+
+        '<div class="field"><label>Ticket-Log</label><div id="tk-log"></div></div>'+
+        '<div class="field"><label>Standard-Panel-Kanal</label><div id="tk-panel"></div></div>'+
+        '<div class="field"><label>Panel-Titel</label><input id="tk-title"/></div>'+
+        '<div class="field"><label>Panel-Text</label><textarea id="tk-text" rows="2"></textarea></div></div>'+
+        '<div class="card"><h2>Ticket-Arten</h2><div id="tk-types"></div>'+
+        '<button type="button" class="btn btn-sm" id="tk-add">+ Art hinzufügen</button></div>'+
+        '<button type="button" class="btn btn-p" id="tk-save">Speichern</button>';
+      $('tk-title').value=s.ticketPanelTitle||'Support';
+      $('tk-text').value=s.ticketPanelText||'';
+      window._tkLog=makeSearchSelect($('tk-log'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
+      window._tkPanel=makeSearchSelect($('tk-panel'),{items:ch,multi:false,value:s.ticketPanelChannelId||'',placeholder:'Panel-Kanal…'});
+      var box=$('tk-types');
+      box.innerHTML=types.map(function(tp,i){
+        return '<div class="card" style="margin:8px 0;padding:12px" data-ti="'+i+'">'+
+          '<div class="field"><label>Name</label><input class="tk-name" value="'+esc(tp.name||'')+'"/></div>'+
+          '<div class="field"><label>Kategorie</label><div class="tk-cat" id="tk-cat-'+i+'"></div></div>'+
+          '<div class="field"><label>Support-Rollen</label><div class="tk-sup" id="tk-sup-'+i+'"></div></div>'+
+          '<button type="button" class="btn btn-sm btn-d tk-del">Entfernen</button></div>';
+      }).join('')||'<div class="empty">Keine Arten</div>';
+      window._tkPicks=[];
+      types.forEach(function(tp,i){
+        window._tkPicks[i]={
+          cat:makeSearchSelect($('tk-cat-'+i),{items:ch,multi:false,value:tp.categoryId||'',placeholder:'Kategorie…'}),
+          sup:makeSearchSelect($('tk-sup-'+i),{items:roles,multi:true,values:tp.supportRoleIds||[],placeholder:'Support…'})
+        };
+      });
+      box.querySelectorAll('.tk-del').forEach(function(btn,idx){
+        btn.onclick=function(){ types.splice(idx,1); draw(); };
+      });
+      $('tk-add').onclick=function(){
+        types.push({id:'t_'+Date.now(),name:'Neu',categoryId:'',supportRoleIds:[]});
+        draw();
+      };
+      $('tk-save').onclick=async function(){
+        var out=[];
+        types.forEach(function(tp,i){
+          var card=box.querySelector('[data-ti="'+i+'"]');
+          if(!card) return;
+          var name=(card.querySelector('.tk-name')||{}).value||tp.name;
+          var pick=window._tkPicks[i]||{};
+          out.push({
+            id:tp.id||('t_'+i),
+            name:name,
+            categoryId:pick.cat?pick.cat.getValue():'',
+            supportRoleIds:pick.sup?pick.sup.getValue():[]
+          });
+        });
+        try{
+          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+            ticketLogChannelId:window._tkLog.getValue()||null,
+            ticketPanelChannelId:window._tkPanel.getValue()||null,
+            ticketPanelTitle:$('tk-title').value.trim(),
+            ticketPanelText:$('tk-text').value.trim(),
+            ticketTypes:out,
+            ticketCategoryId:out[0]&&out[0].categoryId||null,
+            ticketSupportRoleIds:out[0]&&out[0].supportRoleIds||[]
+          }});
+          toast('Tickets gespeichert','ok');
+          s.ticketTypes=out;
+          types=out;
+        }catch(e){toast(e.message,'err')}
+      };
+    }
+    draw();
+  }
+
+  async function pagePerms(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={roles:[]}; try{disc=await loadDiscord()}catch(e){}
+    var roles=roleItems(disc.roles);
+    p.innerHTML='<h1>Berechtigungen</h1><p class="desc">Rollen per Suche — keine IDs</p>'+
+      '<div class="card"><h2>IC Panel</h2>'+
+      '<div class="field"><label>Zugang IC Panel</label><div id="pm-access"></div></div>'+
+      '<div class="field"><label>Link bestätigen</label><div id="pm-link"></div></div></div>'+
+      '<div class="card"><h2>Team</h2>'+
+      '<div class="field"><label>Staff</label><div id="pm-staff"></div></div>'+
+      '<div class="field"><label>Admin</label><div id="pm-admin"></div></div></div>'+
+      '<button type="button" class="btn btn-p" id="pm-save">Speichern</button>';
+    var P={
+      access:makeSearchSelect($('pm-access'),{items:roles,multi:true,values:s.ingameAccessRoleIds||[],placeholder:'Rollen…'}),
+      link:makeSearchSelect($('pm-link'),{items:roles,multi:true,values:s.ingameLinkConfirmRoleIds||[],placeholder:'Rollen…'}),
+      staff:makeSearchSelect($('pm-staff'),{items:roles,multi:true,values:s.staffRoleIds||[],placeholder:'Staff…'}),
+      admin:makeSearchSelect($('pm-admin'),{items:roles,multi:true,values:s.adminRoleIds||[],placeholder:'Admin…'})
+    };
+    $('pm-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          ingameAccessRoleIds:P.access.getValue(),
+          ingameLinkConfirmRoleIds:P.link.getValue(),
+          staffRoleIds:P.staff.getValue(),
+          adminRoleIds:P.admin.getValue()
+        }});
+        toast('Berechtigungen gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pageSettings(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    var roles=roleItems(disc.roles);
+    var ch=channelItems(disc.channels,null);
+    if(page==='modules'){
+      var mods=cfg.modules||{};
+      var keys=['dienstnummern','teamverwaltung','bewerbungen','tickets','dutyPanel','ingameManagement','partner','ausweis','warteraumMusic','autoNick','abmelden','schicht'];
+      p.innerHTML='<h1>Module</h1><p class="desc">Systeme an / aus</p><div class="card" id="mod-grid"></div><button type="button" class="btn btn-p" id="mod-save">Speichern</button>';
+      $('mod-grid').innerHTML=keys.map(function(k){
+        return '<label class="row"><input type="checkbox" data-mod="'+k+'" '+(mods[k]?'checked':'')+'/> '+k+'</label>';
+      }).join('');
+      $('mod-save').onclick=async function(){
+        var body={};
+        document.querySelectorAll('[data-mod]').forEach(function(el){ body[el.getAttribute('data-mod')]=el.checked; });
+        try{
+          await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:body});
+          toast('Module gespeichert','ok');
+        }catch(e){
+          try{
+            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{modules:body}});
+            toast('Module gespeichert','ok');
+          }catch(e2){toast(e2.message,'err')}
+        }
+      };
+      return;
+    }
+    p.innerHTML='<h1>Allgemein</h1><p class="desc">Grunddaten — Systeme haben eigene Tabs</p>'+
+      '<div class="card">'+
+      '<div class="field"><label>System-Name</label><input id="s-name"/></div>'+
+      '<div class="field"><label>Log-Kanal</label><div id="s-log"></div></div>'+
+      '<div class="field"><label>Staff-Rollen</label><div id="s-staff"></div></div>'+
+      '<div class="field"><label>Admin-Rollen</label><div id="s-admin"></div></div>'+
+      '<button type="button" class="btn btn-p" id="s-save">Speichern</button></div>';
+    $('s-name').value=s.systemName||'STAFFORA BOT';
+    var pickLog=makeSearchSelect($('s-log'),{items:ch,multi:false,value:s.logChannelId||'',placeholder:'Log…'});
+    var pickStaff=makeSearchSelect($('s-staff'),{items:roles,multi:true,values:s.staffRoleIds||[],placeholder:'Staff…'});
+    var pickAdmin=makeSearchSelect($('s-admin'),{items:roles,multi:true,values:s.adminRoleIds||[],placeholder:'Admin…'});
+    $('s-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          systemName:$('s-name').value.trim()||'STAFFORA BOT',
+          logChannelId:pickLog.getValue()||null,
+          staffRoleIds:pickStaff.getValue(),
+          adminRoleIds:pickAdmin.getValue()
+        }});
+        toast('Gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
 
   boot();
 })();
