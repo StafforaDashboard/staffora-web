@@ -10,7 +10,7 @@
   try{
     var host=location.hostname||'';
     // Same host as bot API → relative. GitHub Pages / other → full API URL
-    if(host.indexOf('bot-hosting.cloud')>=0||host==='localhost'||host==='127.0.0.1'){
+    if(host.indexOf('bot-hosting')>=0||host==='localhost'||host==='127.0.0.1'){
       window.STAFFORA_API='';
     } else {
       window.STAFFORA_API=cloud;
@@ -238,8 +238,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
 <script>
 (function(){
-  var API=(window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud').replace(/\/$/,'');
-  if(!API) API='https://staffora.apps.bot-hosting.cloud';
+  var API=(typeof window.STAFFORA_API==='string')?window.STAFFORA_API:'https://staffora.apps.bot-hosting.cloud';
+  API=String(API).replace(/\/$/,'');
   var token='';
   // URL token ALWAYS wins (fresh OAuth) — never let stale localStorage block login
   try{
@@ -339,7 +339,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       if(tm){
         token=decodeURIComponent(tm[1]);
         try{ localStorage.setItem('staffora_token', token); }catch(e0){}
-        try{ history.replaceState({},'', location.pathname); }catch(e0){}
+        /* keep ?token= until /api/me succeeds */
       }
     }catch(e0){}
     if(!token){
@@ -348,6 +348,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     }
     try{
       me=await api('/api/me');
+      try{ history.replaceState({},'', location.pathname); }catch(e0){}
       $('v-login').classList.add('hidden');
       $('v-app').classList.remove('hidden');
       try{
@@ -375,14 +376,17 @@ tr:hover td{background:rgba(255,255,255,.02)}
         $('panel').innerHTML='<div class="card"><p>Kein Server. Bot muss auf dem Server sein; du brauchst Admin- oder Manage-Server-Rechte.</p></div>';
       }
     }catch(e){
-      console.error('[staffora boot]', e);
-      token='';
-      try{ localStorage.removeItem('staffora_token'); }catch(e0){}
+      console.error('[staffora boot]', e, 'API=', API, 'tokenLen=', token?String(token).length:0);
+      var msg=String(e.message||e);
+      if(/401|abgelaufen|Unauthorized|invalid session/i.test(msg)){
+        token='';
+        try{ localStorage.removeItem('staffora_token'); sessionStorage.removeItem('staffora_token'); }catch(e0){}
+      }
       try{
         $('v-login').classList.remove('hidden');
         $('v-app').classList.add('hidden');
         var sub=$('v-login').querySelector('.sub');
-        if(sub) sub.innerHTML='<span style="color:#f87171">'+esc(String(e.message||e))+'</span>';
+        if(sub) sub.innerHTML='<span style="color:#f87171">'+esc(msg)+'</span><br><span style="color:#8b8b9a;font-size:12px">API: '+esc(API||'(same origin)')+'</span>';
       }catch(e0){}
     }
   }
