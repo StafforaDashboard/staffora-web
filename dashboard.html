@@ -993,37 +993,76 @@ tr:hover td{background:rgba(255,255,255,.02)}
   /* ── Webhook setup + logs (Notruf Hamburg) ── */
   
 
+
   async function pageUnbanQuestions(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
-    var ch=channelItems(disc.channels,[0,5]); // text-like
-    p.innerHTML='<h1>Unban-Fragen</h1><p class="desc">Fragen für Ban-Appeals auf der Unban-Seite</p>'+
-      '<div class="card">'+
-      '<label class="row"><input type="checkbox" id="uq-en"/> Unban-Anfragen aktiv</label>'+
-      '<label class="row"><input type="checkbox" id="uq-req"/> Nur bei aktivem Ban erlauben</label>'+
-      '<div class="field"><label>Appeal-Log-Kanal</label><div id="uq-ch"></div></div>'+
-      '<div class="field"><label>Fragen (eine pro Zeile)</label><textarea id="uq-list" rows="8" placeholder="Warum wurdest du gebannt?&#10;Was hast du gelernt?"></textarea></div>'+
-      '<button type="button" class="btn btn-p" id="uq-save">Speichern</button></div>';
-    $('uq-en').checked=s.unbanRequestEnabled!==false;
-    $('uq-req').checked=!!s.unbanRequireActiveBan;
+    var ch=channelItems(disc.channels,[0,5]);
     var qs=s.unbanQuestions||[];
     if(typeof qs==='string') try{qs=JSON.parse(qs)}catch(e){qs=[]}
-    $('uq-list').value=(Array.isArray(qs)?qs:[]).join('\\n');
-    var pickCh=makeSearchSelect($('uq-ch'),{items:ch,multi:false,value:s.unbanRequestChannelId||'',placeholder:'Kanal suchen…'});
-    $('uq-save').onclick=async function(){
-      var questions=$('uq-list').value.split('\\n').map(function(x){return x.trim()}).filter(Boolean);
-      try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          unbanRequestEnabled:$('uq-en').checked,
-          unbanRequireActiveBan:$('uq-req').checked,
-          unbanRequestChannelId:pickCh.getValue()||null,
-          unbanQuestions:questions
-        }});
-        toast('Unban-Fragen gespeichert','ok');
-      }catch(e){toast(e.message,'err')}
-    };
+    if(!Array.isArray(qs)) qs=[];
+    // normalize to {key,label,required}
+    qs=qs.map(function(q,i){
+      if(typeof q==='string') return {key:'q'+i,label:q,required:true};
+      return {key:q.key||('q'+i),label:q.label||q.text||'',required:q.required!==false};
+    });
+
+    function draw(){
+      p.innerHTML='<h1>Unban-Fragen</h1><p class="desc">Fragen für Ban-Appeals</p>'+
+        '<div class="card">'+
+        '<label class="row"><input type="checkbox" id="uq-en"/> Unban-Anfragen aktiv</label>'+
+        '<label class="row"><input type="checkbox" id="uq-req"/> Nur bei aktivem Ban erlauben</label>'+
+        '<div class="field"><label>Appeal-Log-Kanal</label><div id="uq-ch"></div></div></div>'+
+        '<div class="card"><h2>Fragen</h2><div id="uq-items"></div>'+
+        '<button type="button" class="btn btn-sm" id="uq-add">+ Frage hinzufügen</button> '+
+        '<button type="button" class="btn btn-p" id="uq-save">Speichern</button></div>';
+      $('uq-en').checked=s.unbanRequestEnabled!==false;
+      $('uq-req').checked=!!s.unbanRequireActiveBan;
+      var pickCh=makeSearchSelect($('uq-ch'),{items:ch,multi:false,value:s.unbanRequestChannelId||'',placeholder:'Kanal suchen…'});
+      var box=$('uq-items');
+      box.innerHTML=qs.map(function(q,i){
+        return '<div class="card" style="margin:8px 0;padding:10px" data-qi="'+i+'">'+
+          '<div class="field"><label>Frage</label><input class="uq-label" value="'+esc(q.label)+'"/></div>'+
+          '<label class="row"><input type="checkbox" class="uq-reqd" '+(q.required?'checked':'')+'/> Pflicht</label>'+
+          '<button type="button" class="btn btn-sm btn-d uq-del">Entfernen</button></div>';
+      }).join('')||'<div class="empty">Noch keine Fragen</div>';
+      box.querySelectorAll('.uq-del').forEach(function(btn){
+        btn.onclick=function(){
+          var i=parseInt(btn.closest('[data-qi]').getAttribute('data-qi'),10);
+          qs.splice(i,1); draw();
+        };
+      });
+      $('uq-add').onclick=function(){
+        qs.push({key:'q_'+Date.now(),label:'',required:true});
+        draw();
+      };
+      $('uq-save').onclick=async function(){
+        var out=[];
+        document.querySelectorAll('[data-qi]').forEach(function(card,i){
+          var label=(card.querySelector('.uq-label')||{}).value||'';
+          if(!label.trim()) return;
+          out.push({
+            key:(qs[i]&&qs[i].key)||('q'+i),
+            label:label.trim(),
+            required:!!(card.querySelector('.uq-reqd')||{}).checked
+          });
+        });
+        try{
+          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+            unbanRequestEnabled:$('uq-en').checked,
+            unbanRequireActiveBan:$('uq-req').checked,
+            unbanRequestChannelId:pickCh.getValue()||null,
+            unbanQuestions:out
+          }});
+          qs=out; s.unbanQuestions=out;
+          toast('Gespeichert','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+    }
+    draw();
   }
+
 
   async function pageDutyCfg(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
@@ -1806,23 +1845,39 @@ tr:hover td{background:rgba(255,255,255,.02)}
   }
 
 
+
   async function pageServerStats(p){
-    p.innerHTML='<h1>Server-Stats</h1><p class="desc">Live-Daten vom Discord-Server</p><div class="card" id="ss-box"><span class="spinner"></span></div>';
+    var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    p.innerHTML='<h1>Server-Stats</h1><p class="desc">Status-Panel im Discord senden / aktualisieren</p>'+
+      '<div class="card" id="ss-box"><span class="spinner"></span></div>'+
+      '<div class="card"><h2>Panel senden</h2>'+
+      '<div class="field"><label>Kanal</label><div id="ss-ch"></div></div>'+
+      '<button type="button" class="btn btn-p" id="ss-send">Panel senden / updaten</button>'+
+      '<p class="desc" style="margin-top:8px">Nur Command: <code>/stats</code> zum Aktualisieren</p></div>';
+    var pick=makeSearchSelect($('ss-ch'),{items:channelItems(disc.channels),multi:false,value:s.statusChannelId||'',placeholder:'Kanal…'});
     try{
       var st=await api('/api/guilds/'+guildId+'/stats');
       $('ss-box').innerHTML=
         (st.icon?'<img src="'+esc(st.icon)+'" width="48" height="48" style="border-radius:12px;margin-bottom:12px"/>':'')+
         '<h2 style="margin:0 0 12px">'+esc(st.name||'Server')+'</h2>'+
         '<div class="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">'+
-        [['Mitglieder',st.members],['Menschen',st.humans],['Bots',st.bots],['Online*',st.onlineApprox],
-         ['Kanäle',st.channels],['Text',st.textChannels],['Voice',st.voiceChannels],['Rollen',st.roles],
-         ['Boosts',st.boosts],['Boost-Stufe',st.boostTier]].map(function(x){
+        [['Mitglieder',st.members],['Kanäle',st.channels],['Rollen',st.roles],['Boosts',st.boosts]].map(function(x){
           return '<div style="background:var(--card2);padding:12px;border-radius:10px;border:1px solid var(--border)"><div class="desc">'+x[0]+'</div><div style="font-size:22px;font-weight:700">'+esc(String(x[1]??'—'))+'</div></div>';
-        }).join('')+'</div>'+
-        '<p class="desc" style="margin-top:12px">* Online nur wenn Presence-Intent aktiv und Cache verfügbar.</p>'+
-        '<p class="desc">Platzhalter für Embeds: <code>{members}</code> <code>{online}</code> <code>{channels}</code> <code>{roles}</code> <code>{boosts}</code> <code>{server}</code></p>';
+        }).join('')+'</div>';
     }catch(e){$('ss-box').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+    $('ss-send').onclick=async function(){
+      var channelId=pick.getValue()||s.statusChannelId;
+      if(!channelId) return toast('Kanal wählen','err');
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{statusChannelId:channelId}});
+        await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'status',channelId:channelId}});
+        toast('Status-Panel gesendet','ok');
+      }catch(e){toast(e.message,'err')}
+    };
   }
+
 
   async function pageRp(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
@@ -1830,6 +1885,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
     var start=s.rpStartEmbed||{};
     var stop=s.rpStopEmbed||{};
     var disc={emojis:[],stickers:[]}; try{disc=await loadDiscord()}catch(e){}
+    if(!(disc.emojis&&disc.emojis.length)){
+      try{var er=await api('/api/guilds/'+guildId+'/emojis'); disc.emojis=er.emojis||[]; disc.stickers=er.stickers||[];}catch(e){}
+    }
     p.innerHTML='<h1>RP Start / Stop</h1><p class="desc">Embeds für /rp-start und /rp-stop</p>'+
       '<div class="card"><h2>RP Start</h2>'+
       '<div class="field"><label>Titel</label><input id="rp-st-title"/></div>'+
@@ -1855,10 +1913,11 @@ tr:hover td{background:rgba(255,255,255,.02)}
     ['rp-st-title','rp-st-desc','rp-st-foot','rp-sp-title','rp-sp-desc','rp-sp-foot'].forEach(function(id){
       $(id).onfocus=function(){ target=id; };
     });
-    var em=disc.emojis||[];
+    var em=(disc.emojis||[]).concat([]);
+    (disc.stickers||[]).forEach(function(s){ em.push({name:s.name,mention:s.url||(':'+s.name+':'),url:s.url}); });
     $('rp-emoji').innerHTML=(em.length?em.map(function(e){
       return '<button type="button" class="btn btn-sm" data-m="'+esc(e.mention)+'">'+(e.url?'<img src="'+esc(e.url)+'" width="20"/> ':'')+esc(e.name)+'</button>';
-    }).join(''):'<span class="desc">Keine Emojis</span>');
+    }).join(''):'<span class="desc">Keine Server-Emojis/Stickers — Bot braucht Manage Emojis oder Server-Emojis vorhanden</span>');
     $('rp-emoji').querySelectorAll('[data-m]').forEach(function(b){
       b.onclick=function(){
         var el=$(target); if(!el) return;
