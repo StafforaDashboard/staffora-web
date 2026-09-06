@@ -1,161 +1,144 @@
 (function(){
 var API=(window.STAFFORA_API||"https://staffora.apps.bot-hosting.cloud").replace(/\/$/,"");
-document.getElementById("api-label").textContent=API;
 var token=localStorage.getItem("staffora_token")||"";
-try{var h=(location.hash||"").match(/token=([a-f0-9]+)/i);if(h){token=h[1];localStorage.setItem("staffora_token",token);history.replaceState({},"",location.pathname+location.search);}}catch(e){}
-var user=null,guilds=[],guild=null,cfg=null,tab="overview";
-var MODS=[{k:"dienstnummern",l:"Dienstnummern",cat:"Team"},{k:"teamverwaltung",l:"Teamverwaltung",cat:"Team"},{k:"bewerbungen",l:"Bewerbungen",cat:"Team"},{k:"ausweis",l:"Ausweise",cat:"Dokumente"},{k:"robloxStaff",l:"Roblox Staff",cat:"Roblox"},{k:"statusPanel",l:"Status Panel",cat:"Roblox"},{k:"logs",l:"Logs",cat:"System"},{k:"adminCalls",l:"Admin Calls",cat:"System"},{k:"tickets",l:"Tickets",cat:"System"}];
+try{var qs=new URLSearchParams(location.search||"");var qt=qs.get("token");if(qt){token=qt;localStorage.setItem("staffora_token",token);}var hm=(location.hash||"").match(/token=([a-f0-9]+)/i);if(hm){token=hm[1];localStorage.setItem("staffora_token",token);}if(qt||hm){qs.delete("token");history.replaceState({},"",location.pathname+(qs.toString()?"?"+qs.toString():""));}}catch(e){}
+var user=null,guilds=[],guild=null,cfg=null,tab="overview",discord={channels:[],roles:[]},saveTimer=null;
+var CATS=[
+{id:"Team",mods:[{k:"dienstnummern",l:"Dienstnummern",tab:"dn"},{k:"teamverwaltung",l:"Teamverwaltung",tab:"team"},{k:"bewerbungen",l:"Bewerbungen",tab:"apps"},{k:"dutyPanel",l:"Dienst / Clock",tab:"duty"}]},
+{id:"Dokumente",mods:[{k:"ausweis",l:"Ausweise",tab:"ausweis"}]},
+{id:"Roblox",mods:[{k:"robloxStaff",l:"Roblox Staff",tab:"roblox"},{k:"statusPanel",l:"Online Admins",tab:"roblox"}]},
+{id:"System",mods:[{k:"tickets",l:"Tickets",tab:"tickets"},{k:"adminCalls",l:"Admin Calls",tab:"admincalls"},{k:"offices",l:"Büros",tab:"offices"},{k:"keywords",l:"Keywords",tab:"keywords"},{k:"logs",l:"Logs",tab:"logs"}]}
+];
 function $(id){return document.getElementById(id)}
-function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},2200)}
+function toast(m){var t=$("toast");if(!t)return;t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},1800)}
 function show(v){["login","select","app"].forEach(function(x){var el=$("v-"+x);if(el)el.classList.toggle("hidden",x!==v)})}
-function esc(s){return String(s||"").replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]})}
-$("btn-login").href=API+"/auth/login?return="+encodeURIComponent(location.href.split("#")[0]);
-$("btn-invite").href=API+"/invite";
-fetch(API+"/api/invite").then(function(r){return r.json()}).then(function(d){if(d&&d.url)$("btn-invite").href=d.url}).catch(function(){});
-async function api(path,opts){
-  opts=opts||{};
-  var headers=Object.assign({"Content-Type":"application/json"},opts.headers||{});
-  if(token)headers.Authorization="Bearer "+token;
-  var res=await fetch(API+path,Object.assign({},opts,{headers:headers}));
-  var data=null;try{data=await res.json()}catch(e){}
-  if(res.status===401){token="";localStorage.removeItem("staffora_token");show("login");throw new Error("Session abgelaufen")}
-  if(!res.ok)throw new Error((data&&data.error)||("HTTP "+res.status));
-  return data;
-}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]})}
+var LOGIN=API+"/auth/login?return="+encodeURIComponent(location.href.split("#")[0]);
+["btn-login","btn-login2","btn-login-nav"].forEach(function(id){var el=$(id);if(el)el.href=LOGIN});
+if($("btn-invite"))$("btn-invite").href=API+"/invite";
+fetch(API+"/api/invite").then(function(r){return r.json()}).then(function(d){if(d&&d.url&&$("btn-invite"))$("btn-invite").href=d.url}).catch(function(){});
+async function api(path,opts){opts=opts||{};var headers=Object.assign({"Content-Type":"application/json"},opts.headers||{});if(token)headers.Authorization="Bearer "+token;var res=await fetch(API+path,Object.assign({},opts,{headers:headers}));var data=null;try{data=await res.json()}catch(e){}if(res.status===401){token="";localStorage.removeItem("staffora_token");show("login");throw new Error("Session abgelaufen")}if(!res.ok)throw new Error((data&&data.error)||("HTTP "+res.status));return data}
 function logout(){if(token)api("/api/logout",{method:"POST"}).catch(function(){});token="";localStorage.removeItem("staffora_token");localStorage.removeItem("staffora_guild");guild=null;cfg=null;show("login")}
-$("btn-out").onclick=$("btn-out2").onclick=logout;
-$("btn-back").onclick=function(){guild=null;show("select");loadGuilds()};
-async function boot(){
-  if(!token){show("login");return}
-  show("select");
-  try{
-    user=await api("/api/me");
-    $("user-chip").textContent=user.username||user.id;
-    await loadGuilds();
-    var s=localStorage.getItem("staffora_guild");
-    if(s&&guilds.some(function(g){return g.id===s&&g.botInstalled}))await openGuild(s);
-  }catch(e){toast(e.message||"Login fehlgeschlagen");show("login")}
-}
-async function loadGuilds(){
-  var data=await api("/api/guilds");
-  guilds=data.guilds||[];
-  var box=$("guilds");
-  if(!guilds.length){box.innerHTML='<div class="card"><p class="lead">Keine Server.</p><a class="btn btn-p" href="'+$("btn-invite").href+'" target="_blank">Bot einladen</a></div>';return}
-  box.innerHTML=guilds.map(function(g){
-    return '<div class="guild" data-id="'+g.id+'">'+(g.icon?'<img src="'+g.icon+'" width="40" height="40" style="border-radius:10px"/>':'<div class="logo">S</div>')+'<div><strong>'+esc(g.name)+'</strong><div class="lead" style="font-size:12px;margin:0">'+(g.botInstalled?"Bot installiert":"Bot fehlt")+"</div></div></div>"
-  }).join("");
-  box.querySelectorAll(".guild").forEach(function(el){
-    el.onclick=function(){
-      var id=el.getAttribute("data-id");
-      var g=guilds.find(function(x){return x.id===id});
-      if(g&&!g.botInstalled){window.open($("btn-invite").href,"_blank");toast("Bot einladen, dann neu laden");return}
-      openGuild(id);
-    };
-  });
-}
-async function openGuild(id){
-  guild=guilds.find(function(g){return g.id===id})||{id:id,name:id};
-  localStorage.setItem("staffora_guild",id);
-  cfg=await api("/api/guilds/"+id+"/config");
-  $("gname").textContent=guild.name||id;
-  show("app");renderNav();renderPanel();
-}
-function renderNav(){
-  var m=(cfg&&cfg.modules)||{};
-  var items=[{id:"overview",l:"Übersicht"},{id:"modules",l:"Module"}];
-  if(m.dienstnummern)items.push({id:"dn",l:"Dienstnummern"});
-  if(m.bewerbungen)items.push({id:"apps",l:"Bewerbungen"});
-  if(m.teamverwaltung)items.push({id:"team",l:"Team"});
-  if(m.ausweis)items.push({id:"ausweis",l:"Ausweise"});
-  if(m.robloxStaff)items.push({id:"roblox",l:"Roblox"});
-  if(m.statusPanel)items.push({id:"status",l:"Status Panel"});
-  if(m.logs!==false)items.push({id:"logs",l:"Logs"});
-  items.push({id:"settings",l:"Einstellungen"});
-  $("nav").innerHTML=items.map(function(it){return '<button type="button" data-t="'+it.id+'" class="'+(tab===it.id?"active":"")+'">'+it.l+"</button>"}).join("");
-  $("nav").querySelectorAll("button").forEach(function(b){b.onclick=function(){tab=b.getAttribute("data-t");renderNav();renderPanel()}});
-}
+if($("btn-out"))$("btn-out").onclick=logout;if($("btn-out2"))$("btn-out2").onclick=logout;
+if($("btn-back"))$("btn-back").onclick=function(){guild=null;show("select");loadGuilds()};
+function textChannels(){return (discord.channels||[]).filter(function(c){return c.type===0||c.type===5||c.type===11||c.type===12})}
+function voiceChannels(){return (discord.channels||[]).filter(function(c){return c.type===2||c.type===13})}
+function categories(){return (discord.channels||[]).filter(function(c){return c.type===4})}
+function rolesList(){return (discord.roles||[]).slice().sort(function(a,b){return (a.name||"").localeCompare(b.name||"")})}
+function selText(id,cur,label){var opts='<option value="">— nicht gesetzt —</option>'+textChannels().map(function(c){return '<option value="'+c.id+'"'+(String(cur)===String(c.id)?" selected":"")+"># "+esc(c.name)+"</option>"}).join("");return '<div class="field"><label>'+esc(label)+'</label><select id="'+id+'">'+opts+"</select></div>"}
+function selVoice(id,cur,label){var opts='<option value="">— nicht gesetzt —</option>'+voiceChannels().map(function(c){return '<option value="'+c.id+'"'+(String(cur)===String(c.id)?" selected":"")+">🔊 "+esc(c.name)+"</option>"}).join("");return '<div class="field"><label>'+esc(label)+'</label><select id="'+id+'">'+opts+"</select></div>"}
+function selCat(id,cur,label){var opts='<option value="">— nicht gesetzt —</option>'+categories().map(function(c){return '<option value="'+c.id+'"'+(String(cur)===String(c.id)?" selected":"")+">"+esc(c.name)+"</option>"}).join("");return '<div class="field"><label>'+esc(label)+'</label><select id="'+id+'">'+opts+"</select></div>"}
+function selRoles(id,cur,label){cur=Array.isArray(cur)?cur:(cur?[cur]:[]);var opts=rolesList().map(function(r){return '<option value="'+r.id+'"'+(cur.map(String).indexOf(String(r.id))>=0?" selected":"")+">"+esc(r.name)+"</option>"}).join("");return '<div class="field"><label>'+esc(label)+' <span style="opacity:.45">(Strg)</span></label><select id="'+id+'" multiple size="5">'+opts+"</select></div>"}
+function selRole(id,cur,label){var opts='<option value="">— nicht gesetzt —</option>'+rolesList().map(function(r){return '<option value="'+r.id+'"'+(String(cur)===String(r.id)?" selected":"")+">"+esc(r.name)+"</option>"}).join("");return '<div class="field"><label>'+esc(label)+'</label><select id="'+id+'">'+opts+"</select></div>"}
+function field(id,label,val,type){return '<div class="field"><label>'+esc(label)+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+esc(val==null?"":val)+'"/></div>'}
+function v(id){var el=$(id);return el?el.value:""}
+function multi(id){var el=$(id);if(!el)return[];return Array.prototype.slice.call(el.selectedOptions).map(function(o){return o.value})}
+function emptyOr(x){return x===""?null:x}
+async function saveSet(body){cfg=await api("/api/guilds/"+guild.id+"/settings",{method:"PATCH",body:JSON.stringify(body)});toast("Gespeichert")}
+function autoSave(body){clearTimeout(saveTimer);saveTimer=setTimeout(async function(){try{await saveSet(body)}catch(e){toast(e.message)}},500)}
+function wireAuto(map){Object.keys(map).forEach(function(id){var el=$(id);if(!el)return;var ev=el.tagName==="SELECT"||el.type==="checkbox"?"change":"input";el.addEventListener(ev,function(){var body={};if(el.multiple)body[map[id]]=multi(id);else if(el.type==="number")body[map[id]]=parseInt(el.value,10)||0;else body[map[id]]=emptyOr(el.value);autoSave(body)})})}
+async function toggleMod(key){var body={};body[key]=!((cfg.modules||{})[key]);cfg=await api("/api/guilds/"+guild.id+"/modules",{method:"PATCH",body:JSON.stringify(body)});toast(cfg.modules[key]?"Aktiviert":"Deaktiviert");renderNav();renderPanel()}
+async function sendPanel(type,channelId){if(!channelId){toast("Kanal wählen");return}await api("/api/guilds/"+guild.id+"/panels/send",{method:"POST",body:JSON.stringify({type:type,channelId:channelId})});toast("Panel gesendet")}
+async function refreshServerData(){toast("Lade…");try{discord=await api("/api/guilds/"+guild.id+"/discord");cfg=await api("/api/guilds/"+guild.id+"/config");toast("Aktualisiert");renderPanel()}catch(e){toast(e.message)}}
+async function boot(){if(!token){show("login");return}show("select");try{user=await api("/api/me");await loadGuilds();var s=localStorage.getItem("staffora_guild");if(s&&guilds.some(function(g){return g.id===s&&g.botInstalled}))await openGuild(s)}catch(e){toast(e.message||"Login fehlgeschlagen");show("login")}}
+async function loadGuilds(){var data=await api("/api/guilds");guilds=data.guilds||[];var box=$("guilds");if(!box)return;if(!guilds.length){box.innerHTML='<p class="sub">Keine Server.</p>';return}box.innerHTML=guilds.map(function(g){var letter=(g.name||"S").charAt(0).toUpperCase();var av=g.icon?'<img src="'+g.icon+'" alt=""/>':letter;var mc=g.memberCount!=null?(g.memberCount+" Mitglieder"):"";var st=g.botInstalled?'<span class="server-st ok">Bot online</span>':'<span class="server-st warn">Invite nötig</span>';return '<button type="button" class="server-card" data-id="'+g.id+'"><div class="server-av">'+av+'</div><div class="server-meta"><strong>'+esc(g.name)+'</strong><div class="mc">'+esc(mc)+'</div></div>'+st+"</button>"}).join("");box.querySelectorAll(".server-card").forEach(function(el){el.onclick=function(){var id=el.getAttribute("data-id");var g=guilds.find(function(x){return x.id===id});if(g&&!g.botInstalled){window.open(($("btn-invite")&&$("btn-invite").href)||(API+"/invite"),"_blank");toast("Zuerst Bot einladen");return}openGuild(id)}})}
+async function openGuild(id){guild=guilds.find(function(g){return g.id===id})||{id:id,name:id};localStorage.setItem("staffora_guild",id);cfg=await api("/api/guilds/"+id+"/config");try{discord=await api("/api/guilds/"+id+"/discord")}catch(e){discord={channels:[],roles:[]}}if($("gname"))$("gname").textContent=guild.name||id;show("app");tab="overview";renderNav();renderPanel()}
+function renderNav(){var nav=$("nav");if(!nav)return;var items=[{id:"overview",l:"Übersicht"},{id:"dn",l:"Dienstnummern"},{id:"team",l:"Team"},{id:"apps",l:"Bewerbungen"},{id:"duty",l:"Dienst / Clock"},{id:"ausweis",l:"Ausweise"},{id:"roblox",l:"Roblox / Online"},{id:"tickets",l:"Tickets"},{id:"admincalls",l:"Admin Calls"},{id:"offices",l:"Büros"},{id:"keywords",l:"Keywords"},{id:"logs",l:"Logs"},{id:"settings",l:"Einstellungen"}];nav.innerHTML=items.map(function(it){return '<button type="button" data-t="'+it.id+'" class="'+(tab===it.id?"active":"")+'">'+it.l+"</button>"}).join("");nav.querySelectorAll("button").forEach(function(b){b.onclick=function(){tab=b.getAttribute("data-t");renderNav();renderPanel()}})}
+function panelCard(title,type,ch,hint){return '<div class="card"><h2>📤 Panel · '+esc(title)+"</h2>"+selText("ps-"+type,ch,"Kanal")+(hint?'<p class="desc">'+esc(hint)+"</p>":"")+'<button class="btn btn-p" id="ps-btn-'+type+'">Panel senden</button></div>'}
 async function renderPanel(){
-  var p=$("panel");p.innerHTML='<p class="lead">Lädt…</p>';
-  try{
-    if(tab==="overview"){
-      var m=cfg.modules||{},s=cfg.settings||{};
-      var cats={};MODS.forEach(function(x){var c=x.cat||"Sonstig";if(!cats[c])cats[c]=[];cats[c].push(x)});
-      var html="<h1>Übersicht</h1><p class=\"lead\">"+esc(s.systemName||"Staffora")+"</p>";
-      Object.keys(cats).forEach(function(cat){
-        html+="<h2 style=\"font-size:0.95rem;color:var(--muted);margin:16px 0 8px\">"+esc(cat)+"</h2><div class=\"grid\">";
-        html+=cats[cat].map(function(x){return '<div class="card"><strong>'+x.l+'</strong><div style="margin-top:8px"><span class="badge '+(m[x.k]?"on":"off")+'">'+(m[x.k]?"AN":"AUS")+"</span></div></div>"}).join("");
-        html+="</div>";
-      });
-      p.innerHTML=html;
-    }else if(tab==="modules"){
-      var m=cfg.modules||{};
-      var cats={};MODS.forEach(function(x){var c=x.cat||"Sonstig";if(!cats[c])cats[c]=[];cats[c].push(x)});
-      var html="<h1>Module</h1>";
-      Object.keys(cats).forEach(function(cat){
-        html+="<div class=\"card\"><h2 style=\"margin:0 0 10px;font-size:1rem\">"+esc(cat)+"</h2>";
-        html+=cats[cat].map(function(x){return '<div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span>'+x.l+'</span><label><input type="checkbox" data-m="'+x.k+'" '+(m[x.k]?"checked":"")+"/> aktiv</label></div>"}).join("");
-        html+="</div>";
-      });
-      html+='<button class="btn btn-p" id="save-m">Speichern</button>';
-      p.innerHTML=html;
-      $("save-m").onclick=async function(){var body={};p.querySelectorAll("[data-m]").forEach(function(i){body[i.getAttribute("data-m")]=i.checked});cfg=await api("/api/guilds/"+guild.id+"/modules",{method:"PATCH",body:JSON.stringify(body)});toast("Gespeichert");renderNav();renderPanel()};
-    }else if(tab==="settings"){
-      var s=cfg.settings||{};
-      function f(k,l,v){return '<div><label class="lead" style="font-size:12px">'+l+'</label><input data-k="'+k+'" value="'+esc(v==null?"":v)+'"/></div>'}
-      p.innerHTML="<h1>Einstellungen</h1><div class=\"card\"><h2 style=\"font-size:1rem\">Allgemein</h2>"+f("systemName","Systemname",s.systemName)+"</div><div class=\"card\"><h2 style=\"font-size:1rem\">Dienstnummern</h2>"+f("numberPrefix","Prefix (z.B. SW-)",s.numberPrefix)+f("numberDigits","Stellen",s.numberDigits)+f("numberLabel","Label",s.numberLabel)+f("displayFormat","Format {number} {name}",s.displayFormat)+"</div><div class=\"card\"><h2 style=\"font-size:1rem\">Kanäle</h2>"+f("appChannelId","Bewerbungs-Kanal",s.appChannelId)+f("logChannelId","Log-Kanal",s.logChannelId)+f("ausweisChannelId","Ausweis-Antrags-Kanal",s.ausweisChannelId)+f("statusChannelId","Status-Kanal",s.statusChannelId)+"</div><div class=\"card\"><h2 style=\"font-size:1rem\">Roblox</h2>"+f("robloxGroupId","Gruppen-ID",s.robloxGroupId)+f("robloxMinRank","Min. Rang",s.robloxMinRank)+f("statusIntervalSec","Status-Intervall (s)",s.statusIntervalSec)+'</div><button class="btn btn-p" id="save-s">Speichern</button>';
-      $("save-s").onclick=async function(){var body={};p.querySelectorAll("[data-k]").forEach(function(i){var k=i.getAttribute("data-k"),v=i.value;if(k==="numberDigits"||k==="robloxMinRank"||k==="statusIntervalSec")v=Number(v);body[k]=v===""?null:v});cfg=await api("/api/guilds/"+guild.id+"/settings",{method:"PATCH",body:JSON.stringify(body)});toast("Gespeichert")};
-    }else if(tab==="dn"){
-      var data=await api("/api/guilds/"+guild.id+"/dienstnummern");
-      var reqs=await api("/api/guilds/"+guild.id+"/dienstnummern/requests");
-      var rows=data.numbers||[];
-      p.innerHTML="<h1>Dienstnummern</h1><div class=\"card\"><table class=\"table\"><tr><th>Nr</th><th>Status</th><th>Discord</th><th>Roblox</th></tr>"+rows.map(function(n){return "<tr><td>"+esc(n.number)+"</td><td>"+esc(n.status)+"</td><td>"+esc(n.discord_id||"—")+"</td><td>"+esc(n.roblox_username||"—")+"</td></tr>"}).join("")+"</table></div>";
-      var rr=reqs.requests||[];
-      if(rr.length){p.innerHTML+="<div class=\"card\"><h2>Wechsel-Anträge</h2><table class=\"table\">"+rr.map(function(r){return "<tr><td>"+r.id+"</td><td>"+esc(r.discord_id)+"</td><td>"+esc(r.current_number||"—")+'</td><td class="row"><button class="btn btn-sm btn-p" data-ap="'+r.id+'">OK</button><button class="btn btn-sm" data-rj="'+r.id+'">Nein</button></td></tr>'}).join("")+"</table></div>";
-        p.querySelectorAll("[data-ap]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/dienstnummern/requests/"+b.getAttribute("data-ap")+"/approve",{method:"POST",body:"{}"});toast("Genehmigt");renderPanel()}});
-        p.querySelectorAll("[data-rj]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/dienstnummern/requests/"+b.getAttribute("data-rj")+"/reject",{method:"POST",body:"{}"});toast("Abgelehnt");renderPanel()}});
-      }
-    }else if(tab==="apps"){
-      var data=await api("/api/guilds/"+guild.id+"/applications?status=pending");
-      var list=data.applications||[];
-      p.innerHTML="<h1>Bewerbungen</h1><div class=\"card\">"+(list.length?"<table class=\"table\"><tr><th>ID</th><th>Discord</th><th>Roblox</th><th></th></tr>"+list.map(function(a){return "<tr><td>"+a.id+"</td><td>"+esc(a.discord_id)+"</td><td>"+esc(a.roblox_username||"—")+'</td><td class="row"><button class="btn btn-sm btn-p" data-a="'+a.id+'">Annehmen</button><button class="btn btn-sm" data-r="'+a.id+'">Ablehnen</button></td></tr>'}).join("")+"</table>":'<p class="lead">Keine offenen</p>')+"</div>";
-      p.querySelectorAll("[data-a]").forEach(function(b){b.onclick=async function(){var r=await api("/api/guilds/"+guild.id+"/applications/"+b.getAttribute("data-a")+"/accept",{method:"POST",body:"{}"});toast("OK → "+(r.number&&r.number.number));renderPanel()}});
-      p.querySelectorAll("[data-r]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/applications/"+b.getAttribute("data-r")+"/reject",{method:"POST",body:JSON.stringify({note:"Abgelehnt"})});toast("Abgelehnt");renderPanel()}});
-    }else if(tab==="team"){
-      var data=await api("/api/guilds/"+guild.id+"/team");
-      var list=data.team||[];
-      p.innerHTML="<h1>Team</h1><div class=\"card\"><table class=\"table\"><tr><th>Nr</th><th>Discord</th><th>Dienst</th><th>Warns</th><th></th></tr>"+list.map(function(t){return "<tr><td>"+esc(t.number)+"</td><td>"+esc(t.discord_id)+"</td><td>"+(t.onDuty?"AN":"AUS")+"</td><td>"+t.warnings+'</td><td class="row"><button class="btn btn-sm" data-d="'+t.discord_id+'" data-on="'+(t.onDuty?0:1)+'">'+(t.onDuty?"Außer Dienst":"In Dienst")+'</button><button class="btn btn-sm" data-w="'+t.discord_id+'">Warn</button><button class="btn btn-sm" data-f="'+t.discord_id+'">Feuern</button></td></tr>'}).join("")+"</table></div>";
-      p.querySelectorAll("[data-d]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/team/duty",{method:"POST",body:JSON.stringify({discordId:b.getAttribute("data-d"),onDuty:b.getAttribute("data-on")==="1"})});renderPanel()}});
-      p.querySelectorAll("[data-w]").forEach(function(b){b.onclick=async function(){var reason=prompt("Grund")||"";await api("/api/guilds/"+guild.id+"/team/warn",{method:"POST",body:JSON.stringify({discordId:b.getAttribute("data-w"),reason:reason})});toast("Warn");renderPanel()}});
-      p.querySelectorAll("[data-f]").forEach(function(b){b.onclick=async function(){if(!confirm("Feuern?"))return;await api("/api/guilds/"+guild.id+"/team/fire",{method:"POST",body:JSON.stringify({discordId:b.getAttribute("data-f"),reason:"Kündigung"})});toast("Gekündigt");renderPanel()}});
-    }else if(tab==="ausweis"){
-      var types=await api("/api/guilds/"+guild.id+"/ausweis/types");
-      var reqs=await api("/api/guilds/"+guild.id+"/ausweis/requests");
-      var list=types.types||[];
-      var pending=reqs.requests||[];
-      p.innerHTML="<h1>Ausweise</h1><p class=\"lead\">Typen · Anträge · /ausweis zeigen</p><div class=\"card\"><h2 style=\"margin:0 0 10px;font-size:1rem\">Dokument-Typen</h2>"+list.map(function(t){return '<div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span><strong>'+esc(t.name)+'</strong> <span class="badge '+(t.enabled!==false?"on":"off")+'">'+(t.enabled!==false?"AN":"AUS")+'</span></span><span class="row"><button class="btn btn-sm" data-te="'+t.id+'">'+(t.enabled!==false?"Deaktivieren":"Aktivieren")+'</button><button class="btn btn-sm" data-td="'+t.id+'">Löschen</button></span></div>'}).join("")+'<div class="row" style="margin-top:12px"><input id="nt" placeholder="Neuer Typ" style="max-width:260px"/><button class="btn btn-p" id="nta">Hinzufügen</button></div></div><div class="card"><h2 style="margin:0 0 10px;font-size:1rem">Offene Anträge</h2>'+(pending.length?"<table class=\"table\"><tr><th>ID</th><th>Typ</th><th>User</th><th></th></tr>"+pending.map(function(r){return "<tr><td>"+r.id+"</td><td>"+esc(r.type_name)+"</td><td>"+esc(r.discord_id)+'</td><td class="row"><button class="btn btn-sm btn-p" data-aa="'+r.id+'">OK</button><button class="btn btn-sm" data-ar="'+r.id+'">Nein</button></td></tr>'}).join("")+"</table>":'<p class="lead">Keine offenen</p>')+"</div><div class=\"card\"><label class=\"lead\" style=\"font-size:12px\">Ausweis Log-Kanal ID</label><input id=\"ac\" value=\""+esc((cfg.settings||{}).ausweisChannelId||"")+"\"/><button class=\"btn btn-p\" id=\"acs\" style=\"margin-top:8px\">Kanal speichern</button></div>";
-      $("nta").onclick=async function(){var n=$("nt").value.trim();if(!n)return;await api("/api/guilds/"+guild.id+"/ausweis/types",{method:"POST",body:JSON.stringify({name:n})});toast("Typ angelegt");renderPanel()};
-      $("acs").onclick=async function(){cfg=await api("/api/guilds/"+guild.id+"/settings",{method:"PATCH",body:JSON.stringify({ausweisChannelId:$("ac").value||null})});toast("Gespeichert")};
-      p.querySelectorAll("[data-te]").forEach(function(b){b.onclick=async function(){var id=b.getAttribute("data-te");var t=list.find(function(x){return x.id===id});await api("/api/guilds/"+guild.id+"/ausweis/types/"+id,{method:"PATCH",body:JSON.stringify({enabled:!(t&&t.enabled!==false)})});renderPanel()}});
-      p.querySelectorAll("[data-td]").forEach(function(b){b.onclick=async function(){if(!confirm("Löschen?"))return;await api("/api/guilds/"+guild.id+"/ausweis/types/"+b.getAttribute("data-td"),{method:"DELETE"});renderPanel()}});
-      p.querySelectorAll("[data-aa]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/ausweis/requests/"+b.getAttribute("data-aa")+"/approve",{method:"POST",body:"{}"});toast("Angenommen");renderPanel()}});
-      p.querySelectorAll("[data-ar]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/ausweis/requests/"+b.getAttribute("data-ar")+"/reject",{method:"POST",body:JSON.stringify({note:"Abgelehnt"})});toast("Abgelehnt");renderPanel()}});
-    }else if(tab==="roblox"){
-      var data=await api("/api/guilds/"+guild.id+"/roblox-staff");
-      var list=data.staff||[];
-      p.innerHTML='<h1>Roblox Staff</h1><p class="lead">Nur Ingame-Rechte JA/NEIN.</p><div class="card row"><input id="ru" placeholder="Roblox Username" style="max-width:200px"/><button class="btn btn-p" id="ra">Hinzufügen</button><button class="btn" id="rr">Rechte prüfen</button></div><div class="card"><table class="table"><tr><th>User</th><th>Rechte</th><th></th></tr>'+list.map(function(s){return "<tr><td>"+esc(s.roblox_username)+'</td><td><span class="badge '+(s.has_ingame_rights?"on":"off")+'">'+(s.has_ingame_rights?"JA":"NEIN")+'</span></td><td><button class="btn btn-sm" data-x="'+s.id+'">X</button></td></tr>'}).join("")+"</table></div>";
-      $("ra").onclick=async function(){var u=$("ru").value.trim();if(!u)return;await api("/api/guilds/"+guild.id+"/roblox-staff",{method:"POST",body:JSON.stringify({robloxUsername:u})});toast("OK");renderPanel()};
-      $("rr").onclick=async function(){await api("/api/guilds/"+guild.id+"/roblox-staff/refresh",{method:"POST",body:"{}"});toast("Aktualisiert");renderPanel()};
-      p.querySelectorAll("[data-x]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/roblox-staff/"+b.getAttribute("data-x"),{method:"DELETE"});renderPanel()}});
-    }else if(tab==="status"){
-      var s=cfg.settings||{};
-      p.innerHTML="<h1>Status Panel</h1><div class=\"card\"><p>Kanal: <code>"+esc(s.statusChannelId||"—")+"</code></p><p>Gruppe: "+esc(s.robloxGroupId||"—")+" · Min-Rang: "+(s.robloxMinRank||255)+'</p><button class="btn btn-p" id="su">Panel aktualisieren</button></div>';
-      $("su").onclick=async function(){await api("/api/guilds/"+guild.id+"/status-panel/update",{method:"POST",body:"{}"});toast("OK")};
-    }else if(tab==="logs"){
-      var data=await api("/api/guilds/"+guild.id+"/logs?limit=50");
-      var logs=data.logs||[];
-      p.innerHTML="<h1>Logs</h1><div class=\"card\"><table class=\"table\"><tr><th>Zeit</th><th>Modul</th><th>Aktion</th><th>Ziel</th><th>Nr</th></tr>"+logs.map(function(l){return "<tr><td>"+esc(new Date(l.created_at).toLocaleString("de-DE"))+"</td><td>"+esc(l.module)+"</td><td>"+esc(l.action)+"</td><td>"+esc(l.target_id||"—")+"</td><td>"+esc(l.dienstnummer||"—")+"</td></tr>"}).join("")+"</table></div>";
-    }else p.innerHTML="<p>Tab</p>";
-  }catch(e){p.innerHTML='<div class="card" style="color:#fecaca">'+esc(e.message)+"</div>"}
+var p=$("panel");if(!p)return;p.innerHTML='<p class="desc">Lädt…</p>';
+var s=(cfg&&cfg.settings)||{},m=(cfg&&cfg.modules)||{};
+try{
+if(tab==="overview"){
+var html='<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h1>Übersicht</h1><p class="desc">'+esc(s.systemName||guild.name||"")+'</p></div><button class="btn btn-sm" id="btn-refresh">↻ Server-Daten</button></div>';
+CATS.forEach(function(cat){html+='<div class="card"><h2>'+esc(cat.id)+'</h2><div class="grid">';cat.mods.forEach(function(mod){var on=!!m[mod.k];html+='<div class="stat" data-tab="'+mod.tab+'"><strong>'+esc(mod.l)+'</strong><div class="row" style="margin-top:8px;justify-content:space-between"><span class="badge '+(on?"badge-on":"badge-off")+'">'+(on?"AN":"AUS")+'</span><button type="button" class="toggle '+(on?"on":"")+'" data-mod="'+mod.k+'"></button></div></div>'});html+="</div></div>"});
+p.innerHTML=html;if($("btn-refresh"))$("btn-refresh").onclick=refreshServerData;
+p.querySelectorAll(".toggle").forEach(function(btn){btn.onclick=function(e){e.stopPropagation();toggleMod(btn.getAttribute("data-mod"))}});
+p.querySelectorAll(".stat").forEach(function(el){el.onclick=function(){tab=el.getAttribute("data-tab");renderNav();renderPanel()}});return}
+
+if(tab==="dn"){
+var data=await api("/api/guilds/"+guild.id+"/dienstnummern").catch(function(){return{}});var list=data.numbers||data.list||[];if(!Array.isArray(list))list=[];
+p.innerHTML="<h1>Dienstnummern</h1>"+(m.dienstnummern?"":'<p class="desc">Modul AUS.</p>')+'<div class="card"><h2>Einstellungen</h2>'+field("dn-sys","Systemname",s.systemName)+field("dn-pre","Prefix",s.numberPrefix||"SW-")+field("dn-dig","Stellen",s.numberDigits||2,"number")+field("dn-fmt","Format",s.displayFormat||"{number} | {name}")+'<p class="desc">Auto-Save</p></div><div class="card"><h2>Zuweisen</h2><div class="row"><input id="dn-uid" placeholder="Discord User ID" style="flex:1"/><button class="btn btn-p" id="dn-as">Zuweisen</button></div></div><div class="card"><table><tr><th>Nummer</th><th>User</th><th></th></tr>'+(list.length?list.map(function(n){var uid=n.discord_id||n.userId||"";return "<tr><td>"+esc(n.number||n.dienstnummer)+"</td><td>"+esc(uid)+'</td><td><button class="btn btn-sm" data-rel="'+esc(uid)+'">Freigeben</button></td></tr>'}).join(""):"<tr><td colspan=3>Keine</td></tr>")+"</table></div>";
+wireAuto({"dn-sys":"systemName","dn-pre":"numberPrefix","dn-dig":"numberDigits","dn-fmt":"displayFormat"});
+$("dn-as").onclick=async function(){await api("/api/guilds/"+guild.id+"/dienstnummern/assign",{method:"POST",body:JSON.stringify({discordId:v("dn-uid")})});toast("OK");renderPanel()};
+p.querySelectorAll("[data-rel]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/dienstnummern/release",{method:"POST",body:JSON.stringify({discordId:b.getAttribute("data-rel")})});renderPanel()}});return}
+
+if(tab==="team"){
+var data=await api("/api/guilds/"+guild.id+"/team").catch(function(){return{team:[]}});var list=data.team||[];
+p.innerHTML="<h1>Team</h1>"+(m.teamverwaltung?"":'<p class="desc">Modul AUS.</p>')+'<div class="card"><h2>Rollen</h2>'+selRoles("tm-staff",s.staffRoleIds,"Staff-Rollen")+selRoles("tm-admin",s.adminRoleIds,"Admin-Rollen")+'<p class="desc">Auto-Save</p></div><div class="card"><table><tr><th>Nr</th><th>User</th><th>Dienst</th><th></th></tr>'+(list.length?list.map(function(t){return "<tr><td>"+esc(t.number)+"</td><td>"+esc(t.discord_id)+"</td><td>"+(t.onDuty?"AN":"AUS")+'</td><td><button class="btn btn-sm" data-f="'+t.discord_id+'">Feuern</button></td></tr>'}).join(""):"<tr><td colspan=4>Keine</td></tr>")+"</table></div>";
+wireAuto({"tm-staff":"staffRoleIds","tm-admin":"adminRoleIds"});
+p.querySelectorAll("[data-f]").forEach(function(b){b.onclick=async function(){if(!confirm("Feuern?"))return;await api("/api/guilds/"+guild.id+"/team/fire",{method:"POST",body:JSON.stringify({discordId:b.getAttribute("data-f")})});renderPanel()}});return}
+
+if(tab==="apps"){
+var data=await api("/api/guilds/"+guild.id+"/applications").catch(function(){return{applications:[]}});var pending=(data.applications||[]).filter(function(a){return a.status==="pending"});
+p.innerHTML="<h1>Bewerbungen</h1>"+(m.bewerbungen?"":'<p class="desc">Modul AUS.</p>')+'<div class="card"><h2>Einstellungen</h2>'+selText("app-ch",s.appChannelId,"Bewerbungs-Kanal")+selText("app-log",s.appLogChannelId||s.logChannelId,"Log-Kanal")+field("app-pts","Min. Punkte",s.appMinPoints||10,"number")+field("app-ban","Sperre Tage",s.appRejectBanDays||7,"number")+selRole("app-role",s.appRejectRoleId,"Sperr-Rolle")+'<p class="desc">Auto-Save</p></div>'+panelCard("Bewerbung","bewerbung",s.bewerbungPanelChannelId,"Button mit Staffora-Branding")+
+'<div class="card"><h2>Offene</h2>'+(pending.length?'<table><tr><th>User</th><th>Roblox</th><th></th></tr>'+pending.map(function(a){return "<tr><td>"+esc(a.discord_id)+"</td><td>"+esc(a.roblox_username||"—")+'</td><td class="row"><button class="btn btn-sm btn-p" data-a="'+a.id+'">OK</button><button class="btn btn-sm" data-r="'+a.id+'">Nein</button></td></tr>'}).join("")+"</table>":'<p class="desc">Keine</p>')+"</div>";
+wireAuto({"app-ch":"appChannelId","app-log":"appLogChannelId","app-pts":"appMinPoints","app-ban":"appRejectBanDays","app-role":"appRejectRoleId"});
+$("ps-btn-bewerbung").onclick=function(){sendPanel("bewerbung",v("ps-bewerbung"))};
+p.querySelectorAll("[data-a]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/applications/"+b.getAttribute("data-a")+"/accept",{method:"POST",body:"{}"});renderPanel()}});
+p.querySelectorAll("[data-r]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/applications/"+b.getAttribute("data-r")+"/reject",{method:"POST",body:JSON.stringify({note:"Abgelehnt"})});renderPanel()}});return}
+
+if(tab==="duty"){
+p.innerHTML="<h1>Dienst / Clock</h1>"+(m.dutyPanel||m.teamverwaltung?"":'<p class="desc">Modul AUS.</p>')+'<div class="card"><h2>Einstellungen</h2>'+selText("dy-ch",s.dutyPanelChannelId,"Dienst-Liste Kanal")+field("dy-title","Titel",s.dutyPanelTitle||"Dienst")+selRoles("dy-roles",s.dutyRoleIds,"Clock-in Rollen (leer=alle)")+'<p class="desc">Auto-Save · Liste auto-updated</p></div>'+panelCard("Clock-in / Clock-out","clock",s.dutyPanelChannelId,"Buttons Clock-in & Clock-out");
+wireAuto({"dy-ch":"dutyPanelChannelId","dy-title":"dutyPanelTitle","dy-roles":"dutyRoleIds"});
+$("ps-btn-clock").onclick=function(){sendPanel("clock",v("ps-clock"))};return}
+
+if(tab==="ausweis"){
+var data=await api("/api/guilds/"+guild.id+"/ausweis").catch(function(){return{types:[],requests:[]}});var pending=(data.requests||[]).filter(function(r){return r.status==="pending"});
+p.innerHTML="<h1>Ausweise</h1>"+(m.ausweis?"":'<p class="desc">Modul AUS.</p>')+'<div class="card"><h2>Einstellungen</h2>'+selText("aw-ch",s.ausweisChannelId,"Log-Kanal")+selRoles("aw-roles",s.ausweisStaffRoleIds,"Staff-Rollen")+'<p class="desc">Auto-Save</p></div>'+panelCard("Ausweis","ausweis",s.ausweisPanelChannelId,"Dropdown Ausweis-Typen")+
+'<div class="card"><h2>Anträge</h2>'+(pending.length?'<table><tr><th>Typ</th><th>User</th><th></th></tr>'+pending.map(function(r){return "<tr><td>"+esc(r.type_name)+"</td><td>"+esc(r.discord_id)+'</td><td class="row"><button class="btn btn-sm btn-p" data-aa="'+r.id+'">OK</button><button class="btn btn-sm" data-ar="'+r.id+'">Nein</button></td></tr>'}).join("")+"</table>":'<p class="desc">Keine</p>')+"</div>";
+wireAuto({"aw-ch":"ausweisChannelId","aw-roles":"ausweisStaffRoleIds"});
+$("ps-btn-ausweis").onclick=function(){sendPanel("ausweis",v("ps-ausweis"))};
+p.querySelectorAll("[data-aa]").forEach(function(b){b.onclick=async function(){try{await api("/api/guilds/"+guild.id+"/ausweis/requests/"+b.getAttribute("data-aa")+"/approve",{method:"POST",body:"{}"})}catch(e){}renderPanel()}});
+p.querySelectorAll("[data-ar]").forEach(function(b){b.onclick=async function(){try{await api("/api/guilds/"+guild.id+"/ausweis/requests/"+b.getAttribute("data-ar")+"/reject",{method:"POST",body:"{}"})}catch(e){}renderPanel()}});return}
+
+if(tab==="roblox"){
+var data=await api("/api/guilds/"+guild.id+"/roblox-staff").catch(function(){return{staff:[]}});var list=data.staff||[];var online=list.filter(function(x){return x.is_online});
+p.innerHTML="<h1>Roblox / Online Admins</h1><div class=\"card\"><h2>Übersicht</h2><div class=\"grid\"><div class=\"stat\"><strong>Online</strong><span class=\"badge badge-on\">"+online.length+'</span></div><div class="stat"><strong>Gesamt</strong><span class="badge">'+list.length+"</span></div></div></div>"+
+'<div class="card"><h2>Online-Admin Panel</h2>'+selText("st-ch",s.statusChannelId,"Panel-Kanal")+selRoles("st-ping",s.statusPingRoleIds,"Ping-Rollen")+field("st-int","Interval Sek.",s.statusIntervalSec||60,"number")+field("st-gid","Group ID (optional)",s.robloxGroupId||"")+field("st-rank","Min-Rang (optional)",s.robloxMinRank||255,"number")+'<p class="desc">Auto-Save · Nur Online sichtbar</p></div>'+
+panelCard("Roblox-Name angeben","roblox_register",s.statusChannelId,"User gibt Namen per Modal ein")+
+'<div class="card"><h2>Staff</h2><div class="row"><input id="ru" placeholder="Roblox Username" style="flex:1"/><button class="btn btn-p" id="ra">+</button><button class="btn" id="rr">↻</button></div><table style="margin-top:10px"><tr><th>User</th><th>Online</th><th>Rechte</th><th></th></tr>'+(list.length?list.map(function(x){return "<tr><td>"+esc(x.roblox_username)+"</td><td>"+(x.is_online?'<span class="badge badge-on">ON</span>':'<span class="badge badge-off">OFF</span>')+"</td><td>"+(x.has_ingame_rights?'<span class="badge badge-on">JA</span>':'<span class="badge badge-off">NEIN</span>')+'</td><td><button class="btn btn-sm" data-x="'+x.id+'">X</button></td></tr>'}).join(""):"<tr><td colspan=4>Keine</td></tr>")+"</table></div>";
+wireAuto({"st-ch":"statusChannelId","st-ping":"statusPingRoleIds","st-int":"statusIntervalSec","st-gid":"robloxGroupId","st-rank":"robloxMinRank"});
+$("ps-btn-roblox_register").onclick=function(){sendPanel("roblox_register",v("ps-roblox_register"))};
+$("ra").onclick=async function(){await api("/api/guilds/"+guild.id+"/roblox-staff",{method:"POST",body:JSON.stringify({username:v("ru")})});renderPanel()};
+$("rr").onclick=async function(){await api("/api/guilds/"+guild.id+"/roblox-staff/refresh",{method:"POST",body:"{}"});renderPanel()};
+p.querySelectorAll("[data-x]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/roblox-staff/"+b.getAttribute("data-x"),{method:"DELETE"});renderPanel()}});return}
+
+if(tab==="tickets"){
+p.innerHTML="<h1>Tickets</h1>"+(m.tickets?"":'<p class="desc">Modul AUS.</p>')+'<div class="card"><h2>Einstellungen</h2>'+selText("tk-panel",s.ticketPanelChannelId,"Panel-Kanal")+selCat("tk-cat",s.ticketCategoryId,"Kategorie")+selText("tk-log",s.ticketLogChannelId,"Log-Kanal")+selRoles("tk-roles",s.ticketSupportRoleIds,"Support-Rollen (Ping)")+field("tk-title","Panel-Titel",s.ticketPanelTitle||"Support Tickets")+field("tk-text","Panel-Text",s.ticketPanelText||"Ticket öffnen")+'<p class="desc">Auto-Save</p></div>'+panelCard("Ticket-Panel","tickets",s.ticketPanelChannelId,"Öffnet Ticket");
+wireAuto({"tk-panel":"ticketPanelChannelId","tk-cat":"ticketCategoryId","tk-log":"ticketLogChannelId","tk-roles":"ticketSupportRoleIds","tk-title":"ticketPanelTitle","tk-text":"ticketPanelText"});
+$("ps-btn-tickets").onclick=function(){sendPanel("tickets",v("ps-tickets"))};return}
+
+if(tab==="admincalls"){
+p.innerHTML="<h1>Admin Calls</h1>"+(m.adminCalls?"":'<p class="desc">Modul AUS.</p>')+'<div class="card"><h2>Einstellungen</h2>'+selVoice("ac-wait",s.adminCallWaitingChannelId,"Warteraum VC")+selRoles("ac-ping",s.adminCallPingRoleIds,"Ping-Rollen")+selText("ac-log",s.adminCallLogChannelId,"Log-Kanal")+'<p class="desc">Auto-Save</p></div>'+panelCard("Admin-Call Info","admincall",s.adminCallLogChannelId,"Info-Embed");
+wireAuto({"ac-wait":"adminCallWaitingChannelId","ac-ping":"adminCallPingRoleIds","ac-log":"adminCallLogChannelId"});
+$("ps-btn-admincall").onclick=function(){sendPanel("admincall",v("ps-admincall"))};return}
+
+if(tab==="offices"){
+var data=await api("/api/guilds/"+guild.id+"/offices").catch(function(){return{offices:[]}});var list=data.offices||[];
+p.innerHTML="<h1>Büros</h1>"+(m.offices?"":'<p class="desc">Modul AUS.</p>')+'<div class="card"><h2>Einstellungen</h2>'+selVoice("of-wait",s.officeWaitingChannelId,"Warteraum")+selRole("of-ping",s.officePingRoleId,"Ping-Rolle")+selText("of-log",s.officeLogChannelId,"Log")+'<p class="desc">Auto-Save</p></div><div class="card"><h2>Büro +</h2>'+field("of-name","Name","")+selVoice("of-vc","","Voice")+selRole("of-role","","Rolle")+'<button class="btn btn-p" id="of-add">Hinzufügen</button></div><div class="card"><table><tr><th>Name</th><th>VC</th><th>Rolle</th><th></th></tr>'+(list.length?list.map(function(o){return "<tr><td>"+esc(o.name)+"</td><td>"+esc(o.voice_channel_id||"—")+"</td><td>"+esc(o.role_id||"—")+'</td><td><button class="btn btn-sm" data-ox="'+o.id+'">X</button></td></tr>'}).join(""):"<tr><td colspan=4>Keine</td></tr>")+"</table></div>";
+wireAuto({"of-wait":"officeWaitingChannelId","of-ping":"officePingRoleId","of-log":"officeLogChannelId"});
+$("of-add").onclick=async function(){await api("/api/guilds/"+guild.id+"/offices",{method:"POST",body:JSON.stringify({name:v("of-name"),voiceChannelId:emptyOr(v("of-vc")),roleId:emptyOr(v("of-role"))})});renderPanel()};
+p.querySelectorAll("[data-ox]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/offices/"+b.getAttribute("data-ox"),{method:"DELETE"});renderPanel()}});return}
+
+if(tab==="keywords"){
+var data=await api("/api/guilds/"+guild.id+"/keywords").catch(function(){return{keywords:[]}});var list=data.keywords||[];
+p.innerHTML="<h1>Keywords</h1>"+(m.keywords?"":'<p class="desc">Modul AUS.</p>')+'<div class="card"><div class="row"><input id="kw-t" placeholder="Trigger" style="flex:1"/><input id="kw-r" placeholder="Antwort" style="flex:2"/><button class="btn btn-p" id="kw-add">+</button></div></div><div class="card"><table><tr><th>Trigger</th><th>Antwort</th><th></th></tr>'+(list.length?list.map(function(k){return "<tr><td>"+esc(k.trigger)+"</td><td>"+esc(k.response)+'</td><td><button class="btn btn-sm" data-kx="'+k.id+'">X</button></td></tr>'}).join(""):"<tr><td colspan=3>Keine</td></tr>")+"</table></div>";
+$("kw-add").onclick=async function(){await api("/api/guilds/"+guild.id+"/keywords",{method:"POST",body:JSON.stringify({trigger:v("kw-t"),response:v("kw-r")})});renderPanel()};
+p.querySelectorAll("[data-kx]").forEach(function(b){b.onclick=async function(){await api("/api/guilds/"+guild.id+"/keywords/"+b.getAttribute("data-kx"),{method:"DELETE"});renderPanel()}});return}
+
+if(tab==="logs"){
+var data=await api("/api/guilds/"+guild.id+"/logs").catch(function(){return{logs:[]}});var logs=data.logs||[];
+p.innerHTML="<h1>Logs</h1><div class=\"card\">"+selText("lg-ch",s.logChannelId,"Log-Kanal")+'<p class="desc">Auto-Save</p></div><div class="card"><table><tr><th>Zeit</th><th>Modul</th><th>Aktion</th><th>Ziel</th></tr>'+(logs.length?logs.map(function(l){return "<tr><td>"+esc(new Date(l.created_at).toLocaleString("de-DE"))+"</td><td>"+esc(l.module)+"</td><td>"+esc(l.action)+"</td><td>"+esc(l.target_id||"—")+"</td></tr>"}).join(""):"<tr><td colspan=4>Keine</td></tr>")+"</table></div>";
+wireAuto({"lg-ch":"logChannelId"});return}
+
+if(tab==="settings"){
+p.innerHTML="<h1>Einstellungen</h1><div class=\"card\">"+field("set-sys","Systemname",s.systemName)+selText("set-log",s.logChannelId,"Globaler Log")+selRoles("set-staff",s.staffRoleIds,"Staff")+selRoles("set-admin",s.adminRoleIds,"Admin")+'<p class="desc">Auto-Save</p></div><div class="card"><button class="btn" id="btn-ref2">↻ Server-Daten</button></div>';
+wireAuto({"set-sys":"systemName","set-log":"logChannelId","set-staff":"staffRoleIds","set-admin":"adminRoleIds"});
+$("btn-ref2").onclick=refreshServerData;return}
+
+p.innerHTML='<p class="desc">?</p>';
+}catch(e){p.innerHTML='<div class="card" style="color:#fca5a5">'+esc(e.message)+"</div>"}
 }
 boot();
 })();
