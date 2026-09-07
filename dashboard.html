@@ -193,6 +193,43 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .btn-anim:hover{transform:translateY(-2px)}
 .btn-anim:active{transform:scale(.96)}
 
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes softBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes borderGlow{0%,100%{border-color:rgba(139,92,246,.25)}50%{border-color:rgba(139,92,246,.55)}}
+.card{animation:fadeUp .35s ease both}
+.card:nth-child(1){animation-delay:.02s}
+.card:nth-child(2){animation-delay:.06s}
+.card:nth-child(3){animation-delay:.1s}
+.card:nth-child(4){animation-delay:.14s}
+.card:nth-child(5){animation-delay:.18s}
+.stat{animation:fadeUp .4s ease both}
+.nav-btn{transition:background .18s,color .18s,transform .18s,box-shadow .18s}
+.nav-btn:hover{transform:translateX(4px)}
+.nav-btn.active{animation:slideInLeft .25s ease}
+.btn{transition:transform .18s cubic-bezier(.34,1.4,.64,1),box-shadow .2s,background .2s,border-color .2s,filter .2s}
+.btn:hover{transform:translateY(-2px) scale(1.02);filter:brightness(1.05)}
+.btn:active{transform:scale(.95)}
+.btn-p{position:relative;overflow:hidden}
+.btn-p::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.18) 50%,transparent 60%);background-size:200% 100%;opacity:0;transition:opacity .2s}
+.btn-p:hover::after{opacity:1;animation:shimmer 1.2s ease}
+.xp-toggle{transition:background .3s,box-shadow .3s,transform .2s}
+.xp-toggle:hover{transform:scale(1.05)}
+.xp-dots{transition:transform .2s cubic-bezier(.34,1.4,.64,1),border-color .2s,background .2s,box-shadow .2s}
+.xp-dots:hover{transform:scale(1.12) rotate(90deg);box-shadow:0 4px 14px rgba(139,92,246,.25)}
+.side-brand .mark{animation:softBounce 2.5s ease-in-out infinite}
+.content h1{animation:fadeUp .3s ease}
+.toast{animation:toastIn .3s cubic-bezier(.34,1.4,.64,1)}
+.ss-wrap{transition:border-color .2s}
+.ss-wrap:focus-within{border-color:var(--accent);animation:borderGlow 2s ease infinite}
+table tbody tr{transition:background .15s,transform .15s}
+table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
+.pill{transition:transform .15s,box-shadow .15s}
+.pill:hover{transform:scale(1.05)}
+
 </style>
 </head>
 <body>
@@ -226,7 +263,11 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <button type="button" class="nav-btn" data-p="commands"><span class="ic">⌨️</span> Commands</button>
       <button type="button" class="nav-btn" data-p="serverstats"><span class="ic">📈</span> Server-Stats</button>
       <button type="button" class="nav-btn" data-p="hausliste"><span class="ic">🏠</span> Hausliste</button>
+      <button type="button" class="nav-btn" data-p="textgen"><span class="ic">✍️</span> Text Generator</button>
       <div class="nav-sec">Systeme</div>
+      <button type="button" class="nav-btn" data-p="ausweis"><span class="ic">🪪</span> Ausweis</button>
+      <button type="button" class="nav-btn" data-p="modreasons"><span class="ic">⚖️</span> Verstoßgründe</button>
+      <button type="button" class="nav-btn" data-p="complaint"><span class="ic">📢</span> Team-Beschwerde</button>
       <button type="button" class="nav-btn" data-p="tickets"><span class="ic">🎫</span> Tickets</button>
       <button type="button" class="nav-btn" data-p="feedback"><span class="ic">⭐</span> Feedback</button>
       <button type="button" class="nav-btn" data-p="xp"><span class="ic">✨</span> XP</button>
@@ -462,6 +503,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
       else if(page==='commands') await pageCommands(p);
       else if(page==='serverstats') await pageServerStats(p);
       else if(page==='hausliste') await pageHausliste(p);
+      else if(page==='textgen') await pageTextGen(p);
+      else if(page==='ausweis') await pageAusweis(p);
+      else if(page==='modreasons') await pageModReasons(p);
+      else if(page==='complaint') await pageComplaint(p);
       else if(page==='tickets') await pageTickets(p);
       else if(page==='settings') await pageSettings(p);
       else p.innerHTML='<div class="empty">—</div>';
@@ -2029,104 +2074,142 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
     function statusPill(st){
       var s=String(st||'frei').toLowerCase();
-      var c=s==='frei'?'pill-ok':s==='belegt'?'pill-warn':s==='gesperrt'?'pill-err':'pill-warn';
+      var c=s.indexOf('bezahlt')>=0||s==='frei'?'pill-ok':s==='belegt'||s.indexOf('reserv')>=0?'pill-warn':'pill-warn';
       return '<span class="pill '+c+'">'+esc(st||'frei')+'</span>';
     }
 
     function render(){
-      p.innerHTML='<h1>Hausliste</h1><p class="desc">Häuser verwalten und Panel senden</p>'+
+      p.innerHTML='<h1>Hausliste</h1><p class="desc">Häuser, Beleg-Scan und Panel</p>'+
+        '<div class="card"><h2>Beleg scannen</h2>'+
+        '<p class="desc">Text vom Beleg einfügen (oder Bild-URL mit AI-Key). Erkennt Haus, Preis, Zimmer und ordnet zu.</p>'+
+        '<div class="field"><label>Beleg-Text</label><textarea id="hl-scan-text" rows="3" placeholder="Villa Pacific 40.000 € 6 Zimmer möbliert #TX-88241"></textarea></div>'+
+        '<div class="grid2"><div class="field"><label>Bild-URL (optional)</label><input id="hl-scan-img" placeholder="https://…"/></div>'+
+        '<div class="field"><label>Owner Roblox</label><input id="hl-scan-owner"/></div></div>'+
+        '<label class="row" style="gap:8px;margin:8px 0"><input type="checkbox" id="hl-scan-auto" checked/> Automatisch auf bezahlt setzen</label>'+
+        '<button type="button" class="btn btn-p" id="hl-scan-btn">Beleg scannen</button>'+
+        '<div id="hl-scan-result" style="margin-top:12px"></div></div>'+
         '<div class="card"><h2>Panel</h2>'+
         '<div class="field"><label>Panel-Titel</label><input id="hl-title"/></div>'+
         '<div class="field"><label>Panel-Text</label><textarea id="hl-text" rows="2"></textarea></div>'+
-        '<div class="field"><label>Kanal</label><div id="hl-ch"></div></div>'+
-        '<div class="row-act" style="display:flex;gap:8px;flex-wrap:wrap">'+
-        '<button type="button" class="btn btn-sm" id="hl-save-cfg">Einstellungen speichern</button>'+
-        '<button type="button" class="btn btn-p" id="hl-send">Panel senden</button></div></div>'+
-        '<div class="card"><h2>Neues Haus</h2>'+
-        '<div class="field"><label>Name</label><input id="hl-name" placeholder="z.B. Villa am Hafen"/></div>'+
-        '<div class="field"><label>Adresse</label><input id="hl-addr" placeholder="Straße / Zone"/></div>'+
-        '<div class="field"><label>Besitzer</label><input id="hl-owner" placeholder="Name"/></div>'+
-        '<div class="field"><label>Preis</label><input id="hl-price" placeholder="z.B. 250.000"/></div>'+
-        '<div class="field"><label>Status</label><select id="hl-status">'+
-        '<option value="frei">frei</option><option value="belegt">belegt</option>'+
-        '<option value="reserviert">reserviert</option><option value="gesperrt">gesperrt</option></select></div>'+
-        '<div class="field"><label>Notiz</label><input id="hl-notes"/></div>'+
-        '<button type="button" class="btn btn-p btn-sm" id="hl-add">Hinzufügen</button></div>'+
-        '<div class="card"><h2>Liste <span class="desc">('+houses.length+')</span></h2><div id="hl-list"></div></div>';
+        '<div class="field"><label>Panel-Kanal</label><div id="hl-ch"></div></div>'+
+        '<div class="row" style="gap:8px;margin-top:10px"><button type="button" class="btn btn-p" id="hl-save">Speichern</button>'+
+        '<button type="button" class="btn" id="hl-send">Panel senden</button></div></div>'+
+        '<div class="card"><h2>Haus hinzufügen</h2><div class="grid2">'+
+        '<div class="field"><label>Name</label><input id="hl-name"/></div>'+
+        '<div class="field"><label>Preis</label><input id="hl-price"/></div>'+
+        '<div class="field"><label>Owner</label><input id="hl-owner"/></div>'+
+        '<div class="field"><label>Status</label><select id="hl-status"><option value="frei">Frei</option><option value="reserviert">Reserviert</option><option value="bezahlt">Bezahlt</option><option value="belegt">Belegt</option></select></div></div>'+
+        '<button type="button" class="btn btn-p" id="hl-add">Hinzufügen</button></div>'+
+        '<div class="card"><h2>Einträge</h2><div id="hl-list"></div></div>';
 
       $('hl-title').value=data.panelTitle||'Hausliste';
       $('hl-text').value=data.panelText||'';
-      var pick=makeSearchSelect($('hl-ch'),{items:channelItems(disc.channels),multi:false,value:data.panelChannelId||'',placeholder:'Kanal…'});
+      var chs=(disc.channels||[]).filter(function(c){return c.type===0||c.type===5||c.type==='0'||c.type==='GUILD_TEXT'}).map(function(c){return {id:c.id,name:'#'+c.name}});
+      var pick=makeSearchSelect($('hl-ch'),{items:chs,multi:false,values:data.panelChannelId?[data.panelChannelId]:[],placeholder:'Kanal…'});
 
-      var box=$('hl-list');
-      if(!houses.length) box.innerHTML='<div class="empty">Noch keine Häuser</div>';
+      var list=$('hl-list');
+      if(!houses.length) list.innerHTML='<div class="empty">Keine Häuser</div>';
       else {
-        // prettier cards grouped
-        var by={};
-        houses.forEach(function(h){ var k=(h.status||'frei').toLowerCase(); by[k]=by[k]||[]; by[k].push(h); });
-        var order=['frei','belegt','reserviert','gesperrt'];
-        var keys=Object.keys(by).sort(function(a,b){ return (order.indexOf(a)<0?9:order.indexOf(a))-(order.indexOf(b)<0?9:order.indexOf(b)); });
-        box.innerHTML=keys.map(function(st){
-          return '<div style="margin-bottom:16px"><div style="font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">'+esc(st)+' · '+by[st].length+'</div>'+
-            by[st].map(function(h){
-              return '<div style="display:flex;gap:12px;align-items:flex-start;padding:12px;margin-bottom:8px;background:var(--card2);border:1px solid var(--border);border-radius:12px">'+
-                '<div style="font-size:22px">🏠</div>'+
-                '<div style="flex:1;min-width:0"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><strong>'+esc(h.name)+'</strong> '+statusPill(h.status)+'</div>'+
-                '<div class="desc" style="margin-top:4px">'+(h.address?esc(h.address)+' · ':'')+(h.owner?'Besitzer: '+esc(h.owner)+' · ':'')+(h.price?esc(h.price):'')+'</div>'+
-                (h.notes?'<div class="desc">'+esc(h.notes)+'</div>':'')+
-                '</div><button type="button" class="btn btn-sm btn-d hl-del" data-id="'+esc(h.id)+'">Löschen</button></div>';
-            }).join('')+'</div>';
-        }).join('');
-        box.querySelectorAll('.hl-del').forEach(function(b){
-          b.onclick=async function(){
-            try{
-              var r=await api('/api/guilds/'+guildId+'/hausliste/'+encodeURIComponent(b.getAttribute('data-id')),{method:'DELETE'});
-              houses=r.houses||[]; data.houses=houses; toast('Gelöscht','ok'); render();
-            }catch(e){toast(e.message,'err')}
-          };
-        });
+        list.innerHTML='<table><thead><tr><th>Name</th><th>Preis</th><th>Owner</th><th>Status</th><th></th></tr></thead><tbody>'+
+          houses.map(function(x){
+            return '<tr><td>'+esc(x.name)+'</td><td>'+esc(x.price||'—')+'</td><td>'+esc(x.owner||'—')+'</td><td>'+statusPill(x.status)+'</td>'+
+              '<td><button type="button" class="btn btn-sm btn-d hl-del" data-id="'+esc(x.id)+'">Löschen</button></td></tr>';
+          }).join('')+'</tbody></table>';
       }
 
+      document.querySelectorAll('.hl-del').forEach(function(b){
+        b.onclick=async function(){
+          try{
+            var r=await api('/api/guilds/'+guildId+'/hausliste/'+encodeURIComponent(b.getAttribute('data-id')),{method:'DELETE'});
+            houses=r.houses||[]; data.houses=houses; render(); toast('Gelöscht','ok');
+          }catch(e){toast(e.message,'err')}
+        };
+      });
+
       $('hl-add').onclick=async function(){
-        var name=$('hl-name').value.trim();
-        if(!name) return toast('Name fehlt','err');
         try{
           var r=await api('/api/guilds/'+guildId+'/hausliste',{method:'POST',body:{
-            name:name, address:$('hl-addr').value.trim(), owner:$('hl-owner').value.trim(),
-            price:$('hl-price').value.trim(), status:$('hl-status').value, notes:$('hl-notes').value.trim()
+            name:$('hl-name').value.trim(), price:$('hl-price').value.trim(), owner:$('hl-owner').value.trim(), status:$('hl-status').value
           }});
-          houses=r.houses||[]; data.houses=houses; toast('Hinzugefügt','ok'); render();
+          houses=r.houses||[]; data.houses=houses; render(); toast('Haus hinzugefügt','ok');
         }catch(e){toast(e.message,'err')}
       };
-      $('hl-save-cfg').onclick=async function(){
+
+      $('hl-save').onclick=async function(){
         try{
           await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
             hauslistePanelTitle:$('hl-title').value.trim()||'Hausliste',
             hauslistePanelText:$('hl-text').value.trim(),
             hauslistePanelChannelId:pick.getValue()||null
           }});
-          data.panelTitle=$('hl-title').value; data.panelText=$('hl-text').value;
           toast('Gespeichert','ok');
         }catch(e){toast(e.message,'err')}
       };
+
       $('hl-send').onclick=async function(){
-        var channelId=pick.getValue()||data.panelChannelId;
-        if(!channelId) return toast('Kanal wählen','err');
         try{
           await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
             hauslistePanelTitle:$('hl-title').value.trim()||'Hausliste',
             hauslistePanelText:$('hl-text').value.trim(),
-            hauslistePanelChannelId:channelId
+            hauslistePanelChannelId:pick.getValue()||null
           }});
-          await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'hausliste',channelId:channelId}});
+          await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'hausliste', channelId:pick.getValue()}});
           toast('Panel gesendet','ok');
         }catch(e){toast(e.message,'err')}
+      };
+
+      $('hl-scan-btn').onclick=async function(){
+        var resEl=$('hl-scan-result');
+        resEl.innerHTML='<span class="spinner"></span> Analysiere…';
+        try{
+          var r=await api('/api/guilds/'+guildId+'/hausliste/analyze',{method:'POST',body:{
+            text:$('hl-scan-text').value,
+            imageUrl:$('hl-scan-img').value.trim()||null,
+            owner:$('hl-scan-owner').value.trim()||null,
+            autoApply:$('hl-scan-auto').checked
+          }});
+          var p2=r.parsed||{};
+          var html='<div class="grid2" style="margin-top:8px">'+
+            '<div class="stat"><strong>'+esc(p2.houseName||'—')+'</strong><div class="desc">Haus</div></div>'+
+            '<div class="stat"><strong>'+esc(p2.price||'—')+'</strong><div class="desc">Preis</div></div>'+
+            '<div class="stat"><strong>'+esc(p2.rooms||'—')+'</strong><div class="desc">Räume</div></div>'+
+            '<div class="stat"><strong>'+esc(p2.belegId||'—')+'</strong><div class="desc">Beleg</div></div></div>';
+          html+='<p class="desc" style="margin-top:8px">Quelle: '+esc(r.source||'text')+
+            (r.matched?' · Match: <strong>'+esc(r.matched.name)+'</strong>':' · kein Haus match')+
+            (r.updated?' · Status aktualisiert':'')+'</p>';
+          resEl.innerHTML=html;
+          if(r.houses){ houses=r.houses; data.houses=houses; }
+          if(r.updated){ toast('Haus aktualisiert','ok'); render(); }
+          else toast('Analyse fertig','ok');
+        }catch(e){ resEl.innerHTML=''; toast(e.message,'err'); }
       };
     }
     render();
   }
 
-
+  async function pageTextGen(p){
+    p.innerHTML='<h1>Text Generator</h1><p class="desc">Stichworte zu Ankündigungen. Mit OPENAI_API_KEY / DEEPSEEK_API_KEY im .env nutzt der Bot echte KI, sonst Templates.</p>'+
+      '<div class="card"><h2>Erstellen</h2>'+
+      '<div class="field"><label>Stil</label><select id="tg-style">'+
+      '<option value="ankuendigung">Ankündigung</option>'+
+      '<option value="bewerbung">Bewerbung</option>'+
+      '<option value="roleplay">Roleplay</option>'+
+      '<option value="besprechung">Besprechung</option></select></div>'+
+      '<div class="field"><label>Stichworte / Notizen</label><textarea id="tg-notes" rows="4" placeholder="Bewerbungsphase startet am Montag"></textarea></div>'+
+      '<button type="button" class="btn btn-p" id="tg-run">Text generieren</button>'+
+      '<div id="tg-out" style="margin-top:14px"></div></div>';
+    $('tg-run').onclick=async function(){
+      var out=$('tg-out');
+      out.innerHTML='<span class="spinner"></span> Generiere…';
+      try{
+        var r=await api('/api/guilds/'+guildId+'/text-gen',{method:'POST',body:{notes:$('tg-notes').value, style:$('tg-style').value}});
+        out.innerHTML='<div class="card" style="background:var(--card2)"><div class="desc">Quelle: '+esc(r.source||'template')+'</div>'+
+          '<pre style="white-space:pre-wrap;font-family:inherit;margin-top:8px;font-size:14px">'+esc(r.text||'')+'</pre>'+
+          '<button type="button" class="btn btn-sm" id="tg-copy">Kopieren</button></div>';
+        $('tg-copy').onclick=function(){ navigator.clipboard.writeText(r.text||''); toast('Kopiert','ok'); };
+      }catch(e){ out.innerHTML=''; toast(e.message,'err'); }
+    };
+  }
 
   async function pageXp(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
@@ -2247,6 +2330,195 @@ tr:hover td{background:rgba(255,255,255,.02)}
     }
     $('xp-ref').onclick=loadBoard;
     loadBoard();
+  }
+
+
+
+  async function pageAusweis(p){
+    var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    var data={types:[],requests:[]};
+    try{data=await api('/api/guilds/'+guildId+'/ausweis')}catch(e){toast(e.message,'err')}
+    try{var cfgAw=await api('/api/guilds/'+guildId+'/config'); window._awMax=(cfgAw.settings&&cfgAw.settings.ausweisMaxExtra!=null)?cfgAw.settings.ausweisMaxExtra:3; data.ausweisMaxExtra=window._awMax;}catch(e){window._awMax=3}
+    var types=data.types||[];
+    var personal=types.find(function(t){return t.id==='personalausweis'})||types[0]||{fields:[]};
+    var fields=(personal.fields||[]).slice();
+
+    function draw(){
+      p.innerHTML='<h1>Ausweis</h1><p class="desc">Personalausweis wie ID-Karte — Felder & Servername</p>'+
+        '<div class="card"><h2>Servername (Behörde)</h2>'+
+        '<div class="field"><label>Name auf dem Ausweis</label><input id="aw-server" placeholder="z.B. Notruf Hamburg"/></div>'+
+        '<div class="field"><label>Max. zusätzliche Ausweise</label><input id="aw-max" type="number" min="0" max="20"/></div>'+
+        '<button type="button" class="btn btn-p btn-sm btn-anim" id="aw-save-name">Speichern</button></div>'+
+        '<div class="card"><h2>Felder (Antrag)</h2><div id="aw-fields"></div>'+
+        '<button type="button" class="btn btn-sm btn-anim" id="aw-add-f">+ Feld</button> '+
+        '<button type="button" class="btn btn-p btn-sm btn-anim" id="aw-save-f">Felder speichern</button></div>'+
+        '<div class="card"><h2>Panel</h2>'+
+        '<div class="field"><label>Titel</label><input id="aw-pt"/></div>'+
+        '<div class="field"><label>Text</label><textarea id="aw-px" rows="2"></textarea></div>'+
+        '<div class="field"><label>Kanal</label><div id="aw-ch"></div></div>'+
+        '<button type="button" class="btn btn-p btn-anim" id="aw-send">Panel senden</button></div>'+
+        '<div class="card"><h2>Offene Anträge</h2><div id="aw-req"></div></div>';
+
+      $('aw-server').value=data.serverName||'';
+      $('aw-max').value=(data.ausweisMaxExtra!=null)?data.ausweisMaxExtra:((window._awMax!=null)?window._awMax:3);
+      $('aw-pt').value=data.panelTitle||'Ausweis beantragen';
+      $('aw-px').value=data.panelText||'Fülle Roblox-Name und die Angaben aus.';
+      var pick=makeSearchSelect($('aw-ch'),{items:channelItems(disc.channels),multi:false,value:'',placeholder:'Kanal…'});
+
+      var box=$('aw-fields');
+      box.innerHTML=fields.map(function(f,i){
+        return '<div class="card" style="margin:8px 0;padding:10px" data-fi="'+i+'">'+
+          '<div class="field"><label>Label</label><input class="af-lab" value="'+esc(f.label||'')+'"/></div>'+
+          '<div class="field"><label>Key</label><input class="af-key" value="'+esc(f.key||'')+'"/></div>'+
+          '<label class="row"><input type="checkbox" class="af-req" '+(f.required?'checked':'')+'/> Pflicht</label>'+
+          '<button type="button" class="btn btn-sm btn-d af-del">Weg</button></div>';
+      }).join('')||'<div class="empty">Keine Felder</div>';
+      box.querySelectorAll('.af-del').forEach(function(btn){
+        btn.onclick=function(){
+          var i=parseInt(btn.closest('[data-fi]').getAttribute('data-fi'),10);
+          fields.splice(i,1); draw();
+        };
+      });
+      $('aw-add-f').onclick=function(){
+        fields.push({key:'feld_'+Date.now(),label:'Neues Feld',required:false});
+        draw();
+      };
+      $('aw-save-f').onclick=async function(){
+        var out=[];
+        document.querySelectorAll('[data-fi]').forEach(function(card){
+          var label=(card.querySelector('.af-lab')||{}).value||'';
+          var key=(card.querySelector('.af-key')||{}).value||'';
+          if(!label.trim()) return;
+          out.push({
+            key:(key||label).toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,''),
+            label:label.trim(),
+            required:!!(card.querySelector('.af-req')||{}).checked
+          });
+        });
+        try{
+          var tid=personal.id||'personalausweis';
+          await api('/api/guilds/'+guildId+'/ausweis/types/'+encodeURIComponent(tid),{method:'PATCH',body:{fields:out}});
+          fields=out; toast('Felder gespeichert','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+      $('aw-save-name').onclick=async function(){
+        try{
+          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{ausweisServerName:$('aw-server').value.trim(),ausweisMaxExtra:parseInt($('aw-max').value,10)||3}});
+          data.serverName=$('aw-server').value.trim();
+          toast('Servername gespeichert','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+      $('aw-send').onclick=async function(){
+        var channelId=pick.getValue();
+        if(!channelId) return toast('Kanal wählen','err');
+        try{
+          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+            ausweisPanelTitle:$('aw-pt').value.trim(),
+            ausweisPanelText:$('aw-px').value.trim()
+          }});
+          await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'ausweis',channelId:channelId}});
+          toast('Panel gesendet','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+      var reqBox=$('aw-req');
+      var reqs=data.requests||[];
+      reqBox.innerHTML=reqs.length?reqs.map(function(r){
+        return '<div class="card" style="margin:6px 0;padding:10px"><strong>#'+esc(String(r.id))+'</strong> · '+esc(r.discord_id||'')+
+          '<div class="desc">'+esc(JSON.stringify(r.answers||{}).slice(0,120))+'</div></div>';
+      }).join(''):'<div class="empty">Keine offenen Anträge</div>';
+    }
+    draw();
+  }
+
+
+
+  async function pageModReasons(p){
+    var data={reasons:[]};
+    try{data=await api('/api/guilds/'+guildId+'/mod-reasons')}catch(e){toast(e.message,'err')}
+    var reasons=(data.reasons||[]).slice();
+    function draw(){
+      p.innerHTML='<h1>Verstoßgründe</h1><p class="desc">Für das Ingame-Moderatoren-Panel — frei konfigurierbar</p>'+
+        '<div class="card"><div id="mr-list"></div>'+
+        '<button type="button" class="btn btn-sm btn-anim" id="mr-add">+ Grund</button> '+
+        '<button type="button" class="btn btn-p btn-anim" id="mr-save">Speichern</button></div>';
+      var box=$('mr-list');
+      box.innerHTML=reasons.map(function(r,i){
+        return '<div class="card" style="margin:8px 0;padding:10px" data-ri="'+i+'">'+
+          '<div class="field"><label>Name</label><input class="mr-name" value="'+esc(r.name||'')+'"/></div>'+
+          '<div class="field"><label>ID</label><input class="mr-id" value="'+esc(r.id||'')+'"/></div>'+
+          '<div class="field"><label>Beschreibung</label><textarea class="mr-desc" rows="2">'+esc(r.description||'')+'</textarea></div>'+
+          '<div class="field"><label>Maßnahmen</label><input class="mr-meas" value="'+esc(r.measures||'')+'"/></div>'+
+          '<div class="field"><label>Strafe</label><input class="mr-pun" value="'+esc(r.punishment||'')+'"/></div>'+
+          '<div class="field"><label>Warn-Stufe</label><input class="mr-wl" type="number" value="'+(r.warnLevel!=null?r.warnLevel:1)+'"/></div>'+
+          '<button type="button" class="btn btn-sm btn-d mr-del">Entfernen</button></div>';
+      }).join('')||'<div class="empty">Keine Gründe</div>';
+      box.querySelectorAll('.mr-del').forEach(function(btn){
+        btn.onclick=function(){ reasons.splice(parseInt(btn.closest('[data-ri]').getAttribute('data-ri'),10),1); draw(); };
+      });
+      $('mr-add').onclick=function(){
+        reasons.push({id:'grund_'+Date.now(),name:'Neuer Grund',description:'',measures:'',punishment:'',warnLevel:1});
+        draw();
+      };
+      $('mr-save').onclick=async function(){
+        var out=[];
+        document.querySelectorAll('[data-ri]').forEach(function(card){
+          var name=(card.querySelector('.mr-name')||{}).value||'';
+          if(!name.trim()) return;
+          var id=(card.querySelector('.mr-id')||{}).value||name.toLowerCase().replace(/\s+/g,'_');
+          out.push({
+            id:id, name:name.trim(),
+            description:(card.querySelector('.mr-desc')||{}).value||'',
+            measures:(card.querySelector('.mr-meas')||{}).value||'',
+            punishment:(card.querySelector('.mr-pun')||{}).value||'',
+            warnLevel:parseInt((card.querySelector('.mr-wl')||{}).value,10)||1
+          });
+        });
+        try{
+          await api('/api/guilds/'+guildId+'/mod-reasons',{method:'PUT',body:{reasons:out}});
+          reasons=out; toast('Gespeichert','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+    }
+    draw();
+  }
+
+  async function pageComplaint(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
+    p.innerHTML='<h1>Team-Beschwerde</h1><p class="desc">Einstellungen für Beschwerde-Tickets</p>'+
+      '<div class="card">'+
+      '<button type="button" class="btn btn-anim '+(s.complaintEnabled!==false?'btn-p':'')+'" id="cp-en">'+(s.complaintEnabled!==false?'Aktiv: An':'Aktiv: Aus')+'</button>'+
+      '<div class="field" style="margin-top:12px"><label>Ticket-Kategorie</label><div id="cp-cat"></div></div>'+
+      '<div class="field"><label>Support-Rollen (Ping)</label><div id="cp-roles"></div></div>'+
+      '<button type="button" class="btn btn-p btn-anim" id="cp-save">Speichern</button></div>'+
+      '<div class="card"><h2>Panel senden</h2>'+
+      '<div class="field"><label>Kanal</label><div id="cp-ch"></div></div>'+
+      '<button type="button" class="btn btn-p btn-anim" id="cp-send">Beschwerde-Panel senden</button></div>';
+    var pickCat=makeSearchSelect($('cp-cat'),{items:channelItems(disc.channels),multi:false,value:s.complaintCategoryId||s.ticketCategoryId||'',placeholder:'Kategorie…'});
+    var pickRoles=makeSearchSelect($('cp-roles'),{items:roleItems(disc.roles),multi:true,values:s.complaintSupportRoleIds||[],placeholder:'Rollen…'});
+    var pickCh=makeSearchSelect($('cp-ch'),{items:channelItems(disc.channels),multi:false,value:'',placeholder:'Kanal…'});
+    $('cp-en').onclick=async function(){
+      var on=!(s.complaintEnabled!==false);
+      try{await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{complaintEnabled:on}});s.complaintEnabled=on;$('cp-en').textContent=on?'Aktiv: An':'Aktiv: Aus';$('cp-en').classList.toggle('btn-p',on);toast('OK','ok')}catch(e){toast(e.message,'err')}
+    };
+    $('cp-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          complaintCategoryId:pickCat.getValue()||null,
+          complaintSupportRoleIds:pickRoles.getValue()||[]
+        }});
+        toast('Gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+    $('cp-send').onclick=async function(){
+      var channelId=pickCh.getValue();
+      if(!channelId) return toast('Kanal wählen','err');
+      try{
+        await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'complaint',channelId:channelId}});
+        toast('Panel gesendet','ok');
+      }catch(e){toast(e.message,'err')}
+    };
   }
 
 
