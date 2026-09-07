@@ -11,34 +11,59 @@
   --accent:#8b5cf6;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#f87171;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
 body{
   font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(139,92,246,.25),transparent 50%),
-    radial-gradient(ellipse 50% 40% at 0% 50%,rgba(34,211,238,.06),transparent),
+    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(139,92,246,.28),transparent 50%),
+    radial-gradient(ellipse 50% 40% at 0% 60%,rgba(34,211,238,.06),transparent),
     radial-gradient(ellipse 40% 40% at 100% 80%,rgba(109,40,217,.12),transparent);
 }
 a{color:inherit;text-decoration:none}
 .top{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:14px 24px;border-bottom:1px solid var(--line);backdrop-filter:blur(14px);
-  background:rgba(5,5,10,.7);position:sticky;top:0;z-index:20;
+  background:rgba(5,5,10,.75);position:sticky;top:0;z-index:40;
 }
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
 .brand i{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#a78bfa,#6d28d9);display:grid;place-items:center;font-style:normal;box-shadow:0 8px 22px rgba(139,92,246,.35)}
 .nav{display:flex;gap:6px;flex-wrap:wrap}
 .nav a{padding:8px 12px;border-radius:10px;color:var(--muted);font-size:13px;font-weight:500;transition:.15s}
 .nav a:hover{color:#fff;background:rgba(255,255,255,.05)}
-.btn{display:inline-flex;align-items:center;padding:10px 16px;border-radius:11px;font-weight:600;font-size:13px;border:0;cursor:pointer;transition:transform .15s,box-shadow .2s}
-.btn:hover{transform:translateY(-1px)}
-.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 8px 22px rgba(124,58,237,.4)}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:11px 18px;border-radius:12px;font-weight:600;font-size:14px;border:0;cursor:pointer;transition:transform .15s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 10px 28px rgba(124,58,237,.4)}
+.btn-g{background:rgba(255,255,255,.06);color:#fff;border:1px solid var(--line)}
 
-.hero{text-align:center;padding:40px 16px 18px}
-.hero h1{font-size:clamp(1.7rem,4vw,2.5rem);letter-spacing:-.03em}
+.hero{text-align:center;padding:64px 20px 36px;max-width:720px;margin:0 auto;animation:up .55s ease both}
+.hero h1{font-size:clamp(2rem,5vw,2.9rem);letter-spacing:-.04em;line-height:1.15}
 .hero h1 b{background:linear-gradient(90deg,#c4b5fd,#8b5cf6,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p{color:var(--muted);margin-top:10px;font-size:15px;line-height:1.5;max-width:520px;margin-left:auto;margin-right:auto}
+.hero p{color:var(--muted);margin:14px auto 28px;font-size:1.08rem;line-height:1.6}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
 
-.stage{display:grid;grid-template-columns:minmax(200px,260px) 1fr;gap:18px;max-width:1080px;margin:0 auto;padding:12px 16px 60px}
+.sec-title{text-align:center;padding:48px 16px 8px}
+.sec-title h2{font-size:1.5rem;letter-spacing:-.02em}
+.sec-title p{color:var(--muted);margin-top:8px;font-size:14px}
+
+.feat-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;
+  max-width:1000px;margin:20px auto 0;padding:0 16px 40px;
+}
+.feat{
+  background:rgba(18,18,28,.9);border:1px solid var(--line);border-radius:16px;padding:16px;
+  transition:transform .2s,border-color .2s,box-shadow .2s;animation:up .5s ease both;
+}
+.feat:hover{transform:translateY(-3px);border-color:rgba(139,92,246,.4);box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.feat .ic{font-size:22px;margin-bottom:8px}
+.feat strong{display:block;font-size:14px;margin-bottom:4px}
+.feat span{font-size:12px;color:var(--muted);line-height:1.4}
+
+.demo-head{text-align:center;padding:56px 16px 12px;border-top:1px solid var(--line);margin-top:12px}
+.demo-head h2{font-size:clamp(1.5rem,3vw,2rem)}
+.demo-head h2 b{background:linear-gradient(90deg,#c4b5fd,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+.demo-head p{color:var(--muted);margin-top:10px;font-size:14px}
+
+.stage{display:grid;grid-template-columns:minmax(200px,260px) 1fr;gap:18px;max-width:1080px;margin:0 auto;padding:12px 16px 70px}
 @media(max-width:860px){.stage{grid-template-columns:1fr}}
 .mods{display:flex;flex-direction:column;gap:8px}
 .mod{
@@ -53,24 +78,21 @@ a{color:inherit;text-decoration:none}
 .mod span{font-size:11px;color:var(--muted)}
 .mod .arrow{margin-left:auto;opacity:.4}
 
-.win{
-  background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;
-  box-shadow:0 24px 60px rgba(0,0,0,.45);min-height:420px;animation:in .35s ease;
-}
+.win{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.45);min-height:400px;animation:in .35s ease}
 @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02);font-size:11px;color:var(--muted)}
-.d{width:9px;height:9px;border-radius:50%}
-.d.r{background:#ff5f57}.d.y{background:#febc2e}.d.g{background:#28c840}
+.d{width:9px;height:9px;border-radius:50%}.d.r{background:#ff5f57}.d.y{background:#febc2e}.d.g{background:#28c840}
 .live{margin-left:auto;color:var(--red);font-weight:700;letter-spacing:.06em;font-size:10px}
 .live i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:4px;animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.3}}
-.body{display:grid;grid-template-columns:140px 1fr;min-height:380px}
+.body{display:grid;grid-template-columns:140px 1fr;min-height:360px}
 @media(max-width:600px){.body{grid-template-columns:1fr}}
 .side{padding:14px;border-right:1px solid var(--line);background:rgba(0,0,0,.25);font-size:12px}
 .side h5{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
 .side a{display:block;padding:7px 8px;border-radius:8px;color:var(--muted);margin-bottom:2px}
 .side a.on{background:rgba(139,92,246,.18);color:#fff}
-.main{padding:16px 18px;position:relative}
+.main{padding:16px 18px}
 .main h2{font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .chip{font-size:10px;padding:3px 8px;border-radius:999px;font-weight:700;border:1px solid var(--line)}
 .chip.g{background:rgba(52,211,153,.12);color:var(--green);border-color:rgba(52,211,153,.3)}
@@ -86,33 +108,30 @@ a{color:inherit;text-decoration:none}
 .bubble .who em{font-style:normal;font-size:10px;color:var(--muted);margin-left:6px}
 .inputbar{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--muted);font-size:12px}
 .card{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--line);margin-bottom:8px;transition:border-color .2s,transform .15s}
-.row:hover{border-color:rgba(139,92,246,.35);transform:translateY(-1px)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--line);margin-bottom:8px}
 .statg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .stat{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
-.stat b{display:block;font-size:18px}
-.stat span{font-size:10px;color:var(--muted)}
+.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:var(--muted)}
 .progress{height:6px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:8px 0}
 .progress i{display:block;height:100%;background:linear-gradient(90deg,#8b5cf6,#22d3ee);width:0;transition:width .4s}
-.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .btn-sm{padding:8px 12px;border-radius:8px;border:0;font-size:12px;font-weight:600;cursor:pointer}
-.btn-sm.p{background:var(--accent);color:#fff}
-.btn-sm.g{background:rgba(52,211,153,.2);color:var(--green)}
-.btn-sm.d{background:rgba(248,113,113,.15);color:var(--red)}
-.btn-sm.n{background:rgba(255,255,255,.06);color:var(--text)}
-.foot{text-align:center;padding:16px;color:#64748b;font-size:12px;border-top:1px solid var(--line)}
-.hint{text-align:center;color:var(--muted);font-size:12px;padding:0 16px 24px}
-.corner{position:fixed;right:12px;bottom:12px;background:rgba(12,12,18,.95);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:11px;z-index:30}
-.corner a{display:block;color:#94a3b8;margin:2px 0}.corner a:hover{color:#c4b5fd}
-.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:20px auto}
+.btn-sm.p{background:var(--accent);color:#fff}.btn-sm.g{background:rgba(52,211,153,.2);color:var(--green)}
+.btn-sm.d{background:rgba(248,113,113,.15);color:var(--red)}.btn-sm.n{background:rgba(255,255,255,.06);color:var(--text)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.center{text-align:center;padding:32px 16px;color:var(--muted)}
+.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:16px auto}
 @keyframes spin{to{transform:rotate(360deg)}}
-.center{text-align:center;padding:40px 16px;color:var(--muted)}
+.hint{text-align:center;color:var(--muted);font-size:12px;padding:0 16px 24px}
+.foot{text-align:center;padding:20px;color:#64748b;font-size:12px;border-top:1px solid var(--line)}
+.corner{position:fixed;right:12px;bottom:12px;background:rgba(12,12,18,.95);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:11px;z-index:30;box-shadow:0 12px 32px rgba(0,0,0,.4)}
+.corner a{display:block;color:#94a3b8;margin:2px 0}.corner a:hover{color:#c4b5fd}
 </style>
 </head>
 <body>
 <header class="top">
   <div class="brand"><i>🤖</i> STAFFORA</div>
   <nav class="nav">
+    <a href="#features">Module</a>
     <a href="#demo">Live Demo</a>
     <a href="./dashboard.html">Dashboard</a>
     <a href="./ingame.html">IC Panel</a>
@@ -122,26 +141,53 @@ a{color:inherit;text-decoration:none}
 </header>
 
 <section class="hero">
-  <h1>Sieh alles <b>live in Aktion</b></h1>
-  <p>Klicke auf ein Modul und erlebe eine Live-Simulation — kein Login nötig.</p>
+  <h1>Moderation &amp; RP — <b>ein Bot</b></h1>
+  <p>Tickets, Team, Ausweis, Häuser, Duty, Dizzy und KI-Assistent im Ticket. Alles über ein Dashboard.</p>
+  <div class="hero-actions">
+    <a class="btn btn-p" href="./dashboard.html">Dashboard öffnen</a>
+    <a class="btn btn-g" href="#demo">Live Demo ansehen</a>
+  </div>
 </section>
 
-<div class="stage" id="demo">
+<section class="sec-title" id="features">
+  <h2>Module</h2>
+  <p>Was Staffora kann — kurz und klar.</p>
+</section>
+<div class="feat-grid">
+  <div class="feat" style="animation-delay:.02s"><div class="ic">🎫</div><strong>Tickets</strong><span>Support öffnen, claimen, schließen mit Transcript.</span></div>
+  <div class="feat" style="animation-delay:.05s"><div class="ic">🧠</div><strong>KI-Assistent</strong><span>Antwortet in Tickets mit Server-Kontext (Kanäle, Häuser, Settings).</span></div>
+  <div class="feat" style="animation-delay:.08s"><div class="ic">✍️</div><strong>Text Generator</strong><span>Ankündigungen aus Stichworten — mit API oder Template.</span></div>
+  <div class="feat" style="animation-delay:.11s"><div class="ic">🏠</div><strong>Häuser &amp; Beleg-Scan</strong><span>Hausliste, Status, Beleg-Text erkennen und zuordnen.</span></div>
+  <div class="feat" style="animation-delay:.14s"><div class="ic">🔨</div><strong>Ingame Ban Log</strong><span>Warns, Bans, Akte im IC Panel.</span></div>
+  <div class="feat" style="animation-delay:.17s"><div class="ic">🖐️</div><strong>Dizzy Control</strong><span>Roblox-Name im Kanal, Staff bestätigt.</span></div>
+  <div class="feat" style="animation-delay:.2s"><div class="ic">🪪</div><strong>Ausweis</strong><span>Perso zuerst, dann Zusatz — Häuser auf dem Ausweis.</span></div>
+  <div class="feat" style="animation-delay:.23s"><div class="ic">👮</div><strong>Duty / Online</strong><span>On/Off über IC Panel, Liste mit/ohne Rechte.</span></div>
+  <div class="feat" style="animation-delay:.26s"><div class="ic">⭐</div><strong>Feedback &amp; XP</strong><span>Sterne-Panel, XP für Tickets und Calls.</span></div>
+  <div class="feat" style="animation-delay:.29s"><div class="ic">🔓</div><strong>Ban Appeal</strong><span>Unban per Roblox-Name und Fragen.</span></div>
+</div>
+
+<section class="demo-head" id="demo">
+  <h2>Sieh alles <b>live in Aktion</b></h2>
+  <p>Modul wählen — Simulation im Browser, kein Login nötig.</p>
+</section>
+
+<div class="stage">
   <div class="mods" id="mods">
     <div class="mod on" data-k="tickets"><div class="ic">🎫</div><div><strong>Ticket System</strong><span>Support-Workflow</span></div><span class="arrow">›</span></div>
+    <div class="mod" data-k="ai"><div class="ic">🧠</div><div><strong>KI im Ticket</strong><span>Server-Kontext</span></div><span class="arrow">›</span></div>
     <div class="mod" data-k="text"><div class="ic">✍️</div><div><strong>Text Generator</strong><span>Ankündigungen</span></div><span class="arrow">›</span></div>
-    <div class="mod" data-k="ingame"><div class="ic">🔨</div><div><strong>Ingame Ban Log</strong><span>Echtzeit-Akte</span></div><span class="arrow">›</span></div>
-    <div class="mod" data-k="houses"><div class="ic">🏠</div><div><strong>Häuser</strong><span>Liste · Status</span></div><span class="arrow">›</span></div>
-    <div class="mod" data-k="dizzy"><div class="ic">🖐️</div><div><strong>Dizzy Control</strong><span>Roblox-Verknüpfung</span></div><span class="arrow">›</span></div>
+    <div class="mod" data-k="ingame"><div class="ic">🔨</div><div><strong>Ingame Ban Log</strong><span>Akte live</span></div><span class="arrow">›</span></div>
+    <div class="mod" data-k="houses"><div class="ic">🏠</div><div><strong>Häuser</strong><span>Beleg-Scan</span></div><span class="arrow">›</span></div>
+    <div class="mod" data-k="dizzy"><div class="ic">🖐️</div><div><strong>Dizzy Control</strong><span>Roblox-Link</span></div><span class="arrow">›</span></div>
   </div>
   <div id="preview" class="win"></div>
 </div>
-<p class="hint">Simulation der Module. Echte Einstellungen und Daten im Dashboard nach Login.</p>
+<p class="hint">Nur Vorschau. Einstellungen und echte KI laufen über Dashboard + Bot-.env.</p>
 <p class="foot">STAFFORA BOT</p>
 <div class="corner">
+  <a href="./dashboard.html">Dashboard</a>
   <a href="./ingame.html">IC Panel</a>
   <a href="./unban.html">Ban Appeal</a>
-  <a href="./dashboard.html">Dashboard</a>
 </div>
 
 <script>
@@ -155,7 +201,6 @@ a{color:inherit;text-decoration:none}
   var timers=[];
   function clearT(){ timers.forEach(clearTimeout); timers=[]; }
   function later(fn,ms){ timers.push(setTimeout(fn,ms)); }
-
   function shell(url, sideHtml, mainHtml){
     return '<div class="bar"><span class="d r"></span><span class="d y"></span><span class="d g"></span>'+
       '<span style="flex:1;text-align:center">'+url+'</span><span class="live"><i></i>LIVE</span></div>'+
@@ -163,127 +208,63 @@ a{color:inherit;text-decoration:none}
   }
 
   function runTickets(){
-    var side='<h5>Tickets</h5><a class="on"># ticket-0042</a><a># ticket-0041</a><a># ticket-0040</a>';
     var el=document.getElementById('preview');
-    el.innerHTML=shell('staffora · Tickets', side,
-      '<h2># ticket-0042 <span class="chip g" id="st">OFFEN</span></h2>'+
-      '<div class="sub">Support · geöffnet von Jonas_S</div><div id="feed"></div><div class="inputbar">Nachricht an #ticket-0042…</div>');
+    el.innerHTML=shell('staffora · Tickets','<h5>Tickets</h5><a class="on"># ticket-0042</a><a># ticket-0041</a>',
+      '<h2># ticket-0042 <span class="chip g" id="st">OFFEN</span></h2><div class="sub">Support</div><div id="feed"></div><div class="inputbar">Nachricht…</div>');
     var feed=el.querySelector('#feed');
-    var steps=[
-      {delay:400, html:'<div class="msg"><div class="av b">S</div><div class="bubble"><div class="who">Staffora <em>BOT</em></div>Ticket #0042 wurde erstellt · Kategorie: Support</div></div>'},
-      {delay:1400, html:'<div class="msg"><div class="av u">J</div><div class="bubble"><div class="who">Jonas_S</div>Hallo! Ich brauche Hilfe bei meinem Haus-Kauf.</div></div>'},
-      {delay:2600, html:'<div class="msg"><div class="av s">M</div><div class="bubble"><div class="who">Max <em>STAFF</em></div>Hey Jonas! Ich übernehme dein Ticket. 👋</div></div>', st:'BEARBEITET', chip:'a'},
-      {delay:4000, html:'<div class="msg"><div class="av b">S</div><div class="bubble"><div class="who">Staffora <em>BOT</em></div>Ticket an Max zugewiesen.</div></div>'},
-      {delay:5200, html:'<div class="msg"><div class="av s">M</div><div class="bubble"><div class="who">Max <em>STAFF</em></div>Zahlung im Häuser-System gefunden — alles passt. ✅</div></div>'},
-      {delay:6800, html:'<div class="card"><strong>📄 Transkript generiert</strong><div class="sub" style="margin:6px 0 0">Dauer 8 Min · 12 Nachrichten · Bearbeiter Max</div></div>', st:'GESCHLOSSEN', chip:'p'}
-    ];
-    steps.forEach(function(s){
-      later(function(){
-        feed.insertAdjacentHTML('beforeend', s.html);
-        if(s.st){ var c=document.getElementById('st'); c.textContent=s.st; c.className='chip '+s.chip; }
-        feed.lastChild.scrollIntoView({behavior:'smooth',block:'nearest'});
-      }, s.delay);
-    });
+    [[400,'<div class="msg"><div class="av b">S</div><div class="bubble"><div class="who">Staffora <em>BOT</em></div>Ticket erstellt · Support</div></div>'],
+     [1200,'<div class="msg"><div class="av u">J</div><div class="bubble"><div class="who">Jonas_S</div>Wo ist der Dizzy Control Kanal?</div></div>'],
+     [2200,'<div class="msg"><div class="av s">M</div><div class="bubble"><div class="who">Max <em>STAFF</em></div>Ich übernehme. 👋</div></div>','BEARBEITET','a'],
+     [3600,'<div class="card"><strong>📄 Transkript</strong><div class="sub">8 Min · Max</div></div>','GESCHLOSSEN','p']
+    ].forEach(function(s){ later(function(){ feed.insertAdjacentHTML('beforeend',s[1]); if(s[2]){ var c=document.getElementById('st'); c.textContent=s[2]; c.className='chip '+s[3]; } },s[0]); });
+  }
+
+  function runAi(){
+    var el=document.getElementById('preview');
+    el.innerHTML=shell('staffora · KI','<h5>Ticket</h5><a class="on"># ticket-0042</a>',
+      '<h2>KI-Assistent</h2><div class="sub">Kennt Dashboard-Settings</div><div id="feed"></div>');
+    var feed=el.querySelector('#feed');
+    later(function(){ feed.innerHTML='<div class="msg"><div class="av u">J</div><div class="bubble"><div class="who">Jonas_S</div>Wo ist Dizzy Control?</div></div>'; },400);
+    later(function(){ feed.insertAdjacentHTML('beforeend','<div class="msg"><div class="av b">S</div><div class="bubble"><div class="who">Staffora <em>KI</em></div>Der Dizzy-Control-Kanal ist <strong>#verifikation</strong> (wie im Dashboard hinterlegt). Schreib dort deinen Roblox-Namen rein.</div></div>'); },1600);
   }
 
   function runText(){
-    var side='<h5>Stil</h5><a class="on">Ankündigung</a><a>Besprechung</a><a>Roleplay</a>';
     var el=document.getElementById('preview');
-    el.innerHTML=shell('staffora · Text', side,
-      '<h2>Text-Optimierung</h2><div class="sub">Stichworte → fertige Ankündigung</div>'+
-      '<div class="card" id="box">Bewerbungsphase startet am Montag</div>'+
-      '<div class="btnrow"><button class="btn-sm p" id="gen">Text generieren</button></div><div id="out"></div>');
-    later(function(){
-      var out=document.getElementById('out');
-      out.innerHTML='<div class="center"><div class="spin"></div><p>Staffora denkt nach…</p></div>';
-      later(function(){
-        out.innerHTML='<div class="card" style="animation:msgIn .4s ease">'+
-          '<strong>🚀 Die Bewerbungsphase ist GEÖFFNET!</strong><p style="margin-top:8px;color:var(--muted);font-size:13px;line-height:1.5">'+
-          'Liebe Community, ab Montag starten wir eine neue Bewerbungsphase. Wir suchen Verstärkung für Support und Fraktionen.</p>'+
-          '<p style="margin-top:8px;font-size:13px">• Mindestens 16 Jahre<br>• Erfahrung im RP<br>• Bewerbung ab 18:00 im Ticket-Kanal</p></div>'+
-          '<div class="btnrow"><button class="btn-sm n">Neu generieren</button><button class="btn-sm p">Bearbeiten</button></div>';
-      }, 1600);
-    }, 600);
+    el.innerHTML=shell('staffora · Text','<h5>Stil</h5><a class="on">Ankündigung</a>',
+      '<h2>Text Generator</h2><div class="sub">Stichworte → Text</div><div class="card" id="box">Bewerbungsphase startet am Montag</div><div id="out"></div>');
+    later(function(){ document.getElementById('out').innerHTML='<div class="center"><div class="spin"></div><p>Generiere…</p></div>'; },500);
+    later(function(){ document.getElementById('out').innerHTML='<div class="card"><strong>🚀 Bewerbungsphase geöffnet</strong><p class="sub" style="margin-top:8px">Ab Montag neue Bewerbungen für Support und Fraktionen. Ticket-Kanal ab 18:00.</p></div>'; },1800);
   }
 
   function runIngame(){
-    var side='<h5>Navigation</h5><a class="on">Übersicht</a><a>Ban-Liste</a><a>User suchen</a><a>Unbans</a>';
     var el=document.getElementById('preview');
-    el.innerHTML=shell('staffora · Ingame', side,
-      '<h2>Ingame Management</h2><div class="sub">Roblox-Bans &amp; Verknüpfungen</div>'+
-      '<div class="statg"><div class="stat"><b>3</b><span>Links</span></div><div class="stat"><b id="ab">5</b><span>Aktive Bans</span></div><div class="stat"><b>2</b><span>Perma</span></div></div>'+
-      '<div class="sub">Live Bans</div><div id="bans"></div>');
-    var list=[
-      {t:500,h:'<div class="row"><div><strong>GrieferMax</strong><br><small>Griefing · 7 Tage</small></div><span class="chip a">7 Tage</span></div>'},
-      {t:1400,h:'<div class="row"><div><strong>Speedhacker99</strong><br><small>Cheating</small></div><span class="chip p">Aktiv</span></div>'},
-      {t:2400,h:'<div class="row" style="border-color:rgba(248,113,113,.4)"><div><strong>CheaterBot</strong><br><small>Exploiting · neu</small></div><span class="chip a">24h</span></div>', n:6}
-    ];
-    list.forEach(function(x){
-      later(function(){
-        document.getElementById('bans').insertAdjacentHTML('afterbegin', x.h);
-        if(x.n) document.getElementById('ab').textContent=x.n;
-      }, x.t);
-    });
+    el.innerHTML=shell('staffora · Ingame','<h5>Nav</h5><a class="on">Übersicht</a><a>Bans</a>',
+      '<h2>Ingame Management</h2><div class="statg"><div class="stat"><b>3</b><span>Links</span></div><div class="stat"><b id="ab">5</b><span>Bans</span></div><div class="stat"><b>2</b><span>Perma</span></div></div><div id="bans"></div>');
+    later(function(){ document.getElementById('bans').innerHTML='<div class="row"><div><strong>GrieferMax</strong><br><small>7 Tage</small></div><span class="chip a">Aktiv</span></div>'; },500);
+    later(function(){ document.getElementById('bans').insertAdjacentHTML('afterbegin','<div class="row"><div><strong>CheaterBot</strong><br><small>24h</small></div><span class="chip p">Neu</span></div>'); document.getElementById('ab').textContent='6'; },1600);
   }
 
   function runHouses(){
-    var side='<h5>Häuser</h5><a class="on">Hausliste</a><a>Reservierungen</a>';
     var el=document.getElementById('preview');
-    el.innerHTML=shell('staffora · Häuser', side,
-      '<h2>Häuser System</h2><div class="sub">Liste · Status · Owner</div>'+
-      '<div id="hl">'+
-      '<div class="row" id="v1"><div><strong>Villa Pacific</strong><br><small>40k €</small></div><span class="chip g" id="s1">Frei</span></div>'+
-      '<div class="row"><div><strong>Beach House 2</strong><br><small>25k €</small></div><span class="chip a">Reserviert</span></div>'+
-      '</div><button class="btn-sm p" style="width:100%;margin-top:8px" id="scan">Transaktion scannen</button><div id="scanout"></div>');
-    later(function(){
-      document.getElementById('scanout').innerHTML='<div class="center"><div class="spin"></div><p>Beleg wird gelesen…</p><div class="progress"><i id="pg"></i></div></div>';
-      var p=0;
-      var iv=setInterval(function(){
-        p+=12; var pg=document.getElementById('pg'); if(pg) pg.style.width=Math.min(p,100)+'%';
-        if(p>=100) clearInterval(iv);
-      },200);
-      timers.push(iv);
-      later(function(){
-        document.getElementById('s1').textContent='Bezahlt';
-        document.getElementById('s1').className='chip g';
-        document.getElementById('v1').style.borderColor='rgba(52,211,153,.5)';
-        document.getElementById('scanout').innerHTML=
-          '<div class="card" style="animation:msgIn .35s ease"><strong>✅ Zahlung zugeordnet</strong>'+
-          '<div class="sub">Villa Pacific · 40.000 € · 6 Zimmer · Beleg #TX-88241</div></div>';
-      }, 2200);
-    }, 800);
+    el.innerHTML=shell('staffora · Häuser','<h5>Häuser</h5><a class="on">Liste</a>',
+      '<h2>Beleg-Scan</h2><div class="row" id="v1"><div><strong>Villa Pacific</strong><br><small>40k €</small></div><span class="chip g" id="s1">Frei</span></div><div id="scanout"></div>');
+    later(function(){ document.getElementById('scanout').innerHTML='<div class="center"><div class="spin"></div><div class="progress"><i id="pg"></i></div></div>'; var p=0; var iv=setInterval(function(){ p+=15; var e=document.getElementById('pg'); if(e)e.style.width=Math.min(p,100)+'%'; if(p>=100)clearInterval(iv); },180); timers.push(iv); },600);
+    later(function(){ document.getElementById('s1').textContent='Bezahlt'; document.getElementById('scanout').innerHTML='<div class="card"><strong>✅ Zahlung zugeordnet</strong><div class="sub">Villa Pacific · #TX-88241</div></div>'; },2400);
   }
 
   function runDizzy(){
-    var side='<h5>Kern</h5><a class="on">Verifikation</a><a>Audit-Log</a>';
     var el=document.getElementById('preview');
-    el.innerHTML=shell('staffora · Dizzy', side,
-      '<h2>Dizzy-Kontrolle</h2><div class="sub">Roblox ↔ Discord</div>'+
-      '<div class="card">↳ Schreibe deinen Roblox-Namen hier rein</div>'+
-      '<div id="dz"></div>');
-    later(function(){
-      document.getElementById('dz').innerHTML='<div class="msg"><div class="av u">J</div><div class="bubble"><div class="who">Jonas_S</div>MaxPower_2024</div></div>';
-    }, 900);
-    later(function(){
-      document.getElementById('dz').insertAdjacentHTML('beforeend',
-        '<div class="card" style="animation:msgIn .35s ease"><strong>Verknüpfung prüfen</strong>'+
-        '<div class="sub">Spieler MaxPower (@MaxPower_2024)<br>Status: Wartet auf Staff-Bestätigung</div>'+
-        '<div class="btnrow"><button class="btn-sm d">Abbrechen</button><button class="btn-sm g" id="ok">Bestätigen</button></div></div>');
-    }, 2000);
-    later(function(){
-      var ok=document.getElementById('ok');
-      if(ok){ ok.textContent='Bestätigt ✓'; ok.style.pointerEvents='none'; }
-    }, 3400);
+    el.innerHTML=shell('staffora · Dizzy','<h5>Kanal</h5><a class="on">#verifikation</a>',
+      '<h2>Dizzy Control</h2><div class="card">↳ Schreibe deinen Roblox-Namen hier rein</div><div id="dz"></div>');
+    later(function(){ document.getElementById('dz').innerHTML='<div class="msg"><div class="av u">J</div><div class="bubble"><div class="who">Jonas_S</div>MaxPower_2024</div></div>'; },800);
+    later(function(){ document.getElementById('dz').insertAdjacentHTML('beforeend','<div class="card"><strong>Verknüpfung prüfen</strong><div class="sub">Wartet auf Staff</div><div class="btnrow"><button class="btn-sm g">Bestätigen</button></div></div>'); },2000);
   }
 
-  var runners={tickets:runTickets,text:runText,ingame:runIngame,houses:runHouses,dizzy:runDizzy};
-
+  var runners={tickets:runTickets,ai:runAi,text:runText,ingame:runIngame,houses:runHouses,dizzy:runDizzy};
   document.querySelectorAll('.mod').forEach(function(m){
     m.onclick=function(){
       document.querySelectorAll('.mod').forEach(function(x){x.classList.remove('on')});
-      m.classList.add('on');
-      clearT();
-      (runners[m.getAttribute('data-k')]||runTickets)();
+      m.classList.add('on'); clearT(); (runners[m.getAttribute('data-k')]||runTickets)();
     };
   });
   runTickets();

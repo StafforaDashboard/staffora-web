@@ -230,6 +230,35 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
 .pill{transition:transform .15s,box-shadow .15s}
 .pill:hover{transform:scale(1.05)}
 
+
+.toggle-sw{position:relative;width:48px;height:28px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid var(--border);cursor:pointer;transition:background .2s,box-shadow .2s;flex-shrink:0}
+.toggle-sw.on{background:linear-gradient(135deg,#8b5cf6,#6d28d9);box-shadow:0 0 0 3px rgba(139,92,246,.2)}
+.toggle-sw i{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.toggle-sw.on i{transform:translateX(20px)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:0}
+.staffora-div{display:flex;align-items:center;gap:14px;margin:16px 0 8px;opacity:.95}
+.staffora-div .line{flex:1;height:3px;border-radius:99px;background:linear-gradient(90deg,#7c3aed,#a78bfa)}
+.staffora-div span{font-weight:700;font-size:13px;letter-spacing:.02em;color:#e2e8f0;white-space:nowrap}
+.fac-card{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;transition:border-color .15s,transform .15s}
+.fac-card:hover{border-color:rgba(139,92,246,.4);transform:translateY(-1px)}
+.fac-card .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.fac-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+
+
+.id-card{max-width:420px;margin:12px auto;background:linear-gradient(145deg,#1a1a24,#0e0e14);border:1px solid rgba(139,92,246,.35);border-radius:16px;padding:18px;box-shadow:0 16px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06)}
+.id-card .hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.id-card .hdr strong{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#c4b5fd}
+.id-card .eagle{font-size:28px;opacity:.9}
+.id-card .body{display:grid;grid-template-columns:88px 1fr;gap:14px}
+.id-card .photo{width:88px;height:110px;border-radius:8px;background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.15);display:grid;place-items:center;color:#64748b;font-size:11px}
+.id-card .fields div{margin-bottom:6px}
+.id-card .fields label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#64748b}
+.id-card .fields span{font-size:13px;font-weight:600}
+.id-card .foot{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:#64748b;display:flex;justify-content:space-between}
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.subtabs button{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer}
+.subtabs button.on{background:rgba(139,92,246,.2);color:#fff;border-color:rgba(139,92,246,.45)}
 </style>
 </head>
 <body>
@@ -263,7 +292,7 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
       <button type="button" class="nav-btn" data-p="commands"><span class="ic">⌨️</span> Commands</button>
       <button type="button" class="nav-btn" data-p="serverstats"><span class="ic">📈</span> Server-Stats</button>
       <button type="button" class="nav-btn" data-p="hausliste"><span class="ic">🏠</span> Hausliste</button>
-      <button type="button" class="nav-btn" data-p="textgen"><span class="ic">✍️</span> Text Generator</button>
+      <!-- KI removed -->
       <div class="nav-sec">Systeme</div>
       <button type="button" class="nav-btn" data-p="ausweis"><span class="ic">🪪</span> Ausweis</button>
       <button type="button" class="nav-btn" data-p="modreasons"><span class="ic">⚖️</span> Verstoßgründe</button>
@@ -274,6 +303,11 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
       <button type="button" class="nav-btn" data-p="duty"><span class="ic">⏱️</span> Duty</button>
       <button type="button" class="nav-btn" data-p="dizzy"><span class="ic">🎮</span> Dizzy Control</button>
       <button type="button" class="nav-btn" data-p="partner"><span class="ic">🤝</span> Partnerschaft</button>
+      
+      <button type="button" class="nav-btn" data-p="warteraum"><span class="ic">🎧</span> Warteraum</button>
+      <button type="button" class="nav-btn" data-p="offices"><span class="ic">🏢</span> Büros</button>
+      <button type="button" class="nav-btn" data-p="supportping"><span class="ic">📣</span> Support-Ping</button>
+      <button type="button" class="nav-btn" data-p="interviews"><span class="ic">🗣️</span> Interviews</button>
       <button type="button" class="nav-btn" data-p="factions"><span class="ic">🏛️</span> Fraktionen</button>
       <button type="button" class="nav-btn" data-p="dn"><span class="ic">🔢</span> Dienstnummern</button>
       <button type="button" class="nav-btn" data-p="team"><span class="ic">👥</span> Team</button>
@@ -487,6 +521,10 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
       else if(page==='links') await pageLinks(p);
       else if(page==='webhook') await pageWebhook(p);
       else if(page==='team') await pageTeam(p);
+      else if(page==='warteraum') await pageWarteraum(p);
+      else if(page==='offices') await pageOffices(p);
+      else if(page==='supportping') await pageSupportPing(p);
+      else if(page==='interviews') await pageInterviews(p);
       else if(page==='factions') await pageFactions(p);
       else if(page==='dn') await pageDn(p);
       else if(page==='unban-q') await pageUnbanQuestions(p);
@@ -503,7 +541,8 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
       else if(page==='commands') await pageCommands(p);
       else if(page==='serverstats') await pageServerStats(p);
       else if(page==='hausliste') await pageHausliste(p);
-      else if(page==='textgen') await pageTextGen(p);
+      
+      
       else if(page==='ausweis') await pageAusweis(p);
       else if(page==='modreasons') await pageModReasons(p);
       else if(page==='complaint') await pageComplaint(p);
@@ -527,6 +566,21 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
     return _discordCache;
   }
   /** Searchable single or multi select for roles/channels */
+  
+  function bindToggle(el, on){
+    if(!el) return;
+    el.className='toggle-sw'+(on?' on':'');
+    el.innerHTML='<i></i>';
+    el.setAttribute('role','switch');
+    el.setAttribute('aria-checked', on?'true':'false');
+    el.onclick=function(){
+      var v=!el.classList.contains('on');
+      el.classList.toggle('on', v);
+      el.setAttribute('aria-checked', v?'true':'false');
+    };
+    el.isOn=function(){return el.classList.contains('on');};
+  }
+
   function makeSearchSelect(container, opts){
     // opts: {items:[{id,name,meta}], multi, value, values, placeholder, onChange}
     var multi=!!opts.multi;
@@ -681,6 +735,38 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
     await loadCfg();
     await refresh();
     onlineTimer=setInterval(refresh, 12000);
+  }
+
+  
+  async function pageAiAssist(p){
+    var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var chs=(disc.channels||[]).filter(function(c){return c.type===0||c.type===5||c.type==='0'}).map(function(c){return {id:c.id,name:'#'+c.name}});
+    p.innerHTML='<h1>KI-Assistent</h1><p class="desc">Antwortet in Tickets und optional in weiteren Kanälen. Braucht OPENAI_API_KEY oder DEEPSEEK_API_KEY in der Bot-.env. Kennt Dashboard-Einstellungen (Dizzy-Kanal, Häuser, …).</p>'+
+      '<div class="card"><h2>Einstellungen</h2>'+
+      '<label class="row" style="gap:8px;margin:8px 0"><input type="checkbox" id="ai-en" '+(s.aiAssistEnabled?'checked':'')+'/> KI-Assistent aktiv</label>'+
+      '<label class="row" style="gap:8px;margin:8px 0"><input type="checkbox" id="ai-mention" '+(s.aiAssistOnlyMention?'checked':'')+'/> Nur antworten wenn der Bot erwähnt wird</label>'+
+      '<div class="field"><label>Zusätzliche Kanäle (neben Tickets)</label><div id="ai-chs"></div></div>'+
+      '<div class="field"><label>Nur bestimmte Ticket-Namen (kommagetrennt, leer = alle Tickets)</label><input id="ai-types" placeholder="support, bewerbung"/></div>'+
+      '<button type="button" class="btn btn-p" id="ai-save">Speichern</button></div>'+
+      '<div class="card"><h2>API-Keys</h2><p class="desc">Keys gehören in die <code>.env</code> auf dem Bot-Host, nicht ins Dashboard:<br>'+
+      '<code>OPENAI_API_KEY=...</code> oder <code>DEEPSEEK_API_KEY=...</code><br>'+
+      'Optional: <code>AI_MODEL=gpt-4o-mini</code> · <code>AI_API_BASE=https://api.deepseek.com</code></p></div>';
+    var pick=makeSearchSelect($('ai-chs'),{items:chs,multi:true,values:s.aiAssistChannelIds||[],placeholder:'Kanäle…'});
+    $('ai-types').value=Array.isArray(s.aiAssistTicketTypes)?s.aiAssistTicketTypes.join(', '):(s.aiAssistTicketTypes||'');
+    $('ai-save').onclick=async function(){
+      try{
+        var types=$('ai-types').value.split(',').map(function(x){return x.trim()}).filter(Boolean);
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          aiAssistEnabled:$('ai-en').checked,
+          aiAssistOnlyMention:$('ai-mention').checked,
+          aiAssistChannelIds:(function(){var v=pick.getValue(); return Array.isArray(v)?v:(v?[v]:[]);})(),
+          aiAssistTicketTypes:types
+        }});
+        toast('Gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
   }
 
   async function pageOverview(p){
@@ -1460,68 +1546,338 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
   };
 
 
-  async function pageFactions(p){
+  
+  async function pageWarteraum(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
-    var list=Array.isArray(s.factions)?s.factions.slice():[];
-    function draw(){
-      p.innerHTML='<h1>Fraktionen</h1><p class="desc">Name, Beschreibung, Discord-Link, Owner — getrennt von Dienstnummern</p>'+
-        '<div class="card"><h2>Neue Fraktion</h2>'+
-        '<div class="field"><label>Name</label><input id="f-name" placeholder="z.B. Polizei"/></div>'+
-        '<div class="field"><label>Beschreibung</label><textarea id="f-desc" rows="2" placeholder="Kurzbeschreibung"></textarea></div>'+
-        '<div class="field"><label>Discord-Link</label><input id="f-link" placeholder="https://discord.gg/…"/></div>'+
-        '<div class="field"><label>Owner (Discord-User-ID oder @Name)</label><input id="f-owner" placeholder="Owner"/></div>'+
-        '<div class="field"><label>Anwärter (optional, Komma-getrennt)</label><input id="f-apps" placeholder=""/></div>'+
-        '<button type="button" class="btn btn-p btn-sm" id="f-add">Hinzufügen</button></div>'+
-        '<div class="card"><h2>Fraktionen</h2><div id="f-list"></div></div>'+
-        '<div class="card"><h2>Leader-Rollen (global)</h2><div id="f-lead"></div>'+
-        '<button type="button" class="btn btn-p btn-sm" id="f-save-lead" style="margin-top:10px">Leader-Rollen speichern</button></div>';
-      var box=$('f-list');
-      if(!list.length) box.innerHTML='<div class="empty">Keine Fraktionen</div>';
-      else box.innerHTML='<table><thead><tr><th>Name</th><th>Owner</th><th>Link</th><th>Anwärter</th><th></th></tr></thead><tbody>'+
-        list.map(function(f,i){
-          return '<tr><td><strong>'+esc(f.name)+'</strong><div class="desc">'+esc(f.description||'')+'</div></td>'+
-            '<td>'+esc(f.owner||'—')+'</td><td>'+(f.discordLink?('<a href="'+esc(f.discordLink)+'" target="_blank">Link</a>'):'—')+'</td>'+
-            '<td>'+esc((f.applicants||[]).join(', ')||'—')+'</td>'+
-            '<td><button type="button" class="btn btn-sm btn-d" data-i="'+i+'">Löschen</button></td></tr>';
-        }).join('')+'</tbody></table>';
-      box.querySelectorAll('[data-i]').forEach(function(b){
-        b.onclick=async function(){
-          list.splice(+b.getAttribute('data-i'),1);
-          await saveList();
-          draw();
-        };
-      });
-      $('f-add').onclick=async function(){
-        var name=$('f-name').value.trim();
-        if(!name) return toast('Name fehlt','err');
-        list.push({
-          id:'f_'+Date.now(),
-          name:name,
-          description:$('f-desc').value.trim(),
-          discordLink:$('f-link').value.trim(),
-          owner:$('f-owner').value.trim(),
-          applicants:$('f-apps').value.split(',').map(function(x){return x.trim()}).filter(Boolean)
-        });
-        await saveList();
-        draw();
-      };
-      (async function(){
-        var disc={roles:[]}; try{disc=await loadDiscord()}catch(e){}
-        window._fLead=makeSearchSelect($('f-lead'),{items:roleItems(disc.roles),multi:true,values:s.factionLeaderRoleIds||[],placeholder:'Leader-Rolle…'});
-        $('f-save-lead').onclick=async function(){
+    var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    p.innerHTML='<h1>Warteraum</h1>'+
+      '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+      '<div class="card"><div class="toggle-row"><span>Warteraum-Musik aktiv</span><div id="wr-on" class="toggle-sw"></div></div>'+
+      '<div class="field"><label>Warteraum-Voice-Kanal</label><div id="wr-ch"></div></div>'+
+      '<div class="field"><label>Aktuelle Datei</label><div class="desc">'+(s.warteraumMusicUrl?esc(s.warteraumMusicUrl):'Keine')+'</div></div>'+
+      '<div class="field"><label>Audio hochladen (mp3/ogg/wav)</label><input type="file" id="wr-file" accept="audio/*"/></div>'+
+      '<div class="row" style="gap:8px;margin-top:10px"><button type="button" class="btn btn-p" id="wr-save">Speichern</button>'+
+      '<button type="button" class="btn" id="wr-up">Upload</button></div></div>';
+    bindToggle($('wr-on'), s.warteraumMusicEnabled!==false);
+    var voice=(disc.channels||[]).filter(function(c){return c.type===2||c.type==='2'||c.type==='GUILD_VOICE'}).map(function(c){return {id:c.id,name:'🔊 '+c.name}});
+    var pick=makeSearchSelect($('wr-ch'),{items:voice,multi:false,value:s.warteraumChannelId||s.waitingRoomChannelId||'',placeholder:'Voice…'});
+    $('wr-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          warteraumMusicEnabled:$('wr-on').isOn(),
+          warteraumChannelId:pick.getValue()||null,
+          waitingRoomChannelId:pick.getValue()||null
+        }});
+        toast('Gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+    $('wr-up').onclick=async function(){
+      var f=$('wr-file').files[0];
+      if(!f){toast('Datei wählen','err');return}
+      try{
+        var reader=new FileReader();
+        reader.onload=async function(){
           try{
-            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{factionLeaderRoleIds:window._fLead.getValue()}});
-            toast('Gespeichert','ok');
+            var b64=String(reader.result||'').split(',')[1]||'';
+            await api('/api/guilds/'+guildId+'/music/upload',{method:'POST',body:{filename:f.name,data:b64}});
+            toast('Audio hochgeladen','ok');
           }catch(e){toast(e.message,'err')}
         };
-      })();
-    }
-    async function saveList(){
-      try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{factions:list}});
-        toast('Fraktionen gespeichert','ok');
+        reader.readAsDataURL(f);
       }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pageOffices(p){
+    var data={offices:[]}; try{data=await api('/api/guilds/'+guildId+'/offices')}catch(e){}
+    var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
+    var list=data.offices||[];
+    function draw(){
+      p.innerHTML='<h1>Büros</h1>'+
+        '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+        '<div class="card"><h2>Büro anlegen</h2><div class="grid2">'+
+        '<div class="field"><label>Name</label><input id="of-name"/></div>'+
+        '<div class="field"><label>Voice-Kanal</label><div id="of-vc"></div></div>'+
+        '<div class="field"><label>Rolle</label><div id="of-role"></div></div></div>'+
+        '<button type="button" class="btn btn-p" id="of-add">Hinzufügen</button></div>'+
+        '<div class="card"><h2>Liste</h2><div id="of-list"></div></div>';
+      var voice=(disc.channels||[]).filter(function(c){return c.type===2||c.type==='2'}).map(function(c){return {id:c.id,name:'🔊 '+c.name}});
+      var pickV=makeSearchSelect($('of-vc'),{items:voice,multi:false,placeholder:'Voice…'});
+      var pickR=makeSearchSelect($('of-role'),{items:roleItems(disc.roles||[]),multi:false,placeholder:'Rolle…'});
+      var box=$('of-list');
+      if(!list.length) box.innerHTML='<div class="empty">Keine Büros</div>';
+      else box.innerHTML=list.map(function(o){
+        return '<div class="fac-card"><div class="top"><strong>'+esc(o.name)+'</strong>'+
+          '<button type="button" class="btn btn-sm btn-d of-del" data-id="'+esc(o.id)+'">Löschen</button></div>'+
+          '<div class="desc">Voice: '+(o.voiceChannelId?'gesetzt':'—')+' · Rolle: '+(o.roleId?'gesetzt':'—')+'</div></div>';
+      }).join('');
+      document.querySelectorAll('.of-del').forEach(function(b){
+        b.onclick=async function(){
+          if(!confirm('Büro löschen?')) return;
+          try{ await api('/api/guilds/'+guildId+'/offices/'+encodeURIComponent(b.getAttribute('data-id')),{method:'DELETE'});
+            list=list.filter(function(x){return String(x.id)!==String(b.getAttribute('data-id'))}); draw(); toast('Gelöscht','ok');
+          }catch(e){toast(e.message,'err')}
+        };
+      });
+      $('of-add').onclick=async function(){
+        try{
+          var r=await api('/api/guilds/'+guildId+'/offices',{method:'POST',body:{name:$('of-name').value.trim(),voiceChannelId:pickV.getValue(),roleId:pickR.getValue()}});
+          list.push(r.office||r); draw(); toast('Büro angelegt','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+    }
+    draw();
+  }
+
+  async function pageSupportPing(p){
+    var c={}; try{c=await api('/api/guilds/'+guildId+'/support-ping')}catch(e){}
+    var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
+    p.innerHTML='<h1>Support-Ping</h1>'+
+      '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+      '<div class="card"><div class="toggle-row"><span>Aktiv</span><div id="sp-on" class="toggle-sw"></div></div>'+
+      '<div class="field"><label>Titel</label><input id="sp-title"/></div>'+
+      '<div class="field"><label>Beschreibung</label><textarea id="sp-desc" rows="3"></textarea></div>'+
+      '<div class="field"><label>Button-Text</label><input id="sp-btn"/></div>'+
+      '<div class="field"><label>Cooldown (Sek.)</label><input id="sp-cd" type="number" min="0"/></div>'+
+      '<div class="field"><label>Panel-Kanal</label><div id="sp-ch"></div></div>'+
+      '<div class="field"><label>Rollen (Ping)</label><div id="sp-roles"></div></div>'+
+      '<div class="row" style="gap:8px;margin-top:12px"><button type="button" class="btn btn-p" id="sp-save">Speichern</button>'+
+      '<button type="button" class="btn" id="sp-send">Panel senden</button></div></div>'+
+      '<div class="card"><h2>Vorschau</h2><div id="sp-prev" class="fac-card"></div></div>';
+    bindToggle($('sp-on'), c.enabled!==false);
+    $('sp-title').value=c.title||'Support benötigt';
+    $('sp-desc').value=c.description||'';
+    $('sp-btn').value=c.buttonLabel||'Support rufen';
+    $('sp-cd').value=c.cooldownSec!=null?c.cooldownSec:300;
+    var pickCh=makeSearchSelect($('sp-ch'),{items:channelItems(disc.channels||[]),multi:false,value:c.channelId||'',placeholder:'Kanal…'});
+    var pickR=makeSearchSelect($('sp-roles'),{items:roleItems(disc.roles||[]),multi:true,values:c.roleIds||[],placeholder:'Rollen…'});
+    function prev(){
+      $('sp-prev').innerHTML='<strong>'+esc($('sp-title').value)+'</strong><div class="desc">'+esc($('sp-desc').value)+'</div>'+
+        '<div class="staffora-div" style="margin-top:12px"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+        '<button type="button" class="btn btn-p btn-sm" disabled>'+esc($('sp-btn').value||'Support rufen')+'</button>';
+    }
+    prev();
+    ['sp-title','sp-desc','sp-btn'].forEach(function(id){ $(id).oninput=prev; });
+    $('sp-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/support-ping',{method:'PATCH',body:{
+          enabled:$('sp-on').isOn(), title:$('sp-title').value.trim(), description:$('sp-desc').value.trim(),
+          buttonLabel:$('sp-btn').value.trim(), cooldownSec:parseInt($('sp-cd').value,10)||0,
+          channelId:pickCh.getValue()||null, roleIds:pickR.getValue()
+        }});
+        toast('Gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+    $('sp-send').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/support-ping',{method:'PATCH',body:{
+          enabled:$('sp-on').isOn(), title:$('sp-title').value.trim(), description:$('sp-desc').value.trim(),
+          buttonLabel:$('sp-btn').value.trim(), cooldownSec:parseInt($('sp-cd').value,10)||0,
+          channelId:pickCh.getValue()||null, roleIds:pickR.getValue()
+        }});
+        var ch=pickCh.getValue();
+        if(!ch){toast('Kanal setzen','err');return}
+        await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'support_ping',channelId:ch}});
+        toast('Panel gesendet','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pageInterviews(p){
+    var data={interviews:[],settings:{}}; try{data=await api('/api/guilds/'+guildId+'/interviews')}catch(e){}
+    var slots={slots:[]}; try{slots=await api('/api/guilds/'+guildId+'/interview-slots')}catch(e){}
+    var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
+    var s=data.settings||{};
+    var list=data.interviews||[];
+    var sl=slots.slots||[];
+    p.innerHTML='<h1>Interviews</h1>'+
+      '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+      '<div class="card"><div class="toggle-row"><span>System aktiv</span><div id="iv-on" class="toggle-sw"></div></div>'+
+      '<div class="field"><label>Kanal</label><div id="iv-ch"></div></div>'+
+      '<div class="field"><label>Interviewer-Rollen</label><div id="iv-roles"></div></div>'+
+      '<button type="button" class="btn btn-p" id="iv-save">Speichern</button></div>'+
+      '<div class="card"><h2>Slots</h2>'+
+      '<div class="grid2"><div class="field"><label>Label / Zeit</label><input id="iv-slot-l" placeholder="Mo 18:00"/></div></div>'+
+      '<button type="button" class="btn btn-sm" id="iv-slot-add">+ Slot</button><div id="iv-slots" style="margin-top:10px"></div></div>'+
+      '<div class="card"><h2>Bewerbungen</h2><div id="iv-list"></div></div>';
+    bindToggle($('iv-on'), !!s.enabled);
+    var pickCh=makeSearchSelect($('iv-ch'),{items:channelItems(disc.channels||[]),multi:false,value:s.channelId||'',placeholder:'Kanal…'});
+    var pickR=makeSearchSelect($('iv-roles'),{items:roleItems(disc.roles||[]),multi:true,values:s.roleIds||[],placeholder:'Rollen…'});
+    $('iv-slots').innerHTML=sl.length?sl.map(function(x){
+      return '<div class="fac-card"><div class="top"><strong>'+esc(x.label||x.id)+'</strong> '+
+        (x.taken?'<span class="pill pill-err">belegt</span>':'<span class="pill pill-ok">frei</span>')+
+        '<button type="button" class="btn btn-sm btn-d iv-sd" data-id="'+esc(x.id)+'">Löschen</button></div></div>';
+    }).join(''):'<div class="empty">Keine Slots</div>';
+    document.querySelectorAll('.iv-sd').forEach(function(b){
+      b.onclick=async function(){ try{ await api('/api/guilds/'+guildId+'/interview-slots/'+encodeURIComponent(b.getAttribute('data-id')),{method:'DELETE'}); pageInterviews(p);}catch(e){toast(e.message,'err')} };
+    });
+    $('iv-slot-add').onclick=async function(){
+      try{ await api('/api/guilds/'+guildId+'/interview-slots',{method:'POST',body:{label:$('iv-slot-l').value.trim()}}); toast('Slot','ok'); pageInterviews(p);}catch(e){toast(e.message,'err')}
+    };
+    $('iv-list').innerHTML=list.length?list.slice(0,40).map(function(i){
+      return '<div class="fac-card"><div class="top"><strong>'+esc(String(i.id).slice(-6))+'</strong> <span class="pill">'+esc(i.status)+'</span></div>'+
+        '<div class="fac-actions"><button type="button" class="btn btn-sm btn-p iv-acc" data-id="'+esc(i.id)+'">Annehmen</button>'+
+        '<button type="button" class="btn btn-sm btn-d iv-rej" data-id="'+esc(i.id)+'">Ablehnen</button></div></div>';
+    }).join(''):'<div class="empty">Keine</div>';
+    document.querySelectorAll('.iv-acc').forEach(function(b){
+      b.onclick=async function(){ try{ await api('/api/guilds/'+guildId+'/interviews/'+b.getAttribute('data-id'),{method:'PATCH',body:{status:'accepted'}}); pageInterviews(p);}catch(e){toast(e.message,'err')} };
+    });
+    document.querySelectorAll('.iv-rej').forEach(function(b){
+      b.onclick=async function(){ try{ await api('/api/guilds/'+guildId+'/interviews/'+b.getAttribute('data-id'),{method:'PATCH',body:{status:'rejected'}}); pageInterviews(p);}catch(e){toast(e.message,'err')} };
+    });
+    $('iv-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          interviewEnabled:$('iv-on').isOn(), interviewChannelId:pickCh.getValue()||null, interviewRoleIds:pickR.getValue()
+        }});
+        toast('Gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
+  async function pageFactions
+(p){
+    var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
+    var data={factions:[],questions:[],maxWarns:3};
+    try{data=await api('/api/guilds/'+guildId+'/factions/full')}catch(e){
+      try{ var cfg=await api('/api/guilds/'+guildId+'/config'); data.factions=(cfg.settings&&cfg.settings.factions)||[]; }catch(e2){}
+    }
+    var list=data.factions||[];
+    var questions=data.questions||[];
+    var maxW=data.maxWarns||3;
+    var chs=channelItems(disc.channels||[]);
+
+    function badgeCat(c){ return c==='illegal'?'<span class="pill pill-err">Illegal</span>':'<span class="pill pill-ok">Legal</span>'; }
+
+    function draw(){
+      p.innerHTML='<h1>Fraktionen</h1>'+
+        '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+        '<div class="card"><h2>Einstellungen</h2>'+
+        '<div class="field"><label>Max. Fraktions-Warnungen (Auto-Remove)</label><input id="f-max" type="number" min="1" max="20" value="'+maxW+'"/></div>'+
+        '<div class="field"><label>Bewerbungs-Kanal</label><div id="f-app-ch"></div></div>'+
+        '<div class="field"><label>Leader-Rollen</label><div id="f-lead"></div></div>'+
+        '<button type="button" class="btn btn-p" id="f-save-set">Speichern</button></div>'+
+        '<div class="card"><h2>Neue Fraktion</h2>'+
+        '<div class="grid2">'+
+        '<div class="field"><label>Name</label><input id="f-name"/></div>'+
+        '<div class="field"><label>Kategorie</label><select id="f-cat"><option value="legal">Legal</option><option value="illegal">Illegal</option></select></div>'+
+        '<div class="field"><label>Announcement-Kanal</label><div id="f-ann"></div></div>'+
+        '<div class="field"><label>Beschreibung</label><input id="f-desc"/></div></div>'+
+        '<button type="button" class="btn btn-p" id="f-add">Hinzufügen</button></div>'+
+        '<div class="card"><h2>Fraktionen <span class="pill">'+list.length+'</span></h2><div id="f-list"></div></div>'+
+        '<div class="card"><h2>Bewerbungs-Fragen</h2>'+
+        '<div id="f-qs"></div>'+
+        '<button type="button" class="btn btn-sm" id="f-q-add">+ Frage</button> '+
+        '<button type="button" class="btn btn-p btn-sm" id="f-q-save">Fragen speichern</button></div>'+
+        '<div class="card"><h2>Panel</h2>'+
+        '<button type="button" class="btn btn-p" id="f-panel">Bewerbungs-Panel senden</button></div>';
+
+      var pickAnn=makeSearchSelect($('f-ann'),{items:chs,multi:false,value:'',placeholder:'Kanal…'});
+      var pickApp=makeSearchSelect($('f-app-ch'),{items:chs,multi:false,value:data.appChannelId||'',placeholder:'Kanal…'});
+      var pickLead=makeSearchSelect($('f-lead'),{items:roleItems(disc.roles||[]),multi:true,values:data.leaderRoleIds||[],placeholder:'Rollen…'});
+
+      var box=$('f-list');
+      if(!list.length) box.innerHTML='<div class="empty">Keine Fraktionen</div>';
+      else box.innerHTML=list.map(function(f){
+        var wc=f.warnCount!=null?f.warnCount:0;
+        var mx=f.maxWarns!=null?f.maxWarns:maxW;
+        return '<div class="fac-card" data-id="'+esc(f.id)+'">'+
+          '<div class="top"><div><strong>'+esc(f.name)+'</strong> '+badgeCat(f.category)+
+          ' <span class="pill">'+wc+'/'+mx+' Warns</span></div></div>'+
+          '<div class="desc">'+(f.description?esc(f.description):'')+(f.announcementChannelId?' · Announcement gesetzt':'')+'</div>'+
+          '<div class="fac-actions">'+
+          '<button type="button" class="btn btn-sm f-warn">Warn</button>'+
+          '<button type="button" class="btn btn-sm btn-d f-del">Entfernen</button>'+
+          '</div></div>';
+      }).join('');
+
+      document.querySelectorAll('.f-warn').forEach(function(btn){
+        btn.onclick=async function(){
+          var id=btn.closest('.fac-card').getAttribute('data-id');
+          var grund=prompt('Grund für die Warnung?');
+          if(grund==null||!String(grund).trim()) return;
+          try{
+            var r=await api('/api/guilds/'+guildId+'/factions/'+encodeURIComponent(id)+'/warn',{method:'POST',body:{reason:grund}});
+            toast(r.removed?'Auto-entfernt nach Max-Warns':'Warnung '+r.count+'/'+r.max,'ok');
+            data=await api('/api/guilds/'+guildId+'/factions/full'); list=data.factions||[]; maxW=data.maxWarns||3; draw();
+          }catch(e){toast(e.message,'err')}
+        };
+      });
+      document.querySelectorAll('.f-del').forEach(function(btn){
+        btn.onclick=async function(){
+          var id=btn.closest('.fac-card').getAttribute('data-id');
+          var grund=prompt('Grund fürs Entfernen?');
+          if(grund==null) return;
+          if(!confirm('Fraktion wirklich entfernen?')) return;
+          try{
+            await api('/api/guilds/'+guildId+'/factions/'+encodeURIComponent(id),{method:'DELETE',body:{reason:grund||'—'}});
+            toast('Entfernt','ok');
+            data=await api('/api/guilds/'+guildId+'/factions/full'); list=data.factions||[]; draw();
+          }catch(e){toast(e.message,'err')}
+        };
+      });
+
+      function renderQs(){
+        var qel=$('f-qs');
+        if(!questions.length) qel.innerHTML='<div class="empty">Keine Fragen</div>';
+        else qel.innerHTML=questions.map(function(q,i){
+          return '<div class="fac-card" data-qi="'+i+'"><div class="grid2">'+
+            '<div class="field"><label>Frage</label><input class="fq-label" value="'+esc(q.label||'')+'"/></div>'+
+            '<div class="field"><label>Typ</label><select class="fq-type"><option value="text">Text</option><option value="long">Lang</option><option value="yesno">Ja/Nein</option><option value="select">Auswahl</option></select></div></div>'+
+            '<div class="fac-actions"><button type="button" class="btn btn-sm btn-d fq-del">Löschen</button></div></div>';
+        }).join('');
+        document.querySelectorAll('.fq-type').forEach(function(sel,i){ sel.value=questions[i].type||'text'; });
+        document.querySelectorAll('.fq-del').forEach(function(b){
+          b.onclick=function(){ questions.splice(+b.closest('[data-qi]').getAttribute('data-qi'),1); renderQs(); };
+        });
+      }
+      renderQs();
+      $('f-q-add').onclick=function(){ questions.push({label:'Neue Frage',type:'text',required:true}); renderQs(); };
+      $('f-q-save').onclick=async function(){
+        document.querySelectorAll('[data-qi]').forEach(function(row){
+          var i=+row.getAttribute('data-qi');
+          questions[i].label=row.querySelector('.fq-label').value.trim();
+          questions[i].type=row.querySelector('.fq-type').value;
+        });
+        try{
+          await api('/api/guilds/'+guildId+'/factions/questions',{method:'PUT',body:{questions:questions}});
+          toast('Fragen gespeichert','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+
+      $('f-add').onclick=async function(){
+        try{
+          var r=await api('/api/guilds/'+guildId+'/factions',{method:'POST',body:{
+            name:$('f-name').value.trim(),
+            category:$('f-cat').value,
+            announcementChannelId:pickAnn.getValue()||null,
+            description:$('f-desc').value.trim()
+          }});
+          toast('Fraktion angelegt','ok');
+          data=await api('/api/guilds/'+guildId+'/factions/full'); list=data.factions||[]; draw();
+        }catch(e){toast(e.message,'err')}
+      };
+      $('f-save-set').onclick=async function(){
+        try{
+          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+            factionMaxWarns:parseInt($('f-max').value,10)||3,
+            factionAppChannelId:pickApp.getValue()||null,
+            factionLeaderRoleIds:pickLead.getValue()
+          }});
+          maxW=parseInt($('f-max').value,10)||3;
+          toast('Gespeichert','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+      $('f-panel').onclick=async function(){
+        try{
+          var ch=pickApp.getValue();
+          if(!ch){ toast('Bewerbungs-Kanal setzen','err'); return; }
+          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{factionAppChannelId:ch}});
+          await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'faction_apply',channelId:ch}});
+          toast('Panel gesendet','ok');
+        }catch(e){toast(e.message,'err')}
+      };
     }
     draw();
   }
@@ -1532,19 +1888,19 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
     var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
     p.innerHTML='<h1>Dizzy Control</h1><p class="desc">Roblox-Name im Kanal → Controlle oder Verknüpfung</p>'+
       '<div class="card">'+
-      '<label class="row"><input type="checkbox" id="dz-on"/> Dizzy Control aktiv</label>'+
+      '<div class="toggle-row"><span>Dizzy Control aktiv</span><div id="dz-on" class="toggle-sw"></div></div>'+
       '<div class="field"><label>Dizzy-Kanal</label><div id="dz-ch"></div></div>'+
       '<div class="field"><label>Dizzy-Log-Kanal</label><div id="dz-log"></div></div>'+
       '<div class="field"><label>Rollen die completen dürfen</label><div id="dz-roles"></div></div>'+
       '<button type="button" class="btn btn-p" id="dz-save">Speichern</button></div>';
-    $('dz-on').checked=!!(s.ingameDizzyControl||s.ingameDizzyChannelId);
+    bindToggle($('dz-on'), !!(s.ingameDizzyControl||s.ingameDizzyChannelId));
     var pickCh=makeSearchSelect($('dz-ch'),{items:channelItems(disc.channels),multi:false,value:s.ingameDizzyChannelId||'',placeholder:'Kanal…'});
     var pickLog=makeSearchSelect($('dz-log'),{items:channelItems(disc.channels),multi:false,value:s.dizzyLogChannelId||'',placeholder:'Log-Kanal…'});
     var pickR=makeSearchSelect($('dz-roles'),{items:roleItems(disc.roles),multi:true,values:s.dizzyControllerRoleIds||[],placeholder:'Rollen…'});
     $('dz-save').onclick=async function(){
       try{
         await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          ingameDizzyControl:$('dz-on').checked,
+          ingameDizzyControl:$('dz-on').isOn(),
           ingameDizzyChannelId:pickCh.getValue()||null,
           dizzyLogChannelId:pickLog.getValue()||null,
           dizzyControllerRoleIds:pickR.getValue()
@@ -1562,14 +1918,14 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
     try{data=await api('/api/guilds/'+guildId+'/partners')}catch(e){}
     p.innerHTML='<h1>Partnerschaft</h1><p class="desc">Anträge, Tiers und Manager</p>'+
       '<div class="card"><h2>Einstellungen</h2>'+
-      '<label class="row"><input type="checkbox" id="pa-en"/> Partnerschaft aktiv</label>'+
+      '<div class="toggle-row"><span>Partnerschaft aktiv</span><div id="pa-en" class="toggle-sw"></div></div>'+
       '<div class="field"><label>Partner-Manager</label><div id="pa-man"></div></div>'+
       '<div class="field"><label>Antrags-Kanal</label><div id="pa-app"></div></div>'+
       '<div class="field"><label>Kanal-Typ</label><select id="pa-type"><option value="text">Text-Kanal</option><option value="thread">Thread</option></select></div>'+
       '<div class="field"><label>Tiers (eine Zeile: Name | Min | Max)</label><textarea id="pa-tiers" rows="5" placeholder="Bronze | 0 | 50&#10;Silber | 51 | 150"></textarea></div>'+
       '<button type="button" class="btn btn-p" id="pa-save">Speichern</button></div>'+
       '<div class="card"><h2>Übersicht</h2><div id="pa-list"></div></div>';
-    $('pa-en').checked=s.partnerEnabled!==false;
+    bindToggle($('pa-en'), s.partnerEnabled!==false);
     $('pa-type').value=s.partnerChannelType||'text';
     var tiers=s.partnerTiers||data.tiers||[];
     if(Array.isArray(tiers)&&tiers.length&&typeof tiers[0]==='object'){
@@ -1589,7 +1945,7 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
       });
       try{
         await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          partnerEnabled:$('pa-en').checked,
+          partnerEnabled:$('pa-en').isOn(),
           partnerManagerRoleIds:pickM.getValue(),
           partnerAppChannelId:pickA.getValue()||null,
           partnerApplicationChannelId:pickA.getValue()||null,
@@ -1810,74 +2166,122 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
     var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
     var roles=roleItems(disc.roles);
     var ch=channelItems(disc.channels,null);
+    var cats=(disc.channels||[]).filter(function(c){return c.type===4||c.type==='4'}).map(function(c){return {id:c.id,name:'📁 '+c.name}});
     var types=Array.isArray(s.ticketTypes)?s.ticketTypes.slice():[
       {id:'support',name:'Support',categoryId:s.ticketCategoryId||'',supportRoleIds:s.ticketSupportRoleIds||[]}
     ];
+    var tab='allgemein';
     function draw(){
-      p.innerHTML='<h1>Tickets</h1><p class="desc">Kategorien, Support-Rollen, mehrere Ticket-Arten</p>'+
-        '<div class="card"><h2>Global</h2>'+
-        '<div class="field"><label>Ticket-Log</label><div id="tk-log"></div></div>'+
-        '<div class="field"><label>Standard-Panel-Kanal</label><div id="tk-panel"></div></div>'+
-        '<div class="field"><label>Panel-Titel</label><input id="tk-title"/></div>'+
-        '<div class="field"><label>Panel-Text</label><textarea id="tk-text" rows="2"></textarea></div></div>'+
-        '<div class="card"><h2>Ticket-Arten</h2><div id="tk-types"></div>'+
-        '<button type="button" class="btn btn-sm" id="tk-add">+ Art hinzufügen</button></div>'+
-        '<button type="button" class="btn btn-p" id="tk-save">Speichern</button>';
-      $('tk-title').value=s.ticketPanelTitle||'Support';
-      $('tk-text').value=s.ticketPanelText||'';
-      window._tkLog=makeSearchSelect($('tk-log'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
-      window._tkPanel=makeSearchSelect($('tk-panel'),{items:ch,multi:false,value:s.ticketPanelChannelId||'',placeholder:'Panel-Kanal…'});
-      var box=$('tk-types');
-      box.innerHTML=types.map(function(tp,i){
-        return '<div class="card" style="margin:8px 0;padding:12px" data-ti="'+i+'">'+
-          '<div class="field"><label>Name</label><input class="tk-name" value="'+esc(tp.name||'')+'"/></div>'+
-          '<div class="field"><label>Kategorie</label><div class="tk-cat" id="tk-cat-'+i+'"></div></div>'+
-          '<div class="field"><label>Support-Rollen</label><div class="tk-sup" id="tk-sup-'+i+'"></div></div>'+
-          '<button type="button" class="btn btn-sm btn-d tk-del">Entfernen</button></div>';
-      }).join('')||'<div class="empty">Keine Arten</div>';
-      window._tkPicks=[];
-      types.forEach(function(tp,i){
-        window._tkPicks[i]={
-          cat:makeSearchSelect($('tk-cat-'+i),{items:ch,multi:false,value:tp.categoryId||'',placeholder:'Kategorie…'}),
-          sup:makeSearchSelect($('tk-sup-'+i),{items:roles,multi:true,values:tp.supportRoleIds||[],placeholder:'Support…'})
+      p.innerHTML='<h1>Tickets</h1>'+
+        '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+        '<div class="subtabs">'+
+        '<button type="button" data-t="allgemein" class="'+(tab==='allgemein'?'on':'')+'">Allgemein</button>'+
+        '<button type="button" data-t="arten" class="'+(tab==='arten'?'on':'')+'">Arten</button>'+
+        '<button type="button" data-t="panel" class="'+(tab==='panel'?'on':'')+'">Panel</button>'+
+        '<button type="button" data-t="auto" class="'+(tab==='auto'?'on':'')+'">Logs</button></div>'+
+        '<div id="tk-body"></div>';
+      document.querySelectorAll('.subtabs button').forEach(function(b){
+        b.onclick=function(){tab=b.getAttribute('data-t');draw();};
+      });
+      var body=$('tk-body');
+      if(tab==='allgemein'){
+        body.innerHTML='<div class="card">'+
+          '<div class="field"><label>Standard-Kategorie</label><div id="tk-cat0"></div></div>'+
+          '<div class="field"><label>Support-Rollen (Standard)</label><div id="tk-sup0"></div></div>'+
+          '<div class="field"><label>Ticket-Log</label><div id="tk-log"></div></div>'+
+          '<button type="button" class="btn btn-p" id="tk-save-g">Speichern</button></div>';
+        var pCat=makeSearchSelect($('tk-cat0'),{items:cats,multi:false,value:s.ticketCategoryId||'',placeholder:'Kategorie…'});
+        var pSup=makeSearchSelect($('tk-sup0'),{items:roles,multi:true,values:s.ticketSupportRoleIds||[],placeholder:'Rollen…'});
+        var pLog=makeSearchSelect($('tk-log'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
+        $('tk-save-g').onclick=async function(){
+          try{
+            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+              ticketCategoryId:pCat.getValue()||null,
+              ticketSupportRoleIds:pSup.getValue(),
+              ticketLogChannelId:pLog.getValue()||null
+            }});
+            s.ticketCategoryId=pCat.getValue(); s.ticketSupportRoleIds=pSup.getValue(); s.ticketLogChannelId=pLog.getValue();
+            toast('Gespeichert','ok');
+          }catch(e){toast(e.message,'err')}
         };
-      });
-      box.querySelectorAll('.tk-del').forEach(function(btn,idx){
-        btn.onclick=function(){ types.splice(idx,1); draw(); };
-      });
-      $('tk-add').onclick=function(){
-        types.push({id:'t_'+Date.now(),name:'Neu',categoryId:'',supportRoleIds:[]});
-        draw();
-      };
-      $('tk-save').onclick=async function(){
-        var out=[];
+      } else if(tab==='arten'){
+        body.innerHTML='<div class="card"><div id="tk-types"></div>'+
+          '<button type="button" class="btn btn-sm" id="tk-add">+ Art</button> '+
+          '<button type="button" class="btn btn-p btn-sm" id="tk-save-t">Speichern</button></div>';
+        var box=$('tk-types');
+        window._tkPicks=[];
+        box.innerHTML=types.map(function(tp,i){
+          return '<div class="fac-card" data-ti="'+i+'"><div class="grid2">'+
+            '<div class="field"><label>Name</label><input class="tk-name" value="'+esc(tp.name||'')+'"/></div>'+
+            '<div class="field"><label>Kategorie</label><div id="tk-cat-'+i+'"></div></div>'+
+            '<div class="field"><label>Support</label><div id="tk-sup-'+i+'"></div></div></div>'+
+            '<button type="button" class="btn btn-sm btn-d tk-del">Entfernen</button></div>';
+        }).join('')||'<div class="empty">Keine</div>';
         types.forEach(function(tp,i){
-          var card=box.querySelector('[data-ti="'+i+'"]');
-          if(!card) return;
-          var name=(card.querySelector('.tk-name')||{}).value||tp.name;
-          var pick=window._tkPicks[i]||{};
-          out.push({
-            id:tp.id||('t_'+i),
-            name:name,
-            categoryId:pick.cat?pick.cat.getValue():'',
-            supportRoleIds:pick.sup?pick.sup.getValue():[]
-          });
+          window._tkPicks[i]={
+            cat:makeSearchSelect($('tk-cat-'+i),{items:cats,multi:false,value:tp.categoryId||'',placeholder:'Kat…'}),
+            sup:makeSearchSelect($('tk-sup-'+i),{items:roles,multi:true,values:tp.supportRoleIds||[],placeholder:'Rollen…'})
+          };
         });
-        try{
-          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-            ticketLogChannelId:window._tkLog.getValue()||null,
-            ticketPanelChannelId:window._tkPanel.getValue()||null,
-            ticketPanelTitle:$('tk-title').value.trim(),
-            ticketPanelText:$('tk-text').value.trim(),
-            ticketTypes:out,
-            ticketCategoryId:out[0]&&out[0].categoryId||null,
-            ticketSupportRoleIds:out[0]&&out[0].supportRoleIds||[]
-          }});
-          toast('Tickets gespeichert','ok');
-          s.ticketTypes=out;
-          types=out;
-        }catch(e){toast(e.message,'err')}
-      };
+        document.querySelectorAll('.tk-del').forEach(function(b){
+          b.onclick=function(){types.splice(+b.closest('[data-ti]').getAttribute('data-ti'),1);draw();};
+        });
+        $('tk-add').onclick=function(){types.push({id:'t_'+Date.now(),name:'Neu',categoryId:'',supportRoleIds:[]});draw();};
+        $('tk-save-t').onclick=async function(){
+          var out=[];
+          document.querySelectorAll('[data-ti]').forEach(function(row){
+            var i=+row.getAttribute('data-ti');
+            var name=(row.querySelector('.tk-name')||{}).value||'';
+            if(!name.trim()) return;
+            out.push({
+              id:types[i]&&types[i].id||('t_'+i),
+              name:name.trim(),
+              categoryId:window._tkPicks[i]?window._tkPicks[i].cat.getValue():'',
+              supportRoleIds:window._tkPicks[i]?window._tkPicks[i].sup.getValue():[]
+            });
+          });
+          try{
+            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+              ticketTypes:out,
+              ticketCategoryId:out[0]&&out[0].categoryId||s.ticketCategoryId,
+              ticketSupportRoleIds:out[0]&&out[0].supportRoleIds||s.ticketSupportRoleIds
+            }});
+            types=out; s.ticketTypes=out; toast('Arten gespeichert','ok');
+          }catch(e){toast(e.message,'err')}
+        };
+      } else if(tab==='panel'){
+        body.innerHTML='<div class="card">'+
+          '<div class="field"><label>Titel</label><input id="tk-title"/></div>'+
+          '<div class="field"><label>Text</label><textarea id="tk-text" rows="2"></textarea></div>'+
+          '<div class="field"><label>Kanal</label><div id="tk-panel"></div></div>'+
+          '<button type="button" class="btn btn-p" id="tk-send">Panel senden</button></div>';
+        $('tk-title').value=s.ticketPanelTitle||'Support';
+        $('tk-text').value=s.ticketPanelText||'';
+        var pick=makeSearchSelect($('tk-panel'),{items:ch,multi:false,value:s.ticketPanelChannelId||'',placeholder:'Kanal…'});
+        $('tk-send').onclick=async function(){
+          try{
+            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+              ticketPanelTitle:$('tk-title').value.trim(),
+              ticketPanelText:$('tk-text').value.trim(),
+              ticketPanelChannelId:pick.getValue()||null
+            }});
+            var cid=pick.getValue();
+            if(!cid){toast('Kanal wählen','err');return}
+            await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'ticket',channelId:cid}});
+            toast('Panel gesendet','ok');
+          }catch(e){toast(e.message,'err')}
+        };
+      } else {
+        body.innerHTML='<div class="card"><div class="field"><label>Log-Kanal</label><div id="tk-log2"></div></div>'+
+          '<button type="button" class="btn btn-p" id="tk-save-l">Speichern</button></div>';
+        var pL=makeSearchSelect($('tk-log2'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
+        $('tk-save-l').onclick=async function(){
+          try{
+            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{ticketLogChannelId:pL.getValue()||null}});
+            toast('Gespeichert','ok');
+          }catch(e){toast(e.message,'err')}
+        };
+      }
     }
     draw();
   }
@@ -1917,37 +2321,39 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
 
 
   async function pageServerStats(p){
-    var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
-    p.innerHTML='<h1>Server-Stats</h1><p class="desc">Status-Panel im Discord senden / aktualisieren</p>'+
-      '<div class="card" id="ss-box"><span class="spinner"></span></div>'+
-      '<div class="card"><h2>Panel senden</h2>'+
-      '<div class="field"><label>Kanal</label><div id="ss-ch"></div></div>'+
-      '<button type="button" class="btn btn-p" id="ss-send">Panel senden / updaten</button>'+
-      '<p class="desc" style="margin-top:8px">Nur Command: <code>/stats</code> zum Aktualisieren</p></div>';
+    var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    p.innerHTML='<h1>Ingame Stats</h1>'+
+      '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+      '<div class="card"><p class="desc">Nur Roblox/Ingame-Daten — keine Discord-Mitgliederzahlen.</p>'+
+      '<div class="field"><label>Stats-Kanal</label><div id="ss-ch"></div></div>'+
+      '<button type="button" class="btn btn-p" id="ss-save">Kanal speichern</button> '+
+      '<button type="button" class="btn" id="ss-upd">Panel aktualisieren (/stats)</button></div>'+
+      '<div class="card"><h2>Panels migrieren</h2>'+
+      '<p class="desc">Aktualisiert gespeicherte Discord-Panels auf die aktuelle Version.</p>'+
+      '<button type="button" class="btn btn-p" id="ss-mig">Alle Panels updaten</button>'+
+      '<div id="ss-mig-out" class="desc" style="margin-top:8px"></div></div>';
     var pick=makeSearchSelect($('ss-ch'),{items:channelItems(disc.channels),multi:false,value:s.statusChannelId||'',placeholder:'Kanal…'});
-    try{
-      var st=await api('/api/guilds/'+guildId+'/stats');
-      $('ss-box').innerHTML=
-        (st.icon?'<img src="'+esc(st.icon)+'" width="48" height="48" style="border-radius:12px;margin-bottom:12px"/>':'')+
-        '<h2 style="margin:0 0 12px">'+esc(st.name||'Server')+'</h2>'+
-        '<div class="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">'+
-        [['Mitglieder',st.members],['Kanäle',st.channels],['Rollen',st.roles],['Boosts',st.boosts]].map(function(x){
-          return '<div style="background:var(--card2);padding:12px;border-radius:10px;border:1px solid var(--border)"><div class="desc">'+x[0]+'</div><div style="font-size:22px;font-weight:700">'+esc(String(x[1]??'—'))+'</div></div>';
-        }).join('')+'</div>';
-    }catch(e){$('ss-box').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
-    $('ss-send').onclick=async function(){
-      var channelId=pick.getValue()||s.statusChannelId;
-      if(!channelId) return toast('Kanal wählen','err');
+    $('ss-save').onclick=async function(){
+      try{ await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{statusChannelId:pick.getValue()||null}}); toast('Gespeichert','ok'); }catch(e){toast(e.message,'err')}
+    };
+    $('ss-upd').onclick=async function(){
       try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{statusChannelId:channelId}});
-        await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'status',channelId:channelId}});
-        toast('Status-Panel gesendet','ok');
+        var ch=pick.getValue();
+        if(ch) await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{statusChannelId:ch}});
+        await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'status',channelId:ch||s.statusChannelId}});
+        toast('Update ausgelöst','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+    $('ss-mig').onclick=async function(){
+      try{
+        var r=await api('/api/guilds/'+guildId+'/panels/migrate',{method:'POST',body:{}});
+        $('ss-mig-out').textContent='Version '+r.version+' · '+(r.results||[]).filter(function(x){return x.ok}).length+' ok';
+        toast('Migration fertig','ok');
       }catch(e){toast(e.message,'err')}
     };
   }
-
 
   async function pageRp(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
@@ -2224,8 +2630,6 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
       {key:'xpFeedbackStar3',label:'Feedback 3 Sterne',desc:'Neutrales Feedback',def:8},
       {key:'xpFeedbackStar4',label:'Feedback 4 Sterne',desc:'Gutes Feedback',def:15},
       {key:'xpFeedbackStar5',label:'Feedback 5 Sterne',desc:'Sehr gutes Feedback',def:25},
-      {key:'xpPerMessage',label:'Nachricht',desc:'XP pro Nachricht (Cooldown)',def:1},
-      {key:'xpMessageCooldownSec',label:'Nachrichten-Cooldown (Sek.)',desc:'Mindestabstand zwischen Message-XP',def:60},
       {key:'xpPerDutyHour',label:'Duty (pro Stunde)',desc:'XP für Zeit im Dienst',def:10},
       {key:'xpPerVcMinute',label:'Voice (pro Minute)',desc:'XP in Voice-Kanälen',def:2},
       {key:'xpPeriodDays',label:'Uprank-Periode (Tage)',desc:'Zeitfenster für meiste XP',def:7}
@@ -2337,52 +2741,63 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
   async function pageAusweis(p){
     var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
     var data={types:[],requests:[]};
-    try{data=await api('/api/guilds/'+guildId+'/ausweis')}catch(e){toast(e.message,'err')}
-    try{var cfgAw=await api('/api/guilds/'+guildId+'/config'); window._awMax=(cfgAw.settings&&cfgAw.settings.ausweisMaxExtra!=null)?cfgAw.settings.ausweisMaxExtra:3; data.ausweisMaxExtra=window._awMax;}catch(e){window._awMax=3}
+    try{data=await api('/api/guilds/'+guildId+'/ausweis')}catch(e){}
+    try{var cfgAw=await api('/api/guilds/'+guildId+'/config'); data.serverName=(cfgAw.settings&&cfgAw.settings.ausweisServerName)||''; data.ausweisMaxExtra=(cfgAw.settings&&cfgAw.settings.ausweisMaxExtra)!=null?cfgAw.settings.ausweisMaxExtra:3;}catch(e){}
     var types=data.types||[];
     var personal=types.find(function(t){return t.id==='personalausweis'})||types[0]||{fields:[]};
     var fields=(personal.fields||[]).slice();
-
+    function previewHtml(){
+      var server=$('aw-server')?$('aw-server').value:'Staffora';
+      var lines='';
+      document.querySelectorAll('[data-fi]').forEach(function(card){
+        var lab=(card.querySelector('.af-lab')||{}).value||'Feld';
+        lines+='<div><label>'+esc(lab)+'</label><span>—</span></div>';
+      });
+      if(!lines) lines='<div><label>Name</label><span>—</span></div><div><label>Geburtstag</label><span>—</span></div>';
+      return '<div class="id-card"><div class="hdr"><strong>'+esc(server||'Behörde')+'</strong><span class="eagle">🦅</span></div>'+
+        '<div class="body"><div class="photo">Foto</div><div class="fields">'+lines+
+        '<div><label>Zusatz</label><span>PKW · Waffe …</span></div>'+
+        '<div><label>Haus</label><span>—</span></div></div></div>'+
+        '<div class="foot"><span>Personalausweis</span><span>Staffora</span></div></div>';
+    }
     function draw(){
-      p.innerHTML='<h1>Ausweis</h1><p class="desc">Personalausweis wie ID-Karte — Felder & Servername</p>'+
-        '<div class="card"><h2>Servername (Behörde)</h2>'+
-        '<div class="field"><label>Name auf dem Ausweis</label><input id="aw-server" placeholder="z.B. Notruf Hamburg"/></div>'+
-        '<div class="field"><label>Max. zusätzliche Ausweise</label><input id="aw-max" type="number" min="0" max="20"/></div>'+
-        '<button type="button" class="btn btn-p btn-sm btn-anim" id="aw-save-name">Speichern</button></div>'+
-        '<div class="card"><h2>Felder (Antrag)</h2><div id="aw-fields"></div>'+
-        '<button type="button" class="btn btn-sm btn-anim" id="aw-add-f">+ Feld</button> '+
-        '<button type="button" class="btn btn-p btn-sm btn-anim" id="aw-save-f">Felder speichern</button></div>'+
+      p.innerHTML='<h1>Ausweis</h1>'+
+        '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+        '<div class="grid2"><div class="card"><h2>Einstellungen</h2>'+
+        '<div class="field"><label>Servername (Behörde)</label><input id="aw-server"/></div>'+
+        '<div class="field"><label>Max. Zusatzausweise</label><input id="aw-max" type="number" min="0" max="20"/></div>'+
+        '<button type="button" class="btn btn-p btn-sm" id="aw-save-name">Speichern</button></div>'+
+        '<div class="card"><h2>Live-Vorschau</h2><div id="aw-prev"></div></div></div>'+
+        '<div class="card"><h2>Felder</h2><div id="aw-fields"></div>'+
+        '<button type="button" class="btn btn-sm" id="aw-add-f">+ Feld</button> '+
+        '<button type="button" class="btn btn-p btn-sm" id="aw-save-f">Felder speichern</button></div>'+
         '<div class="card"><h2>Panel</h2>'+
         '<div class="field"><label>Titel</label><input id="aw-pt"/></div>'+
         '<div class="field"><label>Text</label><textarea id="aw-px" rows="2"></textarea></div>'+
         '<div class="field"><label>Kanal</label><div id="aw-ch"></div></div>'+
-        '<button type="button" class="btn btn-p btn-anim" id="aw-send">Panel senden</button></div>'+
-        '<div class="card"><h2>Offene Anträge</h2><div id="aw-req"></div></div>';
-
+        '<button type="button" class="btn btn-p" id="aw-send">Panel senden</button></div>'+
+        '<div class="card"><h2>Anträge</h2><div id="aw-req"></div></div>';
       $('aw-server').value=data.serverName||'';
-      $('aw-max').value=(data.ausweisMaxExtra!=null)?data.ausweisMaxExtra:((window._awMax!=null)?window._awMax:3);
-      $('aw-pt').value=data.panelTitle||'Ausweis beantragen';
-      $('aw-px').value=data.panelText||'Fülle Roblox-Name und die Angaben aus.';
+      $('aw-max').value=data.ausweisMaxExtra!=null?data.ausweisMaxExtra:3;
+      $('aw-pt').value=data.panelTitle||'Ausweis';
+      $('aw-px').value=data.panelText||'';
       var pick=makeSearchSelect($('aw-ch'),{items:channelItems(disc.channels),multi:false,value:'',placeholder:'Kanal…'});
-
-      var box=$('aw-fields');
-      box.innerHTML=fields.map(function(f,i){
-        return '<div class="card" style="margin:8px 0;padding:10px" data-fi="'+i+'">'+
+      var fb=$('aw-fields');
+      fb.innerHTML=fields.map(function(f,i){
+        return '<div class="fac-card" data-fi="'+i+'"><div class="grid2">'+
           '<div class="field"><label>Label</label><input class="af-lab" value="'+esc(f.label||'')+'"/></div>'+
-          '<div class="field"><label>Key</label><input class="af-key" value="'+esc(f.key||'')+'"/></div>'+
-          '<label class="row"><input type="checkbox" class="af-req" '+(f.required?'checked':'')+'/> Pflicht</label>'+
-          '<button type="button" class="btn btn-sm btn-d af-del">Weg</button></div>';
+          '<div class="field"><label>Key</label><input class="af-key" value="'+esc(f.key||'')+'"/></div></div>'+
+          '<label class="row" style="gap:8px"><input type="checkbox" class="af-req" '+(f.required?'checked':'')+'/> Pflicht</label> '+
+          '<button type="button" class="btn btn-sm btn-d af-del">Löschen</button></div>';
       }).join('')||'<div class="empty">Keine Felder</div>';
-      box.querySelectorAll('.af-del').forEach(function(btn){
-        btn.onclick=function(){
-          var i=parseInt(btn.closest('[data-fi]').getAttribute('data-fi'),10);
-          fields.splice(i,1); draw();
-        };
+      function refreshPrev(){ $('aw-prev').innerHTML=previewHtml(); }
+      refreshPrev();
+      $('aw-server').oninput=refreshPrev;
+      document.querySelectorAll('.af-lab').forEach(function(inp){inp.oninput=refreshPrev;});
+      document.querySelectorAll('.af-del').forEach(function(b){
+        b.onclick=function(){fields.splice(+b.closest('[data-fi]').getAttribute('data-fi'),1);draw();};
       });
-      $('aw-add-f').onclick=function(){
-        fields.push({key:'feld_'+Date.now(),label:'Neues Feld',required:false});
-        draw();
-      };
+      $('aw-add-f').onclick=function(){fields.push({key:'feld_'+Date.now(),label:'Neues Feld',required:false});draw();};
       $('aw-save-f').onclick=async function(){
         var out=[];
         document.querySelectorAll('[data-fi]').forEach(function(card){
@@ -2396,41 +2811,32 @@ table tbody tr:hover{background:rgba(139,92,246,.06);transform:scale(1.005)}
           });
         });
         try{
-          var tid=personal.id||'personalausweis';
-          await api('/api/guilds/'+guildId+'/ausweis/types/'+encodeURIComponent(tid),{method:'PATCH',body:{fields:out}});
-          fields=out; toast('Felder gespeichert','ok');
+          await api('/api/guilds/'+guildId+'/ausweis/types/'+encodeURIComponent(personal.id||'personalausweis'),{method:'PATCH',body:{fields:out}});
+          fields=out; toast('Felder gespeichert','ok'); refreshPrev();
         }catch(e){toast(e.message,'err')}
       };
       $('aw-save-name').onclick=async function(){
         try{
           await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{ausweisServerName:$('aw-server').value.trim(),ausweisMaxExtra:parseInt($('aw-max').value,10)||3}});
-          data.serverName=$('aw-server').value.trim();
-          toast('Servername gespeichert','ok');
+          data.serverName=$('aw-server').value.trim(); toast('Gespeichert','ok'); refreshPrev();
         }catch(e){toast(e.message,'err')}
       };
       $('aw-send').onclick=async function(){
         var channelId=pick.getValue();
         if(!channelId) return toast('Kanal wählen','err');
         try{
-          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-            ausweisPanelTitle:$('aw-pt').value.trim(),
-            ausweisPanelText:$('aw-px').value.trim()
-          }});
+          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{ausweisPanelTitle:$('aw-pt').value.trim(),ausweisPanelText:$('aw-px').value.trim()}});
           await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'ausweis',channelId:channelId}});
           toast('Panel gesendet','ok');
         }catch(e){toast(e.message,'err')}
       };
-      var reqBox=$('aw-req');
       var reqs=data.requests||[];
-      reqBox.innerHTML=reqs.length?reqs.map(function(r){
-        return '<div class="card" style="margin:6px 0;padding:10px"><strong>#'+esc(String(r.id))+'</strong> · '+esc(r.discord_id||'')+
-          '<div class="desc">'+esc(JSON.stringify(r.answers||{}).slice(0,120))+'</div></div>';
-      }).join(''):'<div class="empty">Keine offenen Anträge</div>';
+      $('aw-req').innerHTML=reqs.length?reqs.map(function(r){
+        return '<div class="fac-card"><strong>#'+esc(String(r.id))+'</strong><div class="desc">'+esc(JSON.stringify(r.answers||{}).slice(0,120))+'</div></div>';
+      }).join(''):'<div class="empty">Keine Anträge</div>';
     }
     draw();
   }
-
-
 
   async function pageModReasons(p){
     var data={reasons:[]};
