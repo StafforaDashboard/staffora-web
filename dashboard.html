@@ -170,6 +170,29 @@ tr:hover td{background:rgba(255,255,255,.02)}
   pointer-events:none;opacity:.04;font-size:clamp(48px,12vw,120px);font-weight:800;
   letter-spacing:-.04em;color:#a78bfa;z-index:0;user-select:none}
 
+
+.xp-toggle{position:relative;width:64px;height:34px;border-radius:999px;border:0;cursor:pointer;
+  background:rgba(255,255,255,.08);transition:background .25s,box-shadow .25s;padding:0}
+.xp-toggle.on{background:linear-gradient(135deg,#8b5cf6,#6d28d9);box-shadow:0 0 0 0 rgba(139,92,246,.5);animation:glowPulse 1.6s ease 1}
+.xp-toggle .knob{position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;background:#fff;
+  transition:transform .25s cubic-bezier(.34,1.4,.64,1);box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.xp-toggle.on .knob{transform:translateX(30px)}
+.xp-row{display:flex;align-items:center;gap:12px;padding:14px 12px;border-bottom:1px solid var(--border);
+  transition:background .15s}
+.xp-row:hover{background:rgba(139,92,246,.06)}
+.xp-row .xp-info{flex:1;min-width:0}
+.xp-row .xp-info strong{display:block;font-size:14px}
+.xp-row .xp-amt{font-size:13px;color:var(--cyan2);font-weight:600;min-width:52px;text-align:right}
+.xp-dots{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--card2);
+  color:var(--text);cursor:pointer;font-size:18px;line-height:1;transition:transform .15s,border-color .15s,background .15s}
+.xp-dots:hover{transform:scale(1.08);border-color:var(--accent);background:rgba(139,92,246,.15)}
+.xp-dots:active{transform:scale(.94)}
+.xp-cfg{padding:12px;margin:0 0 12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;
+  animation:scaleIn .2s ease}
+.btn-anim{transition:transform .15s,box-shadow .2s}
+.btn-anim:hover{transform:translateY(-2px)}
+.btn-anim:active{transform:scale(.96)}
+
 </style>
 </head>
 <body>
@@ -206,6 +229,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="nav-sec">Systeme</div>
       <button type="button" class="nav-btn" data-p="tickets"><span class="ic">🎫</span> Tickets</button>
       <button type="button" class="nav-btn" data-p="feedback"><span class="ic">⭐</span> Feedback</button>
+      <button type="button" class="nav-btn" data-p="xp"><span class="ic">✨</span> XP</button>
       <button type="button" class="nav-btn" data-p="duty"><span class="ic">⏱️</span> Duty</button>
       <button type="button" class="nav-btn" data-p="dizzy"><span class="ic">🎮</span> Dizzy Control</button>
       <button type="button" class="nav-btn" data-p="partner"><span class="ic">🤝</span> Partnerschaft</button>
@@ -429,6 +453,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       else if(page==='dizzy') await pageDizzy(p);
       else if(page==='partner') await pagePartner(p);
       else if(page==='feedback') await pageFeedbackCfg(p);
+      else if(page==='xp') await pageXp(p);
       else if(page==='modules') await pageSettings(p);
       else if(page==='perms') await pagePerms(p);
       else if(page==='panels') await pagePanels(p);
@@ -2099,6 +2124,129 @@ tr:hover td{background:rgba(255,255,255,.02)}
       };
     }
     render();
+  }
+
+
+
+  async function pageXp(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    var items=[
+      {key:'xpTicketClaim',label:'Ticket übernehmen',desc:'XP wenn ein Ticket geclaimt wird',def:15},
+      {key:'xpTicketClose',label:'Ticket schließen',desc:'XP beim Schließen eines Tickets',def:8},
+      {key:'xpAdminCallClaim',label:'Admin-Call übernehmen',desc:'XP bei Admin-Call Claim',def:20},
+      {key:'xpFeedbackStar1',label:'Feedback 1 Stern',desc:'Negativ bei schlechter Bewertung',def:-15},
+      {key:'xpFeedbackStar2',label:'Feedback 2 Sterne',desc:'Leicht negativ',def:-5},
+      {key:'xpFeedbackStar3',label:'Feedback 3 Sterne',desc:'Neutrales Feedback',def:8},
+      {key:'xpFeedbackStar4',label:'Feedback 4 Sterne',desc:'Gutes Feedback',def:15},
+      {key:'xpFeedbackStar5',label:'Feedback 5 Sterne',desc:'Sehr gutes Feedback',def:25},
+      {key:'xpPerMessage',label:'Nachricht',desc:'XP pro Nachricht (Cooldown)',def:1},
+      {key:'xpMessageCooldownSec',label:'Nachrichten-Cooldown (Sek.)',desc:'Mindestabstand zwischen Message-XP',def:60},
+      {key:'xpPerDutyHour',label:'Duty (pro Stunde)',desc:'XP für Zeit im Dienst',def:10},
+      {key:'xpPerVcMinute',label:'Voice (pro Minute)',desc:'XP in Voice-Kanälen',def:2},
+      {key:'xpPeriodDays',label:'Uprank-Periode (Tage)',desc:'Zeitfenster für meiste XP',def:7}
+    ];
+
+    function val(key, def){
+      var v=s[key];
+      if(v==null||v==='') return def;
+      return v;
+    }
+
+    p.innerHTML='<h1>XP</h1><p class="desc">Punkte für Tickets, Admin-Calls, Feedback und mehr</p>'+
+      '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">'+
+      '<div><strong style="font-size:16px">XP-System</strong><div class="desc">Master An / Aus</div></div>'+
+      '<button type="button" class="xp-toggle '+(s.xpEnabled!==false&&s.xpEnabled!==0?'on':'')+'" id="xp-master" title="XP an/aus"><span class="knob"></span></button></div>'+
+      '<div class="card"><h2>Quellen</h2><div id="xp-list"></div></div>'+
+      '<div class="card"><h2>Auto-Uprank</h2>'+
+      '<button type="button" class="btn btn-anim '+(s.xpAutoUprank!==false?'btn-p':'')+'" id="xp-uprank">'+(s.xpAutoUprank!==false?'Auto-Uprank: An':'Auto-Uprank: Aus')+'</button>'+
+      '<div class="field" style="margin-top:12px"><label>Announce-Kanal</label><div id="xp-ann"></div></div>'+
+      '<button type="button" class="btn btn-p btn-anim" id="xp-save-ann" style="margin-top:8px">Kanal speichern</button></div>'+
+      '<div class="card"><h2>Leaderboard (aktuell)</h2><div id="xp-board"><span class="spinner"></span></div>'+
+      '<button type="button" class="btn btn-sm btn-anim" id="xp-ref" style="margin-top:8px">Aktualisieren</button></div>';
+
+    var pickAnn=makeSearchSelect($('xp-ann'),{items:channelItems(disc.channels),multi:false,value:s.xpAnnounceChannelId||'',placeholder:'Kanal…'});
+    var openCfg=null;
+
+    function renderList(){
+      var box=$('xp-list');
+      box.innerHTML=items.map(function(it){
+        var amt=val(it.key,it.def);
+        return '<div class="xp-row" data-k="'+esc(it.key)+'">'+
+          '<div class="xp-info"><strong>'+esc(it.label)+'</strong><span class="desc">'+esc(it.desc)+'</span></div>'+
+          '<div class="xp-amt">'+(Number(amt)>0?'+':'')+esc(String(amt))+'</div>'+
+          '<button type="button" class="xp-dots" data-cfg="'+esc(it.key)+'" title="Wert ändern">⋯</button></div>'+
+          '<div class="xp-cfg hidden" id="cfg-'+esc(it.key)+'">'+
+          '<div class="field"><label>'+esc(it.label)+'</label><input type="number" id="inp-'+esc(it.key)+'" value="'+esc(String(amt))+'"/></div>'+
+          '<button type="button" class="btn btn-p btn-sm btn-anim" data-save="'+esc(it.key)+'">Speichern</button></div>';
+      }).join('');
+
+      box.querySelectorAll('.xp-dots').forEach(function(btn){
+        btn.onclick=function(){
+          var k=btn.getAttribute('data-cfg');
+          var el=$('cfg-'+k);
+          if(!el) return;
+          var show=el.classList.contains('hidden');
+          box.querySelectorAll('.xp-cfg').forEach(function(c){c.classList.add('hidden')});
+          if(show) el.classList.remove('hidden');
+        };
+      });
+      box.querySelectorAll('[data-save]').forEach(function(btn){
+        btn.onclick=async function(){
+          var k=btn.getAttribute('data-save');
+          var v=parseInt(($('inp-'+k)||{}).value,10);
+          if(!Number.isFinite(v)) return toast('Ungültige Zahl','err');
+          var body={}; body[k]=v;
+          try{
+            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
+            s[k]=v; toast('Gespeichert','ok'); renderList();
+          }catch(e){toast(e.message,'err')}
+        };
+      });
+    }
+    renderList();
+
+    $('xp-master').onclick=async function(){
+      var on=!$('xp-master').classList.contains('on');
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{xpEnabled:on}});
+        s.xpEnabled=on;
+        $('xp-master').classList.toggle('on',on);
+        toast(on?'XP an':'XP aus','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+    $('xp-uprank').onclick=async function(){
+      var on=!(s.xpAutoUprank!==false);
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{xpAutoUprank:on}});
+        s.xpAutoUprank=on;
+        $('xp-uprank').textContent=on?'Auto-Uprank: An':'Auto-Uprank: Aus';
+        $('xp-uprank').classList.toggle('btn-p',on);
+        toast('Gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+    $('xp-save-ann').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{xpAnnounceChannelId:pickAnn.getValue()||null}});
+        toast('Kanal gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+
+    async function loadBoard(){
+      var box=$('xp-board');
+      try{
+        var d=await api('/api/guilds/'+guildId+'/xp/leaderboard');
+        var list=d.list||[];
+        if(!list.length){ box.innerHTML='<div class="empty">Noch keine XP in dieser Periode</div>'; return; }
+        box.innerHTML='<table><thead><tr><th>#</th><th>User</th><th>XP</th></tr></thead><tbody>'+
+          list.slice(0,20).map(function(r,i){
+            return '<tr><td>'+(i+1)+'</td><td><code>'+esc(r.user_id)+'</code></td><td><strong>'+esc(String(r.xp))+'</strong></td></tr>';
+          }).join('')+'</tbody></table>';
+      }catch(e){ box.innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+    }
+    $('xp-ref').onclick=loadBoard;
+    loadBoard();
   }
 
 
