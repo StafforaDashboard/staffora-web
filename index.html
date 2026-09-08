@@ -142,7 +142,7 @@ a{color:inherit;text-decoration:none}
 
 <section class="hero">
   <h1>Moderation &amp; RP — <b>ein Bot</b></h1>
-  <p>Tickets, Team, Ausweis, Häuser, Duty, Dizzy und KI-Assistent im Ticket. Alles über ein Dashboard.</p>
+  <p>Tickets, Team, Ausweis, Häuser, Duty, Dizzy und  im Ticket. Alles über ein Dashboard.</p>
   <div class="hero-actions">
     <a class="btn btn-p" href="./dashboard.html">Dashboard öffnen</a>
     <a class="btn btn-g" href="#demo">Live Demo ansehen</a>
@@ -155,7 +155,7 @@ a{color:inherit;text-decoration:none}
 </section>
 <div class="feat-grid">
   <div class="feat" style="animation-delay:.02s"><div class="ic">🎫</div><strong>Tickets</strong><span>Support öffnen, claimen, schließen mit Transcript.</span></div>
-  <div class="feat" style="animation-delay:.05s"><div class="ic">🧠</div><strong>KI-Assistent</strong><span>Antwortet in Tickets mit Server-Kontext (Kanäle, Häuser, Settings).</span></div>
+  <div class="feat" style="animation-delay:.05s"><div class="ic">🧠</div><strong></strong><span>Antwortet in Tickets mit Server-Kontext (Kanäle, Häuser, Settings).</span></div>
   <div class="feat" style="animation-delay:.08s"><div class="ic">✍️</div><strong>Text Generator</strong><span>Ankündigungen aus Stichworten — mit API oder Template.</span></div>
   <div class="feat" style="animation-delay:.11s"><div class="ic">🏠</div><strong>Häuser &amp; Beleg-Scan</strong><span>Hausliste, Status, Beleg-Text erkennen und zuordnen.</span></div>
   <div class="feat" style="animation-delay:.14s"><div class="ic">🔨</div><strong>Ingame Ban Log</strong><span>Warns, Bans, Akte im IC Panel.</span></div>
@@ -222,7 +222,7 @@ a{color:inherit;text-decoration:none}
   function runAi(){
     var el=document.getElementById('preview');
     el.innerHTML=shell('staffora · KI','<h5>Ticket</h5><a class="on"># ticket-0042</a>',
-      '<h2>KI-Assistent</h2><div class="sub">Kennt Dashboard-Settings</div><div id="feed"></div>');
+      '<h2></h2><div class="sub">Kennt Dashboard-Settings</div><div id="feed"></div>');
     var feed=el.querySelector('#feed');
     later(function(){ feed.innerHTML='<div class="msg"><div class="av u">J</div><div class="bubble"><div class="who">Jonas_S</div>Wo ist Dizzy Control?</div></div>'; },400);
     later(function(){ feed.insertAdjacentHTML('beforeend','<div class="msg"><div class="av b">S</div><div class="bubble"><div class="who">Staffora <em>KI</em></div>Der Dizzy-Control-Kanal ist <strong>#verifikation</strong> (wie im Dashboard hinterlegt). Schreib dort deinen Roblox-Namen rein.</div></div>'); },1600);
