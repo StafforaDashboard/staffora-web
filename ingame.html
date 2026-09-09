@@ -104,6 +104,12 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
 .toast.show{opacity:1}
 .toast.ok{border-color:rgba(52,211,153,.3)}.toast.err{border-color:rgba(248,113,113,.3)}
 @media(max-width:800px){.app{grid-template-columns:1fr}.side{height:auto;position:relative;display:flex;overflow:auto;gap:4px;flex-wrap:wrap}}
+
+.duty-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border)}
+.duty-row .av{width:32px;height:32px;border-radius:10px;background:linear-gradient(145deg,#8b5cf6,#6d28d9);
+  display:grid;place-items:center;font-weight:700;font-size:13px;flex-shrink:0}
+.duty-row .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.duty-row strong{font-size:13px}
 </style>
 </head>
 <body>
@@ -283,7 +289,7 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
   }
 
   async function pageDuty(p){
-    p.innerHTML='<h1>Online / Duty</h1><p class="desc">Wer gerade im Dienst ist</p>'+
+    p.innerHTML='<h1>🟢 Online / Duty</h1><p class="desc">Wer gerade im Dienst ist</p>'+
       '<div class="card" id="me-box"></div>'+
       '<div class="grid-2">'+
         '<div class="card"><h2>🟢 Mit Admin-Rechten</h2><div id="wa"></div></div>'+
@@ -301,13 +307,17 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
             '<button type="button" class="btn btn-sm" id="off">Off Duty</button></div></div>';
         $('on').onclick=async function(){try{await api('/api/guilds/'+guildId+'/team/duty/self',{method:'POST',body:{onDuty:true}});toast('On Duty','ok');refresh()}catch(e){toast(e.message,'err')}};
         $('off').onclick=async function(){try{await api('/api/guilds/'+guildId+'/team/duty/self',{method:'POST',body:{onDuty:false}});toast('Off Duty','ok');refresh()}catch(e){toast(e.message,'err')}};
-        function row(u){return '<div style="padding:8px 0;border-bottom:1px solid var(--border)"><strong>'+esc(u.username)+'</strong> <span style="color:var(--muted);font-size:12px">'+esc(u.robloxUsername||'')+'</span></div>'}
-        $('wa').innerHTML=(d.withAdmin||[]).length?(d.withAdmin||[]).map(row).join(''):'<div class="empty">Niemand</div>';
-        $('wo').innerHTML=(d.withoutAdmin||[]).length?(d.withoutAdmin||[]).map(row).join(''):'<div class="empty">Niemand</div>';
-      }catch(e){$('me-box').innerHTML='<p style="color:var(--err)">'+esc(e.message)+'</p>'}
+        function row(u){
+          var name=esc(u.username||u.tag||u.user_id||'—');
+          var rb=u.robloxUsername?' · '+esc(u.robloxUsername):'';
+          return '<div class="duty-row"><div class="av">'+(name.charAt(0)||'?')+'</div><div><strong>'+name+'</strong><div class="sub">'+rb+'</div></div></div>';
+        }
+        $('wa').innerHTML=(d.withAdmin||[]).length?(d.withAdmin||[]).map(row).join(''):'<div class="empty">Niemand mit Admin</div>';
+        $('wo').innerHTML=(d.withoutAdmin||[]).length?(d.withoutAdmin||[]).map(row).join(''):'<div class="empty">Niemand ohne Admin</div>';
+      }catch(e){if($('me-box'))$('me-box').innerHTML='<p style="color:var(--err)">'+esc(e.message)+'</p>'}
     }
     await refresh();
-    dutyTimer=setInterval(refresh,12000);
+    dutyTimer=setInterval(refresh,8000);
   }
 
   async function pageLookup(p){
