@@ -13,7 +13,7 @@
   if(onStaffora||local){
     window.STAFFORA_API='';
   } else {
-    window.STAFFORA_API='https://staffora.info';
+    window.STAFFORA_API='https://staffora.apps.bot-hosting.cloud';
   }
   window.STAFFORA_RETURN=location.origin+location.pathname.replace(/[^/]*$/,'')+'dashboard.html';
 })();
@@ -432,7 +432,7 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 
 <script>
 (function(){
-  var API=(typeof window.STAFFORA_API==='string')?window.STAFFORA_API:'https://staffora.info';
+  var API=(typeof window.STAFFORA_API==='string')?window.STAFFORA_API:'https://staffora.apps.bot-hosting.cloud';
   API=String(API).replace(/\/$/,'');
   var token='';
   // URL token ALWAYS wins (fresh OAuth) — never let stale localStorage block login
@@ -2840,6 +2840,7 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
     if($('tk-img-close')) $('tk-img-close').value=s.ticketCloseImageUrl||'';
     if($('tk-img-thumb')) $('tk-img-thumb').value=s.ticketThumbnailUrl||'';
     if($('tk-ai')) bindToggle($('tk-ai'), !!s.aiAssistEnabled);
+    // Ticket-KI: bei Ticket-Erstellung Wahl KI vs Team, kein Staff-Ping bis KI aus
     var pLog=makeSearchSelect($('tk-log'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
     var pPch=makeSearchSelect($('tk-pch'),{items:ch,multi:false,value:s.ticketPanelChannelId||'',placeholder:'Panel…'});
     var typePicks={};
