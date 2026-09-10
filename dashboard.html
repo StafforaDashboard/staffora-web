@@ -422,7 +422,9 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
         <select class="guild-sel" id="guild-sel"></select>
       </div>
       <div class="user-chip"><span id="user-label"></span>
-        <button type="button" class="btn btn-sm" id="btn-logout">Logout</button></div>
+        <button type="button" class="btn btn-sm" id="btn-refresh-discord" title="Kanäle & Rollen neu laden">↻ Kanäle & Rollen</button>
+        <button type="button" class="btn btn-sm" id="btn-logout">Logout</button>
+      </div>
     </header>
     <main class="content" id="panel"></main>
   </div>
@@ -520,6 +522,7 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
     $('btn-menu').style.display='inline-flex';
     $('btn-menu').onclick=function(){$('sidebar').classList.toggle('open')};
   }
+  $('btn-refresh-discord')&&($('btn-refresh-discord').onclick=function(){if(typeof refreshDiscordLists==='function')refreshDiscordLists()});
   $('btn-logout').onclick=async function(){try{await api('/api/logout',{method:'POST'})}catch(e){} localStorage.removeItem('staffora_token');location.reload()};
   document.querySelectorAll('.nav-btn[data-p]').forEach(function(b){
     b.onclick=function(){page=b.getAttribute('data-p');syncNav();render()};
@@ -534,6 +537,14 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
   updateSideMini();
   $('guild-sel').onchange=function(){ invalidateDiscordCache();guildId=this.value;updateSideMini();render()};
 
+  (function(){
+    document.addEventListener('click', function(ev){
+      var t=ev.target;
+      if(t && (t.id==='btn-refresh-discord' || (t.closest && t.closest('#btn-refresh-discord')))){
+        if(typeof refreshDiscordLists==='function') refreshDiscordLists();
+      }
+    });
+  })();
   async function boot(){
     try{
       var tm=location.search.match(/[?&]token=([^&#]+)/);
@@ -652,14 +663,37 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
   
   
   var _discordCache=null;
-  async function loadDiscord(){
-    if(window.__discCache && window.__discCache.gid===guildId && Date.now()-window.__discCache.at<60000){
+  async function loadDiscord(force){
+    if(!force && window.__discCache && window.__discCache.gid===guildId && Date.now()-window.__discCache.at<60000){
       return window.__discCache.data;
     }
-    var data={channels:[],roles:[]};
-    try{ data=await api('/api/guilds/'+guildId+'/discord'); }catch(e){}
-    window.__discCache={gid:guildId,at:Date.now(),data:data};
+    var data={channels:[],roles:[],emojis:[],stickers:[]};
+    try{
+      data=await api('/api/guilds/'+guildId+'/discord'+(force?'?refresh=1':''));
+    }catch(e){
+      console.warn('loadDiscord', e);
+      try{ data=await api('/api/guilds/'+guildId+'/discord?refresh=1'); }catch(e2){}
+    }
+    if(!data.channels) data.channels=[];
+    if(!data.roles) data.roles=[];
+    window.__discCache={gid:guildId, at:Date.now(), data:data};
     return data;
+  }
+
+  async function refreshDiscordLists(){
+    window.__discCache=null;
+    showSaveHint('Kanäle & Rollen werden geladen…', true);
+    try{
+      var d=await loadDiscord(true);
+      showSaveHint('Geladen: '+(d.channels||[]).length+' Kanäle, '+(d.roles||[]).length+' Rollen', true);
+      toast((d.channels||[]).length+' Kanäle · '+(d.roles||[]).length+' Rollen','ok');
+      // re-render current page
+      if(typeof navigate==='function' && page) navigate(page);
+      else if(typeof renderPage==='function') renderPage();
+      else location.reload();
+    }catch(e){
+      toast(e.message||'Fehler beim Laden','err');
+    }
   }
   function invalidateDiscordCache(){ window.__discCache=null; }
   function showSaveHint(msg, ok){
@@ -2814,7 +2848,9 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
     var ch=channelItems(disc.channels||[]);
     var roles=roleItems(disc.roles||[]);
     var types=Array.isArray(s.ticketTypes)&&s.ticketTypes.length?s.ticketTypes.slice():[
-      {id:'support',name:'Support',emoji:'🎫',description:'Allgemeiner Support',categoryId:s.ticketCategoryId||'',staffRoleIds:s.ticketSupportRoleIds||[],autoCloseHours:0}
+      {id:'support',name:'Support',emoji:'🎫',description:'Allgemeine Hilfe',categoryId:'',staffRoleIds:[],autoCloseHours:0},
+      {id:'report',name:'Melden',emoji:'🚨',description:'Spieler melden',categoryId:'',staffRoleIds:[],autoCloseHours:0},
+      {id:'other',name:'Sonstiges',emoji:'📋',description:'Anderes Anliegen',categoryId:'',staffRoleIds:[],autoCloseHours:0}
     ];
     p.innerHTML='<h1>Tickets</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
