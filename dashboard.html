@@ -343,6 +343,16 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 .save-hint.ok{color:var(--ok);border-color:rgba(52,211,153,.35)}
 
 </style>
+
+<style id="galaxy-extra">
+body{background:#0b0f1a;}
+.sidebar{background:linear-gradient(180deg,#12182a,#0b0f1a);}
+.card{background:rgba(22,28,45,.92);border:1px solid rgba(139,92,246,.18);box-shadow:0 0 24px rgba(99,102,241,.06);}
+.btn-p{background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;}
+.nav-btn.active{background:rgba(124,58,237,.25);box-shadow:inset 3px 0 0 #8b5cf6;}
+.staffora-div{opacity:.9}
+.pill{background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3)}
+</style>
 </head>
 <body>
 <div id="v-login" class="login-wrap">
@@ -367,7 +377,8 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
       <button type="button" class="nav-btn" data-p="online"><span class="ic">🟢</span> Online-Status</button>
       <div class="nav-sec">Server</div>
       <button type="button" class="nav-btn" data-p="settings"><span class="ic">⚙️</span> Allgemein</button>
-      <button type="button" class="nav-btn" data-p="modules"><span class="ic">🧩</span> Module</button>
+      
+      <button type="button" class="nav-btn" data-p="modperms"><span class="ic">🛡️</span> Moderation Permissions</button>
       <button type="button" class="nav-btn" data-p="perms"><span class="ic">🛡️</span> Berechtigungen</button>
       <button type="button" class="nav-btn" data-p="panels"><span class="ic">📨</span> Panels senden</button>
       <button type="button" class="nav-btn" data-p="embeds"><span class="ic">✏️</span> Embeds bearbeiten</button>
@@ -382,16 +393,19 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
       <button type="button" class="nav-btn" data-p="complaint"><span class="ic">📢</span> Team-Beschwerde</button>
       <button type="button" class="nav-btn" data-p="tickets"><span class="ic">🎫</span> Tickets</button>
       <button type="button" class="nav-btn" data-p="feedback"><span class="ic">⭐</span> Feedback</button>
+      <button type="button" class="nav-btn" data-p="flynametag"><span class="ic">✈️</span> Fly & Nametag</button>
       <button type="button" class="nav-btn" data-p="xp"><span class="ic">✨</span> XP</button>
       <button type="button" class="nav-btn" data-p="duty"><span class="ic">⏱️</span> Duty</button>
       <button type="button" class="nav-btn" data-p="dizzy"><span class="ic">🎮</span> Dizzy Control</button>
       <button type="button" class="nav-btn" data-p="partner"><span class="ic">🤝</span> Partnerschaft</button>
       
       <div class="nav-sec">Support / Voice</div>
-      <button type="button" class="nav-btn" data-p="warteraum"><span class="ic">🎧</span> Warteraum</button>
+      
       <button type="button" class="nav-btn" data-p="admincall"><span class="ic">📞</span> Admin Call</button>
+      <button type="button" class="nav-btn" data-p="warteraum"><span class="ic">🎧</span> Warteraum</button>
       <button type="button" class="nav-btn" data-p="offices"><span class="ic">🏢</span> Büros</button>
-      <button type="button" class="nav-btn" data-p="supportping"><span class="ic">📣</span> Support-Ping</button>
+      
+      
       <button type="button" class="nav-btn" data-p="interviews"><span class="ic">🗣️</span> Interviews</button>
       <button type="button" class="nav-btn" data-p="giveaway"><span class="ic">🎉</span> Giveaways</button>
       <button type="button" class="nav-btn" data-p="suggest"><span class="ic">💡</span> Vorschläge</button>
@@ -624,7 +638,7 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
       else if(page==='warteraum') await pageWarteraum(p);
       else if(page==='admincall') await pageAdminCall(p);
       else if(page==='offices') await pageOffices(p);
-      else if(page==='supportping') await pageSupportPing(p);
+      else if(page==='supportping') { p.innerHTML='<div class="empty">Entfernt.</div>'; }
       else if(page==='interviews') await pageInterviews(p);
       else if(page==='giveaway') await pageGiveaway(p);
       else if(page==='suggest') await pageSuggest(p);
@@ -635,8 +649,10 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
       else if(page==='dizzy') await pageDizzy(p);
       else if(page==='partner') await pagePartner(p);
       else if(page==='feedback') await pageFeedbackCfg(p);
+      else if(page==='flynametag') await pageFlyNametag(p);
       else if(page==='xp') await pageXp(p);
-      else if(page==='modules') await pageSettings(p);
+      else if(page==='modules') { page='overview'; await pageOverview(p); }
+      else if(page==='modperms') await pageModPerms(p);
       else if(page==='perms') await pagePerms(p);
       else if(page==='panels') await pagePanels(p);
       else if(page==='embeds') await pageEmbeds(p);
@@ -1619,10 +1635,14 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
       try{await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{autoNickEnabled:$('an-on').isOn(),autoNickFormat:$('an-fmt').value.trim()}});toast('Auto Nick ok','ok')}catch(e){toast(e.message,'err')}
     };
     if($('tl-save')) $('tl-save').onclick=async function(){
-      try{await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{teamlistChannelId:pTlCh?pTlCh.getValue():null,teamlistRoleIds:pTlRoles?pTlRoles.getValue():[]}});toast('Teamliste ok','ok')}catch(e){toast(e.message,'err')}
+      try{await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{teamlistEnabled:true,teamlistChannelId:pTlCh?pTlCh.getValue():null,teamlistRoleIds:pTlRoles?pTlRoles.getValue():[]}});toast('Teamliste ok','ok')}catch(e){toast(e.message,'err')}
     };
     if($('tl-pub')) $('tl-pub').onclick=async function(){
-      try{await api('/api/guilds/'+guildId+'/teamlist/refresh',{method:'POST',body:{}});toast('Published','ok')}catch(e){toast(e.message,'err')}
+      try{
+        if(pTlCh) await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{teamlistChannelId:pTlCh.getValue()||null,teamlistRoleIds:pTlRoles?pTlRoles.getValue():[]}});
+        await api('/api/guilds/'+guildId+'/teamlist/refresh',{method:'POST',body:{}});
+        toast('Teamliste gepostet','ok');
+      }catch(e){toast(e.message,'err')}
     };
 
     $('tr-title').value=s.teamRobloxPanelTitle||'Roblox für Teamliste';
@@ -1645,7 +1665,7 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
       var box=$('rc-list');
       box.innerHTML=career.map(function(r,i){
         return '<div class="card" style="margin:8px 0;padding:10px" data-i="'+i+'">'+
-          '<div class="field"><label>Key</label><input class="rc-key" value="'+esc(r.key||'')+'"/></div>'+
+          '<div class="field"><label style="display:none" style="display:none">Key</label><input class="rc-key" value="'+esc(r.key||'')+'"/></div>'+
           '<div class="field"><label>Name</label><input class="rc-name" value="'+esc(r.name||'')+'"/></div>'+
           '<div class="field"><label>Order</label><input class="rc-order" type="number" value="'+(r.order!=null?r.order:i)+'"/></div>'+
           '<div class="field"><label>Discord-Rolle</label><div class="rc-role" id="rc-role-'+i+'"></div></div>'+
@@ -1777,49 +1797,72 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 
 
   // Fix permissions page matrix after definition
-  var _pagePerms = pagePerms;
   pagePerms = async function(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
-    var matrix=[
-      ['Spieler suchen',1,1,1,1,1],
-      ['Spielerakte',1,1,1,1,1],
-      ['Warn',1,1,1,0,0],
-      ['Kick / Ban',1,1,1,0,0],
-      ['Unban',1,1,1,0,0],
-      ['Ban Appeals',1,1,1,0,0],
-      ['Webhooks',1,1,0,0,0],
-      ['Rollen',1,1,0,0,0],
-      ['Einstellungen',1,1,0,0,0]
-    ];
-    var grid='<div class="perm-grid"><div></div><div class="h">Owner</div><div class="h">Admin</div><div class="h">Mod</div><div class="h">Support</div><div class="h">Viewer</div>';
-    matrix.forEach(function(row){
-      grid+='<div>'+row[0]+'</div>';
-      for(var i=1;i<=5;i++) grid+='<div class="cell">'+(row[i]?'✓':'—')+'</div>';
+    var disc={roles:[]}; try{disc=await loadDiscord()}catch(e){}
+    var roles=roleItems(disc.roles||[]);
+    var access=Array.isArray(s.ingameAccessRoles)?s.ingameAccessRoles.slice():[];
+    // migrate legacy ids
+    (s.ingameAccessRoleIds||[]).forEach(function(id){
+      if(!access.some(function(x){return String(x.roleId)===String(id)}))
+        access.push({roleId:String(id), enabled:true});
     });
-    grid+='</div>';
-    p.innerHTML='<h1>Rollen & Berechtigungen</h1><p class="desc">Ingame-Rollen mit Zugang zum Ingame-Panel</p>'+
-      '<div class="card"><h2>Rollen</h2>'+
-      '<div class="field"><label>Ingame Access</label><input id="p-roles" value="'+esc((s.ingameAccessRoleIds||[]).join(', '))+'"/></div>'+
-      '<div class="field"><label>Link-Bestätigung</label><input id="p-link" value="'+esc((s.ingameLinkConfirmRoleIds||[]).join(', '))+'"/></div>'+
-      '<div class="field"><label>Staff</label><input id="p-staff" value="'+esc((s.staffRoleIds||[]).join(', '))+'"/></div>'+
-      '<div class="field"><label>Admin</label><input id="p-admin" value="'+esc((s.adminRoleIds||[]).join(', '))+'"/></div>'+
-      '<button type="button" class="btn btn-p" id="p-save">Speichern</button></div>'+
-      '<div class="card"><h2>Matrix (Referenz)</h2>'+grid+
-      '<p class="desc" style="margin-top:12px">Rechte steuerst du über die Discord-Rollen oben.</p></div>';
-    $('p-save').onclick=async function(){
-      function ids(v){return v.split(/[,\s]+/).filter(Boolean)}
-      try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          ingameAccessRoleIds:ids($('p-roles').value),
-          ingameLinkConfirmRoleIds:ids($('p-link').value),
-          staffRoleIds:ids($('p-staff').value),
-          adminRoleIds:ids($('p-admin').value)
-        }});
-        toast('Gespeichert','ok');
-      }catch(e){toast(e.message,'err')}
-    };
+    function roleName(id){
+      var r=(disc.roles||[]).find(function(x){return String(x.id)===String(id)});
+      return r?r.name:('Rolle');
+    }
+    function draw(){
+      p.innerHTML='<h1>Berechtigungen</h1>'+
+        '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+        '<div class="card"><h2>Ingame Panel Access</h2>'+
+        '<p class="desc">Rollen, die das IC-Panel nutzen dürfen. Pro Rolle AN/AUS.</p>'+
+        '<div id="ipa-list"></div>'+
+        '<div class="field" style="margin-top:12px"><label>Rolle hinzufügen</label><div id="ipa-add"></div></div>'+
+        '<button type="button" class="btn btn-p btn-sm" id="ipa-add-btn">+ Hinzufügen</button> '+
+        '<button type="button" class="btn btn-p" id="ipa-save">Speichern</button></div>';
+      var box=$('ipa-list');
+      if(!access.length) box.innerHTML='<div class="empty">Noch keine Rollen</div>';
+      else box.innerHTML=access.map(function(a,i){
+        return '<div class="fac-card" style="display:flex;align-items:center;justify-content:space-between;gap:10px">'+
+          '<span class="pill">'+(a.enabled!==false?'🟢':'⚪')+' '+esc(roleName(a.roleId))+'</span>'+
+          '<div style="display:flex;gap:6px">'+
+          '<button type="button" class="btn btn-sm ipa-on" data-i="'+i+'">AN</button>'+
+          '<button type="button" class="btn btn-sm ipa-off" data-i="'+i+'">AUS</button>'+
+          '<button type="button" class="btn btn-sm btn-d ipa-del" data-i="'+i+'">Entfernen</button>'+
+          '</div></div>';
+      }).join('');
+      document.querySelectorAll('.ipa-on').forEach(function(b){
+        b.onclick=function(){ access[+b.getAttribute('data-i')].enabled=true; draw(); };
+      });
+      document.querySelectorAll('.ipa-off').forEach(function(b){
+        b.onclick=function(){ access[+b.getAttribute('data-i')].enabled=false; draw(); };
+      });
+      document.querySelectorAll('.ipa-del').forEach(function(b){
+        b.onclick=function(){ access.splice(+b.getAttribute('data-i'),1); draw(); };
+      });
+      var pick=makeSearchSelect($('ipa-add'),{items:roles,multi:false,value:'',placeholder:'Discord-Rolle…'});
+      $('ipa-add-btn').onclick=function(){
+        var id=pick.getValue();
+        if(!id){toast('Rolle wählen','err');return}
+        if(access.some(function(x){return String(x.roleId)===String(id)})){toast('Schon vorhanden','err');return}
+        access.push({roleId:String(id), enabled:true});
+        draw();
+      };
+      $('ipa-save').onclick=async function(){
+        try{
+          var ids=access.filter(function(a){return a.enabled!==false}).map(function(a){return a.roleId});
+          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+            ingameAccessRoles:access,
+            ingameAccessRoleIds:ids
+          }});
+          toast('Gespeichert','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+    }
+    draw();
   };
+
 
 
   
@@ -1857,6 +1900,7 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 
     bindToggle($('wr-on'), s.warteraumSupportEnabled!==false && s.warteraumEnabled!==false);
     bindToggle($('wr-mus'), s.warteraumMusicEnabled!==false);
+    if($('wr-bl')) window.__wrBl=makeSearchSelect($('wr-bl'),{items:roles,multi:true,values:s.warteraumBlacklistRoleIds||[],placeholder:'Blacklist…'});
     bindToggle($('wr-ping'), s.warteraumStaffPingEnabled!==false);
     bindToggle($('wr-del'), s.warteraumDeleteTempRoom!==false);
     $('wr-mode').value=s.warteraumRoomMode||'temp';
@@ -1873,6 +1917,7 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
         await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
           warteraumEnabled:$('wr-on').isOn(),
           warteraumSupportEnabled:$('wr-on').isOn(),
+          warteraumBlacklistRoleIds:(window.__wrBl&&window.__wrBl.getValue)?window.__wrBl.getValue():(s.warteraumBlacklistRoleIds||[]),
           warteraumMusicEnabled:$('wr-mus').isOn(),
           warteraumStaffPingEnabled:$('wr-ping').isOn(),
           warteraumDeleteTempRoom:$('wr-del').isOn(),
@@ -1900,7 +1945,8 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
           r.readAsDataURL(f);
         });
         await api('/api/guilds/'+guildId+'/music/upload',{method:'POST',body:{filename:f.name,data:b64}});
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{warteraumMusicEnabled:true}});
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{warteraumBlacklistRoleIds:(window.__wrBl&&window.__wrBl.getValue)?window.__wrBl.getValue():(s.warteraumBlacklistRoleIds||[]),
+          warteraumMusicEnabled:true}});
         toast('Musik hochgeladen','ok');
         $('wr-mus-info').textContent='Musik hinterlegt: '+f.name;
         bindToggle($('wr-mus'), true);
@@ -1929,16 +1975,16 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
     bindToggle($('ac-on'), s.adminCallEnabled!==false);
     $('ac-title').value=s.adminCallPanelTitle||'Admin Call';
     $('ac-text').value=s.adminCallPanelText||'Dringend einen Admin? Formular ausfüllen.';
-    var pVc=makeSearchSelect($('ac-vc'),{items:voice,multi:false,value:s.adminCallWaitingChannelId||'',placeholder:'Voice…'});
+    var pAcBl=null; if($('ac-bl')) pAcBl=makeSearchSelect($('ac-bl'),{items:roleItems(disc.roles),multi:true,values:s.adminCallBlacklistRoleIds||[],placeholder:'Blacklist…'});
     var pLog=makeSearchSelect($('ac-log'),{items:channelItems(disc.channels),multi:false,value:s.adminCallLogChannelId||'',placeholder:'Textkanal…'});
     var pR=makeSearchSelect($('ac-roles'),{items:roleItems(disc.roles),multi:true,values:s.adminCallPingRoleIds||[],placeholder:'Rollen…'});
     $('ac-save').onclick=async function(){
       try{
         await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
           adminCallEnabled:$('ac-on').isOn(),
-          adminCallWaitingChannelId:pVc.getValue()||null,
           adminCallLogChannelId:pLog.getValue()||null,
           adminCallPingRoleIds:pR.getValue(),
+          adminCallBlacklistRoleIds:pAcBl?pAcBl.getValue():[],
           adminCallPanelTitle:$('ac-title').value.trim(),
           adminCallPanelText:$('ac-text').value.trim()
         }});
@@ -2590,6 +2636,44 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
     };
   }
 
+  
+  async function pageFlyNametag(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
+    p.innerHTML='<h1>Fly & Nametag</h1>'+
+      '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+      '<div class="card"><h2>Panel</h2>'+
+      '<div class="toggle-row"><span>Aktiv</span><div id="fn-on" class="toggle-sw"></div></div>'+
+      '<div class="field"><label>Staff-Kanal (Requests)</label><div id="fn-ch"></div></div>'+
+      '<div class="field"><label>Panel-Kanal</label><div id="fn-pch"></div></div>'+
+      '<button type="button" class="btn btn-p" id="fn-save">Speichern</button> '+
+      '<button type="button" class="btn" id="fn-send">Panel senden</button></div>'+
+      '<p class="desc">Ein Panel: Fly & Nametag beantragen. Staff mit Ingame-Access entscheidet.</p>';
+    bindToggle($('fn-on'), s.flyNametagEnabled!==false);
+    var pCh=makeSearchSelect($('fn-ch'),{items:channelItems(disc.channels),multi:false,value:s.flyNametagChannelId||'',placeholder:'Kanal…'});
+    var pPch=makeSearchSelect($('fn-pch'),{items:channelItems(disc.channels),multi:false,value:s.flyNametagPanelChannelId||'',placeholder:'Panel…'});
+    $('fn-save').onclick=async function(){
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+          flyNametagEnabled:$('fn-on').isOn(),
+          flyNametagChannelId:pCh.getValue()||null,
+          flyNametagPanelChannelId:pPch.getValue()||null
+        }});
+        toast('Gespeichert','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+    $('fn-send').onclick=async function(){
+      var ch=pPch.getValue()||pCh.getValue();
+      if(!ch){toast('Kanal wählen','err');return}
+      try{
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{flyNametagEnabled:true,flyNametagPanelChannelId:ch,flyNametagChannelId:pCh.getValue()||ch}});
+        await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'fly_nametag',channelId:ch}});
+        toast('Panel gesendet','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+
   async function pageFeedbackCfg(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
@@ -2860,7 +2944,7 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
       '<div class="field"><label>Log-Kanal</label><div id="tk-log"></div></div>'+
       '<div class="field"><label>Default Auto-Close (Stunden, 0=aus)</label><input id="tk-ac" type="number" min="0" max="168"/></div>'+'<div class="field"><label>Auto-Unclaim (Minuten, 0=aus)</label><input id="tk-au" type="number" min="0" max="1440"/></div>'+'<div class="toggle-row"><span>Close einschränken (nur Team)</span><div id="tk-crestrict" class="toggle-sw"></div></div>'+'<div class="toggle-row"><span>Auto-Close nach Close-Request</span><div id="tk-acr" class="toggle-sw"></div></div>'+'<div class="field"><label>Panel-Bild URL</label><input id="tk-img-panel" placeholder="https://…"/></div>'+'<div class="field"><label>Ticket-Erstellung Bild URL</label><input id="tk-img-create"/></div>'+'<div class="field"><label>Ticket-Close Bild URL</label><input id="tk-img-close"/></div>'+'<div class="field"><label>Thumbnail URL</label><input id="tk-img-thumb"/></div>'+
       '<div class="field"><label>Panel-Kanal</label><div id="tk-pch"></div></div>'+
-      '<div class="toggle-row"><span>KI-Hilfe in Tickets</span><div id="tk-ai" class="toggle-sw"></div></div>'+'<button type="button" class="btn btn-p" id="tk-save-g">Global speichern</button> '+
+      '<div class="field"><label>Blacklist-Rollen (keine Tickets)</label><div id="tk-bl"></div></div>'+'<div class="toggle-row"><span>KI-Hilfe in Tickets</span><div id="tk-ai" class="toggle-sw"></div></div>'+'<button type="button" class="btn btn-p" id="tk-save-g">Global speichern</button> '+
       '<button type="button" class="btn" id="tk-send">Panel senden</button></div>'+
       '<div class="card"><h2>Ticket-Arten</h2><div id="tk-types"></div>'+
       '<button type="button" class="btn btn-sm" id="tk-add">+ Art</button> '+
@@ -2876,6 +2960,8 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
     if($('tk-img-close')) $('tk-img-close').value=s.ticketCloseImageUrl||'';
     if($('tk-img-thumb')) $('tk-img-thumb').value=s.ticketThumbnailUrl||'';
     if($('tk-ai')) bindToggle($('tk-ai'), !!s.aiAssistEnabled);
+    var pTkBl=null;
+    if($('tk-bl')) pTkBl=makeSearchSelect($('tk-bl'),{items:roleItems(disc.roles),multi:true,values:s.ticketBlacklistRoleIds||[],placeholder:'Blacklist…'});
     // Ticket-KI: bei Ticket-Erstellung Wahl KI vs Team, kein Staff-Ping bis KI aus
     var pLog=makeSearchSelect($('tk-log'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
     var pPch=makeSearchSelect($('tk-pch'),{items:ch,multi:false,value:s.ticketPanelChannelId||'',placeholder:'Panel…'});
@@ -2942,7 +3028,8 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
           ticketCreateImageUrl:($('tk-img-create')||{}).value||null,
           ticketCloseImageUrl:($('tk-img-close')||{}).value||null,
           ticketThumbnailUrl:($('tk-img-thumb')||{}).value||null,
-          aiAssistEnabled:$('tk-ai')?$('tk-ai').isOn():false
+          aiAssistEnabled:$('tk-ai')?$('tk-ai').isOn():false,
+          ticketBlacklistRoleIds:pTkBl?pTkBl.getValue():[]
         }});
         toast('Global gespeichert','ok');
       }catch(e){toast(e.message,'err')}
@@ -2960,6 +3047,72 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
         toast('Panel gesendet','ok');
       }catch(e){toast(e.message,'err')}
     };
+  }
+
+  
+  async function pageModPerms(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    var disc={roles:[]}; try{disc=await loadDiscord()}catch(e){}
+    var roles=roleItems(disc.roles||[]);
+    var cmds=['kick','ban','softban','warn','timeout'];
+    var mp=s.modPermissions&&typeof s.modPermissions==='object'?JSON.parse(JSON.stringify(s.modPermissions)):{};
+    cmds.forEach(function(c){ if(!Array.isArray(mp[c])) mp[c]=[]; });
+    function rname(id){
+      var r=(disc.roles||[]).find(function(x){return String(x.id)===String(id)});
+      return r?r.name:'Rolle';
+    }
+    function draw(){
+      var html='<h1>Moderation Permissions</h1>'+
+        '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+        '<p class="desc">Mehrere Rollen pro Command. AN/AUS steuert Zugriff.</p>';
+      cmds.forEach(function(cmd){
+        html+='<div class="card"><h2>/'+cmd+'</h2><div id="mp-'+cmd+'"></div>'+
+          '<div class="field"><label>Rolle hinzufügen</label><div id="mp-add-'+cmd+'"></div></div>'+
+          '<button type="button" class="btn btn-sm btn-p mp-addb" data-c="'+cmd+'">+ Rolle</button></div>';
+      });
+      html+='<button type="button" class="btn btn-p" id="mp-save">Alles speichern</button>';
+      p.innerHTML=html;
+      cmds.forEach(function(cmd){
+        var box=$('mp-'+cmd);
+        var list=mp[cmd]||[];
+        box.innerHTML=list.length?list.map(function(a,i){
+          return '<div class="fac-card" style="display:flex;justify-content:space-between;align-items:center;gap:8px">'+
+            '<span class="pill">'+(a.enabled!==false?'🟢':'⚪')+' '+esc(rname(a.roleId))+'</span>'+
+            '<div><button type="button" class="btn btn-sm mp-on" data-c="'+cmd+'" data-i="'+i+'">AN</button> '+
+            '<button type="button" class="btn btn-sm mp-off" data-c="'+cmd+'" data-i="'+i+'">AUS</button> '+
+            '<button type="button" class="btn btn-sm btn-d mp-del" data-c="'+cmd+'" data-i="'+i+'">Entfernen</button></div></div>';
+        }).join(''):'<div class="empty">Keine Rollen — Discord-Rechte als Fallback</div>';
+        window['__mpPick_'+cmd]=makeSearchSelect($('mp-add-'+cmd),{items:roles,multi:false,value:'',placeholder:'Rolle…'});
+      });
+      document.querySelectorAll('.mp-on').forEach(function(b){
+        b.onclick=function(){ mp[b.getAttribute('data-c')][+b.getAttribute('data-i')].enabled=true; draw(); };
+      });
+      document.querySelectorAll('.mp-off').forEach(function(b){
+        b.onclick=function(){ mp[b.getAttribute('data-c')][+b.getAttribute('data-i')].enabled=false; draw(); };
+      });
+      document.querySelectorAll('.mp-del').forEach(function(b){
+        b.onclick=function(){ mp[b.getAttribute('data-c')].splice(+b.getAttribute('data-i'),1); draw(); };
+      });
+      document.querySelectorAll('.mp-addb').forEach(function(b){
+        b.onclick=function(){
+          var c=b.getAttribute('data-c');
+          var pick=window['__mpPick_'+c];
+          var id=pick&&pick.getValue();
+          if(!id){toast('Rolle wählen','err');return}
+          if((mp[c]||[]).some(function(x){return String(x.roleId)===String(id)})){toast('Schon da','err');return}
+          mp[c].push({roleId:String(id),enabled:true});
+          draw();
+        };
+      });
+      $('mp-save').onclick=async function(){
+        try{
+          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{modPermissions:mp}});
+          toast('Gespeichert','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+    }
+    draw();
   }
 
   async function pagePerms(p){
@@ -3514,12 +3667,14 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
       $('aw-max').value=data.ausweisMaxExtra!=null?data.ausweisMaxExtra:3;
       $('aw-pt').value=data.panelTitle||'Ausweis';
       $('aw-px').value=data.panelText||'';
-      var pick=makeSearchSelect($('aw-ch'),{items:channelItems(disc.channels),multi:false,value:'',placeholder:'Kanal…'});
+      var sAw=(cfgAw&&cfgAw.settings)||{};
+      var pickLog=makeSearchSelect($('aw-log'),{items:channelItems(disc.channels),multi:false,value:sAw.ausweisLogChannelId||'',placeholder:'Log-Kanal…'});
+      var pick=makeSearchSelect($('aw-ch'),{items:channelItems(disc.channels),multi:false,value:sAw.ausweisChannelId||sAw.ausweisShowChannelId||'',placeholder:'Ausweis-Kanal…'});
       var fb=$('aw-fields');
       fb.innerHTML=fields.map(function(f,i){
         return '<div class="fac-card" data-fi="'+i+'"><div class="grid2">'+
           '<div class="field"><label>Label</label><input class="af-lab" value="'+esc(f.label||'')+'"/></div>'+
-          '<div class="field"><label>Key</label><input class="af-key" value="'+esc(f.key||'')+'"/></div></div>'+
+          '<div class="field"><label style="display:none" style="display:none">Key</label><input class="af-key" value="'+esc(f.key||'')+'"/></div></div>'+
           '<label class="row" style="gap:8px"><input type="checkbox" class="af-req" '+(f.required?'checked':'')+'/> Pflicht</label> '+
           '<button type="button" class="btn btn-sm btn-d af-del">Löschen</button></div>';
       }).join('')||'<div class="empty">Keine Felder</div>';
@@ -3550,7 +3705,13 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
       };
       $('aw-save-name').onclick=async function(){
         try{
-          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{ausweisServerName:$('aw-server').value.trim(),ausweisMaxExtra:parseInt($('aw-max').value,10)||3}});
+          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+            ausweisServerName:$('aw-server').value.trim(),
+            ausweisMaxExtra:parseInt($('aw-max').value,10)||3,
+            ausweisLogChannelId:typeof pickLog!=='undefined'&&pickLog?pickLog.getValue():null,
+            ausweisChannelId:pick?pick.getValue():null,
+            ausweisShowChannelId:pick?pick.getValue():null
+          }});
           data.serverName=$('aw-server').value.trim(); toast('Gespeichert','ok'); refreshPrev();
         }catch(e){toast(e.message,'err')}
       };
