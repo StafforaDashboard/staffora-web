@@ -77,7 +77,7 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .guild-sel{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:7px 12px;color:var(--text);min-width:180px;cursor:pointer}
 .guild-sel:focus{outline:0;border-color:var(--accent)}
 .user-chip{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
-.content{padding:22px 24px 48px;max-width:1180px;animation:fadeUp .3s ease}
+.content{padding:22px 28px 48px;max-width:none;width:100%;animation:fadeUp .3s ease;box-sizing:border-box}
 .content h1{font-size:1.35rem;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
 .content .desc{color:var(--muted);font-size:13.5px;margin-bottom:20px}
 .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
@@ -272,7 +272,7 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 .nav-sec{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);
   padding:16px 10px 6px;font-weight:700}
 .nav-btn{border-radius:10px;padding:9px 12px;font-size:13px;font-weight:500}
-.main{min-width:0;padding:22px 28px 48px;max-width:1100px}
+.main{min-width:0;padding:22px 28px 48px;max-width:none;width:100%}
 .main h1{font-size:1.55rem;font-weight:750;letter-spacing:-.03em;margin-bottom:4px}
 .main > .desc, .main h1 + .desc{margin-bottom:18px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 18px 16px;
@@ -360,10 +360,13 @@ body{background:#0b0f1a;}
 .content#panel, main.content, #panel{
   flex:1;
   min-width:0;
+  width:100%;
+  max-width:none;
   min-height:60vh;
   padding:22px 28px 48px;
   background:transparent;
   color:var(--text,#e8eaf2);
+  box-sizing:border-box;
 }
 .btn-p{background:linear-gradient(135deg,#7c3aed,#6366f1)!important;border:none;color:#fff}
 .nav-btn.active{box-shadow:inset 3px 0 0 #8b5cf6;background:rgba(139,92,246,.18)!important}
@@ -386,7 +389,7 @@ body{background:#0b0f1a;}
 .oa-row{padding:8px;border-radius:10px;background:rgba(255,255,255,.03);margin:4px 0}
 .mod-toggle-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;margin-bottom:10px;border-radius:12px;border:1px solid rgba(139,92,246,.2);background:rgba(139,92,246,.06)}
 </style>
-</head>
+<style id="staffora-layout-fix">.content,#panel,main.content{max-width:none!important;width:100%!important}.app-shell{width:100%}.card{max-width:920px}</style></head>
 <body>
 <div id="v-login" class="login-wrap">
   <div class="login-box">
