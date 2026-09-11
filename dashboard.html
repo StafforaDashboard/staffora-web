@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="staffora-dash" content="settings-galaxy-v2"/>
+<meta http-equiv="Cache-Control" content="no-cache"/>
 <title>STAFFORA BOT · Dashboard</title>
 <script>
 (function(){
@@ -544,7 +546,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
       <button type="button" class="nav-btn" data-p="activity"><span class="ic">⚡</span> Live Activity</button>
       <button type="button" class="nav-btn" data-p="online"><span class="ic">🟢</span> Online-Status</button>
       <div class="nav-sec">Server</div>
-      <button type="button" class="nav-btn" data-p="settings"><span class="ic">⚙️</span> Allgemein</button>
+      <button type="button" class="nav-btn" data-p="settings"><span class="ic">⚙️</span> Einstellungen</button>
       
       <button type="button" class="nav-btn" data-p="modperms"><span class="ic">🛡️</span> Moderation Permissions</button>
       <button type="button" class="nav-btn" data-p="perms"><span class="ic">🛡️</span> Berechtigungen</button>
@@ -4226,6 +4228,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
     p.innerHTML=
       '<h1>Einstellungen</h1>'+
       '<p class="desc">Control Panel · Kategorien links, Details rechts</p>'+
+      '<div class="card" style="border-color:rgba(139,92,246,.45);margin-bottom:14px;padding:12px 16px;background:linear-gradient(90deg,rgba(139,92,246,.15),transparent)"><strong>Galaxy Control Panel</strong> · v2 · Links Kategorien wählen</div>'+
       '<div class="settings-shell">'+
         '<nav class="settings-nav" id="set-nav">'+
           CATS.map(function(c){
