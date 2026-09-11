@@ -8,12 +8,24 @@
 (function(){
   var cloud='https://staffora.apps.bot-hosting.cloud';
   try{
-    var h=location.hostname||'';
-    if(h.indexOf('bot-hosting')>=0||h==='localhost'||h==='127.0.0.1') window.STAFFORA_API='';
-    else window.STAFFORA_API=cloud;
-    var base=location.origin+(location.pathname.replace(/[^/]+$/,'')||'/');
-    window.STAFFORA_RETURN=base+(base.slice(-1)==='/'?'':'/')+'ingame.html';
-  }catch(e){window.STAFFORA_API=cloud;window.STAFFORA_RETURN='https://staffora.apps.bot-hosting.cloud/ingame'}
+    var host=location.hostname||'';
+    // Same-origin API when served from bot host; otherwise cloud API
+    if(host.indexOf('bot-hosting')>=0||host==='localhost'||host==='127.0.0.1'||host.indexOf('staffora.info')>=0){
+      window.STAFFORA_API='';
+    } else {
+      window.STAFFORA_API=cloud;
+    }
+    var path=location.pathname||'/';
+    if(/ingame(\.html)?$/i.test(path)){
+      window.STAFFORA_RETURN=location.origin+path.split('?')[0];
+    } else {
+      var base=location.origin+(path.replace(/[^/]+$/,'')||'/');
+      window.STAFFORA_RETURN=base+(base.slice(-1)==='/'?'':'/')+'ingame.html';
+    }
+  }catch(e){
+    window.STAFFORA_API=cloud;
+    window.STAFFORA_RETURN=cloud+'/ingame';
+  }
 })();
 
   async function pageModReasons(p){
@@ -203,8 +215,13 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
   }
 
   $('btn-login').onclick=function(){
-    var ret=encodeURIComponent(location.href.split('#')[0]);
-    location.href=API+'/auth/login?return='+encodeURIComponent(window.STAFFORA_RETURN||(location.origin+location.pathname));
+    var apiBase=(API||'').replace(/\/+$/,'')||location.origin;
+    var ret=window.STAFFORA_RETURN||(location.origin+location.pathname);
+    if(!/ingame/i.test(ret)){
+      var base=location.origin+(location.pathname.replace(/[^/]+$/,'')||'/');
+      ret=base+(base.slice(-1)==='/'?'':'/')+'ingame.html';
+    }
+    location.href=apiBase+'/auth/login?return='+encodeURIComponent(ret);
   };
   $('btn-out').onclick=function(){
     token=''; localStorage.removeItem('staffora_token'); localStorage.removeItem('staffora_ingame_guild');
@@ -390,22 +407,6 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase}
       $('lg').innerHTML=logs.length?'<table><tr><th>Zeit</th><th>Action</th><th>Spieler</th><th>Grund</th></tr>'+
         logs.slice(0,50).map(function(l){return '<tr><td>'+esc(fmtTime(l.created_at||l.ts))+'</td><td>'+esc(l.action||'')+'</td><td>'+esc(l.roblox_username||l.robloxUsername||'')+'</td><td>'+esc(l.reason||'')+'</td></tr>'}).join('')+'</table>':'<div class="empty">Keine Logs</div>';
     }catch(e){$('lg').innerHTML='<p style="color:var(--err)">'+esc(e.message)+'</p>'}
-  }
-    refreshUrl();
-    $('nh-save').onclick=async function(){
-      try{await api('/api/guilds/'+guildId+'/ingame/settings',{method:'PATCH',body:{notrufHamburgWebhookUrl:$('nh-wh').value.trim()||null}});toast('Gespeichert','ok')}catch(e){toast(e.message,'err')}
-    };
-    $('wh-gen').onclick=function(){$('wh-sec').value=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);refreshUrl()};
-    $('wh-save').onclick=async function(){
-      try{await api('/api/guilds/'+guildId+'/ingame/settings',{method:'PATCH',body:{/*removed*/:$('wh-sec').value.trim()||null}});toast('Secret gespeichert','ok');refreshUrl()}catch(e){toast(e.message,'err')}
-    };
-    $('wh-test').onclick=async function(){
-      try{
-        var sec=$('wh-sec').value.trim();
-        await api('/api/public/ingame/webhook/'+guildId+(sec?('?secret='+encodeURIComponent(sec)):''),{method:'POST',body:{event_id:'test-'+Date.now(),action:'warn',robloxUsername:'TestSpieler',reason:'Ingame-Test'}});
-        toast('Test gesendet','ok');
-      }catch(e){toast(e.message,'err')}
-    };
   }
 
   async function pageUnbanCfg(p){

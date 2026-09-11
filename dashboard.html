@@ -420,6 +420,107 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   .grid2,.grid3{grid-template-columns:1fr !important}
 }
 </style>
+
+<style id="staffora-settings-galaxy">
+.settings-shell{
+  display:grid;
+  grid-template-columns:220px minmax(0,1fr);
+  gap:0;
+  min-height:calc(100vh - 120px);
+  border:1px solid rgba(139,92,246,.2);
+  border-radius:16px;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse 80% 50% at 100% 0%,rgba(99,102,241,.12),transparent 50%),
+    radial-gradient(ellipse 60% 40% at 0% 100%,rgba(139,92,246,.1),transparent 45%),
+    linear-gradient(180deg,#0c0e16 0%,#0a0b12 100%);
+  box-shadow:0 12px 40px rgba(0,0,0,.35);
+}
+.settings-nav{
+  background:rgba(12,14,22,.95);
+  border-right:1px solid rgba(139,92,246,.15);
+  padding:12px 10px;
+  overflow-y:auto;
+  max-height:calc(100vh - 120px);
+}
+.settings-nav button{
+  width:100%;
+  text-align:left;
+  background:transparent;
+  border:0;
+  color:#c4c8d8;
+  padding:10px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:500;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:2px;
+  transition:background .15s,color .15s;
+}
+.settings-nav button:hover{background:rgba(139,92,246,.1);color:#fff}
+.settings-nav button.active{
+  background:linear-gradient(90deg,rgba(139,92,246,.28),rgba(99,102,241,.12));
+  color:#fff;
+  box-shadow:inset 3px 0 0 #8b5cf6;
+}
+.settings-nav .ic{width:22px;text-align:center;opacity:.9}
+.settings-main{
+  padding:22px 24px 36px;
+  overflow-y:auto;
+  max-height:calc(100vh - 120px);
+}
+.settings-main h1{font-size:1.4rem;margin:0 0 4px}
+.settings-main .sdesc{color:#8b8b9a;font-size:13px;margin-bottom:18px}
+.settings-search{
+  width:100%;
+  max-width:360px;
+  margin-bottom:16px;
+  padding:10px 14px;
+  border-radius:12px;
+  border:1px solid rgba(139,92,246,.25);
+  background:rgba(20,22,32,.9);
+}
+.set-card{
+  background:rgba(22,26,39,.85);
+  border:1px solid rgba(139,92,246,.18);
+  border-radius:14px;
+  padding:16px 18px;
+  margin-bottom:12px;
+  backdrop-filter:blur(8px);
+  transition:border-color .15s,transform .15s;
+}
+.set-card:hover{border-color:rgba(139,92,246,.35)}
+.set-card h3{font-size:14px;font-weight:650;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.set-card .hint{font-size:12px;color:#8b8b9a;margin-bottom:12px;line-height:1.4}
+.set-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.set-row:last-child{border-bottom:0}
+.set-row .lbl{font-size:13px;font-weight:500}
+.set-row .sub{font-size:11px;color:#8b8b9a;margin-top:2px}
+.badge-on{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(52,211,153,.15);color:#34d399}
+.badge-off{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(248,113,113,.12);color:#f87171}
+.set-link{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;
+  background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);color:#c4b5fd;cursor:pointer
+}
+.set-link:hover{background:rgba(139,92,246,.22)}
+.set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+@media(max-width:900px){
+  .settings-shell{grid-template-columns:1fr}
+  .settings-nav{display:flex;flex-wrap:wrap;gap:4px;max-height:none;border-right:0;border-bottom:1px solid rgba(139,92,246,.15)}
+  .settings-nav button{width:auto}
+}
+</style>
 </head>
 <body>
 <div id="v-login" class="login-wrap">
@@ -738,6 +839,18 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
       else if(page==='settings') await pageSettings(p);
       else p.innerHTML='<div class="empty">—</div>';
       try{ ensureTopbar(); }catch(e0){}
+      try{
+        var _m=await loadModules();
+        var bars=document.querySelectorAll('[data-mod]');
+        if(bars.length){
+          for(var bi=0;bi<bars.length;bi++){
+            await wireModuleToggle(bars[bi].getAttribute('data-mod'), _m);
+          }
+        } else {
+          var _mk=MODULE_KEYS[page];
+          if(_mk) await wireModuleToggle(_mk,_m);
+        }
+      }catch(e1){}
     }catch(e){
       p.innerHTML='<div class="card"><p style="color:var(--err)">'+esc(e.message)+'</p><button type="button" class="btn btn-sm" id="retry">Erneut</button></div>';
       $('retry').onclick=render;
@@ -786,6 +899,38 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
       var list=r.tickets||r.items||[];
       menu.innerHTML=list.length?list.slice(0,10).map(function(t){return '<div class="drop-item"><strong>'+esc(t.name||'Ticket')+'</strong><div style="font-size:11px;color:var(--muted)">'+(t.status||'offen')+'</div></div>'}).join(''):'<div class="drop-item">Noch keine Tickets vorhanden</div>';
     }catch(e){menu.innerHTML='<div class="drop-item">Noch nicht konfiguriert</div>'}
+  }
+
+  
+  /** Module toggle in the same tab as the feature. Default: ON */
+  var MODULE_KEYS = {
+    tickets:'tickets', warteraum:'warteraumSupport', admincall:'adminCalls', offices:'offices',
+    duty:'dutyPanel', team:'teamverwaltung', bewerbung:'bewerbungen', dn:'dienstnummern',
+    ausweis:'ausweis', partner:'partner', giveaway:'giveaway', suggest:'suggest',
+    factions:'factions', feedback:'feedback', xp:'xp', dizzy:'dizzy', flynametag:'flyNametag',
+    serverstats:'statusPanel', roblox:'ingameManagement'
+  };
+  function moduleBarHtml(modKey, label){
+    return '<div class="mod-toggle-row" data-mod="'+modKey+'"><span><strong>'+(label||'Modul')+'</strong> · aktiv</span>'+
+      '<div class="toggle-sw" id="mod-sw-'+modKey+'"></div></div>';
+  }
+  async function wireModuleToggle(modKey, currentModules){
+    var el=$('mod-sw-'+modKey); if(!el) return;
+    var on = currentModules && currentModules[modKey] != null ? !!currentModules[modKey] : true;
+    bindToggle(el, on);
+    el.onclick=async function(){
+      try{
+        var body={}; body[modKey]=el.isOn();
+        await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:body});
+        toast(el.isOn()?'Modul an':'Modul aus','ok');
+      }catch(e){toast(e.message,'err')}
+    };
+  }
+  async function loadModules(){
+    try{
+      var cfg=await api('/api/guilds/'+guildId+'/config');
+      return (cfg&&cfg.modules)||{};
+    }catch(e){return {}}
   }
 
   async function loadDiscord(force){
@@ -1535,10 +1680,12 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 
 
   async function pageDutyCfg(p){
+    var __mods=await loadModules();
+
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
-    p.innerHTML='<h1>Duty / Online-Panel</h1><p class="desc">Discord-Embed zeigt nur den Status — On/Off Duty nur im IC Panel</p>'+
+    p.innerHTML=moduleBarHtml('dutyPanel','Duty')+'<h1>Duty / Online-Panel</h1><p class="desc">Discord-Embed zeigt nur den Status — On/Off Duty nur im IC Panel</p>'+
       '<div class="card">'+
       '<div class="field"><label>Panel-Kanal</label><div id="du-ch"></div></div>'+
       '<div class="field"><label>Titel</label><input id="du-title"/></div>'+
@@ -1636,6 +1783,8 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 
   
   async function pageBewerbung(p){
+    var __mods=await loadModules();
+
     var data={applications:[],questions:[]};
     try{data=await api('/api/guilds/'+guildId+'/applications')}catch(e){}
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
@@ -1644,7 +1793,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
     var questions=data.questions||[];
     var list=data.applications||[];
     function draw(){
-      p.innerHTML='<h1>Team-Bewerbungen</h1>'+
+      p.innerHTML=moduleBarHtml('teamverwaltung','Team')+'<h1>Team-Bewerbungen</h1>'+
         '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
         '<div class="card"><h2>Panel & Log</h2>'+
         '<div class="field"><label>Titel</label><input id="bw-title"/></div>'+
@@ -1761,7 +1910,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
     var career=Array.isArray(s.rankCareer)?s.rankCareer.slice():[];
     career.sort(function(a,b){return (Number(a.order)||0)-(Number(b.order)||0)});
 
-    p.innerHTML='<h1>Team</h1>'+'<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+'<div class="card"><h2>Auto Nick</h2>'+'<div class="toggle-row"><span>Aktiv</span><div id="an-on" class="toggle-sw"></div></div>'+'<div class="field"><label>Format</label><input id="an-fmt" placeholder="{rank} | {roblox}"/></div>'+'<p class="desc">Variablen: {rank} {roblox} {discord} {username}</p>'+'<button type="button" class="btn btn-p btn-sm" id="an-save">Auto Nick speichern</button></div>'+'<div class="card"><h2>Teamliste</h2>'+'<div class="field"><label>Kanal</label><div id="tl-ch"></div></div>'+'<div class="field"><label>Nur diese Rollen anzeigen</label><div id="tl-roles"></div></div>'+'<button type="button" class="btn btn-p btn-sm" id="tl-save">Teamliste speichern</button> '+'<button type="button" class="btn btn-sm" id="tl-pub">Publishen</button></div>'+'<p class="desc">Ranglaufbahn, Promote/Demote</p>'+
+    p.innerHTML=moduleBarHtml('teamverwaltung','Team')+'<h1>Team</h1>'+'<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+'<div class="card"><h2>Auto Nick</h2>'+'<div class="toggle-row"><span>Aktiv</span><div id="an-on" class="toggle-sw"></div></div>'+'<div class="field"><label>Format</label><input id="an-fmt" placeholder="{rank} | {roblox}"/></div>'+'<p class="desc">Variablen: {rank} {roblox} {discord} {username}</p>'+'<button type="button" class="btn btn-p btn-sm" id="an-save">Auto Nick speichern</button></div>'+'<div class="card"><h2>Teamliste</h2>'+'<div class="field"><label>Kanal</label><div id="tl-ch"></div></div>'+'<div class="field"><label>Nur diese Rollen anzeigen</label><div id="tl-roles"></div></div>'+'<button type="button" class="btn btn-p btn-sm" id="tl-save">Teamliste speichern</button> '+'<button type="button" class="btn btn-sm" id="tl-pub">Publishen</button></div>'+'<p class="desc">Ranglaufbahn, Promote/Demote</p>'+
       '<div class="card"><h2>Ranglaufbahn</h2><p class="desc">Reihenfolge = vom niedrigsten zum höchsten Rang (order)</p>'+
       '<div id="rc-list"></div>'+
       '<button type="button" class="btn btn-sm" id="rc-add">+ Rang</button> '+
@@ -1921,10 +2070,12 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 
 
   async function pageDn(p){
+    var __mods=await loadModules();
+
     var d={groups:[]}; try{d=await api('/api/guilds/'+guildId+'/dn-groups')}catch(e){}
     var groups=d.groups||d||[];
     if(!Array.isArray(groups)) groups=[];
-    p.innerHTML='<h1>Dienstnummern-Gruppen</h1><p class="desc">Separate DN-Pools (unabhängig von Fraktionen)</p>'+
+    p.innerHTML=moduleBarHtml('dienstnummern','Dienstnummern')+'<h1>Dienstnummern-Gruppen</h1><p class="desc">Separate DN-Pools (unabhängig von Fraktionen)</p>'+
       '<div class="card"><div class="toolbar">'+
       '<input id="fg-name" placeholder="Name (z.B. Polizei)" style="max-width:160px"/>'+
       '<input id="fg-prefix" placeholder="Prefix SW-" style="max-width:100px"/>'+
@@ -2027,6 +2178,8 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   
   
   async function pageWarteraum(p){
+    var __mods=await loadModules();
+
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
@@ -2034,7 +2187,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
     var cats=(disc.channels||[]).filter(function(c){var t=c.type; return t===4||t==='4'||t==='GUILD_CATEGORY';}).map(function(c){return {id:c.id,name:'📁 '+c.name}});
     var text=channelItems(disc.channels||[]);
     var roles=roleItems(disc.roles||[]);
-    p.innerHTML='<h1>🎧 Warteraum</h1>'+
+    p.innerHTML=moduleBarHtml('warteraumSupport','Warteraum')+'<h1>🎧 Warteraum</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
       '<p class="desc">User joint Warteraum-Voice → Support-Fall im Textkanal + optional Musik. Mehrere User parallel möglich.</p>'+
       '<div class="card"><h2>Aktivierung</h2>'+
@@ -2115,11 +2268,13 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   }
 
   async function pageAdminCall(p){
+    var __mods=await loadModules();
+
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
     var voice=(disc.channels||[]).filter(function(c){var t=c.type; return t===2||t==='2'||t==='GUILD_VOICE';}).map(function(c){return {id:c.id,name:'🔊 '+c.name}});
-    p.innerHTML='<h1>📞 Admin Call</h1>'+
+    p.innerHTML=moduleBarHtml('adminCalls','Admin Call')+'<h1>📞 Admin Call</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
       '<p class="desc">Panel mit Formular: Roblox-Name, Grund, Wo bist du? → Staff-Kanal mit Übernehmen.</p>'+
       '<div class="card">'+
@@ -2171,6 +2326,8 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 
   
   async function pageOffices(p){
+    var __mods=await loadModules();
+
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var data={offices:[]}; try{data=await api('/api/guilds/'+guildId+'/offices')}catch(e){}
@@ -2182,7 +2339,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
     var roles=roleItems(disc.roles||[]);
 
     function draw(){
-      p.innerHTML='<h1>🏢 Büros</h1>'+
+      p.innerHTML=moduleBarHtml('offices','Büros')+'<h1>🏢 Büros</h1>'+
         '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
         '<p class="desc">Büro-Warteraum: User joint Voice → Staff wird gepingt, User bekommt DM. Staff übernimmt und zieht in Büro-Voice.</p>'+
         '<div class="card"><h2>Büro-Warteraum</h2>'+
@@ -2389,12 +2546,14 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   
   
   async function pageGiveaway(p){
+    var __mods=await loadModules();
+
     var data={config:{},giveaways:[]};
     try{data=await api('/api/guilds/'+guildId+'/giveaways')}catch(e){}
     var cfg=data.config||{};
     var list=data.giveaways||[];
     var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
-    p.innerHTML='<h1>🎉 Giveaways</h1>'+
+    p.innerHTML=moduleBarHtml('giveaway','Giveaways')+'<h1>🎉 Giveaways</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
       '<p class="desc"><code>/giveaway start preis:… gewinner:1 dauer:2h</code></p>'+
       '<div class="card"><h2>Einstellungen</h2>'+
@@ -2429,6 +2588,8 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   }
 
   async function pageSuggest(p){
+    var __mods=await loadModules();
+
     var data={config:{},suggestions:[]};
     try{data=await api('/api/guilds/'+guildId+'/suggestions')}catch(e){
       try{ data.config=await api('/api/guilds/'+guildId+'/suggestions/config'); }catch(e2){}
@@ -2445,7 +2606,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
     var roles=roleItems(disc.roles||[]);
 
     function draw(){
-      p.innerHTML='<h1>💡 Vorschläge</h1>'+
+      p.innerHTML=moduleBarHtml('suggest','Vorschläge')+'<h1>💡 Vorschläge</h1>'+
         '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
         '<p class="desc">User: <code>/suggest</code> · Embed mit Titel, Text, 👍 👎, Annehmen / Ablehnen</p>'+
         '<div class="card"><h2>System</h2>'+
@@ -2541,7 +2702,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
     function badgeCat(c){ return c==='illegal'?'<span class="pill pill-err">Illegal</span>':'<span class="pill pill-ok">Legal</span>'; }
 
     function draw(){
-      p.innerHTML='<h1>Fraktionen</h1>'+
+      p.innerHTML=moduleBarHtml('factions','Fraktionen')+'<h1>Fraktionen</h1>'+
         '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
         '<div class="card"><h2>Einstellungen</h2>'+
         '<div class="field"><label>Max. Fraktions-Warnungen (Auto-Remove)</label><input id="f-max" type="number" min="1" max="20" value="'+maxW+'"/></div>'+
@@ -2685,10 +2846,12 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   }
 
   async function pageDizzy(p){
+    var __mods=await loadModules();
+
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
-    p.innerHTML='<h1>Dizzy Control</h1><p class="desc">Roblox-Name im Kanal → Controlle oder Verknüpfung</p>'+
+    p.innerHTML=moduleBarHtml('dizzy','Dizzy Control')+'<h1>Dizzy Control</h1><p class="desc">Roblox-Name im Kanal → Controlle oder Verknüpfung</p>'+
       '<div class="card">'+
       '<div class="toggle-row"><span>Dizzy Control aktiv</span><div id="dz-on" class="toggle-sw"></div></div>'+
       '<div class="field"><label>Dizzy-Kanal</label><div id="dz-ch"></div></div>'+
@@ -2713,6 +2876,8 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   }
 
   async function pagePartner(p){
+    var __mods=await loadModules();
+
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
@@ -2720,7 +2885,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
     try{data=await api('/api/guilds/'+guildId+'/partners')}catch(e){}
     var tiers=Array.isArray(data.tiers)&&data.tiers.length?data.tiers.slice():(s.partnerTiers||[]);
     var partners=data.partners||[];
-    p.innerHTML='<h1>Partnerschaft</h1>'+
+    p.innerHTML=moduleBarHtml('partner','Partnerschaft')+'<h1>Partnerschaft</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
       '<div class="card"><div class="toggle-row"><span>Aktiv</span><div id="pa-en" class="toggle-sw"></div></div>'+
       '<div class="field"><label>Manager-Rollen</label><div id="pa-man"></div></div>'+
@@ -2798,10 +2963,12 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 
   
   async function pageFlyNametag(p){
+    var __mods=await loadModules();
+
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
-    p.innerHTML='<h1>Fly & Nametag</h1>'+
+    p.innerHTML=moduleBarHtml('flyNametag','Fly & Nametag')+'<h1>Fly & Nametag</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
       '<div class="card"><h2>Panel</h2>'+
       '<div class="toggle-row"><span>Aktiv</span><div id="fn-on" class="toggle-sw"></div></div>'+
@@ -2835,6 +3002,8 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   }
 
   async function pageFeedbackCfg(p){
+    var __mods=await loadModules();
+
     var __fbExtra=true;
     // Staffora feature cards
     setTimeout(function(){try{injectFeedbackCards()}catch(e){}},50);
@@ -2859,7 +3028,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
     var mode=s.feedbackMode==='sticky'?'sticky':'panel';
 
     function render(){
-      p.innerHTML='<h1>Feedback</h1>'+
+      p.innerHTML=moduleBarHtml('feedback','Feedback')+'<h1>Feedback</h1>'+
         '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
         '<div class="card"><h2>Allgemein</h2>'+
         '<div class="field"><label>Modus</label><select id="fb-mode">'+
@@ -3104,6 +3273,8 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 
 
   async function pageTickets(p){
+    var __mods=await loadModules();
+
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
@@ -3114,7 +3285,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
       {id:'report',name:'Melden',emoji:'🚨',description:'Spieler melden',categoryId:'',staffRoleIds:[],autoCloseHours:0},
       {id:'other',name:'Sonstiges',emoji:'📋',description:'Anderes Anliegen',categoryId:'',staffRoleIds:[],autoCloseHours:0}
     ];
-    p.innerHTML='<h1>Tickets</h1>'+
+    p.innerHTML=moduleBarHtml('tickets','Tickets')+'<h1>Tickets</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
       '<div class="card"><h2>Global</h2>'+
       '<div class="field"><label>Panel-Titel</label><input id="tk-title"/></div>'+
@@ -3330,6 +3501,8 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   
   
   async function pageServerStats(p){
+    var __mods=await loadModules();
+
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
@@ -3656,6 +3829,8 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   }
 
   async function pageXp(p){
+    var __mods=await loadModules();
+
     // voice xp note injected in render if possible
 
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
@@ -3681,7 +3856,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
       return v;
     }
 
-    p.innerHTML='<h1>XP</h1><p class="desc">Punkte für Tickets, Admin-Calls, Feedback und mehr</p>'+
+    p.innerHTML=moduleBarHtml('xp','XP')+'<h1>XP</h1><p class="desc">Punkte für Tickets, Admin-Calls, Feedback und mehr</p>'+
       '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">'+
       '<div><strong style="font-size:16px">XP-System</strong><div class="desc">Master An / Aus</div></div>'+
       '<button type="button" class="xp-toggle '+(s.xpEnabled!==false&&s.xpEnabled!==0?'on':'')+'" id="xp-master" title="XP an/aus"><span class="knob"></span></button></div>'+
@@ -3779,6 +3954,8 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 
 
   async function pageAusweis(p){
+    var __mods=await loadModules();
+
     var disc={channels:[]}; try{disc=await loadDiscord()}catch(e){}
     var data={types:[],requests:[]};
     try{data=await api('/api/guilds/'+guildId+'/ausweis')}catch(e){}
@@ -3801,7 +3978,7 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
         '<div class="foot"><span>Personalausweis</span><span>Staffora</span></div></div>';
     }
     function draw(){
-      p.innerHTML='<h1>Ausweis</h1>'+
+      p.innerHTML=moduleBarHtml('ausweis','Ausweis')+'<h1>Ausweis</h1>'+
         '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
         '<div class="grid2"><div class="card"><h2>Einstellungen</h2>'+
         '<div class="field"><label>Servername (Behörde)</label><input id="aw-server"/></div>'+
@@ -3988,102 +4165,314 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   async function pageSettings(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
+    var mods=cfg.modules||{};
     var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
-    var roles=roleItems(disc.roles);
-    var ch=channelItems(disc.channels,null);
-    if(page==='modules'){
-      var mods=cfg.modules||{};
-      var keys=[
-        {k:'tickets',l:'Tickets'},
-        {k:'adminCalls',l:'Admin Call'},
-        {k:'offices',l:'Büros / Büro-Warteraum'},
-        {k:'warteraumMusic',l:'Support-Warteraum + Musik'},
-        {k:'dutyPanel',l:'Duty / Online'},
-        {k:'teamverwaltung',l:'Teamverwaltung'},
-        {k:'bewerbungen',l:'Bewerbungen'},
-        {k:'dienstnummern',l:'Dienstnummern'},
-        {k:'partner',l:'Partnerschaft'},
-        {k:'giveaway',l:'Giveaways'},
-        {k:'suggest',l:'Vorschläge'},
-        {k:'ausweis',l:'Ausweis'},
-        {k:'ingameManagement',l:'Ingame / Bans'},
-        {k:'autoNick',l:'Auto-Nicknames'},
-        {k:'abmelden',l:'Abmelden'},
-        {k:'schicht',l:'Schicht'},
-        {k:'logs',l:'Logs'},
-        {k:'panels',l:'Panels'}
-      ];
-      p.innerHTML='<h1>Module</h1><p class="desc">Systeme an- und ausschalten</p><div class="card" id="mod-grid"></div><button type="button" class="btn btn-p" id="mod-save">Speichern</button>';
-      $('mod-grid').innerHTML=keys.map(function(x){
-        return '<div class="toggle-row"><span>'+esc(x.l)+'</span><div class="toggle-sw" data-mod="'+x.k+'"></div></div>';
-      }).join('');
-      document.querySelectorAll('[data-mod]').forEach(function(el){
-        bindToggle(el, !!mods[el.getAttribute('data-mod')]);
-        el._onChange=function(){
-          var body={};
-          document.querySelectorAll('[data-mod]').forEach(function(x){ body[x.getAttribute('data-mod')]=x.isOn(); });
-          autoSaveModules(body);
-        };
-      });
-      var ms=$('mod-save');
-      if(ms){ ms.textContent='Alles speichern'; ms.onclick=function(){
-        var body={};
-        document.querySelectorAll('[data-mod]').forEach(function(el){ body[el.getAttribute('data-mod')]=el.isOn(); });
-        autoSaveModules(body);
-      };}
-      return;
-    }
-    p.innerHTML='<h1>Allgemein</h1><p class="desc">Grunddaten — Systeme haben eigene Tabs</p>'+
-      '<div class="card" id="s-stats-mini"><span class="spinner"></span> Server-Stats…</div>'+
-      '<div class="card">'+
-      '<div class="field"><label>System-Name</label><input id="s-name"/></div>'+
-      '<div class="field"><label>Log-Kanal</label><div id="s-log"></div></div>'+
-      '<div class="field"><label>Staff-Rollen</label><div id="s-staff"></div></div>'+
-      '<div class="field"><label>Admin-Rollen</label><div id="s-admin"></div></div>'+
-      '<div class="field"><label>Stats verwalten (Rollen)</label><div id="s-stats"></div></div>'+
-      '<button type="button" class="btn btn-p" id="s-save">Speichern</button></div>'+
-      '<div class="card"><h2>Random Roles</h2>'+
-      '<div class="toggle-row"><span>Aktiv</span><div id="s-rr-on" class="toggle-sw"></div></div>'+
-      '<div class="field"><label>Rollen vergeben</label><div id="s-rr-give"></div></div>'+
-      '<div class="field"><label>Rollen entfernen</label><div id="s-rr-rem"></div></div>'+
-      '<button type="button" class="btn btn-p btn-sm" id="s-rr-save">Random Roles speichern</button></div>';
-    $('s-name').value=s.systemName||'STAFFORA BOT';
-    var pickLog=makeSearchSelect($('s-log'),{items:ch,multi:false,value:s.logChannelId||'',placeholder:'Log…'});
-    var pickStaff=makeSearchSelect($('s-staff'),{items:roles,multi:true,values:s.staffRoleIds||[],placeholder:'Staff…'});
-    var pickAdmin=makeSearchSelect($('s-admin'),{items:roles,multi:true,values:s.adminRoleIds||[],placeholder:'Admin…'});
-    var pickStats=makeSearchSelect($('s-stats'),{items:roles,multi:true,values:s.statsManageRoleIds||[],placeholder:'Stats…'});
-    if($('s-rr-on')) bindToggle($('s-rr-on'), s.randomRolesEnabled===true);
-    var pickGive=makeSearchSelect($('s-rr-give'),{items:roles,multi:true,values:s.randomRoleGiveIds||[],placeholder:'Geben…'});
-    var pickRem=makeSearchSelect($('s-rr-rem'),{items:roles,multi:true,values:s.randomRoleRemoveIds||[],placeholder:'Entfernen…'});
-    if($('s-rr-save')) $('s-rr-save').onclick=async function(){
-      try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          randomRolesEnabled:$('s-rr-on').isOn(),
-          randomRoleGiveIds:pickGive.getValue(),
-          randomRoleRemoveIds:pickRem.getValue()
-        }});
-        toast('Random Roles ok','ok');
-      }catch(e){toast(e.message,'err')}
-    };
+    var roles=roleItems(disc.roles||[]);
+    var ch=channelItems(disc.channels||[],null);
 
-    (async function(){
-      try{
-        var st=await api('/api/guilds/'+guildId+'/stats');
-        var box=$('s-stats-mini');
-        if(box) box.innerHTML='<h2 style="margin:0 0 8px">Server-Stats</h2><div class="desc">'+esc(st.name)+' · <strong>'+st.members+'</strong> Member · <strong>'+st.channels+'</strong> Kanäle · <strong>'+st.roles+'</strong> Rollen · Boosts <strong>'+st.boosts+'</strong></div>';
-      }catch(e){ var b=$('s-stats-mini'); if(b) b.innerHTML='<div class="desc">Stats: '+esc(e.message)+'</div>'; }
-    })();
-    $('s-save').onclick=async function(){
-      try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          systemName:$('s-name').value.trim()||'STAFFORA BOT',
-          logChannelId:pickLog.getValue()||null,
-          staffRoleIds:pickStaff.getValue(),
-          adminRoleIds:pickAdmin.getValue(), statsManageRoleIds:typeof pickStats!=='undefined'?pickStats.getValue():(s.statsManageRoleIds||[])
-        }});
-        toast('Gespeichert','ok');
-      }catch(e){toast(e.message,'err')}
-    };
+    var CATS=[
+      {id:'allgemein',ic:'⚙️',l:'Allgemein'},
+      {id:'design',ic:'🎨',l:'Design'},
+      {id:'modules',ic:'🧩',l:'Module'},
+      {id:'nav',ic:'🧭',l:'Navigation'},
+      {id:'perms',ic:'🔐',l:'Rollen & Rechte'},
+      {id:'tickets',ic:'🎫',l:'Tickets & Support'},
+      {id:'apps',ic:'📝',l:'Bewerbungen'},
+      {id:'team',ic:'👥',l:'Team'},
+      {id:'haus',ic:'🏠',l:'Haus & Fraktionen'},
+      {id:'mod',ic:'🛡️',l:'Moderation'},
+      {id:'community',ic:'🤝',l:'Community'},
+      {id:'rp',ic:'🚀',l:'RP'},
+      {id:'logs',ic:'📊',l:'Logs & Stats'},
+      {id:'notify',ic:'🔔',l:'Benachrichtigungen'},
+      {id:'system',ic:'🔧',l:'System'}
+    ];
+    var activeCat=sessionStorage.getItem('staffora_set_cat')||'allgemein';
+
+    var MOD_LIST=[
+      {k:'tickets',l:'Tickets',d:'Support-Tickets mit Claim und KI'},
+      {k:'adminCalls',l:'Admin Call',d:'Dringende Admin-Anfragen'},
+      {k:'offices',l:'Büros',d:'Büro-Warteraum und Übernahme'},
+      {k:'warteraumSupport',l:'Support-Warteraum',d:'Voice-Warteraum und Support-Fälle'},
+      {k:'warteraumMusic',l:'Warteraum-Musik',d:'Musik im Support-Warteraum'},
+      {k:'dutyPanel',l:'Duty / Online',d:'On/Off Duty und Online-Admins'},
+      {k:'teamverwaltung',l:'Teamverwaltung',d:'Promote, Warn, Teamliste'},
+      {k:'bewerbungen',l:'Bewerbungen',d:'Team- und DN-Bewerbungen'},
+      {k:'dienstnummern',l:'Dienstnummern',d:'DN-Pools und Suche'},
+      {k:'partner',l:'Partnerschaft',d:'Partner-Tiers und Anträge'},
+      {k:'giveaway',l:'Giveaways',d:'Gewinnspiele'},
+      {k:'suggest',l:'Vorschläge',d:'Suggestions mit Votes'},
+      {k:'ausweis',l:'Ausweis',d:'Personal- und Zusatzausweise'},
+      {k:'ingameManagement',l:'Ingame / Bans',d:'Roblox-Bans und Lookup'},
+      {k:'factions',l:'Fraktionen',d:'Legal/Illegal Fraktionsverwaltung'},
+      {k:'feedback',l:'Feedback',d:'Staff-Bewertungen'},
+      {k:'xp',l:'XP',d:'Team-XP und Rangliste'},
+      {k:'dizzy',l:'Dizzy Control',d:'Discord-Controlle per Roblox-Name'},
+      {k:'flyNametag',l:'Fly & Nametag',d:'Ingame-Rechte anfragen'},
+      {k:'autoNick',l:'Auto-Nick',d:'Nicknames nach Rang'},
+      {k:'abmelden',l:'Abmelden',d:'Temporäre Abmeldung'},
+      {k:'schicht',l:'Schicht',d:'Schicht-Tracking'},
+      {k:'logs',l:'Logs',d:'Aktionsprotokolle'},
+      {k:'panels',l:'Panels',d:'Panel-Versand'},
+      {k:'moderation',l:'Moderation',d:'Kick Ban Warn Timeout'},
+      {k:'statusPanel',l:'Server-Stats',d:'Live Server-Statistiken'}
+    ];
+
+    function modOn(k){
+      if(mods[k]===undefined||mods[k]===null) return true;
+      return !!mods[k];
+    }
+
+    p.innerHTML=
+      '<h1>Einstellungen</h1>'+
+      '<p class="desc">Control Panel · Kategorien links, Details rechts</p>'+
+      '<div class="settings-shell">'+
+        '<nav class="settings-nav" id="set-nav">'+
+          CATS.map(function(c){
+            return '<button type="button" data-cat="'+c.id+'" class="'+(c.id===activeCat?'active':'')+'"><span class="ic">'+c.ic+'</span>'+c.l+'</button>';
+          }).join('')+
+        '</nav>'+
+        '<div class="settings-main" id="set-main"><span class="spinner"></span></div>'+
+      '</div>';
+
+    function goFeature(pg){ try{ navigate(pg); }catch(e){ page=pg; render(); } }
+
+    async function renderCat(cat){
+      activeCat=cat;
+      sessionStorage.setItem('staffora_set_cat',cat);
+      document.querySelectorAll('#set-nav button').forEach(function(b){
+        b.classList.toggle('active', b.getAttribute('data-cat')===cat);
+      });
+      var main=$('set-main');
+      if(!main) return;
+
+      if(cat==='allgemein'){
+        main.innerHTML=
+          '<h1>⚙️ Allgemein</h1><p class="sdesc">Bot-Grunddaten und Systemoptionen</p>'+
+          '<div class="set-card"><h3>Bot-Grundeinstellungen</h3><p class="hint">Name und Basis-Kanäle</p>'+
+            '<div class="field"><label>System-Name</label><input id="sg-name"/></div>'+
+            '<div class="field"><label>Log-Kanal</label><div id="sg-log"></div></div>'+
+            '<button type="button" class="btn btn-p btn-sm" id="sg-save">Speichern</button></div>'+
+          '<div class="set-card"><h3>Server</h3><p class="hint">Aktuell ausgewählter Discord-Server</p>'+
+            '<div class="set-row"><div><div class="lbl">Server</div><div class="sub" id="sg-guild">—</div></div></div></div>';
+        $('sg-name').value=s.systemName||'STAFFORA BOT';
+        var gEl=$('guild-sel'); if(gEl&&$('sg-guild')) $('sg-guild').textContent=gEl.options[gEl.selectedIndex]?gEl.options[gEl.selectedIndex].text:'—';
+        var pLog=makeSearchSelect($('sg-log'),{items:ch,multi:false,value:s.logChannelId||'',placeholder:'Log-Kanal…'});
+        $('sg-save').onclick=async function(){
+          try{
+            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+              systemName:$('sg-name').value.trim()||'STAFFORA BOT',
+              logChannelId:pLog.getValue()||null
+            }});
+            s.systemName=$('sg-name').value.trim();
+            toast('Gespeichert','ok');
+          }catch(e){toast(e.message,'err')}
+        };
+        return;
+      }
+
+      if(cat==='design'){
+        main.innerHTML=
+          '<h1>🎨 Design & Darstellung</h1><p class="sdesc">Galaxy-Optik und Darstellung</p>'+
+          '<div class="set-card"><h3>Galaxy Design</h3><p class="hint">Dunkles Space-Theme mit Violett-Akzenten (aktiv)</p>'+
+            '<div class="set-row"><div><div class="lbl">Dark Mode</div><div class="sub">Immer aktiv</div></div><span class="badge-on">AN</span></div>'+
+            '<div class="set-row"><div><div class="lbl">Akzentfarbe</div><div class="sub">Staffora Lila #8b5cf6</div></div></div>'+
+            '<div class="set-row"><div><div class="lbl">Karten-Stil</div><div class="sub">Glass / Border Glow</div></div></div>'+
+          '</div>'+
+          '<div class="set-card"><h3>Embeds & Panels</h3><p class="hint">Staffora-Platzhalter und Panel-Editor</p>'+
+            '<button type="button" class="set-link" data-go="embeds">Embeds bearbeiten →</button> '+
+            '<button type="button" class="set-link" data-go="panels">Panels senden →</button></div>';
+        main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
+        return;
+      }
+
+      if(cat==='modules'){
+        main.innerHTML=
+          '<h1>🧩 Module</h1><p class="sdesc">Alle Systeme an- und ausschalten · Standard: AN</p>'+
+          '<input class="settings-search" id="mod-q" placeholder="Modul suchen…"/>'+
+          '<div class="set-grid" id="mod-grid"></div>'+
+          '<button type="button" class="btn btn-p" id="mod-save-all" style="margin-top:12px">Alle speichern</button>';
+        function drawMods(q){
+          q=(q||'').toLowerCase();
+          $('mod-grid').innerHTML=MOD_LIST.filter(function(m){
+            return !q||m.l.toLowerCase().indexOf(q)>=0||m.d.toLowerCase().indexOf(q)>=0||m.k.indexOf(q)>=0;
+          }).map(function(m){
+            var on=modOn(m.k);
+            return '<div class="set-card"><h3>'+esc(m.l)+' <span class="'+(on?'badge-on':'badge-off')+'">'+(on?'AN':'AUS')+'</span></h3>'+
+              '<p class="hint">'+esc(m.d)+'</p>'+
+              '<div class="set-row"><div class="lbl">Aktiv</div><div class="toggle-sw" data-mod="'+m.k+'"></div></div></div>';
+          }).join('');
+          document.querySelectorAll('#mod-grid [data-mod]').forEach(function(el){
+            bindToggle(el, modOn(el.getAttribute('data-mod')));
+            el.addEventListener('click', async function(){
+              var body={}; body[el.getAttribute('data-mod')]=el.isOn();
+              try{
+                await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:body});
+                mods[el.getAttribute('data-mod')]=el.isOn();
+                toast(el.isOn()?'An':'Aus','ok');
+                drawMods($('mod-q').value);
+              }catch(e){toast(e.message,'err')}
+            });
+          });
+        }
+        drawMods('');
+        $('mod-q').oninput=function(){drawMods(this.value)};
+        $('mod-save-all').onclick=async function(){
+          var body={};
+          document.querySelectorAll('#mod-grid [data-mod]').forEach(function(el){body[el.getAttribute('data-mod')]=el.isOn()});
+          try{await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:body});toast('Module gespeichert','ok')}catch(e){toast(e.message,'err')}
+        };
+        return;
+      }
+
+      if(cat==='nav'){
+        main.innerHTML=
+          '<h1>🧭 Navigation</h1><p class="sdesc">Sidebar und Menüpunkte</p>'+
+          '<div class="set-card"><h3>Sidebar</h3><p class="hint">Menüpunkte werden über die Feature-Tabs gesteuert. Module aus = Funktionen inaktiv.</p>'+
+            '<div class="set-row"><div><div class="lbl">Sidebar</div><div class="sub">Links, Icons, Kategorien</div></div><span class="badge-on">Standard</span></div></div>';
+        return;
+      }
+
+      if(cat==='perms'){
+        main.innerHTML=
+          '<h1>🔐 Rollen & Berechtigungen</h1><p class="sdesc">Zugriff und Staff-Rechte</p>'+
+          '<div class="set-card"><h3>Staff & Admin</h3><p class="hint">Rollen ohne sichtbare IDs</p>'+
+            '<div class="field"><label>Staff-Rollen</label><div id="sp-staff"></div></div>'+
+            '<div class="field"><label>Admin-Rollen</label><div id="sp-admin"></div></div>'+
+            '<div class="field"><label>Stats verwalten</label><div id="sp-stats"></div></div>'+
+            '<button type="button" class="btn btn-p btn-sm" id="sp-save">Speichern</button></div>'+
+          '<div class="set-card"><h3>Weitere Rechte</h3>'+
+            '<button type="button" class="set-link" data-go="perms">Ingame Panel Access →</button> '+
+            '<button type="button" class="set-link" data-go="modperms">Moderation Permissions →</button> '+
+            '<button type="button" class="set-link" data-go="commands">Commands →</button></div>';
+        var pStaff=makeSearchSelect($('sp-staff'),{items:roles,multi:true,values:s.staffRoleIds||[],placeholder:'Staff…'});
+        var pAdmin=makeSearchSelect($('sp-admin'),{items:roles,multi:true,values:s.adminRoleIds||[],placeholder:'Admin…'});
+        var pStats=makeSearchSelect($('sp-stats'),{items:roles,multi:true,values:s.statsManageRoleIds||[],placeholder:'Stats…'});
+        $('sp-save').onclick=async function(){
+          try{
+            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
+              staffRoleIds:pStaff.getValue(),adminRoleIds:pAdmin.getValue(),statsManageRoleIds:pStats.getValue()
+            }});
+            toast('Gespeichert','ok');
+          }catch(e){toast(e.message,'err')}
+        };
+        main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
+        return;
+      }
+
+      function featureHub(title, desc, links){
+        main.innerHTML='<h1>'+title+'</h1><p class="sdesc">'+desc+'</p>'+
+          '<div class="set-grid">'+links.map(function(x){
+            return '<div class="set-card"><h3>'+x.ic+' '+x.l+'</h3><p class="hint">'+x.d+'</p>'+
+              '<button type="button" class="set-link" data-go="'+x.p+'">Öffnen →</button></div>';
+          }).join('')+'</div>';
+        main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
+      }
+
+      if(cat==='tickets'){
+        featureHub('🎫 Tickets & Support','Tickets, Warteraum, Büros, Admin Call',[
+          {ic:'🎫',l:'Tickets',d:'Arten, Kanäle, KI, Auto-Close',p:'tickets'},
+          {ic:'🎧',l:'Warteraum',d:'Voice-Support und Musik',p:'warteraum'},
+          {ic:'🏢',l:'Büros',d:'Büro-Warteraum',p:'offices'},
+          {ic:'📞',l:'Admin Call',d:'Dringende Anfragen',p:'admincall'}
+        ]);
+        return;
+      }
+      if(cat==='apps'){
+        featureHub('📝 Bewerbungen','Team- und Interview-Systeme',[
+          {ic:'📋',l:'Bewerbungen',d:'Fragen und Kanäle',p:'bewerbung'},
+          {ic:'🎤',l:'Interviews',d:'Mündliche Bewerbungen',p:'interviews'},
+          {ic:'🔢',l:'Dienstnummern',d:'DN-Bewerbung und Suche',p:'dn'}
+        ]);
+        return;
+      }
+      if(cat==='team'){
+        featureHub('👥 Team','Teamliste, XP, Duty, Ausweis',[
+          {ic:'👥',l:'Team',d:'Liste, Ränge, Auto-Nick',p:'team'},
+          {ic:'✨',l:'XP',d:'Punkte und Rangliste',p:'xp'},
+          {ic:'⏱️',l:'Duty',d:'On/Off Duty Panel',p:'duty'},
+          {ic:'🪪',l:'Ausweis',d:'Personalausweis',p:'ausweis'},
+          {ic:'⭐',l:'Feedback',d:'Staff bewerten',p:'feedback'}
+        ]);
+        return;
+      }
+      if(cat==='haus'){
+        featureHub('🏠 Haus & Fraktionen','Häuser und Fraktionsverwaltung',[
+          {ic:'🏠',l:'Hausliste',d:'Häuser verwalten',p:'hausliste'},
+          {ic:'🏛️',l:'Fraktionen',d:'Legal / Illegal',p:'factions'}
+        ]);
+        return;
+      }
+      if(cat==='mod'){
+        featureHub('🛡️ Moderation','Befehle, Unban, Verstöße',[
+          {ic:'🛡️',l:'Mod-Permissions',d:'Rollen pro Befehl',p:'modperms'},
+          {ic:'⚖️',l:'Verstoßgründe',d:'VDM, RDM, …',p:'modreasons'},
+          {ic:'📨',l:'Unban-Fragen',d:'Ban-Appeal Formular',p:'unban-q'},
+          {ic:'🔨',l:'Bans',d:'Aktive Bans',p:'bans'}
+        ]);
+        return;
+      }
+      if(cat==='community'){
+        featureHub('🤝 Community','Giveaways, Vorschläge, Partner',[
+          {ic:'🎁',l:'Giveaways',d:'Gewinnspiele',p:'giveaway'},
+          {ic:'💡',l:'Vorschläge',d:'Suggestions',p:'suggest'},
+          {ic:'🤝',l:'Partnerschaft',d:'Tiers und Anträge',p:'partner'},
+          {ic:'⭐',l:'Feedback',d:'Bewertungen',p:'feedback'}
+        ]);
+        return;
+      }
+      if(cat==='rp'){
+        featureHub('🚀 RP','RP Start/Stop und Status',[
+          {ic:'🎭',l:'RP Start / Stop',d:'Embeds und Status',p:'rp'}
+        ]);
+        return;
+      }
+      if(cat==='logs'){
+        featureHub('📊 Logs & Statistiken','Protokolle und Stats',[
+          {ic:'⚡',l:'Live Activity',d:'Aktuelle Aktionen',p:'activity'},
+          {ic:'📈',l:'Server-Stats',d:'Member und Kanäle',p:'serverstats'},
+          {ic:'🟢',l:'Online-Status',d:'Online Admins',p:'online'}
+        ]);
+        return;
+      }
+      if(cat==='notify'){
+        main.innerHTML=
+          '<h1>🔔 Benachrichtigungen</h1><p class="sdesc">Pings und Statusmeldungen</p>'+
+          '<div class="set-card"><h3>Discord</h3><p class="hint">Rollen-Pings werden in den jeweiligen Feature-Tabs (Tickets, Admin Call, Warteraum) konfiguriert.</p>'+
+            '<button type="button" class="set-link" data-go="tickets">Tickets →</button> '+
+            '<button type="button" class="set-link" data-go="admincall">Admin Call →</button></div>';
+        main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
+        return;
+      }
+      if(cat==='system'){
+        main.innerHTML=
+          '<h1>🔧 System</h1><p class="sdesc">Status und Verbindung</p>'+
+          '<div class="set-card" id="sys-box"><span class="spinner"></span></div>'+
+          '<div class="set-card"><h3>Kanäle & Rollen</h3><p class="hint">Discord-Cache aktualisieren</p>'+
+            '<button type="button" class="btn btn-sm" id="sys-refresh">Kanäle & Rollen aktualisieren</button></div>';
+        try{
+          var st=await api('/api/status');
+          $('sys-box').innerHTML=
+            '<h3>Verbindung</h3>'+
+            '<div class="set-row"><div class="lbl">Bot</div><span class="'+(st.bot?'badge-on':'badge-off')+'">'+(st.bot?'Online':'Offline')+'</span></div>'+
+            '<div class="set-row"><div class="lbl">Server (Bot)</div><div class="sub">'+(st.guilds!=null?st.guilds:'—')+'</div></div>'+
+            '<div class="set-row"><div class="lbl">API</div><span class="badge-on">OK</span></div>';
+        }catch(e){
+          $('sys-box').innerHTML='<p class="hint">'+esc(e.message)+'</p>';
+        }
+        $('sys-refresh').onclick=async function(){
+          try{await loadDiscord(true);toast('Aktualisiert','ok')}catch(e){toast(e.message,'err')}
+        };
+        return;
+      }
+
+      main.innerHTML='<div class="empty">Kategorie wählen</div>';
+    }
+
+    document.querySelectorAll('#set-nav button').forEach(function(b){
+      b.onclick=function(){ renderCat(b.getAttribute('data-cat')); };
+    });
+    await renderCat(activeCat);
   }
 
 
