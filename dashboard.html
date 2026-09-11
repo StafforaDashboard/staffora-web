@@ -130,7 +130,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .perm-grid .h{color:var(--muted);font-weight:600;text-align:center;font-size:10px}
 .perm-grid .cell{text-align:center}
 .check{width:16px;height:16px;accent-color:var(--accent)}
-@media(max-width:900px){
+@media(max-width:none){
   .app-shell{grid-template-columns:1fr}
   .sidebar{position:fixed;left:0;top:0;z-index:50;transform:translateX(-100%);transition:transform .25s;width:260px}
   .sidebar.open{transform:none}
@@ -389,7 +389,38 @@ body{background:#0b0f1a;}
 .oa-row{padding:8px;border-radius:10px;background:rgba(255,255,255,.03);margin:4px 0}
 .mod-toggle-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;margin-bottom:10px;border-radius:12px;border:1px solid rgba(139,92,246,.2);background:rgba(139,92,246,.06)}
 </style>
-<style id="staffora-layout-fix">.content,#panel,main.content{max-width:none!important;width:100%!important}.app-shell{width:100%}.card{max-width:920px}</style></head>
+
+<style id="staffora-size">
+html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
+.app-shell{
+  display:grid !important;
+  grid-template-columns:240px minmax(0,1fr) !important;
+  width:100% !important;
+  max-width:100vw !important;
+  min-height:100vh !important;
+}
+.sidebar{width:240px;max-width:240px}
+.content, main.content, #panel, .main{
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  padding:20px 28px 56px !important;
+}
+.card{
+  width:100% !important;
+  max-width:none !important;
+  box-sizing:border-box;
+}
+.grid2{grid-template-columns:1fr 1fr !important}
+.grid3{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+.topbar{width:100%;box-sizing:border-box}
+@media(max-width:none){
+  .app-shell{grid-template-columns:1fr !important}
+  .grid2,.grid3{grid-template-columns:1fr !important}
+}
+</style>
+</head>
 <body>
 <div id="v-login" class="login-wrap">
   <div class="login-box">
@@ -569,7 +600,7 @@ body{background:#0b0f1a;}
   }
 
   // boot() handles missing token (shows login)
-  if(window.matchMedia('(max-width:900px)').matches){
+  if(window.matchMedia('(max-width:none)').matches){
     $('btn-menu').style.display='inline-flex';
     $('btn-menu').onclick=function(){$('sidebar').classList.toggle('open')};
   }
