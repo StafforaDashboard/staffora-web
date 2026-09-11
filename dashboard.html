@@ -353,6 +353,39 @@ body{background:#0b0f1a;}
 .staffora-div{opacity:.9}
 .pill{background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3)}
 </style>
+
+<style id="staffora-ui-v2">
+/* Staffora accents — layout-safe */
+.app-shell{min-height:100vh}
+.content#panel, main.content, #panel{
+  flex:1;
+  min-width:0;
+  min-height:60vh;
+  padding:22px 28px 48px;
+  background:transparent;
+  color:var(--text,#e8eaf2);
+}
+.btn-p{background:linear-gradient(135deg,#7c3aed,#6366f1)!important;border:none;color:#fff}
+.nav-btn.active{box-shadow:inset 3px 0 0 #8b5cf6;background:rgba(139,92,246,.18)!important}
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;border-bottom:1px solid rgba(139,92,246,.2);
+  background:rgba(15,15,20,.95);flex-shrink:0;width:100%;
+}
+.drop{position:relative}
+.drop-btn{background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);color:#eee;padding:8px 12px;border-radius:10px;cursor:pointer}
+.drop-menu{display:none;position:absolute;right:0;top:110%;min-width:240px;background:#14141a;border:1px solid rgba(139,92,246,.25);border-radius:12px;padding:8px;z-index:50}
+.drop.open .drop-menu{display:block}
+.drop-item{padding:10px;border-radius:8px;cursor:pointer;font-size:13px}
+.drop-item:hover{background:rgba(139,92,246,.15)}
+.rbx-card{display:flex;gap:16px;align-items:flex-start}
+.rbx-card img{width:96px;height:96px;border-radius:16px;object-fit:cover;border:2px solid rgba(139,92,246,.3)}
+.feat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.feat-card{padding:14px;border-radius:14px;border:1px solid rgba(139,92,246,.22);background:rgba(139,92,246,.08);cursor:pointer}
+.feat-card:hover{border-color:rgba(139,92,246,.5)}
+.oa-row{padding:8px;border-radius:10px;background:rgba(255,255,255,.03);margin:4px 0}
+.mod-toggle-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;margin-bottom:10px;border-radius:12px;border:1px solid rgba(139,92,246,.2);background:rgba(139,92,246,.06)}
+</style>
 </head>
 <body>
 <div id="v-login" class="login-wrap">
@@ -412,6 +445,7 @@ body{background:#0b0f1a;}
       <button type="button" class="nav-btn" data-p="factions"><span class="ic">🏛️</span> Fraktionen</button>
       <button type="button" class="nav-btn" data-p="dn"><span class="ic">🔢</span> Dienstnummern</button>
       <button type="button" class="nav-btn" data-p="bewerbung"><span class="ic">📝</span> Bewerbungen</button>
+      <button type="button" class="nav-btn" data-p="roblox"><span class="ic">🎮</span> Roblox Lookup</button>
       <button type="button" class="nav-btn" data-p="team"><span class="ic">👥</span> Team</button>
       <button type="button" class="nav-btn" data-p="webhook"><span class="ic">📡</span> Webhook</button>
       <button type="button" class="nav-btn" data-p="unban-q"><span class="ic">❓</span> Unban-Fragen</button>
@@ -634,6 +668,7 @@ body{background:#0b0f1a;}
       else if(page==='links') await pageLinks(p);
       else if(page==='webhook') await pageWebhook(p);
       else if(page==='bewerbung') await pageBewerbung(p);
+      else if(page==='roblox') await pageRobloxLookup(p);
       else if(page==='team') await pageTeam(p);
       else if(page==='warteraum') await pageWarteraum(p);
       else if(page==='admincall') await pageAdminCall(p);
@@ -668,9 +703,11 @@ body{background:#0b0f1a;}
       else if(page==='tickets') await pageTickets(p);
       else if(page==='settings') await pageSettings(p);
       else p.innerHTML='<div class="empty">—</div>';
+      try{ ensureTopbar(); }catch(e0){}
     }catch(e){
       p.innerHTML='<div class="card"><p style="color:var(--err)">'+esc(e.message)+'</p><button type="button" class="btn btn-sm" id="retry">Erneut</button></div>';
       $('retry').onclick=render;
+      try{ ensureTopbar(); }catch(e0){}
     }
   }
 
@@ -679,6 +716,44 @@ body{background:#0b0f1a;}
   
   
   var _discordCache=null;
+  
+  function ensureTopbar(){
+    var content=$('panel')||document.querySelector('main.content')||document.querySelector('.content');
+    if(!content) return;
+    if($('topbar-staffora')) return;
+    var bar=document.createElement('div');
+    bar.id='topbar-staffora'; bar.className='topbar';
+    bar.style.margin='0 0 14px';
+    bar.innerHTML='<div style="font-weight:700">STAFFORA</div><div style="display:flex;gap:8px">'+
+      '<div class="drop" id="drop-tickets"><button type="button" class="drop-btn" id="tb-t">Tickets ▾</button><div class="drop-menu" id="tb-tm"><div class="drop-item">Lädt…</div></div></div>'+
+      '<div class="drop" id="drop-sf"><button type="button" class="drop-btn" id="tb-s">Staffora ▾</button><div class="drop-menu">'+
+      '<div class="drop-item" data-go="overview">Übersicht</div><div class="drop-item" data-go="roblox">Roblox Lookup</div>'+
+      '<div class="drop-item" data-go="team">Team</div><div class="drop-item" data-go="feedback">Feedback</div>'+
+      '<div class="drop-item" data-go="tickets">Tickets</div><div class="drop-item" data-go="flynametag">Fly & Nametag</div></div></div></div>';
+    // inside panel so CSS grid (sidebar | content) stays intact
+    bar.style.position='sticky';
+    bar.style.top='0';
+    bar.style.zIndex='20';
+    // Attach to document body overlay inside main column without breaking grid:
+    var shell=$('v-app');
+    if(shell && !shell.querySelector('.main-col')){
+      // wrap panel if needed - skip, use fixed under top of content area
+    }
+    content.insertAdjacentElement('afterbegin', bar);
+    $('tb-t').onclick=function(e){e.stopPropagation();$('drop-tickets').classList.toggle('open');$('drop-sf').classList.remove('open');loadTicketDrop();};
+    $('tb-s').onclick=function(e){e.stopPropagation();$('drop-sf').classList.toggle('open');$('drop-tickets').classList.remove('open');};
+    document.addEventListener('click',function(){document.querySelectorAll('.drop.open').forEach(function(x){x.classList.remove('open')})});
+    bar.querySelectorAll('[data-go]').forEach(function(el){el.onclick=function(){navigate(el.getAttribute('data-go'))}});
+  }
+  async function loadTicketDrop(){
+    var menu=$('tb-tm'); if(!menu||!guildId) return;
+    try{
+      var r=await api('/api/guilds/'+guildId+'/tickets/active').catch(function(){return {tickets:[]}});
+      var list=r.tickets||r.items||[];
+      menu.innerHTML=list.length?list.slice(0,10).map(function(t){return '<div class="drop-item"><strong>'+esc(t.name||'Ticket')+'</strong><div style="font-size:11px;color:var(--muted)">'+(t.status||'offen')+'</div></div>'}).join(''):'<div class="drop-item">Noch keine Tickets vorhanden</div>';
+    }catch(e){menu.innerHTML='<div class="drop-item">Noch nicht konfiguriert</div>'}
+  }
+
   async function loadDiscord(force){
     if(!force && window.__discCache && window.__discCache.gid===guildId && Date.now()-window.__discCache.at<60000){
       return window.__discCache.data;
@@ -972,6 +1047,26 @@ body{background:#0b0f1a;}
       '<div><strong>Action History</strong><div style="font-size:12px;color:var(--muted)">Bans, Kicks, Warns, Unbans · Live</div></div>'+
       '<button type="button" class="btn btn-sm" id="ah-refresh">Aktualisieren</button></div>'+
       '<div id="action-history" style="max-height:420px;overflow:auto"></div></div>';
+    
+    try{
+      var duty=await api('/api/guilds/'+guildId+'/duty/online');
+      var dutyHtml='<div class="card" style="margin-top:14px"><h2>Online Admins</h2><div class="grid2">'+
+        '<div><h3 style="font-size:12px;color:var(--muted)">Mit Adminrechten</h3><div id="ov-oa-with"></div></div>'+
+        '<div><h3 style="font-size:12px;color:var(--muted)">Ohne Adminrechte</h3><div id="ov-oa-without"></div></div></div>'+
+        '<p class="desc">Sync alle 30s · Clock In/Out</p></div>';
+      p.insertAdjacentHTML('beforeend', dutyHtml);
+      function paint(list,el){
+        if(!el)return;
+        el.innerHTML=(list&&list.length)?list.map(function(d){return '<div class="oa-row"><strong>'+esc(d.displayName||d.tag||'—')+'</strong></div>'}).join(''):'<div class="empty">Niemand</div>';
+      }
+      paint(duty.withAdmin,$('ov-oa-with')); paint(duty.withoutAdmin,$('ov-oa-without'));
+      if(window.__ovDutyT) clearInterval(window.__ovDutyT);
+      window.__ovDutyT=setInterval(async function(){
+        if(!$('ov-oa-with'))return;
+        try{var d=await api('/api/guilds/'+guildId+'/duty/online');paint(d.withAdmin,$('ov-oa-with'));paint(d.withoutAdmin,$('ov-oa-without'));}catch(e){}
+      },30000);
+    }catch(e){}
+
     async function loadSysStatus(){
       var box=$('sys-status'); if(!box) return;
       try{
@@ -1593,6 +1688,35 @@ body{background:#0b0f1a;}
     draw();
   }
 
+  
+  async function pageRobloxLookup(p){
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    p.innerHTML='<h1>Roblox Lookup</h1><div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+      '<div class="mod-toggle-row"><span>Modul aktiv</span><div id="rbx-on" class="toggle-sw"></div></div>'+
+      '<div class="card"><div class="field"><label>Username</label><input id="rbx-q" placeholder="Roblox Name"/></div>'+
+      '<button type="button" class="btn btn-p" id="rbx-go">Suchen</button></div>'+
+      '<div class="card" id="rbx-out" style="margin-top:12px"><div class="empty">Suche starten</div></div>';
+    bindToggle($('rbx-on'), s.robloxLookupEnabled!==false);
+    $('rbx-on').addEventListener('click', async function(){
+      try{await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{robloxLookupEnabled:$('rbx-on').isOn()}})}catch(e){}
+    });
+    $('rbx-go').onclick=async function(){
+      var q=$('rbx-q').value.trim(); if(!q) return toast('Username','err');
+      $('rbx-out').innerHTML='…';
+      try{
+        var r=await api('/api/guilds/'+guildId+'/roblox/lookup?username='+encodeURIComponent(q));
+        var pr=r.profile||{}, dc=r.discord;
+        $('rbx-out').innerHTML='<div class="rbx-card">'+(pr.avatar?'<img src="'+esc(pr.avatar)+'"/>':'')+
+          '<div><h2 style="margin:0">'+esc(pr.displayName||pr.name)+'</h2>'+
+          '<div class="pill">@'+esc(pr.name||'')+'</div>'+
+          '<p style="margin:8px 0;color:var(--muted)">User ID</p><code>'+esc(pr.id||'')+'</code>'+
+          '<p><a href="'+esc(pr.profileUrl||'#')+'" target="_blank" rel="noopener">Profil öffnen</a></p>'+
+          (dc?'<p>Discord verknüpft</p>':'')+'</div></div>';
+      }catch(e){$('rbx-out').innerHTML='<div class="empty">'+esc(e.message||'Nicht gefunden')+'</div>'}
+    };
+  }
+
   async function pageTeam
 (p){
     // auto nick block injected via flag
@@ -1634,6 +1758,7 @@ body{background:#0b0f1a;}
     if($('an-save')) $('an-save').onclick=async function(){
       try{await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{autoNickEnabled:$('an-on').isOn(),autoNickFormat:$('an-fmt').value.trim()}});toast('Auto Nick ok','ok')}catch(e){toast(e.message,'err')}
     };
+    if($('tl-roles')&&!$('tl-mod')){var tr=document.createElement('div');tr.className='mod-toggle-row';tr.innerHTML='<span>Teamliste aktiv</span><div id="tl-mod" class="toggle-sw"></div>';var card=$('tl-roles').closest('.card');if(card)card.insertBefore(tr,card.firstChild);bindToggle($('tl-mod'),s.teamlistEnabled!==false);$('tl-mod').addEventListener('click',async function(){try{await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{teamlistEnabled:$('tl-mod').isOn()}})}catch(e){}})}
     if($('tl-save')) $('tl-save').onclick=async function(){
       try{await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{teamlistEnabled:true,teamlistChannelId:pTlCh?pTlCh.getValue():null,teamlistRoleIds:pTlRoles?pTlRoles.getValue():[]}});toast('Teamliste ok','ok')}catch(e){toast(e.message,'err')}
     };
@@ -1665,7 +1790,7 @@ body{background:#0b0f1a;}
       var box=$('rc-list');
       box.innerHTML=career.map(function(r,i){
         return '<div class="card" style="margin:8px 0;padding:10px" data-i="'+i+'">'+
-          '<div class="field"><label style="display:none" style="display:none">Key</label><input class="rc-key" value="'+esc(r.key||'')+'"/></div>'+
+          '<div class="field"><label style="display:none" style="display:none">Key</label><input class="rc-key" style="display:none" value="'+esc(r.key||'')+'"/></div>'+
           '<div class="field"><label>Name</label><input class="rc-name" value="'+esc(r.name||'')+'"/></div>'+
           '<div class="field"><label>Order</label><input class="rc-order" type="number" value="'+(r.order!=null?r.order:i)+'"/></div>'+
           '<div class="field"><label>Discord-Rolle</label><div class="rc-role" id="rc-role-'+i+'"></div></div>'+
@@ -1890,7 +2015,7 @@ body{background:#0b0f1a;}
       '<div class="field"><label>Support-Rollen (Raum-Zugriff)</label><div id="wr-sup"></div></div>'+
       '<div class="field"><label>Raum-Modus</label><select id="wr-mode"><option value="temp">Temporärer Raum pro User</option><option value="fixed">Fester Support-Voice</option><option value="none">Kein Auto-Raum</option></select></div>'+
       '<div class="field"><label>Support-Kategorie (Temp)</label><div id="wr-cat"></div></div>'+
-      '<div class="field"><label>Fester Support-Voice</label><div id="wr-fixed"></div></div>'+
+      '<div class="field"><label>Feste Support-Voice(s) — Mehrfachauswahl</label><div id="wr-fixed"></div></div>'+
       '<div class="field"><label>Raum-Name</label><input id="wr-name" placeholder="Support – {user}"/></div></div>'+
       '<div class="card"><h2>Musik</h2>'+
       '<div class="field"><label>Datei hochladen (mp3/ogg/wav)</label><input type="file" id="wr-file" accept="audio/*,.mp3,.ogg,.wav,.webm"/></div>'+
@@ -1910,7 +2035,7 @@ body{background:#0b0f1a;}
     var pSt=makeSearchSelect($('wr-staff'),{items:roles,multi:true,values:s.warteraumStaffRoleIds||[],placeholder:'Rollen…'});
     var pSu=makeSearchSelect($('wr-sup'),{items:roles,multi:true,values:s.warteraumSupportRoleIds||[],placeholder:'Rollen…'});
     var pCat=makeSearchSelect($('wr-cat'),{items:cats,multi:false,value:s.warteraumSupportCategoryId||'',placeholder:'Kategorie…'});
-    var pFx=makeSearchSelect($('wr-fixed'),{items:voice,multi:false,value:s.warteraumFixedSupportChannelId||'',placeholder:'Voice…'});
+    var pFx=makeSearchSelect($('wr-fixed'),{items:voice,multi:true,values:s.warteraumFixedSupportChannelIds||(s.warteraumFixedSupportChannelId?[s.warteraumFixedSupportChannelId]:[]),placeholder:'Voice-Kanäle…'});
 
     $('wr-save').onclick=async function(){
       try{
@@ -1928,7 +2053,8 @@ body{background:#0b0f1a;}
           warteraumSupportRoleIds:pSu.getValue(),
           warteraumRoomMode:$('wr-mode').value,
           warteraumSupportCategoryId:pCat.getValue()||null,
-          warteraumFixedSupportChannelId:pFx.getValue()||null,
+          warteraumFixedSupportChannelIds:pFx.getValue()||[],
+          warteraumFixedSupportChannelId:(pFx.getValue()&&pFx.getValue()[0])||null,
           warteraumRoomName:$('wr-name').value.trim()||'Support – {user}'
         }});
         toast('Warteraum gespeichert','ok');
@@ -2675,6 +2801,24 @@ body{background:#0b0f1a;}
   }
 
   async function pageFeedbackCfg(p){
+    var __fbExtra=true;
+    // Staffora feature cards
+    setTimeout(function(){try{injectFeedbackCards()}catch(e){}},50);
+    function injectFeedbackCards(){
+      if($('fb-feat-cards')) return;
+      var host=$('content')||p;
+      var wrap=document.createElement('div');
+      wrap.id='fb-feat-cards';
+      wrap.className='feat-cards';
+      wrap.style.margin='0 0 14px';
+      wrap.innerHTML='<div class="feat-card" data-x="fb"><h3>Feedback geben</h3><p>Sterne & Grund</p></div>'+
+        '<div class="feat-card" data-x="aw"><h3>Ausweis beantragen</h3><p>Personalausweis</p></div>'+
+        '<div class="feat-card" data-x="caw"><h3>Custom Ausweis</h3><p>Zusatzausweis</p></div>';
+      if(p.firstChild) p.insertBefore(wrap, p.firstChild); else p.appendChild(wrap);
+      wrap.querySelector('[data-x="aw"]').onclick=function(){navigate('ausweis')};
+      wrap.querySelector('[data-x="caw"]').onclick=function(){navigate('ausweis')};
+    }
+
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={roles:[],channels:[]}; try{disc=await loadDiscord()}catch(e){}
@@ -3370,13 +3514,13 @@ body{background:#0b0f1a;}
 
     function render(){
       p.innerHTML='<h1>Hausliste</h1><p class="desc">Häuser, Beleg-Scan und Panel</p>'+
-        '<div class="card"><h2>Beleg (optional)</h2>'+
+        '<div class="card"><h2></h2>'+
         '<p class="desc">Text vom Beleg einfügen (oder Bild-URL mit AI-Key). Erkennt Haus, Preis, Zimmer und ordnet zu.</p>'+
-        '<div class="field"><label>Beleg-Text</label><textarea id="hl-scan-text" rows="3" placeholder="Villa Pacific 40.000 € 6 Zimmer möbliert #TX-88241"></textarea></div>'+
+        '<div class="field" style="display:none"><label>Beleg-Text</label><textarea id="hl-scan-text" rows="3" placeholder="Villa Pacific 40.000 € 6 Zimmer möbliert #TX-88241"></textarea></div>'+
         '<div class="grid2"><div class="field"><label>Bild-URL (optional)</label><input id="hl-scan-img" placeholder="https://…"/></div>'+
         '<div class="field"><label>Owner Roblox</label><input id="hl-scan-owner"/></div></div>'+
         '<label class="row" style="gap:8px;margin:8px 0"><input type="checkbox" id="hl-scan-auto" checked/> Automatisch auf bezahlt setzen</label>'+
-        '<button type="button" class="btn btn-p" id="hl-scan-btn">Beleg (optional)</button>'+
+        '<button type="button" class="btn btn-p" id="hl-scan-btn"></button>'+
         '<div id="hl-scan-result" style="margin-top:12px"></div></div>'+
         '<div class="card"><h2>Panel</h2>'+
         '<div class="field"><label>Panel-Titel</label><input id="hl-title"/></div>'+
@@ -3448,31 +3592,7 @@ body{background:#0b0f1a;}
         }catch(e){toast(e.message,'err')}
       };
 
-      $('hl-scan-btn').onclick=async function(){
-        var resEl=$('hl-scan-result');
-        resEl.innerHTML='<span class="spinner"></span> Analysiere…';
-        try{
-          var r=await api('/api/guilds/'+guildId+'/hausliste/analyze',{method:'POST',body:{
-            text:$('hl-scan-text').value,
-            imageUrl:$('hl-scan-img').value.trim()||null,
-            owner:$('hl-scan-owner').value.trim()||null,
-            autoApply:$('hl-scan-auto').checked
-          }});
-          var p2=r.parsed||{};
-          var html='<div class="grid2" style="margin-top:8px">'+
-            '<div class="stat"><strong>'+esc(p2.houseName||'—')+'</strong><div class="desc">Haus</div></div>'+
-            '<div class="stat"><strong>'+esc(p2.price||'—')+'</strong><div class="desc">Preis</div></div>'+
-            '<div class="stat"><strong>'+esc(p2.rooms||'—')+'</strong><div class="desc">Räume</div></div>'+
-            '<div class="stat"><strong>'+esc(p2.belegId||'—')+'</strong><div class="desc">Beleg</div></div></div>';
-          html+='<p class="desc" style="margin-top:8px">Quelle: '+esc(r.source||'text')+
-            (r.matched?' · Match: <strong>'+esc(r.matched.name)+'</strong>':' · kein Haus match')+
-            (r.updated?' · Status aktualisiert':'')+'</p>';
-          resEl.innerHTML=html;
-          if(r.houses){ houses=r.houses; data.houses=houses; }
-          if(r.updated){ toast('Haus aktualisiert','ok'); render(); }
-          else toast('Analyse fertig','ok');
-        }catch(e){ resEl.innerHTML=''; toast(e.message,'err'); }
-      };
+      if($('hl-scan-btn')) $('hl-scan-btn').style.display='none';
     }
     render();
   }
