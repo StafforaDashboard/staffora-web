@@ -142,6 +142,13 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
 /* searchable select */
 .ss-wrap{position:relative;width:100%}
+.ss-wrap input.ss-q,.ss-wrap .ss-display{
+  border:1px solid rgba(139,150,255,.35)!important;
+  background:rgba(30,38,62,.95)!important;
+  min-height:42px!important;
+  font-weight:500!important
+}
+.ss-wrap-visible{}
 .ss-wrap input.ss-q{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--border);background:#0a0a0e;color:var(--text)}
 .ss-wrap input.ss-q:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
 .ss-list{position:absolute;left:0;right:0;top:100%;margin-top:4px;max-height:220px;overflow:auto;background:var(--card2);border:1px solid var(--border);border-radius:10px;z-index:80;display:none;box-shadow:var(--shadow)}
@@ -527,37 +534,37 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 <style id="staffora-nova-v3">
 /* STAFFORA NOVA v3 — distinct from old UI */
 :root{
-  --bg:#06080f;
-  --bg2:#0b0f1a;
-  --panel:#0e1320;
-  --card:rgba(18,24,40,.92);
-  --card-solid:#121828;
-  --border:rgba(99,130,255,.14);
-  --border-h:rgba(139,92,246,.35);
-  --text:#eef1ff;
-  --muted:#8b93b0;
-  --faint:#5a6280;
-  --accent:#7c6cff;
-  --accent2:#a78bfa;
-  --cyan:#38bdf8;
-  --ok:#34d399;
+  --bg:#0c101c;
+  --bg2:#12182a;
+  --panel:#141b2e;
+  --card:rgba(28,34,56,.95);
+  --card-solid:#1a2238;
+  --border:rgba(139,150,255,.22);
+  --border-h:rgba(167,139,250,.45);
+  --text:#f4f6ff;
+  --muted:#a8b0cc;
+  --faint:#7a84a8;
+  --accent:#8b7cff;
+  --accent2:#b4a0ff;
+  --cyan:#5ecfff;
+  --ok:#4ade80;
   --warn:#fbbf24;
   --err:#fb7185;
   --r:16px;
-  --shadow:0 16px 48px rgba(0,0,0,.55);
+  --shadow:0 12px 40px rgba(0,0,0,.35);
   --font:"Segoe UI",Inter,system-ui,sans-serif;
 }
 html,body{
   background:
-    radial-gradient(1200px 600px at 10% -10%,rgba(124,108,255,.16),transparent 55%),
-    radial-gradient(900px 500px at 100% 0%,rgba(56,189,248,.08),transparent 50%),
-    linear-gradient(180deg,#06080f 0%,#080b14 100%)!important;
+    radial-gradient(1200px 600px at 10% -10%,rgba(139,92,246,.22),transparent 55%),
+    radial-gradient(900px 500px at 100% 0%,rgba(56,189,248,.12),transparent 50%),
+    linear-gradient(180deg,#0e1424 0%,#0c101c 100%)!important;
   color:var(--text)!important;
   font-family:var(--font)!important;
 }
 .app-shell{grid-template-columns:248px 1fr!important}
 .sidebar{
-  background:linear-gradient(180deg,#0c101c 0%,#0a0e18 100%)!important;
+  background:linear-gradient(180deg,#151c30 0%,#12182a 100%)!important;
   border-right:1px solid var(--border)!important;
   box-shadow:4px 0 32px rgba(0,0,0,.35);
 }
@@ -594,7 +601,7 @@ html,body{
   box-shadow:inset 3px 0 0 #8b5cf6,0 0 20px rgba(124,108,255,.12)!important;
 }
 .topbar{
-  background:rgba(10,14,24,.85)!important;
+  background:rgba(18,24,42,.9)!important;
   border-bottom:1px solid var(--border)!important;
   backdrop-filter:blur(16px)!important;
 }
@@ -603,10 +610,7 @@ html,body{
   font-size:1.5rem!important;
   font-weight:750!important;
   letter-spacing:-.03em!important;
-  background:linear-gradient(90deg,#fff,#a78bfa);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent!important;
+  color:#f4f6ff!important;
 }
 .content .desc{color:var(--muted)!important;font-size:13.5px!important}
 .card,.set-card,.stat{
@@ -694,6 +698,12 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
 .seg{display:inline-flex;background:#0a0e18;border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .seg button{background:0;border:0;color:var(--muted);padding:8px 14px;cursor:pointer;font-size:12px;font-weight:600}
 .seg button.on{background:rgba(124,108,255,.25);color:#fff}
+.btn-back{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 14px;margin-bottom:14px;
+  border-radius:12px;border:1px solid rgba(139,150,255,.3);background:rgba(28,34,56,.9);
+  color:#d4dcff;font-weight:600;font-size:13px;cursor:pointer;transition:background .15s,border-color .15s
+}
+.btn-back:hover{background:rgba(124,108,255,.2);border-color:rgba(167,139,250,.5);color:#fff}
 #staffora-nova-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
   font-size:11px;font-weight:700;background:rgba(124,108,255,.2);color:#c4b5fd;border:1px solid rgba(124,108,255,.3)}
 </style>
@@ -759,7 +769,6 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
       <button type="button" class="nav-btn" data-p="bewerbung"><span class="ic">📝</span> Bewerbungen</button>
       <button type="button" class="nav-btn" data-p="roblox"><span class="ic">🎮</span> Roblox Lookup</button>
       <button type="button" class="nav-btn" data-p="team"><span class="ic">👥</span> Team</button>
-      <button type="button" class="nav-btn" data-p="webhook"><span class="ic">📡</span> Webhook</button>
       <button type="button" class="nav-btn" data-p="unban-q"><span class="ic">❓</span> Unban-Fragen</button>
       <div class="nav-sec">Moderation</div>
       <button type="button" class="nav-btn" data-p="search"><span class="ic">🔍</span> Roblox-Suche</button>
@@ -782,7 +791,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
         <select class="guild-sel" id="guild-sel"></select>
       </div>
       <div class="user-chip"><span id="user-label"></span>
-        <button type="button" class="btn btn-sm" id="btn-refresh-discord" title="Kanäle & Rollen neu laden">↻ Kanäle & Rollen</button>
+        <button type="button" class="btn btn-p btn-sm" id="btn-refresh-discord" title="Kanäle & Rollen neu laden" style="font-weight:700;box-shadow:0 4px 14px rgba(124,108,255,.35)">↻ Kanäle & Rollen</button>
         <button type="button" class="btn btn-sm" id="btn-logout">Logout</button>
       </div>
     </header>
@@ -4365,7 +4374,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
       {id:'notify',ic:'🔔',l:'Benachrichtigungen'},
       {id:'system',ic:'🔧',l:'System'}
     ];
-    var activeCat=sessionStorage.getItem('staffora_set_cat')||'allgemein';
+    var activeCat=sessionStorage.getItem('staffora_set_cat')||'hub';
 
     var MOD_LIST=[
       {k:'tickets',l:'Tickets',d:'Support-Tickets mit Claim und KI'},
@@ -4418,6 +4427,14 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
 
     async function renderCat(cat){
       activeCat=cat;
+      function backBtn(){
+        return '<button type="button" class="btn-back" id="set-back">← Zurück</button>';
+      }
+      function bindBack(){
+        var b=$('set-back');
+        if(b) b.onclick=function(){ renderCat('hub'); };
+      }
+
       sessionStorage.setItem('staffora_set_cat',cat);
       document.querySelectorAll('#set-nav button').forEach(function(b){
         b.classList.toggle('active', b.getAttribute('data-cat')===cat);
@@ -4425,8 +4442,21 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
       var main=$('set-main');
       if(!main) return;
 
+      
+      if(cat==='hub'){
+        main.innerHTML='<h1>Einstellungen</h1><p class="sdesc">Kategorie wählen</p><div class="nova-grid">'+
+          CATS.map(function(c){
+            return '<button type="button" class="nova-panel-card" data-go-cat="'+c.id+'" style="text-align:left;cursor:pointer;width:100%">'+
+              '<h3 style="margin:0">'+c.ic+' '+c.l+'</h3></button>';
+          }).join('')+'</div>';
+        main.querySelectorAll('[data-go-cat]').forEach(function(b){
+          b.onclick=function(){ renderCat(b.getAttribute('data-go-cat')); };
+        });
+        return;
+      }
+
       if(cat==='allgemein'){
-        main.innerHTML=
+        main.innerHTML=backBtn()+
           '<h1>⚙️ Allgemein</h1><p class="sdesc">Bot-Grunddaten und Systemoptionen</p>'+
           '<div class="set-card"><h3>Bot-Grundeinstellungen</h3><p class="hint">Name und Basis-Kanäle</p>'+
             '<div class="field"><label>System-Name</label><input id="sg-name"/></div>'+
@@ -4437,6 +4467,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
         $('sg-name').value=s.systemName||'STAFFORA BOT';
         var gEl=$('guild-sel'); if(gEl&&$('sg-guild')) $('sg-guild').textContent=gEl.options[gEl.selectedIndex]?gEl.options[gEl.selectedIndex].text:'—';
         var pLog=makeSearchSelect($('sg-log'),{items:ch,multi:false,value:s.logChannelId||'',placeholder:'Log-Kanal…'});
+        bindBack();
         $('sg-save').onclick=async function(){
           try{
             await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
@@ -4451,7 +4482,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
       }
 
       if(cat==='design'){
-        main.innerHTML=
+        main.innerHTML=backBtn()+
           '<h1>🎨 Design & Darstellung</h1><p class="sdesc">Galaxy-Optik und Darstellung</p>'+
           '<div class="set-card"><h3>Galaxy Design</h3><p class="hint">Dunkles Space-Theme mit Violett-Akzenten (aktiv)</p>'+
             '<div class="set-row"><div><div class="lbl">Dark Mode</div><div class="sub">Immer aktiv</div></div><span class="badge-on">AN</span></div>'+
@@ -4462,12 +4493,17 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
             '<button type="button" class="set-link" data-go="embeds">Embeds bearbeiten →</button> '+
             '<button type="button" class="set-link" data-go="panels">Panels senden →</button></div>';
         main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
+        try{bindBack()}catch(e){}
         return;
       }
 
       if(cat==='modules'){
-        main.innerHTML=
+        main.innerHTML=backBtn()+
           '<h1>🧩 Module</h1><p class="sdesc">Alle Systeme an- und ausschalten · Standard: AN</p>'+
+          '<div class="set-card" style="margin-bottom:14px">'+
+            '<h3 style="margin:0 0 6px">Übersicht</h3>'+
+            '<p class="hint" style="margin:0;line-height:1.55">Hier aktivierst du die Bereiche, die du auf dem Server nutzen willst: Tickets &amp; Support, Warteraum, Team &amp; Duty, Bewerbungen, Ausweis, Fraktionen, Giveaways, Feedback, XP, Moderation und mehr. Pro Modul kannst du in den jeweiligen Tabs Kanäle, Rollen, Panels und Regeln einstellen – hier nur an oder aus. Standard ist alles an.</p>'+
+          '</div>'+
           '<input class="settings-search" id="mod-q" placeholder="Modul suchen…"/>'+
           '<div class="set-grid" id="mod-grid"></div>'+
           '<button type="button" class="btn btn-p" id="mod-save-all" style="margin-top:12px">Alle speichern</button>';
@@ -4501,11 +4537,12 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
           document.querySelectorAll('#mod-grid [data-mod]').forEach(function(el){body[el.getAttribute('data-mod')]=el.isOn()});
           try{await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:body});toast('Module gespeichert','ok')}catch(e){toast(e.message,'err')}
         };
+        bindBack();
         return;
       }
 
       if(cat==='nav'){
-        main.innerHTML=
+        main.innerHTML=backBtn()+
           '<h1>🧭 Navigation</h1><p class="sdesc">Sidebar und Menüpunkte</p>'+
           '<div class="set-card"><h3>Sidebar</h3><p class="hint">Menüpunkte werden über die Feature-Tabs gesteuert. Module aus = Funktionen inaktiv.</p>'+
             '<div class="set-row"><div><div class="lbl">Sidebar</div><div class="sub">Links, Icons, Kategorien</div></div><span class="badge-on">Standard</span></div></div>';
@@ -4513,7 +4550,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
       }
 
       if(cat==='perms'){
-        main.innerHTML=
+        main.innerHTML=backBtn()+
           '<h1>🔐 Rollen & Berechtigungen</h1><p class="sdesc">Zugriff und Staff-Rechte</p>'+
           '<div class="set-card"><h3>Staff & Admin</h3><p class="hint">Rollen ohne sichtbare IDs</p>'+
             '<div class="field"><label>Staff-Rollen</label><div id="sp-staff"></div></div>'+
@@ -4536,16 +4573,18 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
           }catch(e){toast(e.message,'err')}
         };
         main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
+        try{bindBack()}catch(e){}
         return;
       }
 
       function featureHub(title, desc, links){
-        main.innerHTML='<h1>'+title+'</h1><p class="sdesc">'+desc+'</p>'+
+        main.innerHTML=backBtn()+'<h1>'+title+'</h1><p class="sdesc">'+desc+'</p>'+
           '<div class="set-grid">'+links.map(function(x){
             return '<div class="set-card"><h3>'+x.ic+' '+x.l+'</h3><p class="hint">'+x.d+'</p>'+
               '<button type="button" class="set-link" data-go="'+x.p+'">Öffnen →</button></div>';
           }).join('')+'</div>';
         main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
+        try{bindBack()}catch(e){}
       }
 
       if(cat==='tickets'){
@@ -4615,16 +4654,17 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
         return;
       }
       if(cat==='notify'){
-        main.innerHTML=
+        main.innerHTML=backBtn()+
           '<h1>🔔 Benachrichtigungen</h1><p class="sdesc">Pings und Statusmeldungen</p>'+
           '<div class="set-card"><h3>Discord</h3><p class="hint">Rollen-Pings werden in den jeweiligen Feature-Tabs (Tickets, Admin Call, Warteraum) konfiguriert.</p>'+
             '<button type="button" class="set-link" data-go="tickets">Tickets →</button> '+
             '<button type="button" class="set-link" data-go="admincall">Admin Call →</button></div>';
         main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
+        try{bindBack()}catch(e){}
         return;
       }
       if(cat==='system'){
-        main.innerHTML=
+        main.innerHTML=backBtn()+
           '<h1>🔧 System</h1><p class="sdesc">Status und Verbindung</p>'+
           '<div class="set-card" id="sys-box"><span class="spinner"></span></div>'+
           '<div class="set-card"><h3>Kanäle & Rollen</h3><p class="hint">Discord-Cache aktualisieren</p>'+
@@ -4646,6 +4686,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
       }
 
       main.innerHTML='<div class="empty">Kategorie wählen</div>';
+      try{bindBack()}catch(e){}
     }
 
     document.querySelectorAll('#set-nav button').forEach(function(b){
