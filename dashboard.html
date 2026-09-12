@@ -431,6 +431,9 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 </style>
 
 <style id="staffora-settings-galaxy">
+.settings-shell.settings-shell-main,.settings-shell{
+  min-height:calc(100vh - 100px)!important;
+}
 .settings-shell{
   display:grid;
   grid-template-columns:220px minmax(0,1fr);
@@ -525,7 +528,10 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 .set-link:hover{background:rgba(139,92,246,.22)}
 .set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 @media(max-width:900px){
-  .settings-shell{grid-template-columns:1fr}
+  .settings-shell.settings-shell-main,.settings-shell{
+  min-height:calc(100vh - 100px)!important;
+}
+.settings-shell{grid-template-columns:1fr}
   .settings-nav{display:flex;flex-wrap:wrap;gap:4px;max-height:none;border-right:0;border-bottom:1px solid rgba(139,92,246,.15)}
   .settings-nav button{width:auto}
 }
@@ -723,60 +729,28 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
   <aside class="sidebar" id="sidebar">
     <div class="side-brand">
       <div class="mark">🤖</div>
-      <div><strong>STAFFORA BOT</strong><span>Moderation Platform</span></div>
+      <div><strong>STAFFORA</strong><span>Galaxy Dashboard</span></div>
     </div>
     <nav class="side-nav">
-      <div class="nav-sec">Übersicht</div>
-      <button type="button" class="nav-btn active" data-p="overview"><span class="ic">📊</span> Übersicht</button>
+      <div class="nav-sec">Haupt</div>
+      <button type="button" class="nav-btn active" data-p="settings"><span class="ic">⚙️</span> Dashboard</button>
+      <button type="button" class="nav-btn" data-p="overview"><span class="ic">📊</span> Übersicht</button>
       <button type="button" class="nav-btn" data-p="activity"><span class="ic">⚡</span> Live Activity</button>
       <button type="button" class="nav-btn" data-p="online"><span class="ic">🟢</span> Online-Status</button>
-      <div class="nav-sec">Server</div>
-      <button type="button" class="nav-btn" data-p="settings"><span class="ic">⚙️</span> Einstellungen</button>
-      
-      <button type="button" class="nav-btn" data-p="modperms"><span class="ic">🛡️</span> Moderation Permissions</button>
-      <button type="button" class="nav-btn" data-p="perms"><span class="ic">🛡️</span> Berechtigungen</button>
+      <div class="nav-sec">Schnellzugriff</div>
       <button type="button" class="nav-btn" data-p="panels"><span class="ic">📨</span> Panels senden</button>
-      <button type="button" class="nav-btn" data-p="embeds"><span class="ic">✏️</span> Embeds bearbeiten</button>
-      <button type="button" class="nav-btn" data-p="rp"><span class="ic">🎭</span> RP Start / Stop</button>
-      <button type="button" class="nav-btn" data-p="commands"><span class="ic">⌨️</span> Commands</button>
-      <button type="button" class="nav-btn" data-p="serverstats"><span class="ic">📈</span> Server-Stats</button>
-      <button type="button" class="nav-btn" data-p="hausliste"><span class="ic">🏠</span> Hausliste</button>
-      <!-- KI removed -->
-      <div class="nav-sec">Systeme</div>
-      <button type="button" class="nav-btn" data-p="ausweis"><span class="ic">🪪</span> Ausweis</button>
-      <button type="button" class="nav-btn" data-p="modreasons"><span class="ic">⚖️</span> Verstoßgründe</button>
-      <button type="button" class="nav-btn" data-p="complaint"><span class="ic">📢</span> Team-Beschwerde</button>
       <button type="button" class="nav-btn" data-p="tickets"><span class="ic">🎫</span> Tickets</button>
-      <button type="button" class="nav-btn" data-p="feedback"><span class="ic">⭐</span> Feedback</button>
-      <button type="button" class="nav-btn" data-p="flynametag"><span class="ic">✈️</span> Fly & Nametag</button>
-      <button type="button" class="nav-btn" data-p="xp"><span class="ic">✨</span> XP</button>
-      <button type="button" class="nav-btn" data-p="duty"><span class="ic">⏱️</span> Duty</button>
-      <button type="button" class="nav-btn" data-p="dizzy"><span class="ic">🎮</span> Dizzy Control</button>
-      <button type="button" class="nav-btn" data-p="partner"><span class="ic">🤝</span> Partnerschaft</button>
-      
-      <div class="nav-sec">Support / Voice</div>
-      
-      <button type="button" class="nav-btn" data-p="admincall"><span class="ic">📞</span> Admin Call</button>
-      <button type="button" class="nav-btn" data-p="warteraum"><span class="ic">🎧</span> Warteraum</button>
-      <button type="button" class="nav-btn" data-p="offices"><span class="ic">🏢</span> Büros</button>
-      
-      
-      <button type="button" class="nav-btn" data-p="interviews"><span class="ic">🗣️</span> Interviews</button>
-      <button type="button" class="nav-btn" data-p="giveaway"><span class="ic">🎉</span> Giveaways</button>
-      <button type="button" class="nav-btn" data-p="suggest"><span class="ic">💡</span> Vorschläge</button>
-      <button type="button" class="nav-btn" data-p="factions"><span class="ic">🏛️</span> Fraktionen</button>
-      <button type="button" class="nav-btn" data-p="dn"><span class="ic">🔢</span> Dienstnummern</button>
-      <button type="button" class="nav-btn" data-p="bewerbung"><span class="ic">📝</span> Bewerbungen</button>
-      <button type="button" class="nav-btn" data-p="roblox"><span class="ic">🎮</span> Roblox Lookup</button>
       <button type="button" class="nav-btn" data-p="team"><span class="ic">👥</span> Team</button>
-      <button type="button" class="nav-btn" data-p="unban-q"><span class="ic">❓</span> Unban-Fragen</button>
-      <div class="nav-sec">Moderation</div>
-      <button type="button" class="nav-btn" data-p="search"><span class="ic">🔍</span> Roblox-Suche</button>
       <button type="button" class="nav-btn" data-p="bans"><span class="ic">🔨</span> Bans</button>
-      <button type="button" class="nav-btn" data-p="unban-req"><span class="ic">🔓</span> Ban Appeals</button>
-      <button type="button" class="nav-btn" data-p="links"><span class="ic">🔗</span> Roblox Links</button>
-      <div class="nav-sec">IC Panel</div>
+      <button type="button" class="nav-btn" data-p="roblox"><span class="ic">🎮</span> Roblox Lookup</button>
+      <div class="nav-sec">Extras</div>
+      <button type="button" class="nav-btn" data-p="modperms"><span class="ic">🛡️</span> Mod-Permissions</button>
+      <button type="button" class="nav-btn" data-p="commands"><span class="ic">⌨️</span> Commands</button>
+      <button type="button" class="nav-btn" data-p="embeds"><span class="ic">✏️</span> Embeds</button>
+      <button type="button" class="nav-btn" data-p="perms"><span class="ic">🔐</span> Berechtigungen</button>
+      <div class="nav-sec">Links</div>
       <a class="nav-btn" href="ingame.html" style="text-decoration:none"><span class="ic">🎮</span> IC Panel →</a>
+      <a class="nav-btn" href="unban.html" style="text-decoration:none"><span class="ic">🔓</span> Ban Appeal →</a>
     </nav>
     <div class="side-mini" id="side-mini">
         <a href="./ingame.html">IC Panel</a>
@@ -822,7 +796,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
     try{ localStorage.setItem('staffora_token', token); }catch(e){}
     try{ sessionStorage.setItem('staffora_token', token); }catch(e){}
   }
-  var me=null, guilds=[], guildId=null, page='overview';
+  var me=null, guilds=[], guildId=null, page='settings';
 
   function $(id){return document.getElementById(id)}
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
@@ -1050,7 +1024,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
       else if(page==='feedback') await pageFeedbackCfg(p);
       else if(page==='flynametag') await pageFlyNametag(p);
       else if(page==='xp') await pageXp(p);
-      else if(page==='modules') { page='overview'; await pageOverview(p); }
+      else if(page==='modules') { page='settings'; sessionStorage.setItem('staffora_set_cat','modules'); await pageSettings(p); }
       else if(page==='modperms') await pageModPerms(p);
       else if(page==='perms') await pagePerms(p);
       else if(page==='panels') await pagePanels(p);
@@ -4374,7 +4348,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
       {id:'notify',ic:'🔔',l:'Benachrichtigungen'},
       {id:'system',ic:'🔧',l:'System'}
     ];
-    var activeCat=sessionStorage.getItem('staffora_set_cat')||'hub';
+    var activeCat=sessionStorage.getItem('staffora_set_cat')||'allgemein';
 
     var MOD_LIST=[
       {k:'tickets',l:'Tickets',d:'Support-Tickets mit Claim und KI'},
@@ -4411,10 +4385,10 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
     }
 
     p.innerHTML=
-      '<h1>Einstellungen</h1>'+
-      '<p class="desc">Control Panel · Kategorien links, Details rechts</p>'+
+      '<h1>Dashboard</h1>'+
+      '<p class="desc">Galaxy Control · alle Einstellungen an einem Ort</p>'+
       '<div class="card" style="border-color:rgba(139,92,246,.45);margin-bottom:14px;padding:12px 16px;background:linear-gradient(90deg,rgba(139,92,246,.15),transparent)"><strong>Galaxy Control Panel</strong> · v2 · Links Kategorien wählen</div>'+
-      '<div class="settings-shell">'+
+      '<div class="settings-shell settings-shell-main">'+
         '<nav class="settings-nav" id="set-nav">'+
           CATS.map(function(c){
             return '<button type="button" data-cat="'+c.id+'" class="'+(c.id===activeCat?'active':'')+'"><span class="ic">'+c.ic+'</span>'+c.l+'</button>';
@@ -4444,7 +4418,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
 
       
       if(cat==='hub'){
-        main.innerHTML='<h1>Einstellungen</h1><p class="sdesc">Kategorie wählen</p><div class="nova-grid">'+
+        main.innerHTML='<h1>Dashboard</h1><p class="sdesc">Alle Einstellungen · Kategorie wählen</p><div class="nova-grid">'+
           CATS.map(function(c){
             return '<button type="button" class="nova-panel-card" data-go-cat="'+c.id+'" style="text-align:left;cursor:pointer;width:100%">'+
               '<h3 style="margin:0">'+c.ic+' '+c.l+'</h3></button>';
@@ -4577,92 +4551,333 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
         return;
       }
 
-      function featureHub(title, desc, links){
-        main.innerHTML=backBtn()+'<h1>'+title+'</h1><p class="sdesc">'+desc+'</p>'+
-          '<div class="set-grid">'+links.map(function(x){
-            return '<div class="set-card"><h3>'+x.ic+' '+x.l+'</h3><p class="hint">'+x.d+'</p>'+
-              '<button type="button" class="set-link" data-go="'+x.p+'">Öffnen →</button></div>';
-          }).join('')+'</div>';
-        main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
-        try{bindBack()}catch(e){}
+
+      function fieldRow(label, id){
+        return '<div class="field"><label>'+label+'</label><div id="'+id+'"></div></div>';
+      }
+      function saveBtn(id, label){
+        return '<button type="button" class="btn btn-p btn-sm" id="'+id+'">'+(label||'Speichern')+'</button>';
       }
 
       if(cat==='tickets'){
-        featureHub('🎫 Tickets & Support','Tickets, Warteraum, Büros, Admin Call',[
-          {ic:'🎫',l:'Tickets',d:'Arten, Kanäle, KI, Auto-Close',p:'tickets'},
-          {ic:'🎧',l:'Warteraum',d:'Voice-Support und Musik',p:'warteraum'},
-          {ic:'🏢',l:'Büros',d:'Büro-Warteraum',p:'offices'},
-          {ic:'📞',l:'Admin Call',d:'Dringende Anfragen',p:'admincall'}
-        ]);
-        return;
-      }
-      if(cat==='apps'){
-        featureHub('📝 Bewerbungen','Team- und Interview-Systeme',[
-          {ic:'📋',l:'Bewerbungen',d:'Fragen und Kanäle',p:'bewerbung'},
-          {ic:'🎤',l:'Interviews',d:'Mündliche Bewerbungen',p:'interviews'},
-          {ic:'🔢',l:'Dienstnummern',d:'DN-Bewerbung und Suche',p:'dn'}
-        ]);
-        return;
-      }
-      if(cat==='team'){
-        featureHub('👥 Team','Teamliste, XP, Duty, Ausweis',[
-          {ic:'👥',l:'Team',d:'Liste, Ränge, Auto-Nick',p:'team'},
-          {ic:'✨',l:'XP',d:'Punkte und Rangliste',p:'xp'},
-          {ic:'⏱️',l:'Duty',d:'On/Off Duty Panel',p:'duty'},
-          {ic:'🪪',l:'Ausweis',d:'Personalausweis',p:'ausweis'},
-          {ic:'⭐',l:'Feedback',d:'Staff bewerten',p:'feedback'}
-        ]);
-        return;
-      }
-      if(cat==='haus'){
-        featureHub('🏠 Haus & Fraktionen','Häuser und Fraktionsverwaltung',[
-          {ic:'🏠',l:'Hausliste',d:'Häuser verwalten',p:'hausliste'},
-          {ic:'🏛️',l:'Fraktionen',d:'Legal / Illegal',p:'factions'}
-        ]);
-        return;
-      }
-      if(cat==='mod'){
-        featureHub('🛡️ Moderation','Befehle, Unban, Verstöße',[
-          {ic:'🛡️',l:'Mod-Permissions',d:'Rollen pro Befehl',p:'modperms'},
-          {ic:'⚖️',l:'Verstoßgründe',d:'VDM, RDM, …',p:'modreasons'},
-          {ic:'📨',l:'Unban-Fragen',d:'Ban-Appeal Formular',p:'unban-q'},
-          {ic:'🔨',l:'Bans',d:'Aktive Bans',p:'bans'}
-        ]);
-        return;
-      }
-      if(cat==='community'){
-        featureHub('🤝 Community','Giveaways, Vorschläge, Partner',[
-          {ic:'🎁',l:'Giveaways',d:'Gewinnspiele',p:'giveaway'},
-          {ic:'💡',l:'Vorschläge',d:'Suggestions',p:'suggest'},
-          {ic:'🤝',l:'Partnerschaft',d:'Tiers und Anträge',p:'partner'},
-          {ic:'⭐',l:'Feedback',d:'Bewertungen',p:'feedback'}
-        ]);
-        return;
-      }
-      if(cat==='rp'){
-        featureHub('🚀 RP','RP Start/Stop und Status',[
-          {ic:'🎭',l:'RP Start / Stop',d:'Embeds und Status',p:'rp'}
-        ]);
-        return;
-      }
-      if(cat==='logs'){
-        featureHub('📊 Logs & Statistiken','Protokolle und Stats',[
-          {ic:'⚡',l:'Live Activity',d:'Aktuelle Aktionen',p:'activity'},
-          {ic:'📈',l:'Server-Stats',d:'Member und Kanäle',p:'serverstats'},
-          {ic:'🟢',l:'Online-Status',d:'Online Admins',p:'online'}
-        ]);
-        return;
-      }
-      if(cat==='notify'){
         main.innerHTML=backBtn()+
-          '<h1>🔔 Benachrichtigungen</h1><p class="sdesc">Pings und Statusmeldungen</p>'+
-          '<div class="set-card"><h3>Discord</h3><p class="hint">Rollen-Pings werden in den jeweiligen Feature-Tabs (Tickets, Admin Call, Warteraum) konfiguriert.</p>'+
-            '<button type="button" class="set-link" data-go="tickets">Tickets →</button> '+
-            '<button type="button" class="set-link" data-go="admincall">Admin Call →</button></div>';
-        main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
+          '<h1>🎫 Tickets & Support</h1><p class="sdesc">Tickets, Warteraum, Büros, Admin Call — alle Kanäle und Rollen</p>'+
+          '<div class="set-card"><h3>Tickets</h3><p class="hint">Kategorie, Support-Rollen, Panel-Text, Auto-Close</p>'+
+            fieldRow('Ticket-Kategorie','st-cat')+
+            fieldRow('Support-Rollen','st-roles')+
+            fieldRow('Log-Kanal','st-log')+
+            fieldRow('Blacklist-Rollen','st-bl')+
+            '<div class="field"><label>Panel-Titel</label><input id="st-title"/></div>'+
+            '<div class="field"><label>Panel-Text</label><textarea id="st-text"></textarea></div>'+
+            '<div class="field"><label>Auto-Close (Stunden, 0 = aus)</label><input id="st-ac" type="number" min="0"/></div>'+
+            '<div class="toggle-row"><div><div class="lbl">Ticket-KI</div><div class="sub">KI im Ticket anbieten</div></div><div id="st-ai" class="toggle-sw"></div></div>'+
+            saveBtn('st-save','Tickets speichern')+'</div>'+
+          '<div class="set-card"><h3>Support-Warteraum</h3><p class="hint">Voice-Warteraum, Textkanal, Ping, Musik</p>'+
+            fieldRow('Warteraum-Voice','sw-vc')+
+            fieldRow('Support-Textkanal','sw-txt')+
+            fieldRow('Staff-Ping-Rollen','sw-ping')+
+            fieldRow('XP-fähige Support-Räume','sw-xp')+
+            '<div class="toggle-row"><div><div class="lbl">Musik</div></div><div id="sw-mus" class="toggle-sw"></div></div>'+
+            '<div class="field"><label>Musik-URL (optional)</label><input id="sw-url" placeholder="https://…"/></div>'+
+            saveBtn('sw-save','Warteraum speichern')+'</div>'+
+          '<div class="set-card"><h3>Büros</h3><p class="hint">Büro-Warteraum und Log</p>'+
+            fieldRow('Büro-Warteraum Voice','so-vc')+
+            fieldRow('Büro-Log-Kanal','so-log')+
+            fieldRow('Büro-Staff-Rollen','so-roles')+
+            saveBtn('so-save','Büros speichern')+'</div>'+
+          '<div class="set-card"><h3>Admin Call</h3><p class="hint">Panel-Kanal, Log, Ping</p>'+
+            fieldRow('Admin-Call Panel-Kanal','sa-ch')+
+            fieldRow('Admin-Call Log','sa-log')+
+            fieldRow('Ping-Rollen','sa-ping')+
+            '<div class="field"><label>Panel-Titel</label><input id="sa-title"/></div>'+
+            '<div class="field"><label>Panel-Text</label><textarea id="sa-text"></textarea></div>'+
+            saveBtn('sa-save','Admin Call speichern')+'</div>';
+        var pCat=makeSearchSelect($('st-cat'),{items:channelItems(disc.channels||[],[4,'4','GUILD_CATEGORY']),multi:false,value:s.ticketCategoryId||'',placeholder:'Kategorie…'});
+        var pRoles=makeSearchSelect($('st-roles'),{items:roles,multi:true,values:s.ticketSupportRoleIds||[],placeholder:'Support…'});
+        var pLog=makeSearchSelect($('st-log'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
+        var pBl=makeSearchSelect($('st-bl'),{items:roles,multi:true,values:s.ticketBlacklistRoleIds||[],placeholder:'Blacklist…'});
+        $('st-title').value=s.ticketPanelTitle||'';
+        $('st-text').value=s.ticketPanelText||'';
+        $('st-ac').value=s.ticketAutoCloseHours||0;
+        bindToggle($('st-ai'), !!s.aiAssistEnabled);
+        $('st-save').onclick=function(){patchSettings({
+          ticketCategoryId:pCat.getValue()||null,ticketSupportRoleIds:pRoles.getValue(),
+          ticketLogChannelId:pLog.getValue()||null,ticketBlacklistRoleIds:pBl.getValue(),
+          ticketPanelTitle:$('st-title').value.trim(),ticketPanelText:$('st-text').value,
+          ticketAutoCloseHours:Number($('st-ac').value)||0,aiAssistEnabled:$('st-ai').isOn()
+        },'Tickets')};
+        var wVc=makeSearchSelect($('sw-vc'),{items:channelItems(disc.channels||[],[2,'2','GUILD_VOICE']),multi:false,value:s.warteraumChannelId||s.supportWaitingChannelId||'',placeholder:'Voice…'});
+        var wTx=makeSearchSelect($('sw-txt'),{items:ch,multi:false,value:s.warteraumTextChannelId||s.supportCaseChannelId||'',placeholder:'Text…'});
+        var wPing=makeSearchSelect($('sw-ping'),{items:roles,multi:true,values:s.warteraumPingRoleIds||s.supportPingRoleIds||[],placeholder:'Ping…'});
+        var wXp=makeSearchSelect($('sw-xp'),{items:channelItems(disc.channels||[],[2,'2','GUILD_VOICE']),multi:true,values:s.xpVoiceChannelIds||[],placeholder:'XP-Räume…'});
+        bindToggle($('sw-mus'), s.warteraumMusicEnabled!==false);
+        $('sw-url').value=s.warteraumMusicUrl||'';
+        $('sw-save').onclick=function(){patchSettings({
+          warteraumChannelId:wVc.getValue()||null,supportWaitingChannelId:wVc.getValue()||null,
+          warteraumTextChannelId:wTx.getValue()||null,supportCaseChannelId:wTx.getValue()||null,
+          warteraumPingRoleIds:wPing.getValue(),supportPingRoleIds:wPing.getValue(),
+          xpVoiceChannelIds:wXp.getValue(),warteraumMusicEnabled:$('sw-mus').isOn(),warteraumMusicUrl:$('sw-url').value.trim()||null
+        },'Warteraum')};
+        var oVc=makeSearchSelect($('so-vc'),{items:channelItems(disc.channels||[],[2,'2','GUILD_VOICE']),multi:false,value:s.officeWaitingChannelId||'',placeholder:'Voice…'});
+        var oLog=makeSearchSelect($('so-log'),{items:ch,multi:false,value:s.officeLogChannelId||'',placeholder:'Log…'});
+        var oRoles=makeSearchSelect($('so-roles'),{items:roles,multi:true,values:s.officeStaffRoleIds||[],placeholder:'Staff…'});
+        $('so-save').onclick=function(){patchSettings({
+          officeWaitingChannelId:oVc.getValue()||null,officeLogChannelId:oLog.getValue()||null,officeStaffRoleIds:oRoles.getValue()
+        },'Büros')};
+        var aCh=makeSearchSelect($('sa-ch'),{items:ch,multi:false,value:s.adminCallPanelChannelId||s.adminCallChannelId||'',placeholder:'Panel…'});
+        var aLog=makeSearchSelect($('sa-log'),{items:ch,multi:false,value:s.adminCallLogChannelId||'',placeholder:'Log…'});
+        var aPing=makeSearchSelect($('sa-ping'),{items:roles,multi:true,values:s.adminCallPingRoleIds||[],placeholder:'Ping…'});
+        $('sa-title').value=s.adminCallPanelTitle||'';
+        $('sa-text').value=s.adminCallPanelText||'';
+        $('sa-save').onclick=function(){patchSettings({
+          adminCallPanelChannelId:aCh.getValue()||null,adminCallChannelId:aCh.getValue()||null,
+          adminCallLogChannelId:aLog.getValue()||null,adminCallPingRoleIds:aPing.getValue(),
+          adminCallPanelTitle:$('sa-title').value.trim(),adminCallPanelText:$('sa-text').value
+        },'Admin Call')};
         try{bindBack()}catch(e){}
         return;
       }
+
+      if(cat==='apps'){
+        main.innerHTML=backBtn()+
+          '<h1>📝 Bewerbungen</h1><p class="sdesc">Team- und Dienstnummer-Bewerbung</p>'+
+          '<div class="set-card"><h3>Team-Bewerbung</h3>'+
+            fieldRow('Bewerbungs-Kanal','ap-ch')+
+            fieldRow('Review-Rollen','ap-roles')+
+            '<div class="field"><label>Panel-Titel</label><input id="ap-title"/></div>'+
+            '<div class="field"><label>Panel-Text</label><textarea id="ap-text"></textarea></div>'+
+            saveBtn('ap-save')+'</div>'+
+          '<div class="set-card"><h3>Dienstnummern</h3>'+
+            fieldRow('DN-Log-Kanal','dn-log')+
+            fieldRow('DN-Staff-Rollen','dn-roles')+
+            saveBtn('dn-save')+'</div>'+
+          '<div class="set-card"><h3>Interviews</h3>'+
+            fieldRow('Interview-Kanal','iv-ch')+
+            fieldRow('Interview-Rollen','iv-roles')+
+            saveBtn('iv-save')+'</div>';
+        var apCh=makeSearchSelect($('ap-ch'),{items:ch,multi:false,value:s.applicationChannelId||s.bewerbungChannelId||'',placeholder:'Kanal…'});
+        var apR=makeSearchSelect($('ap-roles'),{items:roles,multi:true,values:s.applicationReviewRoleIds||[],placeholder:'Review…'});
+        $('ap-title').value=s.bewerbungPanelTitle||s.applicationPanelTitle||'';
+        $('ap-text').value=s.bewerbungPanelText||s.applicationPanelText||'';
+        $('ap-save').onclick=function(){patchSettings({
+          applicationChannelId:apCh.getValue()||null,bewerbungChannelId:apCh.getValue()||null,
+          applicationReviewRoleIds:apR.getValue(),bewerbungPanelTitle:$('ap-title').value.trim(),
+          applicationPanelTitle:$('ap-title').value.trim(),bewerbungPanelText:$('ap-text').value,applicationPanelText:$('ap-text').value
+        },'Bewerbung')};
+        var dnL=makeSearchSelect($('dn-log'),{items:ch,multi:false,value:s.dienstnummerLogChannelId||'',placeholder:'Log…'});
+        var dnR=makeSearchSelect($('dn-roles'),{items:roles,multi:true,values:s.dienstnummerStaffRoleIds||[],placeholder:'Staff…'});
+        $('dn-save').onclick=function(){patchSettings({dienstnummerLogChannelId:dnL.getValue()||null,dienstnummerStaffRoleIds:dnR.getValue()},'DN')};
+        var ivCh=makeSearchSelect($('iv-ch'),{items:ch,multi:false,value:s.interviewChannelId||'',placeholder:'Kanal…'});
+        var ivR=makeSearchSelect($('iv-roles'),{items:roles,multi:true,values:s.interviewRoleIds||[],placeholder:'Rollen…'});
+        $('iv-save').onclick=function(){patchSettings({interviewChannelId:ivCh.getValue()||null,interviewRoleIds:ivR.getValue()},'Interviews')};
+        try{bindBack()}catch(e){}
+        return;
+      }
+
+      if(cat==='team'){
+        main.innerHTML=backBtn()+
+          '<h1>👥 Team</h1><p class="sdesc">Teamliste, Auto-Nick, Duty, XP, Ausweis, Feedback</p>'+
+          '<div class="set-card"><h3>Teamliste</h3>'+
+            fieldRow('Teamliste-Kanal','tm-ch')+fieldRow('Rollen filtern','tm-roles')+saveBtn('tm-save')+'</div>'+
+          '<div class="set-card"><h3>Auto-Nickname</h3>'+
+            '<div class="toggle-row"><div class="lbl">Aktiv</div><div id="tm-an" class="toggle-sw"></div></div>'+
+            '<div class="field"><label>Format</label><input id="tm-fmt" placeholder="[{rank}] {name}"/></div>'+
+            saveBtn('tm-an-save','Auto-Nick speichern')+'</div>'+
+          '<div class="set-card"><h3>Duty / Online</h3>'+
+            fieldRow('Duty-Panel-Kanal','tm-duty')+fieldRow('Duty-Rollen','tm-duty-r')+
+            fieldRow('Ingame-Admin-Rollen','tm-ingame')+
+            '<div class="field"><label>Duty-Titel</label><input id="tm-duty-t"/></div>'+
+            saveBtn('tm-duty-save','Duty speichern')+'</div>'+
+          '<div class="set-card"><h3>XP</h3>'+
+            '<div class="toggle-row"><div class="lbl">XP-System</div><div id="tm-xp" class="toggle-sw"></div></div>'+
+            '<div class="field"><label>XP pro Ticket-Übernahme</label><input id="tm-xp-t" type="number"/></div>'+
+            '<div class="field"><label>XP pro VC-Minute</label><input id="tm-xp-v" type="number"/></div>'+
+            saveBtn('tm-xp-save','XP speichern')+'</div>'+
+          '<div class="set-card"><h3>Ausweis</h3>'+
+            fieldRow('Ausweis-Kanal','tm-aw-ch')+fieldRow('Ausweis-Staff','tm-aw-r')+
+            '<div class="field"><label>Server-Name auf Ausweis</label><input id="tm-aw-sn"/></div>'+
+            '<div class="field"><label>Max. Zusatzausweise</label><input id="tm-aw-max" type="number" min="0"/></div>'+
+            saveBtn('tm-aw-save','Ausweis speichern')+'</div>'+
+          '<div class="set-card"><h3>Feedback</h3>'+
+            fieldRow('Feedback-Log-Kanal','tm-fb')+fieldRow('Feedback-Rollen','tm-fb-r')+
+            '<div class="field"><label>Panel-Titel</label><input id="tm-fb-t"/></div>'+
+            '<div class="field"><label>Panel-Text</label><textarea id="tm-fb-tx"></textarea></div>'+
+            saveBtn('tm-fb-save','Feedback speichern')+'</div>'+
+          '<div class="set-card"><h3>Team-Warns</h3>'+
+            '<div class="field"><label>Warns bis Auto-Kick</label><input id="tm-tw" type="number" min="1"/></div>'+
+            fieldRow('Team-Log','tm-tlog')+saveBtn('tm-tw-save')+'</div>';
+        var tmCh=makeSearchSelect($('tm-ch'),{items:ch,multi:false,value:s.teamlistChannelId||'',placeholder:'Kanal…'});
+        var tmR=makeSearchSelect($('tm-roles'),{items:roles,multi:true,values:s.teamlistRoleIds||[],placeholder:'Rollen…'});
+        $('tm-save').onclick=function(){patchSettings({teamlistChannelId:tmCh.getValue()||null,teamlistRoleIds:tmR.getValue()},'Teamliste')};
+        bindToggle($('tm-an'), s.autoNickEnabled!==false);
+        $('tm-fmt').value=s.autoNickFormat||'[{rank}] {name}';
+        $('tm-an-save').onclick=function(){patchSettings({autoNickEnabled:$('tm-an').isOn(),autoNickFormat:$('tm-fmt').value.trim()},'Auto-Nick')};
+        var dCh=makeSearchSelect($('tm-duty'),{items:ch,multi:false,value:s.dutyPanelChannelId||'',placeholder:'Kanal…'});
+        var dR=makeSearchSelect($('tm-duty-r'),{items:roles,multi:true,values:s.dutyRoleIds||[],placeholder:'Duty…'});
+        var dIg=makeSearchSelect($('tm-ingame'),{items:roles,multi:true,values:s.ingameAdminRoleIds||[],placeholder:'Ingame-Admin…'});
+        $('tm-duty-t').value=s.dutyPanelTitle||'';
+        $('tm-duty-save').onclick=function(){patchSettings({dutyPanelChannelId:dCh.getValue()||null,dutyRoleIds:dR.getValue(),ingameAdminRoleIds:dIg.getValue(),dutyPanelTitle:$('tm-duty-t').value.trim()},'Duty')};
+        bindToggle($('tm-xp'), s.xpEnabled!==false);
+        $('tm-xp-t').value=s.xpTicketClaim||s.xpPerTicket||10;
+        $('tm-xp-v').value=s.xpVoicePerMinute||1;
+        $('tm-xp-save').onclick=function(){patchSettings({xpEnabled:$('tm-xp').isOn(),xpTicketClaim:Number($('tm-xp-t').value)||0,xpPerTicket:Number($('tm-xp-t').value)||0,xpVoicePerMinute:Number($('tm-xp-v').value)||0},'XP')};
+        var awCh=makeSearchSelect($('tm-aw-ch'),{items:ch,multi:false,value:s.ausweisChannelId||'',placeholder:'Kanal…'});
+        var awR=makeSearchSelect($('tm-aw-r'),{items:roles,multi:true,values:s.ausweisStaffRoleIds||[],placeholder:'Staff…'});
+        $('tm-aw-sn').value=s.ausweisServerName||'';
+        $('tm-aw-max').value=s.ausweisMaxExtra!=null?s.ausweisMaxExtra:3;
+        $('tm-aw-save').onclick=function(){patchSettings({ausweisChannelId:awCh.getValue()||null,ausweisStaffRoleIds:awR.getValue(),ausweisServerName:$('tm-aw-sn').value.trim()||null,ausweisMaxExtra:Number($('tm-aw-max').value)||0},'Ausweis')};
+        var fb=makeSearchSelect($('tm-fb'),{items:ch,multi:false,value:s.feedbackLogChannelId||'',placeholder:'Log…'});
+        var fbR=makeSearchSelect($('tm-fb-r'),{items:roles,multi:true,values:s.feedbackRoleIds||[],placeholder:'Rollen…'});
+        $('tm-fb-t').value=s.feedbackPanelTitle||'';
+        $('tm-fb-tx').value=s.feedbackPanelText||'';
+        $('tm-fb-save').onclick=function(){patchSettings({feedbackLogChannelId:fb.getValue()||null,feedbackRoleIds:fbR.getValue(),feedbackPanelTitle:$('tm-fb-t').value.trim(),feedbackPanelText:$('tm-fb-tx').value},'Feedback')};
+        $('tm-tw').value=s.teamWarnKickAt||3;
+        var tlog=makeSearchSelect($('tm-tlog'),{items:ch,multi:false,value:s.teamLogChannelId||'',placeholder:'Log…'});
+        $('tm-tw-save').onclick=function(){patchSettings({teamWarnKickAt:Number($('tm-tw').value)||3,teamLogChannelId:tlog.getValue()||null},'Team-Warns')};
+        try{bindBack()}catch(e){}
+        return;
+      }
+
+      if(cat==='haus'){
+        main.innerHTML=backBtn()+
+          '<h1>🏠 Haus & Fraktionen</h1><p class="sdesc">Hausliste und Fraktions-Einstellungen</p>'+
+          '<div class="set-card"><h3>Hausliste</h3>'+
+            fieldRow('Hausliste-Kanal','hh-ch')+
+            '<div class="field"><label>Panel-Titel</label><input id="hh-t"/></div>'+
+            '<div class="field"><label>Panel-Text</label><textarea id="hh-tx"></textarea></div>'+
+            saveBtn('hh-save')+'</div>'+
+          '<div class="set-card"><h3>Fraktionen</h3>'+
+            fieldRow('Announcement-Kanal','hf-ch')+
+            fieldRow('Leader-Rollen','hf-lead')+
+            '<div class="field"><label>Warns bis Fraktions-Kick</label><input id="hf-w" type="number" min="1"/></div>'+
+            saveBtn('hf-save')+'</div>';
+        var hh=makeSearchSelect($('hh-ch'),{items:ch,multi:false,value:s.hauslistePanelChannelId||'',placeholder:'Kanal…'});
+        $('hh-t').value=s.hauslistePanelTitle||'';
+        $('hh-tx').value=s.hauslistePanelText||'';
+        $('hh-save').onclick=function(){patchSettings({hauslistePanelChannelId:hh.getValue()||null,hauslistePanelTitle:$('hh-t').value.trim(),hauslistePanelText:$('hh-tx').value},'Hausliste')};
+        var hf=makeSearchSelect($('hf-ch'),{items:ch,multi:false,value:s.factionAnnounceChannelId||'',placeholder:'Kanal…'});
+        var hl=makeSearchSelect($('hf-lead'),{items:roles,multi:true,values:s.factionLeaderRoleIds||[],placeholder:'Leader…'});
+        $('hf-w').value=s.factionWarnKickAt||3;
+        $('hf-save').onclick=function(){patchSettings({factionAnnounceChannelId:hf.getValue()||null,factionLeaderRoleIds:hl.getValue(),factionWarnKickAt:Number($('hf-w').value)||3},'Fraktionen')};
+        try{bindBack()}catch(e){}
+        return;
+      }
+
+      if(cat==='mod'){
+        main.innerHTML=backBtn()+
+          '<h1>🛡️ Moderation</h1><p class="sdesc">Unban, Dizzy, Ingame-Panel-Zugriff</p>'+
+          '<div class="set-card"><h3>Unban-Anfragen</h3>'+
+            '<div class="toggle-row"><div class="lbl">Aktiv</div><div id="mu-on" class="toggle-sw"></div></div>'+
+            '<div class="toggle-row"><div class="lbl">Nur bei aktivem Ban</div><div id="mu-act" class="toggle-sw"></div></div>'+
+            fieldRow('Unban-Kanal','mu-ch')+saveBtn('mu-save')+'</div>'+
+          '<div class="set-card"><h3>Dizzy Control</h3>'+
+            fieldRow('Control-Kanal','md-ch')+fieldRow('Log-Kanal','md-log')+fieldRow('Control-Rollen','md-r')+
+            saveBtn('md-save')+'</div>'+
+          '<div class="set-card"><h3>Ingame Panel Access</h3>'+
+            fieldRow('Zugriff-Rollen','mi-r')+saveBtn('mi-save')+'</div>'+
+          '<div class="set-card"><h3>Fly & Nametag</h3>'+
+            fieldRow('Anfrage-Kanal','mf-ch')+fieldRow('Staff-Rollen','mf-r')+saveBtn('mf-save')+'</div>';
+        bindToggle($('mu-on'), s.unbanRequestEnabled!==false);
+        bindToggle($('mu-act'), !!s.unbanRequireActiveBan);
+        var mu=makeSearchSelect($('mu-ch'),{items:ch,multi:false,value:s.unbanRequestChannelId||'',placeholder:'Kanal…'});
+        $('mu-save').onclick=function(){patchSettings({unbanRequestEnabled:$('mu-on').isOn(),unbanRequireActiveBan:$('mu-act').isOn(),unbanRequestChannelId:mu.getValue()||null},'Unban')};
+        var md=makeSearchSelect($('md-ch'),{items:ch,multi:false,value:s.dizzyChannelId||s.ingameDizzyChannelId||'',placeholder:'Kanal…'});
+        var mdl=makeSearchSelect($('md-log'),{items:ch,multi:false,value:s.dizzyLogChannelId||'',placeholder:'Log…'});
+        var mdr=makeSearchSelect($('md-r'),{items:roles,multi:true,values:s.dizzyControllerRoleIds||[],placeholder:'Rollen…'});
+        $('md-save').onclick=function(){patchSettings({dizzyChannelId:md.getValue()||null,ingameDizzyChannelId:md.getValue()||null,dizzyLogChannelId:mdl.getValue()||null,dizzyControllerRoleIds:mdr.getValue()},'Dizzy')};
+        var mi=makeSearchSelect($('mi-r'),{items:roles,multi:true,values:s.ingamePanelAccessRoleIds||s.ingameAccessRoleIds||[],placeholder:'Rollen…'});
+        $('mi-save').onclick=function(){patchSettings({ingamePanelAccessRoleIds:mi.getValue(),ingameAccessRoleIds:mi.getValue()},'Ingame Access')};
+        var mf=makeSearchSelect($('mf-ch'),{items:ch,multi:false,value:s.flyNametagChannelId||'',placeholder:'Kanal…'});
+        var mfr=makeSearchSelect($('mf-r'),{items:roles,multi:true,values:s.flyNametagStaffRoleIds||[],placeholder:'Staff…'});
+        $('mf-save').onclick=function(){patchSettings({flyNametagChannelId:mf.getValue()||null,flyNametagStaffRoleIds:mfr.getValue()},'Fly/Nametag')};
+        try{bindBack()}catch(e){}
+        return;
+      }
+
+      if(cat==='community'){
+        main.innerHTML=backBtn()+
+          '<h1>🤝 Community</h1><p class="sdesc">Partner, Giveaways, Vorschläge</p>'+
+          '<div class="set-card"><h3>Partnerschaft</h3>'+
+            '<div class="toggle-row"><div class="lbl">Aktiv</div><div id="cp-on" class="toggle-sw"></div></div>'+
+            fieldRow('Antrags-Kanal','cp-ch')+fieldRow('Manager-Rollen','cp-r')+
+            saveBtn('cp-save')+'</div>'+
+          '<div class="set-card"><h3>Giveaways</h3>'+
+            fieldRow('Giveaway-Kanal','cg-ch')+fieldRow('Giveaway-Rollen','cg-r')+saveBtn('cg-save')+'</div>'+
+          '<div class="set-card"><h3>Vorschläge</h3>'+
+            fieldRow('Suggest-Kanal','cs-ch')+fieldRow('Annehmen/Ablehnen-Rollen','cs-r')+saveBtn('cs-save')+'</div>';
+        bindToggle($('cp-on'), s.partnerEnabled!==false);
+        var cp=makeSearchSelect($('cp-ch'),{items:ch,multi:false,value:s.partnerApplicationChannelId||'',placeholder:'Kanal…'});
+        var cpr=makeSearchSelect($('cp-r'),{items:roles,multi:true,values:s.partnerManagerRoleIds||[],placeholder:'Manager…'});
+        $('cp-save').onclick=function(){patchSettings({partnerEnabled:$('cp-on').isOn(),partnerApplicationChannelId:cp.getValue()||null,partnerManagerRoleIds:cpr.getValue()},'Partner')};
+        var cg=makeSearchSelect($('cg-ch'),{items:ch,multi:false,value:s.giveawayChannelId||'',placeholder:'Kanal…'});
+        var cgr=makeSearchSelect($('cg-r'),{items:roles,multi:true,values:s.giveawayRoleIds||[],placeholder:'Rollen…'});
+        $('cg-save').onclick=function(){patchSettings({giveawayChannelId:cg.getValue()||null,giveawayRoleIds:cgr.getValue()},'Giveaway')};
+        var cs=makeSearchSelect($('cs-ch'),{items:ch,multi:false,value:s.suggestChannelId||'',placeholder:'Kanal…'});
+        var csr=makeSearchSelect($('cs-r'),{items:roles,multi:true,values:s.suggestStaffRoleIds||[],placeholder:'Staff…'});
+        $('cs-save').onclick=function(){patchSettings({suggestChannelId:cs.getValue()||null,suggestStaffRoleIds:csr.getValue()},'Suggest')};
+        try{bindBack()}catch(e){}
+        return;
+      }
+
+      if(cat==='rp'){
+        main.innerHTML=backBtn()+
+          '<h1>🚀 RP</h1><p class="sdesc">RP Start / Stop</p>'+
+          '<div class="set-card"><h3>RP Status</h3>'+
+            fieldRow('RP-Kanal','rp-ch')+
+            '<div class="field"><label>Start-Text</label><textarea id="rp-start"></textarea></div>'+
+            '<div class="field"><label>Stop-Text</label><textarea id="rp-stop"></textarea></div>'+
+            saveBtn('rp-save')+'</div>';
+        var rp=makeSearchSelect($('rp-ch'),{items:ch,multi:false,value:s.rpChannelId||s.statusChannelId||'',placeholder:'Kanal…'});
+        $('rp-start').value=(s.rpStartEmbed&&s.rpStartEmbed.description)||s.rpStartText||'';
+        $('rp-stop').value=(s.rpStopEmbed&&s.rpStopEmbed.description)||s.rpStopText||'';
+        $('rp-save').onclick=function(){patchSettings({
+          rpChannelId:rp.getValue()||null,statusChannelId:rp.getValue()||null,
+          rpStartText:$('rp-start').value,rpStopText:$('rp-stop').value,
+          rpStartEmbed:Object.assign({},s.rpStartEmbed||{},{description:$('rp-start').value}),
+          rpStopEmbed:Object.assign({},s.rpStopEmbed||{},{description:$('rp-stop').value})
+        },'RP')};
+        try{bindBack()}catch(e){}
+        return;
+      }
+
+      if(cat==='logs'){
+        main.innerHTML=backBtn()+
+          '<h1>📊 Logs & Stats</h1><p class="sdesc">Log-Kanäle und Server-Stats</p>'+
+          '<div class="set-card"><h3>Logs</h3>'+
+            fieldRow('System-Log','lg-sys')+fieldRow('Mod-Log','lg-mod')+fieldRow('Ticket-Log','lg-tic')+
+            saveBtn('lg-save')+'</div>'+
+          '<div class="set-card"><h3>Server-Stats</h3>'+
+            fieldRow('Stats-Kanal','lg-st')+fieldRow('Stats verwalten','lg-sr')+saveBtn('lg-st-save')+'</div>';
+        var ls=makeSearchSelect($('lg-sys'),{items:ch,multi:false,value:s.logChannelId||'',placeholder:'Log…'});
+        var lm=makeSearchSelect($('lg-mod'),{items:ch,multi:false,value:s.modLogChannelId||'',placeholder:'Mod-Log…'});
+        var lt=makeSearchSelect($('lg-tic'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Ticket-Log…'});
+        $('lg-save').onclick=function(){patchSettings({logChannelId:ls.getValue()||null,modLogChannelId:lm.getValue()||null,ticketLogChannelId:lt.getValue()||null},'Logs')};
+        var sst=makeSearchSelect($('lg-st'),{items:ch,multi:false,value:s.statusChannelId||s.statsChannelId||'',placeholder:'Stats…'});
+        var ssr=makeSearchSelect($('lg-sr'),{items:roles,multi:true,values:s.statsManageRoleIds||[],placeholder:'Rollen…'});
+        $('lg-st-save').onclick=function(){patchSettings({statusChannelId:sst.getValue()||null,statsChannelId:sst.getValue()||null,statsManageRoleIds:ssr.getValue()},'Stats')};
+        try{bindBack()}catch(e){}
+        return;
+      }
+
+      if(cat==='notify'){
+        main.innerHTML=backBtn()+
+          '<h1>🔔 Benachrichtigungen</h1><p class="sdesc">Pings für Support und Admin Call</p>'+
+          '<div class="set-card"><h3>Ping-Rollen</h3>'+
+            fieldRow('Ticket / Support-Ping','ny-t')+
+            fieldRow('Admin-Call-Ping','ny-a')+
+            fieldRow('Warteraum-Ping','ny-w')+
+            saveBtn('ny-save')+'</div>';
+        var nt=makeSearchSelect($('ny-t'),{items:roles,multi:true,values:s.ticketSupportRoleIds||[],placeholder:'Support…'});
+        var na=makeSearchSelect($('ny-a'),{items:roles,multi:true,values:s.adminCallPingRoleIds||[],placeholder:'Admin Call…'});
+        var nw=makeSearchSelect($('ny-w'),{items:roles,multi:true,values:s.warteraumPingRoleIds||s.supportPingRoleIds||[],placeholder:'Warteraum…'});
+        $('ny-save').onclick=function(){patchSettings({
+          ticketSupportRoleIds:nt.getValue(),adminCallPingRoleIds:na.getValue(),
+          warteraumPingRoleIds:nw.getValue(),supportPingRoleIds:nw.getValue()
+        },'Pings')};
+        try{bindBack()}catch(e){}
+        return;
+      }
+
       if(cat==='system'){
         main.innerHTML=backBtn()+
           '<h1>🔧 System</h1><p class="sdesc">Status und Verbindung</p>'+
