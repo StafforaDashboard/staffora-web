@@ -351,6 +351,16 @@ aside.side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 .save-hint.show{opacity:1}
 .save-hint.ok{color:var(--ok);border-color:rgba(52,211,153,.35)}
 
+
+body.dash-settings .side{width:72px!important;min-width:72px!important}
+body.dash-settings .side .nav-btn{justify-content:center;padding:10px 8px}
+body.dash-settings .side .nav-btn .ic{margin:0}
+body.dash-settings .side .nav-btn{font-size:0}
+body.dash-settings .side .nav-btn .ic{font-size:18px}
+body.dash-settings .side .nav-sec{display:none}
+body.dash-settings .main,body.dash-settings .content-area,body.dash-settings #page{
+  flex:1!important;width:100%!important;max-width:none!important
+}
 </style>
 
 <style id="galaxy-extra">
@@ -361,6 +371,16 @@ body{background:#0b0f1a;}
 .nav-btn.active{background:rgba(124,58,237,.25);box-shadow:inset 3px 0 0 #8b5cf6;}
 .staffora-div{opacity:.9}
 .pill{background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3)}
+
+body.dash-settings .side{width:72px!important;min-width:72px!important}
+body.dash-settings .side .nav-btn{justify-content:center;padding:10px 8px}
+body.dash-settings .side .nav-btn .ic{margin:0}
+body.dash-settings .side .nav-btn{font-size:0}
+body.dash-settings .side .nav-btn .ic{font-size:18px}
+body.dash-settings .side .nav-sec{display:none}
+body.dash-settings .main,body.dash-settings .content-area,body.dash-settings #page{
+  flex:1!important;width:100%!important;max-width:none!important
+}
 </style>
 
 <style id="staffora-ui-v2">
@@ -397,6 +417,16 @@ body{background:#0b0f1a;}
 .feat-card:hover{border-color:rgba(139,92,246,.5)}
 .oa-row{padding:8px;border-radius:10px;background:rgba(255,255,255,.03);margin:4px 0}
 .mod-toggle-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;margin-bottom:10px;border-radius:12px;border:1px solid rgba(139,92,246,.2);background:rgba(139,92,246,.06)}
+
+body.dash-settings .side{width:72px!important;min-width:72px!important}
+body.dash-settings .side .nav-btn{justify-content:center;padding:10px 8px}
+body.dash-settings .side .nav-btn .ic{margin:0}
+body.dash-settings .side .nav-btn{font-size:0}
+body.dash-settings .side .nav-btn .ic{font-size:18px}
+body.dash-settings .side .nav-sec{display:none}
+body.dash-settings .main,body.dash-settings .content-area,body.dash-settings #page{
+  flex:1!important;width:100%!important;max-width:none!important
+}
 </style>
 
 <style id="staffora-size">
@@ -428,40 +458,64 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
   .app-shell{grid-template-columns:1fr !important}
   .grid2,.grid3{grid-template-columns:1fr !important}
 }
+
+body.dash-settings .side{width:72px!important;min-width:72px!important}
+body.dash-settings .side .nav-btn{justify-content:center;padding:10px 8px}
+body.dash-settings .side .nav-btn .ic{margin:0}
+body.dash-settings .side .nav-btn{font-size:0}
+body.dash-settings .side .nav-btn .ic{font-size:18px}
+body.dash-settings .side .nav-sec{display:none}
+body.dash-settings .main,body.dash-settings .content-area,body.dash-settings #page{
+  flex:1!important;width:100%!important;max-width:none!important
+}
 </style>
 
 <style id="staffora-settings-galaxy">
-.settings-shell.settings-shell-main,/* DASH-MAIN */
+.settings-shell.settings-shell-main,/* DASH-MAIN – full size, no extra click */
 .settings-shell.settings-shell-main{
-  display:flex!important;gap:0!important;min-height:calc(100vh - 120px)!important;
-  border:1px solid rgba(139,150,255,.18)!important;border-radius:20px!important;
-  overflow:hidden!important;background:rgba(14,18,32,.55)!important
+  display:flex!important;gap:0!important;
+  min-height:calc(100vh - 88px)!important;height:calc(100vh - 88px)!important;
+  max-width:none!important;width:100%!important;
+  border:1px solid rgba(139,150,255,.2)!important;border-radius:18px!important;
+  overflow:hidden!important;background:rgba(12,16,30,.7)!important;
+  margin:0!important
 }
 .settings-shell.settings-shell-main .settings-nav{
-  width:220px!important;min-width:200px!important;padding:12px 10px!important;
-  background:rgba(10,14,26,.75)!important;border-right:1px solid rgba(139,150,255,.12)!important;
-  overflow-y:auto!important
+  width:240px!important;min-width:220px!important;max-width:260px!important;
+  padding:14px 12px!important;
+  background:rgba(8,12,24,.85)!important;border-right:1px solid rgba(139,150,255,.14)!important;
+  overflow-y:auto!important;flex-shrink:0!important
 }
 .settings-shell.settings-shell-main .settings-main{
-  flex:1!important;padding:18px 22px 28px!important;overflow-y:auto!important
+  flex:1!important;padding:20px 28px 32px!important;overflow-y:auto!important;
+  min-width:0!important
 }
+#page{max-width:none!important;width:100%!important;padding:12px 16px 16px!important}
+.page-wrap,#main-content,.content{max-width:none!important}
 .settings-shell{
   min-height:calc(100vh - 100px)!important;
 }
-/* DASH-MAIN */
+/* DASH-MAIN – full size, no extra click */
 .settings-shell.settings-shell-main{
-  display:flex!important;gap:0!important;min-height:calc(100vh - 120px)!important;
-  border:1px solid rgba(139,150,255,.18)!important;border-radius:20px!important;
-  overflow:hidden!important;background:rgba(14,18,32,.55)!important
+  display:flex!important;gap:0!important;
+  min-height:calc(100vh - 88px)!important;height:calc(100vh - 88px)!important;
+  max-width:none!important;width:100%!important;
+  border:1px solid rgba(139,150,255,.2)!important;border-radius:18px!important;
+  overflow:hidden!important;background:rgba(12,16,30,.7)!important;
+  margin:0!important
 }
 .settings-shell.settings-shell-main .settings-nav{
-  width:220px!important;min-width:200px!important;padding:12px 10px!important;
-  background:rgba(10,14,26,.75)!important;border-right:1px solid rgba(139,150,255,.12)!important;
-  overflow-y:auto!important
+  width:240px!important;min-width:220px!important;max-width:260px!important;
+  padding:14px 12px!important;
+  background:rgba(8,12,24,.85)!important;border-right:1px solid rgba(139,150,255,.14)!important;
+  overflow-y:auto!important;flex-shrink:0!important
 }
 .settings-shell.settings-shell-main .settings-main{
-  flex:1!important;padding:18px 22px 28px!important;overflow-y:auto!important
+  flex:1!important;padding:20px 28px 32px!important;overflow-y:auto!important;
+  min-width:0!important
 }
+#page{max-width:none!important;width:100%!important;padding:12px 16px 16px!important}
+.page-wrap,#main-content,.content{max-width:none!important}
 .settings-shell{
   display:grid;
   grid-template-columns:220px minmax(0,1fr);
@@ -556,40 +610,64 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 .set-link:hover{background:rgba(139,92,246,.22)}
 .set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 @media(max-width:900px){
-  .settings-shell.settings-shell-main,/* DASH-MAIN */
+  .settings-shell.settings-shell-main,/* DASH-MAIN – full size, no extra click */
 .settings-shell.settings-shell-main{
-  display:flex!important;gap:0!important;min-height:calc(100vh - 120px)!important;
-  border:1px solid rgba(139,150,255,.18)!important;border-radius:20px!important;
-  overflow:hidden!important;background:rgba(14,18,32,.55)!important
+  display:flex!important;gap:0!important;
+  min-height:calc(100vh - 88px)!important;height:calc(100vh - 88px)!important;
+  max-width:none!important;width:100%!important;
+  border:1px solid rgba(139,150,255,.2)!important;border-radius:18px!important;
+  overflow:hidden!important;background:rgba(12,16,30,.7)!important;
+  margin:0!important
 }
 .settings-shell.settings-shell-main .settings-nav{
-  width:220px!important;min-width:200px!important;padding:12px 10px!important;
-  background:rgba(10,14,26,.75)!important;border-right:1px solid rgba(139,150,255,.12)!important;
-  overflow-y:auto!important
+  width:240px!important;min-width:220px!important;max-width:260px!important;
+  padding:14px 12px!important;
+  background:rgba(8,12,24,.85)!important;border-right:1px solid rgba(139,150,255,.14)!important;
+  overflow-y:auto!important;flex-shrink:0!important
 }
 .settings-shell.settings-shell-main .settings-main{
-  flex:1!important;padding:18px 22px 28px!important;overflow-y:auto!important
+  flex:1!important;padding:20px 28px 32px!important;overflow-y:auto!important;
+  min-width:0!important
 }
+#page{max-width:none!important;width:100%!important;padding:12px 16px 16px!important}
+.page-wrap,#main-content,.content{max-width:none!important}
 .settings-shell{
   min-height:calc(100vh - 100px)!important;
 }
-/* DASH-MAIN */
+/* DASH-MAIN – full size, no extra click */
 .settings-shell.settings-shell-main{
-  display:flex!important;gap:0!important;min-height:calc(100vh - 120px)!important;
-  border:1px solid rgba(139,150,255,.18)!important;border-radius:20px!important;
-  overflow:hidden!important;background:rgba(14,18,32,.55)!important
+  display:flex!important;gap:0!important;
+  min-height:calc(100vh - 88px)!important;height:calc(100vh - 88px)!important;
+  max-width:none!important;width:100%!important;
+  border:1px solid rgba(139,150,255,.2)!important;border-radius:18px!important;
+  overflow:hidden!important;background:rgba(12,16,30,.7)!important;
+  margin:0!important
 }
 .settings-shell.settings-shell-main .settings-nav{
-  width:220px!important;min-width:200px!important;padding:12px 10px!important;
-  background:rgba(10,14,26,.75)!important;border-right:1px solid rgba(139,150,255,.12)!important;
-  overflow-y:auto!important
+  width:240px!important;min-width:220px!important;max-width:260px!important;
+  padding:14px 12px!important;
+  background:rgba(8,12,24,.85)!important;border-right:1px solid rgba(139,150,255,.14)!important;
+  overflow-y:auto!important;flex-shrink:0!important
 }
 .settings-shell.settings-shell-main .settings-main{
-  flex:1!important;padding:18px 22px 28px!important;overflow-y:auto!important
+  flex:1!important;padding:20px 28px 32px!important;overflow-y:auto!important;
+  min-width:0!important
 }
+#page{max-width:none!important;width:100%!important;padding:12px 16px 16px!important}
+.page-wrap,#main-content,.content{max-width:none!important}
 .settings-shell{grid-template-columns:1fr}
   .settings-nav{display:flex;flex-wrap:wrap;gap:4px;max-height:none;border-right:0;border-bottom:1px solid rgba(139,92,246,.15)}
   .settings-nav button{width:auto}
+}
+
+body.dash-settings .side{width:72px!important;min-width:72px!important}
+body.dash-settings .side .nav-btn{justify-content:center;padding:10px 8px}
+body.dash-settings .side .nav-btn .ic{margin:0}
+body.dash-settings .side .nav-btn{font-size:0}
+body.dash-settings .side .nav-btn .ic{font-size:18px}
+body.dash-settings .side .nav-sec{display:none}
+body.dash-settings .main,body.dash-settings .content-area,body.dash-settings #page{
+  flex:1!important;width:100%!important;max-width:none!important
 }
 </style>
 
@@ -787,6 +865,16 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
 .btn-back:hover{background:rgba(124,108,255,.2);border-color:rgba(167,139,250,.5);color:#fff}
 #staffora-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
   font-size:11px;font-weight:700;background:rgba(124,108,255,.2);color:#c4b5fd;border:1px solid rgba(124,108,255,.3)}
+
+body.dash-settings .side{width:72px!important;min-width:72px!important}
+body.dash-settings .side .nav-btn{justify-content:center;padding:10px 8px}
+body.dash-settings .side .nav-btn .ic{margin:0}
+body.dash-settings .side .nav-btn{font-size:0}
+body.dash-settings .side .nav-btn .ic{font-size:18px}
+body.dash-settings .side .nav-sec{display:none}
+body.dash-settings .main,body.dash-settings .content-area,body.dash-settings #page{
+  flex:1!important;width:100%!important;max-width:none!important
+}
 </style>
 
 </head>
@@ -1053,6 +1141,8 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
   }
 
   async function render(){
+    try{ document.body.classList.toggle('dash-settings', page==='settings'); }catch(e){}
+
     var p=$('panel');
     if(!guildId){p.innerHTML='<div class="sf-empty"><div class="sf-mark">S</div><div class="sf-line"></div><h3>Kein Server</h3><p>Bot muss auf dem Server sein und du brauchst Admin-Rechte.</p></div>';return}
     stopOnlineTimer();
@@ -1108,6 +1198,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
       else if(page==='tickets') await pageTickets(p);
       else if(page==='settings') await pageSettings(p);
       else p.innerHTML='<div class="empty">—</div>';
+      try{ document.body.classList.toggle('dash-settings', page==='settings'); }catch(e){}
       try{ ensureTopbar(); }catch(e0){}
       try{
         var _m=await loadModules();
@@ -4491,8 +4582,9 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
     }
 
     p.innerHTML=
-      '<h1>Dashboard</h1>'+
-      '<p class="desc">Kategorien links · Einstellung wählen</p>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">'+
+'<div><h1 style="margin:0;font-size:22px">Dashboard</h1><p class="desc" style="margin:4px 0 0">Kategorie wählen · alles an einem Ort</p></div>'+
+'</div>'+
       ''+
       '<div class="settings-shell settings-shell-main">'+
         '<nav class="settings-nav" id="set-nav">'+
