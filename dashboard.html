@@ -431,8 +431,36 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 </style>
 
 <style id="staffora-settings-galaxy">
-.settings-shell.settings-shell-main,.settings-shell{
+.settings-shell.settings-shell-main,/* DASH-MAIN */
+.settings-shell.settings-shell-main{
+  display:flex!important;gap:0!important;min-height:calc(100vh - 120px)!important;
+  border:1px solid rgba(139,150,255,.18)!important;border-radius:20px!important;
+  overflow:hidden!important;background:rgba(14,18,32,.55)!important
+}
+.settings-shell.settings-shell-main .settings-nav{
+  width:220px!important;min-width:200px!important;padding:12px 10px!important;
+  background:rgba(10,14,26,.75)!important;border-right:1px solid rgba(139,150,255,.12)!important;
+  overflow-y:auto!important
+}
+.settings-shell.settings-shell-main .settings-main{
+  flex:1!important;padding:18px 22px 28px!important;overflow-y:auto!important
+}
+.settings-shell{
   min-height:calc(100vh - 100px)!important;
+}
+/* DASH-MAIN */
+.settings-shell.settings-shell-main{
+  display:flex!important;gap:0!important;min-height:calc(100vh - 120px)!important;
+  border:1px solid rgba(139,150,255,.18)!important;border-radius:20px!important;
+  overflow:hidden!important;background:rgba(14,18,32,.55)!important
+}
+.settings-shell.settings-shell-main .settings-nav{
+  width:220px!important;min-width:200px!important;padding:12px 10px!important;
+  background:rgba(10,14,26,.75)!important;border-right:1px solid rgba(139,150,255,.12)!important;
+  overflow-y:auto!important
+}
+.settings-shell.settings-shell-main .settings-main{
+  flex:1!important;padding:18px 22px 28px!important;overflow-y:auto!important
 }
 .settings-shell{
   display:grid;
@@ -528,8 +556,36 @@ html,body{width:100%;height:100%;margin:0;overflow-x:hidden}
 .set-link:hover{background:rgba(139,92,246,.22)}
 .set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 @media(max-width:900px){
-  .settings-shell.settings-shell-main,.settings-shell{
+  .settings-shell.settings-shell-main,/* DASH-MAIN */
+.settings-shell.settings-shell-main{
+  display:flex!important;gap:0!important;min-height:calc(100vh - 120px)!important;
+  border:1px solid rgba(139,150,255,.18)!important;border-radius:20px!important;
+  overflow:hidden!important;background:rgba(14,18,32,.55)!important
+}
+.settings-shell.settings-shell-main .settings-nav{
+  width:220px!important;min-width:200px!important;padding:12px 10px!important;
+  background:rgba(10,14,26,.75)!important;border-right:1px solid rgba(139,150,255,.12)!important;
+  overflow-y:auto!important
+}
+.settings-shell.settings-shell-main .settings-main{
+  flex:1!important;padding:18px 22px 28px!important;overflow-y:auto!important
+}
+.settings-shell{
   min-height:calc(100vh - 100px)!important;
+}
+/* DASH-MAIN */
+.settings-shell.settings-shell-main{
+  display:flex!important;gap:0!important;min-height:calc(100vh - 120px)!important;
+  border:1px solid rgba(139,150,255,.18)!important;border-radius:20px!important;
+  overflow:hidden!important;background:rgba(14,18,32,.55)!important
+}
+.settings-shell.settings-shell-main .settings-nav{
+  width:220px!important;min-width:200px!important;padding:12px 10px!important;
+  background:rgba(10,14,26,.75)!important;border-right:1px solid rgba(139,150,255,.12)!important;
+  overflow-y:auto!important
+}
+.settings-shell.settings-shell-main .settings-main{
+  flex:1!important;padding:18px 22px 28px!important;overflow-y:auto!important
 }
 .settings-shell{grid-template-columns:1fr}
   .settings-nav{display:flex;flex-wrap:wrap;gap:4px;max-height:none;border-right:0;border-bottom:1px solid rgba(139,92,246,.15)}
@@ -751,18 +807,15 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
       <div><strong>STAFFORA</strong><span>Bot</span></div>
     </div>
     <nav class="side-nav">
-      <div class="nav-sec">Haupt</div>
+      <div class="nav-sec">Staffora</div>
       <button type="button" class="nav-btn active" data-p="settings"><span class="ic">⚙️</span> Dashboard</button>
       <button type="button" class="nav-btn" data-p="overview"><span class="ic">📊</span> Übersicht</button>
-      <button type="button" class="nav-btn" data-p="activity"><span class="ic">⚡</span> Live Activity</button>
-      <button type="button" class="nav-btn" data-p="online"><span class="ic">🟢</span> Online-Status</button>
-      <div class="nav-sec">Schnellzugriff</div>
-      <button type="button" class="nav-btn" data-p="panels"><span class="ic">📨</span> Panels senden</button>
-      <button type="button" class="nav-btn" data-p="tickets"><span class="ic">🎫</span> Tickets</button>
-      <button type="button" class="nav-btn" data-p="team"><span class="ic">👥</span> Team</button>
+      <button type="button" class="nav-btn" data-p="online"><span class="ic">🟢</span> Online</button>
+      <button type="button" class="nav-btn" data-p="activity"><span class="ic">⚡</span> Activity</button>
+      <div class="nav-sec">Tools</div>
+      <button type="button" class="nav-btn" data-p="panels"><span class="ic">📨</span> Panels</button>
       <button type="button" class="nav-btn" data-p="bans"><span class="ic">🔨</span> Bans</button>
-      <button type="button" class="nav-btn" data-p="roblox"><span class="ic">🎮</span> Roblox Lookup</button>
-      <div class="nav-sec">Extras</div>
+      <button type="button" class="nav-btn" data-p="roblox"><span class="ic">🎮</span> Roblox</button>
       <button type="button" class="nav-btn" data-p="cmdrights"><span class="ic">🛡️</span> Commands & Rechte</button>
       <div class="nav-sec">Links</div>
       <a class="nav-btn" href="ingame.html" style="text-decoration:none"><span class="ic">🎮</span> IC Panel →</a>
@@ -4439,7 +4492,7 @@ input[type=checkbox]{appearance:none;-webkit-appearance:none;width:0;height:0;op
 
     p.innerHTML=
       '<h1>Dashboard</h1>'+
-      '<p class="desc">Einstellungen · Kategorien links</p>'+
+      '<p class="desc">Kategorien links · Einstellung wählen</p>'+
       ''+
       '<div class="settings-shell settings-shell-main">'+
         '<nav class="settings-nav" id="set-nav">'+
