@@ -5989,22 +5989,79 @@ async function api(path,opts){
         ], async function(sub){
           await ensureDisc();
           if(sub==='tix'){
+            var types=Array.isArray(s.ticketTypes)?s.ticketTypes.slice():[];
             detailShell('🎫 Tickets','<div class="set-card">'+
-              fieldRow('Ticket-Kategorie','st-cat')+fieldRow('Support-Rollen','st-roles')+
+              fieldRow('Standard-Kategorie (Discord)','st-cat')+fieldRow('Support-Rollen','st-roles')+
               fieldRow('Log-Kanal','st-log')+fieldRow('Blacklist-Rollen','st-bl')+
               '<div class="field"><label>Panel-Titel</label><input id="st-title"/></div>'+
               '<div class="field"><label>Panel-Text</label><textarea id="st-text"></textarea></div>'+
               '<div class="field"><label>Auto-Close (Stunden, 0 = aus)</label><input id="st-ac" type="number" min="0"/></div>'+
               '<div class="toggle-row"><div class="lbl">Ticket-KI</div><div id="st-ai" class="toggle-sw"></div></div>'+
-              '<p class="hint" style="margin-top:8px">Rollen leer? Oben rechts „Kanäle & Rollen“ drücken.</p>'+
-              saveBtn('st-save')+panelSendBlock('ticket','Ticket-Panel')+'</div>');
+              saveBtn('st-save')+panelSendBlock('ticket','Ticket-Panel')+
+              '</div>'+
+              '<div class="set-card" style="margin-top:12px">'+
+              '<h3 style="margin:0 0 8px">Ticket-Arten (Dropdown)</h3>'+
+              '<p class="hint" style="margin:0 0 10px">Diese erscheinen im Panel als Auswahl. Pro Art optional eigene Kategorie &amp; Rollen.</p>'+
+              '<div id="st-types-list"></div>'+
+              '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">'+
+              '<div class="field"><label>Name *</label><input id="st-tn" placeholder="z.B. Support, Highteam, Beschwerde"/></div>'+
+              '<div class="field"><label>Emoji</label><input id="st-te" placeholder="🎫" maxlength="8"/></div>'+
+              fieldRow('Discord-Kategorie (optional)','st-tcat')+
+              fieldRow('Support-Rollen (optional)','st-troles')+
+              '<button type="button" class="btn btn-p btn-sm" id="st-tadd">Art hinzufügen</button>'+
+              '</div></div>');
             var pCat=ss($('st-cat'),{items:channelItems(disc.channels||[],[4,'4','GUILD_CATEGORY']),multi:false,value:s.ticketCategoryId||'',placeholder:'Kategorie…'});
             var pRoles=ss($('st-roles'),{items:roles,multi:true,values:s.ticketSupportRoleIds||[],placeholder:'Support…'});
             var pLog=ss($('st-log'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
             var pBl=ss($('st-bl'),{items:roles,multi:true,values:s.ticketBlacklistRoleIds||[],placeholder:'Blacklist…'});
+            var pTCat=ss($('st-tcat'),{items:channelItems(disc.channels||[],[4,'4','GUILD_CATEGORY']),multi:false,value:'',placeholder:'Optional…'});
+            var pTRoles=ss($('st-troles'),{items:roles,multi:true,values:[],placeholder:'Optional…'});
             $('st-title').value=s.ticketPanelTitle||''; $('st-text').value=s.ticketPanelText||'';
             $('st-ac').value=s.ticketAutoCloseHours||0; bindToggle($('st-ai'), !!s.aiAssistEnabled);
-            $('st-save').onclick=function(){patchSettings({ticketCategoryId:pCat.getValue()||null,ticketSupportRoleIds:pRoles.getValue(),ticketLogChannelId:pLog.getValue()||null,ticketBlacklistRoleIds:pBl.getValue(),ticketPanelTitle:$('st-title').value.trim(),ticketPanelText:$('st-text').value,ticketAutoCloseHours:Number($('st-ac').value)||0,aiAssistEnabled:$('st-ai').isOn()},'Tickets')};
+            function renderTypes(){
+              var box=$('st-types-list');
+              if(!box) return;
+              if(!types.length){
+                box.innerHTML='<p class="hint">Noch keine Arten — Standard: Support, Melden, Sonstiges.</p>';
+                return;
+              }
+              box.innerHTML=types.map(function(t,idx){
+                return '<div class="set-row" style="gap:8px;margin-bottom:8px">'+
+                  '<div style="flex:1"><strong>'+esc((t.emoji||'🎫')+' '+(t.name||t.id))+'</strong>'+
+                  '<div class="hint">ID: '+esc(t.id||'')+(t.categoryId?' · eigene Kategorie':'')+
+                  ((t.staffRoleIds&&t.staffRoleIds.length)?' · eigene Rollen':'')+'</div></div>'+
+                  '<button type="button" class="btn btn-sm" data-tdel="'+idx+'" style="color:var(--err)">Entfernen</button></div>';
+              }).join('');
+              box.querySelectorAll('[data-tdel]').forEach(function(btn){
+                btn.onclick=function(){
+                  types.splice(Number(btn.getAttribute('data-tdel')),1);
+                  renderTypes();
+                  patchSettings({ticketTypes:types},'Ticket-Arten');
+                };
+              });
+            }
+            renderTypes();
+            $('st-tadd').onclick=function(){
+              var name=($('st-tn').value||'').trim();
+              if(!name){ toast('Name fehlt','err'); return; }
+              var id=name.toLowerCase().replace(/[^a-z0-9äöüß]+/gi,'-').replace(/^-|-$/g,'').slice(0,40)||('type'+Date.now());
+              if(types.some(function(t){ return String(t.id)===id||String(t.name).toLowerCase()===name.toLowerCase(); })){
+                toast('Art existiert bereits','err'); return;
+              }
+              types.push({
+                id:id,
+                name:name,
+                emoji:($('st-te').value||'🎫').trim()||'🎫',
+                categoryId:pTCat.getValue()||null,
+                staffRoleIds:pTRoles.getValue()||[]
+              });
+              $('st-tn').value=''; $('st-te').value='';
+              try{ pTCat.setValue&&pTCat.setValue(''); }catch(e){}
+              renderTypes();
+              patchSettings({ticketTypes:types},'Ticket-Arten');
+              toast('Art hinzugefügt','ok');
+            };
+            $('st-save').onclick=function(){patchSettings({ticketCategoryId:pCat.getValue()||null,ticketSupportRoleIds:pRoles.getValue(),ticketLogChannelId:pLog.getValue()||null,ticketBlacklistRoleIds:pBl.getValue(),ticketPanelTitle:$('st-title').value.trim(),ticketPanelText:$('st-text').value,ticketAutoCloseHours:Number($('st-ac').value)||0,aiAssistEnabled:$('st-ai').isOn(),ticketTypes:types},'Tickets');};
             wirePanelSend('ticket','ticket',s.ticketPanelChannelId||'');
           } else if(sub==='wart'){
             detailShell('🎧 Warteraum','<div class="set-card">'+
