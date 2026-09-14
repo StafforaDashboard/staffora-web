@@ -5623,6 +5623,7 @@ async function api(path,opts){
       {id:'tickets',ic:'🎫',l:'Tickets & Support'},
       {id:'apps',ic:'📝',l:'Bewerbungen'},
       {id:'team',ic:'👥',l:'Team'},
+      {id:'aufgaben',ic:'📋',l:'Aufgaben'},
       {id:'haus',ic:'🏠',l:'Haus & Fraktionen'},
       {id:'mod',ic:'🛡️',l:'Moderation'},
       {id:'security',ic:'🔒',l:'Security'},
@@ -6086,6 +6087,112 @@ async function api(path,opts){
         });
         return;
       }
+
+      
+      if(cat==='aufgaben'){
+        await ensureDisc();
+        main.innerHTML=backBtn()+
+          '<h1>📋 Aufgaben</h1><p class="sdesc">Erstellen · Zuständig · Status · Deadlines & Erinnerungen</p>'+
+          '<div class="set-card">'+
+          '<div class="toggle-row"><div class="lbl">Modul aktiv</div><div id="auf-mod" class="toggle-sw"></div></div>'+
+          fieldRow('Log- / Erinnerungs-Kanal','auf-log')+
+          saveBtn('auf-set-save')+
+          '</div>'+
+          '<div class="set-card" style="margin-top:12px">'+
+          '<h3 style="margin:0 0 10px">Neue Aufgabe</h3>'+
+          '<div class="field"><label>Titel</label><input id="auf-title" placeholder="z.B. Regelwerk prüfen"/></div>'+
+          '<div class="field"><label>Beschreibung</label><textarea id="auf-desc" rows="2" placeholder="Optional"></textarea></div>'+
+          fieldRow('Zuständig (optional)','auf-assignee')+
+          '<div class="grid2">'+
+          '<div class="field"><label>Deadline</label><input type="datetime-local" id="auf-dl"/></div>'+
+          '<div class="field"><label>Erinnerung (Stunden vor Deadline)</label><input type="number" id="auf-rem" min="1" max="168" value="24"/></div>'+
+          '</div>'+
+          '<button type="button" class="btn btn-p" id="auf-create">Aufgabe erstellen</button>'+
+          '</div>'+
+          '<div class="set-card" style="margin-top:12px" id="auf-list"><span class="spinner"></span> Lade…</div>';
+
+        var aufLog=ss($('auf-log'),{items:ch,multi:false,value:s.aufgabenLogChannelId||s.aufgabenChannelId||'',placeholder:'Kanal…'});
+        bindToggle($('auf-mod'), mods.tasks!==false);
+        // assignee: use roles? better text id or skip - use member search via input discord id
+        // Use a simple text field for discord user id + optional select from staff - for UX use input
+        if($('auf-assignee')){
+          $('auf-assignee').innerHTML='<input id="auf-assignee-id" placeholder="Discord User-ID oder leer" style="width:100%"/>';
+        }
+        $('auf-set-save').onclick=async function(){
+          await patchSettings({aufgabenLogChannelId:aufLog.getValue()||null,aufgabenChannelId:aufLog.getValue()||null},'Aufgaben');
+          try{ await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{tasks:$('auf-mod').isOn()}}); }catch(e){}
+        };
+        async function loadAufgaben(){
+          var box=$('auf-list');
+          if(!box) return;
+          try{
+            var data=await api('/api/guilds/'+guildId+'/tasks');
+            var list=(data&&data.tasks)||[];
+            if(!list.length){
+              box.innerHTML='<p class="hint">Noch keine Aufgaben.</p>';
+              return;
+            }
+            var stLabel={open:'Offen',progress:'In Arbeit',done:'Erledigt'};
+            box.innerHTML='<h3 style="margin:0 0 10px">Alle Aufgaben ('+list.length+')</h3>'+list.map(function(t){
+              var dl=t.deadline?new Date(t.deadline).toLocaleString('de-DE'):'—';
+              var ass=t.assignee_id?('@'+String(t.assignee_id)):'—';
+              return '<div class="set-row" style="flex-wrap:wrap;gap:8px;align-items:flex-start;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">'+
+                '<div style="flex:1;min-width:160px"><strong>'+esc(t.title)+'</strong>'+
+                (t.description?'<div class="hint">'+esc(t.description)+'</div>':'')+
+                '<div class="hint">Status: <b>'+esc(stLabel[t.status]||t.status)+'</b> · Zuständig: '+esc(ass)+' · Deadline: '+esc(dl)+'</div></div>'+
+                '<div style="display:flex;flex-wrap:wrap;gap:6px">'+
+                '<button type="button" class="btn btn-sm" data-auf-st="open" data-id="'+esc(t.id)+'">Offen</button>'+
+                '<button type="button" class="btn btn-sm" data-auf-st="progress" data-id="'+esc(t.id)+'">In Arbeit</button>'+
+                '<button type="button" class="btn btn-sm" data-auf-st="done" data-id="'+esc(t.id)+'">Erledigt</button>'+
+                '<button type="button" class="btn btn-sm" data-auf-del="1" data-id="'+esc(t.id)+'" style="color:var(--err)">Löschen</button>'+
+                '</div></div>';
+            }).join('');
+            box.querySelectorAll('[data-auf-st]').forEach(function(btn){
+              btn.onclick=async function(){
+                try{
+                  await api('/api/guilds/'+guildId+'/tasks/'+btn.getAttribute('data-id')+'/status',{method:'POST',body:{status:btn.getAttribute('data-auf-st')}});
+                  toast('Status aktualisiert','ok');
+                  loadAufgaben();
+                }catch(e){ toast(e.message,'err'); }
+              };
+            });
+            box.querySelectorAll('[data-auf-del]').forEach(function(btn){
+              btn.onclick=async function(){
+                if(!confirm('Aufgabe löschen?')) return;
+                try{
+                  await api('/api/guilds/'+guildId+'/tasks/'+btn.getAttribute('data-id'),{method:'DELETE'});
+                  toast('Gelöscht','ok');
+                  loadAufgaben();
+                }catch(e){ toast(e.message,'err'); }
+              };
+            });
+          }catch(e){
+            box.innerHTML='<p class="hint" style="color:var(--err)">'+esc(e.message||'Fehler')+'</p>';
+          }
+        }
+        $('auf-create').onclick=async function(){
+          var title=($('auf-title').value||'').trim();
+          if(!title){ toast('Titel fehlt','err'); return; }
+          var dlVal=$('auf-dl').value;
+          var body={
+            title:title,
+            description:($('auf-desc').value||'').trim(),
+            assigneeId:($('auf-assignee-id')&&$('auf-assignee-id').value.trim())||null,
+            deadline:dlVal?new Date(dlVal).getTime():null,
+            remindHours:Number($('auf-rem').value)||24,
+            status:'open'
+          };
+          try{
+            await api('/api/guilds/'+guildId+'/tasks',{method:'POST',body:body});
+            toast('Aufgabe erstellt','ok');
+            $('auf-title').value=''; $('auf-desc').value='';
+            loadAufgaben();
+          }catch(e){ toast(e.message,'err'); }
+        };
+        loadAufgaben();
+        return;
+      }
+
 
       if(cat==='team'){
         pickCards('👥 Team','Bereich wählen',[
