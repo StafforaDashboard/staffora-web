@@ -514,6 +514,18 @@ body.gp-full .settings-main{
 }
 .toggle-row .lbl{flex:1;font-weight:600}
 
+
+/* fast paint: hide legacy sidebar in settings mode, avoid FOUC */
+body.dash-settings .sidebar, body.gp-full .sidebar{display:none!important}
+body.dash-settings .app-shell, body.gp-full .app-shell{display:flex!important}
+#v-app.hidden{display:none!important}
+#v-login.hidden{display:none!important}
+.set-shell{animation:fadein .18s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+html.pre-auth #v-login{opacity:0;pointer-events:none}
+html.pre-auth #v-app{opacity:1}
+
 </style>
 
 <style id="galaxy-extra">
@@ -695,6 +707,18 @@ body.gp-full .settings-main{
   padding:12px 2px!important;
 }
 .toggle-row .lbl{flex:1;font-weight:600}
+
+
+/* fast paint: hide legacy sidebar in settings mode, avoid FOUC */
+body.dash-settings .sidebar, body.gp-full .sidebar{display:none!important}
+body.dash-settings .app-shell, body.gp-full .app-shell{display:flex!important}
+#v-app.hidden{display:none!important}
+#v-login.hidden{display:none!important}
+.set-shell{animation:fadein .18s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+html.pre-auth #v-login{opacity:0;pointer-events:none}
+html.pre-auth #v-app{opacity:1}
 
 </style>
 
@@ -904,6 +928,18 @@ body.gp-full .settings-main{
 }
 .toggle-row .lbl{flex:1;font-weight:600}
 
+
+/* fast paint: hide legacy sidebar in settings mode, avoid FOUC */
+body.dash-settings .sidebar, body.gp-full .sidebar{display:none!important}
+body.dash-settings .app-shell, body.gp-full .app-shell{display:flex!important}
+#v-app.hidden{display:none!important}
+#v-login.hidden{display:none!important}
+.set-shell{animation:fadein .18s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+html.pre-auth #v-login{opacity:0;pointer-events:none}
+html.pre-auth #v-app{opacity:1}
+
 </style>
 
 <style id="staffora-size">
@@ -1106,6 +1142,18 @@ body.gp-full .settings-main{
   padding:12px 2px!important;
 }
 .toggle-row .lbl{flex:1;font-weight:600}
+
+
+/* fast paint: hide legacy sidebar in settings mode, avoid FOUC */
+body.dash-settings .sidebar, body.gp-full .sidebar{display:none!important}
+body.dash-settings .app-shell, body.gp-full .app-shell{display:flex!important}
+#v-app.hidden{display:none!important}
+#v-login.hidden{display:none!important}
+.set-shell{animation:fadein .18s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+html.pre-auth #v-login{opacity:0;pointer-events:none}
+html.pre-auth #v-app{opacity:1}
 
 </style>
 
@@ -1469,6 +1517,18 @@ body.gp-full .settings-main{
   padding:12px 2px!important;
 }
 .toggle-row .lbl{flex:1;font-weight:600}
+
+
+/* fast paint: hide legacy sidebar in settings mode, avoid FOUC */
+body.dash-settings .sidebar, body.gp-full .sidebar{display:none!important}
+body.dash-settings .app-shell, body.gp-full .app-shell{display:flex!important}
+#v-app.hidden{display:none!important}
+#v-login.hidden{display:none!important}
+.set-shell{animation:fadein .18s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+html.pre-auth #v-login{opacity:0;pointer-events:none}
+html.pre-auth #v-app{opacity:1}
 
 </style>
 
@@ -1838,8 +1898,30 @@ body.gp-full .settings-main{
 }
 .toggle-row .lbl{flex:1;font-weight:600}
 
+
+/* fast paint: hide legacy sidebar in settings mode, avoid FOUC */
+body.dash-settings .sidebar, body.gp-full .sidebar{display:none!important}
+body.dash-settings .app-shell, body.gp-full .app-shell{display:flex!important}
+#v-app.hidden{display:none!important}
+#v-login.hidden{display:none!important}
+.set-shell{animation:fadein .18s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+html.pre-auth #v-login{opacity:0;pointer-events:none}
+html.pre-auth #v-app{opacity:1}
+
 </style>
 
+
+<script>
+(function(){
+  try{
+    var t=location.search.match(/[?&]token=/);
+    var ls=localStorage.getItem('staffora_token');
+    if(t||ls){ document.documentElement.classList.add('pre-auth'); }
+  }catch(e){}
+})();
+</script>
 </head>
 <body>
 <div id="v-login" class="login-wrap">
@@ -2035,7 +2117,7 @@ async function api(path,opts){
       tries++;
             try{
           var ctrl=typeof AbortController!=='undefined'?new AbortController():null;
-          var to=ctrl?setTimeout(function(){try{ctrl.abort()}catch(_e){}}, (opts&&opts.timeoutMs)||8000):null;
+          var to=ctrl?setTimeout(function(){try{ctrl.abort()}catch(_e){}}, (opts&&opts.timeoutMs)||5000):null;
           try{
             r=await fetch(API+path,{
               method:opts.method||'GET',
@@ -2114,8 +2196,14 @@ async function api(path,opts){
     }
     try{
       var sub0=$('v-login')&&$('v-login').querySelector('.sub');
-      if(sub0) sub0.innerHTML='<span style="color:#a78bfa">Anmeldung wird geprüft…</span>';
-      me=await api('/api/me');
+      if(sub0) sub0.innerHTML='<span style="color:#a78bfa">Anmeldung…</span>';
+      /* show shell ASAP so UI is not blank */
+      try{ document.body.classList.add('gp-full','dash-settings'); }catch(_e){}
+      var pack=await Promise.all([
+        api('/api/me',{timeoutMs:6000}),
+        api('/api/guilds',{timeoutMs:6000}).catch(function(){ return {guilds:[]}; })
+      ]);
+      me=pack[0];
       try{ history.replaceState({},'', location.pathname); }catch(e0){}
       $('v-login').classList.add('hidden');
       $('v-app').classList.remove('hidden');
@@ -2123,7 +2211,7 @@ async function api(path,opts){
         if($('user-label')) $('user-label').textContent=me.username||me.id;
         if($('side-user')) $('side-user').textContent='@'+(me.username||me.id);
       }catch(e0){}
-      var g=await api('/api/guilds');
+      var g=pack[1];
       guilds=(g&&g.guilds)||g||[];
       if(LOCAL_MODE && !guilds.length) guilds=[{id:'local-guild',name:'Staffora (lokal)'}];
       if(LOCAL_MODE && !guildId) guildId='local-guild';
@@ -2173,12 +2261,9 @@ async function api(path,opts){
     var p=$('panel');
     if(!guildId){p.innerHTML='<div class="sf-empty"><div class="sf-mark">S</div><div class="sf-line"></div><h3>Kein Server</h3><p>Bot muss auf dem Server sein und du brauchst Admin-Rechte.</p></div>';return}
     stopOnlineTimer();
-    p.innerHTML='<div class="empty" style="opacity:.75"><span class="spinner"></span> Laden…</div>';
+    /* no long blank spinner — pageSettings paints shell first */
     try{
-      var _psDone=false;
-      var _psT=setTimeout(function(){ if(!_psDone&&p&&String(p.innerHTML).indexOf('spinner')>=0){ p.innerHTML='<div class="empty"><p style="color:var(--muted)">Settings werden aufgebaut…</p></div>'; } }, 3500);
       await pageSettings(p);
-      _psDone=true; try{clearTimeout(_psT)}catch(_e){}
       try{ document.body.classList.toggle('dash-settings', page==='settings'); }catch(e){}
       try{ ensureTopbar(); }catch(e0){}
       try{
@@ -5507,32 +5592,27 @@ async function api(path,opts){
       }catch(e){}
     }
 
-    var cfg={};
-    try{
-      if(window.__cfgCache && window.__cfgCache.gid===guildId && Date.now()-window.__cfgCache.at<15000){
-        cfg=window.__cfgCache.data;
-      } else {
-        cfg=await Promise.race([
-          api('/api/guilds/'+guildId+'/config',{timeoutMs:5000}),
-          new Promise(function(res){ setTimeout(function(){ res({}); }, 5000); })
-        ]) || {};
-        if(cfg && (cfg.settings||cfg.modules)) window.__cfgCache={gid:guildId, at:Date.now(), data:cfg};
-      }
-    }catch(e){ cfg={}; }
+    /* instant shell: use cache if any, otherwise empty — fetch in background */
+    var cfg=(window.__cfgCache && window.__cfgCache.gid===guildId) ? window.__cfgCache.data : {};
     var s=(cfg&&cfg.settings)||{};
     var mods=(cfg&&cfg.modules)||{};
-    var disc={roles:[],channels:[]};
-    try{
-      disc=await Promise.race([
-        loadDiscord(),
-        new Promise(function(res){ setTimeout(function(){ res({roles:[],channels:[]}); }, 4000); })
-      ]) || {roles:[],channels:[]};
-    }catch(e){ disc={roles:[],channels:[]}; }
+    var disc=(window.__discCache && window.__discCache.gid===guildId && window.__discCache.data) ? window.__discCache.data : {roles:[],channels:[]};
     var roles=roleItems(disc.roles||[]);
     var ch=channelItems(disc.channels||[],null);
-    if(!(disc.channels&&disc.channels.length)){
-      try{ loadDiscord(true).then(function(d){ if(d&&d.channels&&d.channels.length){ window.__discCache={gid:guildId,at:Date.now(),data:d}; } }).catch(function(){}); }catch(_e){}
-    }
+    /* background refresh — does not block first paint */
+    (function(){
+      var gid=guildId;
+      Promise.all([
+        api('/api/guilds/'+gid+'/config',{timeoutMs:6000}).catch(function(){return {};}),
+        loadDiscord(false).catch(function(){return {roles:[],channels:[]};})
+      ]).then(function(pack){
+        if(guildId!==gid) return;
+        var c=pack[0]||{};
+        if(c && (c.settings||c.modules)) window.__cfgCache={gid:gid, at:Date.now(), data:c};
+        var d=pack[1]||{};
+        if(d && (d.channels||d.roles)) window.__discCache={gid:gid, at:Date.now(), data:d};
+      }).catch(function(){});
+    })();
 
     var CATS=[
       {id:'allgemein',ic:'⚙️',l:'Allgemein'},
@@ -5813,9 +5893,18 @@ async function api(path,opts){
         return (async function(){
           if(roles && roles.length && ch && ch.length) return;
           try{
-            disc=await loadDiscord(true);
+            /* use cache first — only force refresh if empty after */
+            disc=await loadDiscord(false);
             roles=roleItems(disc.roles||[]);
             ch=channelItems(disc.channels||[],null);
+            if(!(ch && ch.length)){
+              disc=await Promise.race([
+                loadDiscord(true),
+                new Promise(function(r){ setTimeout(function(){ r(disc||{roles:[],channels:[]}); }, 2500); })
+              ]);
+              roles=roleItems(disc.roles||[]);
+              ch=channelItems(disc.channels||[],null);
+            }
           }catch(e){}
         })();
       }
