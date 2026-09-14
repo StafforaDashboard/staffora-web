@@ -526,6 +526,9 @@ body.dash-settings .app-shell, body.gp-full .app-shell{display:flex!important}
 html.pre-auth #v-login{opacity:0;pointer-events:none}
 html.pre-auth #v-app{opacity:1}
 
+
+#topbar-staffora, .topbar#topbar-staffora{display:none!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;border:none!important}
+body.gp-full #topbar-staffora{display:none!important}
 </style>
 
 <style id="galaxy-extra">
@@ -2292,42 +2295,15 @@ async function api(path,opts){
   var _discordCache=null;
   
   function ensureTopbar(){
-    var content=$('panel')||document.querySelector('main.content')||document.querySelector('.content');
-    if(!content) return;
-    if($('topbar-staffora')) return;
-    var bar=document.createElement('div');
-    bar.id='topbar-staffora'; bar.className='topbar';
-    bar.style.margin='0 0 14px';
-    bar.innerHTML='<div style="font-weight:700">STAFFORA</div><div style="display:flex;gap:8px">'+
-      '<div class="drop" id="drop-tickets"><button type="button" class="drop-btn" id="tb-t">Tickets ▾</button><div class="drop-menu" id="tb-tm"><div class="drop-item">Lädt…</div></div></div>'+
-      '<div class="drop" id="drop-sf"><button type="button" class="drop-btn" id="tb-s">Staffora ▾</button><div class="drop-menu">'+
-      '<div class="drop-item" data-go="overview">Übersicht</div><div class="drop-item" data-go="roblox">Roblox Lookup</div>'+
-      '<div class="drop-item" data-go="team">Team</div><div class="drop-item" data-go="feedback">Feedback</div>'+
-      '<div class="drop-item" data-go="tickets">Tickets</div><div class="drop-item" data-go="flynametag">Fly & Nametag</div></div></div></div>';
-    // inside panel so CSS grid (sidebar | content) stays intact
-    bar.style.position='sticky';
-    bar.style.top='0';
-    bar.style.zIndex='20';
-    // Attach to document body overlay inside main column without breaking grid:
-    var shell=$('v-app');
-    if(shell && !shell.querySelector('.main-col')){
-      // wrap panel if needed - skip, use fixed under top of content area
-    }
-    content.insertAdjacentElement('afterbegin', bar);
-    $('tb-t').onclick=function(e){e.stopPropagation();$('drop-tickets').classList.toggle('open');$('drop-sf').classList.remove('open');loadTicketDrop();};
-    $('tb-s').onclick=function(e){e.stopPropagation();$('drop-sf').classList.toggle('open');$('drop-tickets').classList.remove('open');};
-    document.addEventListener('click',function(){document.querySelectorAll('.drop.open').forEach(function(x){x.classList.remove('open')})});
-    bar.querySelectorAll('[data-go]').forEach(function(el){el.onclick=function(){navigate(el.getAttribute('data-go'))}});
-  }
-  async function loadTicketDrop(){
-    var menu=$('tb-tm'); if(!menu||!guildId) return;
+    /* removed — no Tickets/Staffora top strip */
     try{
-      var r=await api('/api/guilds/'+guildId+'/tickets/active').catch(function(){return {tickets:[]}});
-      var list=r.tickets||r.items||[];
-      menu.innerHTML=list.length?list.slice(0,10).map(function(t){return '<div class="drop-item"><strong>'+esc(t.name||'Ticket')+'</strong><div style="font-size:11px;color:var(--muted)">'+(t.status||'offen')+'</div></div>'}).join(''):'<div class="drop-item">Noch keine Tickets vorhanden</div>';
-    }catch(e){menu.innerHTML='<div class="drop-item">Noch nicht konfiguriert</div>'}
+      var old=$('topbar-staffora');
+      if(old&&old.parentNode) old.parentNode.removeChild(old);
+      document.querySelectorAll('.topbar#topbar-staffora, #topbar-staffora').forEach(function(el){
+        if(el.parentNode) el.parentNode.removeChild(el);
+      });
+    }catch(e){}
   }
-
   
   /** Module toggle in the same tab as the feature. Default: ON */
   var MODULE_KEYS = {
