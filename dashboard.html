@@ -362,7 +362,7 @@ body.dash-settings .main,body.dash-settings .content-area,body.dash-settings #pa
   flex:1!important;width:100%!important;max-width:none!important
 }
 
-/* ===== FULLPAGE DASHBOARD (GitHub Pages) ===== */
+
 html,body{height:100%;margin:0}
 body.gp-full .side,
 body.gp-full nav.side-nav,
@@ -390,6 +390,77 @@ body.gp-full .settings-nav{
 }
 body.gp-full .settings-main{
   flex:1!important;padding:24px 28px 40px!important;overflow-y:auto!important;min-width:0!important
+}
+
+
+/* === FULL DASH: no outer tab chrome === */
+body.gp-full #sidebar,
+body.gp-full aside.sidebar,
+body.gp-full .sidebar{
+  display:none!important;
+  width:0!important;
+  min-width:0!important;
+  max-width:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:none!important;
+  overflow:hidden!important;
+  visibility:hidden!important;
+}
+body.gp-full .app-shell{
+  display:flex!important;
+  flex-direction:column!important;
+  height:100vh!important;
+  width:100%!important;
+}
+body.gp-full .main{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  height:100vh!important;
+}
+body.gp-full .topbar{
+  flex-shrink:0;
+  width:100%;
+}
+body.gp-full main.content,
+body.gp-full #panel{
+  flex:1!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  min-height:0!important;
+}
+body.gp-full .settings-shell,
+body.gp-full .settings-shell-main{
+  display:flex!important;
+  flex:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:calc(100vh - 58px)!important;
+  margin:0!important;
+  border:none!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+}
+body.gp-full .settings-nav{
+  width:250px!important;
+  min-width:240px!important;
+  flex-shrink:0!important;
+  overflow-y:auto!important;
+}
+body.gp-full .settings-main{
+  flex:1!important;
+  overflow-y:auto!important;
+  padding:20px 24px 32px!important;
 }
 
 </style>
@@ -441,6 +512,77 @@ body.gp-full .settings-nav{
 }
 body.gp-full .settings-main{
   flex:1!important;padding:24px 28px 40px!important;overflow-y:auto!important;min-width:0!important
+}
+
+
+/* === FULL DASH: no outer tab chrome === */
+body.gp-full #sidebar,
+body.gp-full aside.sidebar,
+body.gp-full .sidebar{
+  display:none!important;
+  width:0!important;
+  min-width:0!important;
+  max-width:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:none!important;
+  overflow:hidden!important;
+  visibility:hidden!important;
+}
+body.gp-full .app-shell{
+  display:flex!important;
+  flex-direction:column!important;
+  height:100vh!important;
+  width:100%!important;
+}
+body.gp-full .main{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  height:100vh!important;
+}
+body.gp-full .topbar{
+  flex-shrink:0;
+  width:100%;
+}
+body.gp-full main.content,
+body.gp-full #panel{
+  flex:1!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  min-height:0!important;
+}
+body.gp-full .settings-shell,
+body.gp-full .settings-shell-main{
+  display:flex!important;
+  flex:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:calc(100vh - 58px)!important;
+  margin:0!important;
+  border:none!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+}
+body.gp-full .settings-nav{
+  width:250px!important;
+  min-width:240px!important;
+  flex-shrink:0!important;
+  overflow-y:auto!important;
+}
+body.gp-full .settings-main{
+  flex:1!important;
+  overflow-y:auto!important;
+  padding:20px 24px 32px!important;
 }
 
 </style>
@@ -520,6 +662,77 @@ body.gp-full .settings-main{
   flex:1!important;padding:24px 28px 40px!important;overflow-y:auto!important;min-width:0!important
 }
 
+
+/* === FULL DASH: no outer tab chrome === */
+body.gp-full #sidebar,
+body.gp-full aside.sidebar,
+body.gp-full .sidebar{
+  display:none!important;
+  width:0!important;
+  min-width:0!important;
+  max-width:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:none!important;
+  overflow:hidden!important;
+  visibility:hidden!important;
+}
+body.gp-full .app-shell{
+  display:flex!important;
+  flex-direction:column!important;
+  height:100vh!important;
+  width:100%!important;
+}
+body.gp-full .main{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  height:100vh!important;
+}
+body.gp-full .topbar{
+  flex-shrink:0;
+  width:100%;
+}
+body.gp-full main.content,
+body.gp-full #panel{
+  flex:1!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  min-height:0!important;
+}
+body.gp-full .settings-shell,
+body.gp-full .settings-shell-main{
+  display:flex!important;
+  flex:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:calc(100vh - 58px)!important;
+  margin:0!important;
+  border:none!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+}
+body.gp-full .settings-nav{
+  width:250px!important;
+  min-width:240px!important;
+  flex-shrink:0!important;
+  overflow-y:auto!important;
+}
+body.gp-full .settings-main{
+  flex:1!important;
+  overflow-y:auto!important;
+  padding:20px 24px 32px!important;
+}
+
 </style>
 
 <style id="staffora-size">
@@ -590,6 +803,77 @@ body.gp-full .settings-nav{
 }
 body.gp-full .settings-main{
   flex:1!important;padding:24px 28px 40px!important;overflow-y:auto!important;min-width:0!important
+}
+
+
+/* === FULL DASH: no outer tab chrome === */
+body.gp-full #sidebar,
+body.gp-full aside.sidebar,
+body.gp-full .sidebar{
+  display:none!important;
+  width:0!important;
+  min-width:0!important;
+  max-width:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:none!important;
+  overflow:hidden!important;
+  visibility:hidden!important;
+}
+body.gp-full .app-shell{
+  display:flex!important;
+  flex-direction:column!important;
+  height:100vh!important;
+  width:100%!important;
+}
+body.gp-full .main{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  height:100vh!important;
+}
+body.gp-full .topbar{
+  flex-shrink:0;
+  width:100%;
+}
+body.gp-full main.content,
+body.gp-full #panel{
+  flex:1!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  min-height:0!important;
+}
+body.gp-full .settings-shell,
+body.gp-full .settings-shell-main{
+  display:flex!important;
+  flex:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:calc(100vh - 58px)!important;
+  margin:0!important;
+  border:none!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+}
+body.gp-full .settings-nav{
+  width:250px!important;
+  min-width:240px!important;
+  flex-shrink:0!important;
+  overflow-y:auto!important;
+}
+body.gp-full .settings-main{
+  flex:1!important;
+  overflow-y:auto!important;
+  padding:20px 24px 32px!important;
 }
 
 </style>
@@ -822,6 +1106,77 @@ body.gp-full .settings-nav{
 }
 body.gp-full .settings-main{
   flex:1!important;padding:24px 28px 40px!important;overflow-y:auto!important;min-width:0!important
+}
+
+
+/* === FULL DASH: no outer tab chrome === */
+body.gp-full #sidebar,
+body.gp-full aside.sidebar,
+body.gp-full .sidebar{
+  display:none!important;
+  width:0!important;
+  min-width:0!important;
+  max-width:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:none!important;
+  overflow:hidden!important;
+  visibility:hidden!important;
+}
+body.gp-full .app-shell{
+  display:flex!important;
+  flex-direction:column!important;
+  height:100vh!important;
+  width:100%!important;
+}
+body.gp-full .main{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  height:100vh!important;
+}
+body.gp-full .topbar{
+  flex-shrink:0;
+  width:100%;
+}
+body.gp-full main.content,
+body.gp-full #panel{
+  flex:1!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  min-height:0!important;
+}
+body.gp-full .settings-shell,
+body.gp-full .settings-shell-main{
+  display:flex!important;
+  flex:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:calc(100vh - 58px)!important;
+  margin:0!important;
+  border:none!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+}
+body.gp-full .settings-nav{
+  width:250px!important;
+  min-width:240px!important;
+  flex-shrink:0!important;
+  overflow-y:auto!important;
+}
+body.gp-full .settings-main{
+  flex:1!important;
+  overflow-y:auto!important;
+  padding:20px 24px 32px!important;
 }
 
 </style>
@@ -1059,6 +1414,77 @@ body.gp-full .settings-nav{
 }
 body.gp-full .settings-main{
   flex:1!important;padding:24px 28px 40px!important;overflow-y:auto!important;min-width:0!important
+}
+
+
+/* === FULL DASH: no outer tab chrome === */
+body.gp-full #sidebar,
+body.gp-full aside.sidebar,
+body.gp-full .sidebar{
+  display:none!important;
+  width:0!important;
+  min-width:0!important;
+  max-width:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:none!important;
+  overflow:hidden!important;
+  visibility:hidden!important;
+}
+body.gp-full .app-shell{
+  display:flex!important;
+  flex-direction:column!important;
+  height:100vh!important;
+  width:100%!important;
+}
+body.gp-full .main{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  height:100vh!important;
+}
+body.gp-full .topbar{
+  flex-shrink:0;
+  width:100%;
+}
+body.gp-full main.content,
+body.gp-full #panel{
+  flex:1!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  min-height:0!important;
+}
+body.gp-full .settings-shell,
+body.gp-full .settings-shell-main{
+  display:flex!important;
+  flex:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:calc(100vh - 58px)!important;
+  margin:0!important;
+  border:none!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+}
+body.gp-full .settings-nav{
+  width:250px!important;
+  min-width:240px!important;
+  flex-shrink:0!important;
+  overflow-y:auto!important;
+}
+body.gp-full .settings-main{
+  flex:1!important;
+  overflow-y:auto!important;
+  padding:20px 24px 32px!important;
 }
 
 </style>
@@ -1383,68 +1809,17 @@ async function api(path,opts){
   }
 
   async function render(){
+    page='settings';
     try{
-      if(!sessionStorage.getItem('staffora_allow_other')) page='settings';
-      document.body.classList.toggle('dash-settings', page==='settings');
+      sessionStorage.setItem('staffora_page','settings');
+      document.body.classList.add('gp-full','dash-settings');
     }catch(e){}
-
-    try{ document.body.classList.toggle('dash-settings', page==='settings'); }catch(e){}
-
     var p=$('panel');
     if(!guildId){p.innerHTML='<div class="sf-empty"><div class="sf-mark">S</div><div class="sf-line"></div><h3>Kein Server</h3><p>Bot muss auf dem Server sein und du brauchst Admin-Rechte.</p></div>';return}
     stopOnlineTimer();
     p.innerHTML='<div class="empty"><span class="spinner"></span> Laden…</div>';
     try{
-      if(page==='overview') await Promise.race([
-        pageOverview(p),
-        new Promise(function(res){ setTimeout(function(){
-          if(p && p.innerHTML.indexOf('spinner')>=0){
-            p.innerHTML='<h1>Übersicht</h1><div class="card"><p class="desc">API antwortet langsam. Andere Tabs funktionieren. <button type="button" class="btn btn-sm" id="ov-retry">Erneut laden</button></p></div>';
-            var b=$('ov-retry'); if(b) b.onclick=function(){render()};
-          }
-          res();
-        }, 9000); })
-      ]);
-      else if(page==='online') await pageOnline(p);
-      else if(page==='activity') await pageActivity(p);
-      else if(page==='search') await pageSearch(p);
-      else if(page==='bans') await pageBans(p);
-      else if(page==='unban-req') await pageUnbanReq(p);
-      else if(page==='links') await pageLinks(p);
-      else if(page==='webhook') await pageWebhook(p);
-      else if(page==='bewerbung') await pageBewerbung(p);
-      else if(page==='roblox') await pageRobloxLookup(p);
-      else if(page==='team') await pageTeam(p);
-      else if(page==='warteraum') await pageWarteraum(p);
-      else if(page==='admincall') await pageAdminCall(p);
-      else if(page==='offices') await pageOffices(p);
-      else if(page==='supportping') { p.innerHTML='<div class="empty">Entfernt.</div>'; }
-      else if(page==='interviews') await pageInterviews(p);
-      else if(page==='giveaway') await pageGiveaway(p);
-      else if(page==='suggest') await pageSuggest(p);
-      else if(page==='factions') await pageFactions(p);
-      else if(page==='dn') await pageDn(p);
-      else if(page==='unban-q') await pageUnbanQuestions(p);
-      else if(page==='duty') await pageDutyCfg(p);
-      else if(page==='dizzy') await pageDizzy(p);
-      else if(page==='partner') await pagePartner(p);
-      else if(page==='feedback') await pageFeedbackCfg(p);
-      else if(page==='flynametag') await pageFlyNametag(p);
-      else if(page==='xp') await pageXp(p);
-      else if(page==='modules') { page='settings'; sessionStorage.setItem('staffora_set_cat','modules'); await pageSettings(p); }
-      else if(page==='cmdrights'||page==='modperms'||page==='perms'||page==='commands') await pageCmdRights(p);
-      else if(page==='panels') await pagePanels(p);
-            else if(page==='rp') await pageRp(p);
-            else if(page==='serverstats') await pageServerStats(p);
-      else if(page==='hausliste') await pageHausliste(p);
-      
-      
-      else if(page==='ausweis') await pageAusweis(p);
-      else if(page==='modreasons') await pageModReasons(p);
-      else if(page==='complaint') await pageComplaint(p);
-      else if(page==='tickets') await pageTickets(p);
-      else if(page==='settings') await pageSettings(p);
-      else p.innerHTML='<div class="empty">—</div>';
+      await pageSettings(p);
       try{ document.body.classList.toggle('dash-settings', page==='settings'); }catch(e){}
       try{ ensureTopbar(); }catch(e0){}
       try{
@@ -4758,6 +5133,10 @@ async function api(path,opts){
 
 
   async function pageSettings(p){
+    try{
+      p.style.cssText='flex:1;display:flex;flex-direction:column;padding:0;margin:0;overflow:hidden;min-height:0';
+      if(p.parentElement) p.parentElement.style.minHeight='0';
+    }catch(e){}
     if(LOCAL_MODE){
       try{
         var bar=document.createElement('div');
@@ -4797,6 +5176,7 @@ async function api(path,opts){
       {id:'team',ic:'👥',l:'Team'},
       {id:'haus',ic:'🏠',l:'Haus & Fraktionen'},
       {id:'mod',ic:'🛡️',l:'Moderation'},
+      {id:'security',ic:'🔒',l:'Security'},
       {id:'community',ic:'🤝',l:'Community'},
       {id:'rp',ic:'🚀',l:'RP'},
       {id:'logs',ic:'📊',l:'Logs & Stats'},
@@ -4831,6 +5211,7 @@ async function api(path,opts){
       {k:'logs',l:'Logs',d:'Aktionsprotokolle'},
       {k:'panels',l:'Panels',d:'Panel-Versand'},
       {k:'moderation',l:'Moderation',d:'Kick Ban Warn Timeout'},
+      {k:'security',l:'Security',d:'Anti-Bot, Anti-Webhook, Anti-Nuke (default AUS)'},
       {k:'statusPanel',l:'Server-Stats',d:'Live Server-Statistiken'}
     ];
 
@@ -5258,7 +5639,8 @@ async function api(path,opts){
           {id:'unban',ic:'🔓',l:'Unban',d:'Anfragen und Kanal'},
           {id:'dizzy',ic:'🎮',l:'Dizzy Control',d:'Kanal, Log, Rollen'},
           {id:'ingame',ic:'🖥️',l:'Ingame Access',d:'Panel-Zugriff'},
-          {id:'fly',ic:'✈️',l:'Fly & Nametag',d:'Anfragen'}
+          {id:'fly',ic:'✈️',l:'Fly & Nametag',d:'Anfragen'},
+          {id:'security',ic:'🔒',l:'Security',d:'Anti-Nuke · Limit & Strafe'}
         ], async function(sub){
           await ensureDisc();
           if(sub==='unban'){
@@ -5276,6 +5658,13 @@ async function api(path,opts){
             detailShell('🖥️ Ingame Access','<div class="set-card">'+fieldRow('Zugriff-Rollen','mi-r')+saveBtn('mi-save')+'</div>');
             var mi=ss($('mi-r'),{items:roles,multi:true,values:s.ingamePanelAccessRoleIds||s.ingameAccessRoleIds||[],placeholder:'Rollen…'});
             $('mi-save').onclick=function(){patchSettings({ingamePanelAccessRoleIds:mi.getValue(),ingameAccessRoleIds:mi.getValue()},'Ingame')};
+          } else if(sub==='security'){
+            sessionStorage.setItem('staffora_set_cat','security');
+            location.hash='security';
+            try{ document.querySelector('.settings-nav [data-cat="security"]')?.click(); }catch(e){}
+            // fall through: open security cat
+            var _nav=document.querySelectorAll('.settings-nav button, .settings-nav .nav-item, [data-cat]');
+            for(var _i=0;_i<_nav.length;_i++){ if((_nav[_i].getAttribute('data-cat')||_nav[_i].dataset.cat)==='security'){ _nav[_i].click(); break; } }
           } else {
             detailShell('✈️ Fly & Nametag','<div class="set-card">'+fieldRow('Kanal','mf-ch')+fieldRow('Staff','mf-r')+saveBtn('mf-save')+'</div>');
             var mf=ss($('mf-ch'),{items:ch,multi:false,value:s.flyNametagChannelId||'',placeholder:'Kanal…'});
@@ -5285,6 +5674,100 @@ async function api(path,opts){
         });
         return;
       }
+
+      if(cat==='security'){
+        await ensureDisc();
+        var sec = (s.security && typeof s.security==='object') ? s.security : {};
+        var acts = sec.actions || {};
+        var ACTION_KEYS = [
+          {k:'botAdd',l:'Bot hinzufügen'},
+          {k:'webhookCreate',l:'Webhook erstellen'},
+          {k:'webhookUpdate',l:'Webhook bearbeiten'},
+          {k:'webhookDelete',l:'Webhook löschen'},
+          {k:'integrationCreate',l:'Integration hinzufügen'},
+          {k:'integrationUpdate',l:'Integration bearbeiten'},
+          {k:'integrationDelete',l:'Integration entfernen'},
+          {k:'channelCreate',l:'Kanal erstellen'},
+          {k:'channelDelete',l:'Kanal löschen'},
+          {k:'channelUpdate',l:'Kanal bearbeiten'},
+          {k:'roleCreate',l:'Rolle erstellen'},
+          {k:'roleDelete',l:'Rolle löschen'},
+          {k:'roleUpdate',l:'Rolle bearbeiten'},
+          {k:'memberBan',l:'Member bannen'},
+          {k:'memberKick',l:'Member kicken'},
+          {k:'memberRoleUpdate',l:'Member-Rollen ändern'},
+          {k:'guildUpdate',l:'Server bearbeiten'},
+          {k:'emojiDelete',l:'Emoji löschen'},
+          {k:'stickerDelete',l:'Sticker löschen'}
+        ];
+        function defAct(k){
+          var d = {botAdd:2,channelDelete:2,roleDelete:2}[k] || 3;
+          return Object.assign({enabled:true,limit:d,windowSec:20,punish:'ban'}, acts[k]||{});
+        }
+        var rows = ACTION_KEYS.map(function(a){
+          var v = defAct(a.k);
+          return '<div class="set-card" style="padding:12px 14px;margin-bottom:8px" data-ak="'+a.k+'">'+
+            '<div class="toggle-row" style="margin-bottom:8px"><div class="lbl" style="font-weight:600">'+a.l+'</div><div id="sec-en-'+a.k+'" class="toggle-sw"></div></div>'+
+            '<div class="grid2">'+
+            '<div class="field"><label>Limit (x)</label><input type="number" min="1" max="50" id="sec-lim-'+a.k+'" value="'+(v.limit||3)+'"/></div>'+
+            '<div class="field"><label>Fenster (Sek.)</label><input type="number" min="5" max="300" id="sec-win-'+a.k+'" value="'+(v.windowSec||20)+'"/></div>'+
+            '</div>'+
+            '<div class="field"><label>Strafe</label><select id="sec-pun-'+a.k+'">'+
+            ['none|Nur loggen','timeout|Timeout','kick|Kick','strip|Rollen entfernen','ban|Ban'].map(function(o){
+              var p=o.split('|'); return '<option value="'+p[0]+'"'+(v.punish===p[0]?' selected':'')+'>'+p[1]+'</option>';
+            }).join('')+
+            '</select></div></div>';
+        }).join('');
+        detailShell('🔒 Security / Anti-Nuke',
+          '<div class="set-card" style="margin-bottom:12px">'+
+          '<p class="desc" style="margin:0 0 12px">Modul ist standardmäßig <b>AUS</b>. Oben unter Module aktivieren. Pro Aktion: Limit + Zeitfenster + Strafe.</p>'+
+          '<div class="toggle-row"><div class="lbl">Modul Security</div><div id="sec-mod" class="toggle-sw"></div></div>'+
+          fieldRow('Log-Kanal','sec-log')+
+          fieldRow('Whitelist-Rollen','sec-wlr')+
+          fieldRow('Timeout (Sek.)','sec-to')+
+          '</div>'+
+          '<h3 style="margin:16px 0 8px;font-size:15px">Aktionen</h3>'+rows+
+          saveBtn('sec-save')
+        );
+        var mods = await loadModules();
+        bindToggle($('sec-mod'), !!mods.security);
+        var secLog = ss($('sec-log'),{items:ch,multi:false,value:sec.logChannelId||'',placeholder:'Log-Kanal…'});
+        var secWl = ss($('sec-wlr'),{items:roles,multi:true,values:sec.whitelistRoleIds||[],placeholder:'Whitelist-Rollen…'});
+        var toInp = $('sec-to');
+        if(toInp && toInp.tagName==='DIV'){
+          toInp.innerHTML = '<input type="number" id="sec-to-inp" min="60" max="2419200" value="'+(sec.timeoutSeconds||600)+'" style="width:100%"/>';
+        }
+        ACTION_KEYS.forEach(function(a){
+          var v = defAct(a.k);
+          bindToggle($('sec-en-'+a.k), v.enabled!==false);
+        });
+        $('sec-save').onclick = async function(){
+          var actions = {};
+          ACTION_KEYS.forEach(function(a){
+            actions[a.k] = {
+              enabled: $('sec-en-'+a.k).isOn(),
+              limit: Math.max(1, parseInt($('sec-lim-'+a.k).value,10)||3),
+              windowSec: Math.max(5, parseInt($('sec-win-'+a.k).value,10)||20),
+              punish: $('sec-pun-'+a.k).value || 'ban'
+            };
+          });
+          var payload = {
+            security: {
+              logChannelId: secLog.getValue()||null,
+              whitelistRoleIds: secWl.getValue(),
+              timeoutSeconds: parseInt(($('sec-to-inp')||{}).value,10)||600,
+              actions: actions
+            }
+          };
+          await patchSettings(payload, 'Security');
+          try {
+            await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{security:$('sec-mod').isOn()}});
+            showSaveHint('Security-Modul '+($('sec-mod').isOn()?'AN':'AUS'), true);
+          } catch(e){}
+        };
+        return;
+      }
+
 
       if(cat==='community'){
         pickCards('🤝 Community','Bereich wählen',[
@@ -5328,16 +5811,24 @@ async function api(path,opts){
 
       if(cat==='logs'){
         pickCards('📊 Logs & Stats','Bereich wählen',[
-          {id:'logs',ic:'📋',l:'Log-Kanäle',d:'System, Mod, Tickets'},
+          {id:'logs',ic:'📋',l:'Log-Kanäle',d:'System, Mod, Tickets, Security'},
           {id:'stats',ic:'📈',l:'Server-Stats',d:'Stats-Kanal'}
         ], async function(sub){
           await ensureDisc();
           if(sub==='logs'){
-            detailShell('📋 Logs','<div class="set-card">'+fieldRow('System-Log','lg-sys')+fieldRow('Mod-Log','lg-mod')+fieldRow('Ticket-Log','lg-tic')+saveBtn('lg-save')+'</div>');
-            var ls=ss($('lg-sys'),{items:ch,multi:false,value:s.logChannelId||'',placeholder:'Log…'});
+            detailShell('📋 Logs','<div class="set-card">'+
+              '<p class="desc" style="margin:0 0 12px">Main-Logs. Security-Extra-Logs pro Aktion unter <b>Security</b>.</p>'+
+              fieldRow('System-Log','lg-sys')+fieldRow('Mod-Log','lg-mod')+fieldRow('Ticket-Log','lg-tic')+
+              fieldRow('Security Main-Log','lg-sec')+
+              saveBtn('lg-save')+'</div>');
+            var ls=ss($('lg-sys'),{items:ch,multi:false,value:s.logChannelId||'',placeholder:'System…'});
             var lm=ss($('lg-mod'),{items:ch,multi:false,value:s.modLogChannelId||'',placeholder:'Mod…'});
             var lt=ss($('lg-tic'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Ticket…'});
-            $('lg-save').onclick=function(){patchSettings({logChannelId:ls.getValue()||null,modLogChannelId:lm.getValue()||null,ticketLogChannelId:lt.getValue()||null},'Logs')};
+            var lsec=ss($('lg-sec'),{items:ch,multi:false,value:(s.security&&s.security.mainLogChannelId)||s.securityLogChannelId||'',placeholder:'Security Main…'});
+            $('lg-save').onclick=function(){
+              var secObj = Object.assign({}, s.security||{}, {mainLogChannelId:lsec.getValue()||null, logChannelId:lsec.getValue()||null});
+              patchSettings({logChannelId:ls.getValue()||null,modLogChannelId:lm.getValue()||null,ticketLogChannelId:lt.getValue()||null,securityLogChannelId:lsec.getValue()||null,security:secObj},'Logs');
+            };
           } else {
             detailShell('📈 Stats','<div class="set-card">'+fieldRow('Stats-Kanal','lg-st')+fieldRow('Verwalten','lg-sr')+saveBtn('lg-st-save')+'</div>');
             var sst=ss($('lg-st'),{items:ch,multi:false,value:s.statusChannelId||s.statsChannelId||'',placeholder:'Stats…'});
