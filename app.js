@@ -6,7 +6,7 @@ var user=null,guilds=[],guild=null,cfg=null,tab="overview",discord={channels:[],
 var CATS=[
 {id:"Team",mods:[{k:"dienstnummern",l:"Dienstnummern",tab:"dn"},{k:"teamverwaltung",l:"Teamverwaltung",tab:"team"},{k:"bewerbungen",l:"Bewerbungen",tab:"apps"},{k:"dutyPanel",l:"Dienst / Clock",tab:"duty"}]},
 {id:"Dokumente",mods:[{k:"ausweis",l:"Ausweise",tab:"ausweis"}]},
-{id:"Roblox",mods:[{k:"robloxStaff",l:"Roblox Staff",tab:"roblox"},{k:"statusPanel",l:"Online Admins",tab:"roblox"}]},
+{id:"Roblox",mods:[{k:"robloxStaff",l:"Roblox Staff",tab:"roblox"},{k:"statusPanel",l:"On Duty",tab:"roblox"}]},
 {id:"System",mods:[{k:"tickets",l:"Tickets",tab:"tickets"},{k:"adminCalls",l:"Admin Calls",tab:"admincalls"},{k:"offices",l:"Büros",tab:"offices"},{k:"keywords",l:"Keywords",tab:"keywords"},{k:"logs",l:"Logs",tab:"logs"}]}
 ];
 function $(id){return document.getElementById(id)}
@@ -94,7 +94,7 @@ p.querySelectorAll("[data-ar]").forEach(function(b){b.onclick=async function(){t
 
 if(tab==="roblox"){
 var data=await api("/api/guilds/"+guild.id+"/roblox-staff").catch(function(){return{staff:[]}});var list=data.staff||[];var online=list.filter(function(x){return x.is_online});
-p.innerHTML="<h1>Roblox / Online Admins</h1><div class=\"card\"><h2>Übersicht</h2><div class=\"grid\"><div class=\"stat\"><strong>Online</strong><span class=\"badge badge-on\">"+online.length+'</span></div><div class="stat"><strong>Gesamt</strong><span class="badge">'+list.length+"</span></div></div></div>"+
+p.innerHTML="<h1>Roblox / On Duty</h1><div class=\"card\"><h2>Übersicht</h2><div class=\"grid\"><div class=\"stat\"><strong>Online</strong><span class=\"badge badge-on\">"+online.length+'</span></div><div class="stat"><strong>Gesamt</strong><span class="badge">'+list.length+"</span></div></div></div>"+
 '<div class="card"><h2>Online-Admin Panel</h2>'+selText("st-ch",s.statusChannelId,"Panel-Kanal")+selRoles("st-ping",s.statusPingRoleIds,"Ping-Rollen")+field("st-int","Interval Sek.",s.statusIntervalSec||60,"number")+field("st-gid","Group ID (optional)",s.robloxGroupId||"")+field("st-rank","Min-Rang (optional)",s.robloxMinRank||255,"number")+'<p class="desc">Auto-Save · Nur Online sichtbar</p></div>'+
 panelCard("Roblox-Name angeben","roblox_register",s.statusChannelId,"User gibt Namen per Modal ein")+
 '<div class="card"><h2>Staff</h2><div class="row"><input id="ru" placeholder="Roblox Username" style="flex:1"/><button class="btn btn-p" id="ra">+</button><button class="btn" id="rr">↻</button></div><table style="margin-top:10px"><tr><th>User</th><th>Online</th><th>Rechte</th><th></th></tr>'+(list.length?list.map(function(x){return "<tr><td>"+esc(x.roblox_username)+"</td><td>"+(x.is_online?'<span class="badge badge-on">ON</span>':'<span class="badge badge-off">OFF</span>')+"</td><td>"+(x.has_ingame_rights?'<span class="badge badge-on">JA</span>':'<span class="badge badge-off">NEIN</span>')+'</td><td><button class="btn btn-sm" data-x="'+x.id+'">X</button></td></tr>'}).join(""):"<tr><td colspan=4>Keine</td></tr>")+"</table></div>";

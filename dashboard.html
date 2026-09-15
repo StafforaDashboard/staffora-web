@@ -529,6 +529,12 @@ html.pre-auth #v-app{opacity:1}
 
 #topbar-staffora, .topbar#topbar-staffora{display:none!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;border:none!important}
 body.gp-full #topbar-staffora{display:none!important}
+
+/* always-visible server picker */
+.server-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:rgba(15,15,22,.92);position:sticky;top:0;z-index:40}
+body.gp-full .topbar{display:flex!important;height:auto;min-height:52px;padding:8px 16px;border-bottom:1px solid var(--border);background:rgba(12,12,18,.95)}
+body.gp-full .topbar .user-chip{display:flex}
+body.gp-full .sidebar{display:none!important}
 </style>
 
 <style id="galaxy-extra">
@@ -2510,7 +2516,7 @@ async function api(path,opts){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
     var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
-    p.innerHTML='<h1>🟢 Online Admin</h1>'+
+    p.innerHTML='<h1>🟢 On Duty</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
       '<div class="stat-row" id="on-stats">'+
       '<div class="stat-box"><b id="st-total">—</b><span>Im Dienst</span></div>'+
@@ -2522,13 +2528,13 @@ async function api(path,opts){
       '<div class="card"><h2>🛡️ Ohne Admin-Rechte</h2><div id="on-plain"><div class="empty">Laden…</div></div></div></div>'+
       '<div class="card"><h2>Discord-Panel</h2>'+
       '<div class="field"><label>Panel-Kanal</label><div id="oa-ch"></div></div>'+
-      '<div class="field"><label>Titel</label><input id="oa-title" placeholder="Online Admin"/></div>'+
+      '<div class="field"><label>Titel</label><input id="oa-title" placeholder="On Duty"/></div>'+
       '<div class="field"><label>Admin-Rollen (Ingame-Rechte)</label><div id="oa-roles"></div></div>'+
       '<div class="row" style="gap:8px">'+
       '<button type="button" class="btn btn-p" id="oa-save">Speichern</button>'+
       '<button type="button" class="btn" id="oa-send">Panel senden / updaten</button></div></div>';
 
-    $('oa-title').value=s.onlineAdminTitle||s.dutyPanelTitle||'Online Admin';
+    $('oa-title').value=s.onlineAdminTitle||s.dutyPanelTitle||'On Duty';
     var pCh=makeSearchSelect($('oa-ch'),{items:channelItems(disc.channels),multi:false,value:s.onlineAdminPanelChannelId||s.dutyPanelChannelId||'',placeholder:'Kanal…'});
     var pRoles=makeSearchSelect($('oa-roles'),{items:roleItems(disc.roles),multi:true,values:s.ingameAdminRoleIds||s.adminRoleIds||[],placeholder:'Rollen…'});
 
@@ -2577,8 +2583,8 @@ async function api(path,opts){
         await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
           onlineAdminPanelChannelId:pCh.getValue()||null,
           dutyPanelChannelId:pCh.getValue()||null,
-          onlineAdminTitle:$('oa-title').value.trim()||'Online Admin',
-          dutyPanelTitle:$('oa-title').value.trim()||'Online Admin',
+          onlineAdminTitle:$('oa-title').value.trim()||'On Duty',
+          dutyPanelTitle:$('oa-title').value.trim()||'On Duty',
           ingameAdminRoleIds:pRoles.getValue()
         }});
         toast('Gespeichert','ok');
@@ -2590,9 +2596,9 @@ async function api(path,opts){
         if(!ch){toast('Kanal wählen','err');return}
         await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
           onlineAdminPanelChannelId:ch,dutyPanelChannelId:ch,
-          onlineAdminTitle:$('oa-title').value.trim()||'Online Admin'
+          onlineAdminTitle:$('oa-title').value.trim()||'On Duty'
         }});
-        await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'online_admin',channelId:ch}});
+        await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'duty',channelId:ch}});
         toast('Panel aktualisiert','ok');
       }catch(e){toast(e.message,'err')}
     };
@@ -2610,7 +2616,7 @@ async function api(path,opts){
     var reqs={}; try{reqs=await api('/api/guilds/'+guildId+'/ingame/unban-requests')}catch(e){reqs={requests:[]}}
     var links={}; try{links=await api('/api/guilds/'+guildId+'/ingame/links')}catch(e){links={links:[]}}
     var openReq=(reqs.requests||[]).filter(function(r){return !r.status||r.status==='pending'||r.status==='open'}).length;
-    p.innerHTML='<h1>Übersicht</h1><p class="desc">STAFFORA BOT · Live-Status</p>'+
+    p.innerHTML='<h1>Übersicht</h1><p class="desc">STAFFORA BOT · Live-Status</p>'+'<div class="card" style="margin:14px 0"><h2>📈 Support-Aktivität (Uhrzeit)</h2><div id="ov-heat" style="display:flex;align-items:flex-end;gap:4px;height:160px;padding:8px 0;overflow-x:auto"></div><p class="desc" id="ov-heat-cap" style="margin:0">Wann Tickets &amp; Support am häufigsten sind</p></div>'+'<div class="card" style="margin:14px 0"><h2>🏆 Top 3 Supporter</h2><div id="ov-top3" class="grid" style="gap:12px"></div></div>'+
       '<div class="quick-grid">'+
       [['tickets','🎫','Tickets'],['warteraum','🎧','Warteraum'],['admincall','📞','Admin Call'],['offices','🏢','Büros'],
        ['duty','⏱️','Duty'],['factions','🏛️','Fraktionen'],['ausweis','🪪','Ausweis'],['panels','📨','Panels'],
@@ -2634,7 +2640,7 @@ async function api(path,opts){
     
     try{
       var duty={withAdmin:[],withoutAdmin:[]}; try{duty=await withTimeout(api('/api/guilds/'+guildId+'/duty/online'),5000)}catch(e){}
-      var dutyHtml='<div class="card" style="margin-top:14px"><h2>Online Admins</h2><div class="grid2">'+
+      var dutyHtml='<div class="card" style="margin-top:14px"><h2>On Duty</h2><div class="grid2">'+
         '<div><h3 style="font-size:12px;color:var(--muted)">Mit Adminrechten</h3><div id="ov-oa-with"></div></div>'+
         '<div><h3 style="font-size:12px;color:var(--muted)">Ohne Adminrechte</h3><div id="ov-oa-without"></div></div></div>'+
         '<p class="desc">Sync alle 30s · Clock In/Out</p></div>';
@@ -2661,6 +2667,30 @@ async function api(path,opts){
       }catch(e){ box.innerHTML='<span style="color:var(--err)">Status: '+esc(e.message)+'</span>'; }
     }
     loadSysStatus();
+    (async function loadHeat(){
+      var box=$('ov-heat'); var top=$('ov-top3'); if(!box) return;
+      try{
+        var data=await api('/api/guilds/'+guildId+'/support-heatmap?days=14');
+        var hours=data.hours||[]; var mx=data.max||1;
+        box.innerHTML=hours.map(function(v,h){
+          var pct=Math.max(4, Math.round((v/mx)*100));
+          return '<div title="'+h+':00 · '+v+'" style="flex:1;min-width:10px;max-width:28px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">'+
+            '<div class="heat-bar" style="width:100%;height:'+pct+'%;min-height:4px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#a78bfa,#6366f1);box-shadow:0 0 12px rgba(139,92,246,.35);animation:heatIn .6s ease both;animation-delay:'+(h*0.02)+'s"></div>'+
+            '<span style="font-size:9px;color:var(--muted);margin-top:4px">'+(h%3===0?h:'')+'</span></div>';
+        }).join('');
+        if($('ov-heat-cap')) $('ov-heat-cap').textContent='Letzte '+(data.days||14)+' Tage · Höhe = relative Support/Ticket-Last';
+        var medals=['🥇','🥈','🥉'];
+        var list=data.top||[];
+        if(top){
+          top.innerHTML=list.length?list.map(function(s,i){
+            return '<div class="stat" style="animation:heatIn .5s ease both;animation-delay:'+(0.1*i)+'s;border:1px solid rgba(139,92,246,.25)">'+
+              '<div class="lbl">'+medals[i]+' Platz '+(i+1)+'</div>'+
+              '<div class="val" style="font-size:14px">'+esc(s.userId)+'</div>'+
+              '<div class="hint">Tickets '+esc(s.ticketsClaimed)+' · Aktionen '+esc(s.actions)+' · XP '+esc(s.xp)+'</div></div>';
+          }).join(''):'<p class="desc">Noch keine Supporter-Daten.</p>';
+        }
+      }catch(e){ if(box) box.innerHTML='<span class="hint">'+esc(e.message)+'</span>'; }
+    })();
     document.querySelectorAll('.quick-card').forEach(function(b){
       b.onclick=function(){ var g=b.getAttribute('data-go'); if(g) showPage(g); };
     });
@@ -3098,7 +3128,7 @@ async function api(path,opts){
       '<div class="field"><label>Ingame-Admin-Rollen (für „mit Rechten“)</label><div id="du-admin"></div></div>'+
       '<button type="button" class="btn btn-p" id="du-save">Speichern</button> '+
       '<button type="button" class="btn btn-sm" id="du-send">Panel senden / aktualisieren</button></div>';
-    $('du-title').value=s.dutyPanelTitle||s.onlineAdminTitle||'Online Admin';
+    $('du-title').value=s.dutyPanelTitle||s.onlineAdminTitle||'On Duty';
     var pickCh=makeSearchSelect($('du-ch'),{items:channelItems(disc.channels),multi:false,value:s.dutyPanelChannelId||s.onlineAdminPanelChannelId||'',placeholder:'Kanal…'});
     var pickR=makeSearchSelect($('du-roles'),{items:roleItems(disc.roles),multi:true,values:s.dutyRoleIds||[],placeholder:'Rollen…'});
     var pickA=makeSearchSelect($('du-admin'),{items:roleItems(disc.roles),multi:true,values:s.ingameAdminRoleIds||[],placeholder:'Admin-Rollen…'});
@@ -3107,8 +3137,8 @@ async function api(path,opts){
         await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
           dutyPanelChannelId:pickCh.getValue()||null,
           onlineAdminPanelChannelId:pickCh.getValue()||null,
-          dutyPanelTitle:$('du-title').value.trim()||'Online Admin',
-          onlineAdminTitle:$('du-title').value.trim()||'Online Admin',
+          dutyPanelTitle:$('du-title').value.trim()||'On Duty',
+          onlineAdminTitle:$('du-title').value.trim()||'On Duty',
           dutyRoleIds:pickR.getValue(),
           ingameAdminRoleIds:pickA.getValue()
         }});
@@ -4897,7 +4927,7 @@ async function api(path,opts){
     var s=cfg.settings||{};
     var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
     var live={}; try{live=await api('/api/guilds/'+guildId+'/team/online')}catch(e){live={}}
-    p.innerHTML='<h1>📈 Server-Stats & Online Admin</h1>'+
+    p.innerHTML='<h1>📈 Server-Stats & On Duty</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
       '<p class="desc">Zwei Discord-Panels: Ingame-Stats (Roblox-Online) und Online-Admin (Duty).</p>'+
       '<div class="stat-row">'+
@@ -4912,19 +4942,12 @@ async function api(path,opts){
       '<button type="button" class="btn btn-p" id="ss-save">Speichern</button>'+
       '<button type="button" class="btn" id="ss-upd">Jetzt aktualisieren</button></div>'+
       '<p class="desc" style="margin-top:8px">Oder Discord: <code>/stats</code></p></div>'+
-      '<div class="card"><h2>🟢 Online-Admin-Panel</h2>'+
-      '<div class="field"><label>Panel-Kanal</label><div id="ss-oa-ch"></div></div>'+
-      '<div class="field"><label>Panel-Titel</label><input id="ss-oa-title" placeholder="Online Admin"/></div>'+
-      '<div class="field"><label>Admin-Rollen (für „mit Rechten“)</label><div id="ss-oa-roles"></div></div>'+
-      '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px">'+
-      '<button type="button" class="btn btn-p" id="ss-oa-save">Speichern</button>'+
-      '<button type="button" class="btn" id="ss-oa-upd">Jetzt aktualisieren</button></div></div></div>';
+      '</div>';
 
     $('ss-title').value=s.serverStatsTitle||s.systemName||'Server Stats';
-    $('ss-oa-title').value=s.onlineAdminTitle||s.dutyPanelTitle||'Online Admin';
-    var pick=makeSearchSelect($('ss-ch'),{items:channelItems(disc.channels),multi:false,value:s.statusChannelId||s.serverStatsChannelId||'',placeholder:'Stats-Kanal…'});
-    var pickOa=makeSearchSelect($('ss-oa-ch'),{items:channelItems(disc.channels),multi:false,value:s.onlineAdminPanelChannelId||s.dutyPanelChannelId||'',placeholder:'Online-Admin…'});
-    var pickR=makeSearchSelect($('ss-oa-roles'),{items:roleItems(disc.roles||[]),multi:true,values:s.onlineAdminRoleIds||s.ingameAdminRoleIds||s.adminRoleIds||[],placeholder:'Admin-Rollen…'});
+        var pick=makeSearchSelect($('ss-ch'),{items:channelItems(disc.channels),multi:false,value:s.statusChannelId||s.serverStatsChannelId||'',placeholder:'Stats-Kanal…'});
+    /* online admin removed */
+    /* online admin removed */
 
     $('ss-save').onclick=async function(){
       try{
@@ -4948,30 +4971,10 @@ async function api(path,opts){
         toast('Stats-Panel aktualisiert','ok');
       }catch(e){toast(e.message,'err')}
     };
-    $('ss-oa-save').onclick=async function(){
-      try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          onlineAdminPanelChannelId:pickOa.getValue()||null,
-          dutyPanelChannelId:pickOa.getValue()||null,
-          onlineAdminTitle:$('ss-oa-title').value.trim()||'Online Admin',
-          dutyPanelTitle:$('ss-oa-title').value.trim()||'Online Admin',
-          onlineAdminRoleIds:pickR.getValue(),
-          ingameAdminRoleIds:pickR.getValue()
-        }});
-        toast('Online-Admin gespeichert','ok');
-      }catch(e){toast(e.message,'err')}
-    };
-    $('ss-oa-upd').onclick=async function(){
-      try{
-        var ch=pickOa.getValue();
-        if(ch) await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          onlineAdminPanelChannelId:ch,dutyPanelChannelId:ch,
-          onlineAdminTitle:$('ss-oa-title').value.trim()||'Online Admin'
-        }});
-        await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'online_admin',channelId:ch||s.onlineAdminPanelChannelId||s.dutyPanelChannelId}});
-        toast('Online-Admin aktualisiert','ok');
-      }catch(e){toast(e.message,'err')}
-    };
+    /* removed oa save */
+
+    /* removed oa upd */
+
   }
 
   async function pageRp(p){
@@ -5599,9 +5602,13 @@ async function api(path,opts){
       {id:'tickets',ic:'🎫',l:'Tickets & Support'},
       {id:'apps',ic:'📝',l:'Bewerbungen'},
       {id:'team',ic:'👥',l:'Team'},
+      {id:'schicht',ic:'⏱️',l:'Schicht & Clock'},
       {id:'aufgaben',ic:'📋',l:'Aufgaben'},
       {id:'haus',ic:'🏠',l:'Haus & Fraktionen'},
       {id:'mod',ic:'🛡️',l:'Moderation'},
+      {id:'automod',ic:'🤖',l:'AutoMod'},
+      {id:'cases',ic:'⚖️',l:'Strafregister'},
+      {id:'stats',ic:'📊',l:'Team-Stats'},
       {id:'security',ic:'🔒',l:'Security'},
       {id:'community',ic:'🤝',l:'Community'},
       {id:'xp',ic:'⭐',l:'XP'},
@@ -5648,9 +5655,13 @@ async function api(path,opts){
     }
 
     p.innerHTML=
-      (window.__staffora_local_banner||'')+'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">'+
+      (window.__staffora_local_banner||'')+'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">'+
 '<div><h1 style="margin:0;font-size:22px">Dashboard</h1><p class="desc" style="margin:4px 0 0">Kategorie wählen · alles an einem Ort</p></div>'+
-'</div>'+
+'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+'<label style="font-size:12px;color:var(--muted)">Server</label>'+
+'<select class="guild-sel" id="guild-sel-main" style="min-width:200px"></select>'+
+'<button type="button" class="btn btn-sm btn-p" id="btn-refresh-discord-main" title="Kanäle &amp; Rollen">↻ Rollen</button>'+
+'</div></div>'+
       ''+
       '<div class="settings-shell settings-shell-main">'+
         '<nav class="settings-nav" id="set-nav">'+
@@ -5660,6 +5671,38 @@ async function api(path,opts){
         '</nav>'+
         '<div class="settings-main" id="set-main"><span class="spinner"></span></div>'+
       '</div>';
+
+    (function(){
+      var sel=$('guild-sel-main');
+      if(sel && guilds && guilds.length){
+        sel.innerHTML=guilds.map(function(x){
+          return '<option value="'+esc(x.id)+'">'+esc(x.name||x.id)+'</option>';
+        }).join('');
+        if(guildId) sel.value=guildId;
+        sel.onchange=function(){
+          try{ invalidateDiscordCache(); }catch(e){}
+          guildId=this.value;
+          try{ var o=$('guild-sel'); if(o) o.value=guildId; }catch(e){}
+          try{ updateSideMini(); }catch(e){}
+          render();
+        };
+      }
+      var br=$('btn-refresh-discord-main');
+      if(br){
+        br.onclick=function(){
+          try{ refreshDiscordLists(); }catch(e){ try{ loadDiscord(true).then(function(){ toast('Aktualisiert','ok'); }); }catch(e2){} }
+        };
+      }
+      // sync legacy topbar select
+      try{
+        var leg=$('guild-sel');
+        if(leg && guilds && guilds.length){
+          leg.innerHTML=sel?sel.innerHTML:guilds.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name||x.id)+'</option>';}).join('');
+          if(guildId) leg.value=guildId;
+        }
+      }catch(e){}
+    })();
+
 
     function goFeature(pg){ try{ navigate(pg); }catch(e){ page=pg; render(); } }
 
@@ -5969,6 +6012,7 @@ async function api(path,opts){
             detailShell('🎫 Tickets','<div class="set-card">'+
               fieldRow('Standard-Kategorie (Discord)','st-cat')+fieldRow('Support-Rollen','st-roles')+
               fieldRow('Log-Kanal','st-log')+fieldRow('Blacklist-Rollen','st-bl')+
+              '<div class="field"><label>Panel-Bild (optional)</label><input type="file" id="st-img-panel" accept="image/*"/><button type="button" class="btn btn-sm" id="st-img-up">Bild hochladen</button><span class="hint" id="st-img-status"></span></div>'+
               '<div class="field"><label>Panel-Titel</label><input id="st-title"/></div>'+
               '<div class="field"><label>Panel-Text</label><textarea id="st-text"></textarea></div>'+
               '<div class="field"><label>Auto-Close (Stunden, 0 = aus)</label><input id="st-ac" type="number" min="0"/></div>'+
@@ -6017,6 +6061,19 @@ async function api(path,opts){
               });
             }
             renderTypes();
+            $('st-img-up')&&($('st-img-up').onclick=async function(){
+              var f=$('st-img-panel')&&$('st-img-panel').files&&$('st-img-panel').files[0];
+              if(!f){ toast('Datei wählen','err'); return; }
+              var reader=new FileReader();
+              reader.onload=async function(){
+                try{
+                  await api('/api/guilds/'+guildId+'/ticket-image/upload',{method:'POST',body:{kind:'panel',data:reader.result}});
+                  $('st-img-status').textContent='Hochgeladen';
+                  toast('Ticket-Bild gespeichert','ok');
+                }catch(e){ toast(e.message,'err'); }
+              };
+              reader.readAsDataURL(f);
+            });
             $('st-tadd').onclick=function(){
               var name=($('st-tn').value||'').trim();
               if(!name){ toast('Name fehlt','err'); return; }
@@ -6227,6 +6284,106 @@ async function api(path,opts){
       }
 
 
+      
+      if(cat==='schicht'){
+        await ensureDisc();
+        main.innerHTML=backBtn()+
+          '<h1>⏱️ Schicht & Clock</h1><p class="sdesc">Einstempeln · Ausstempeln · Schichtplaner</p>'+
+          '<div class="set-card">'+
+          '<h3 style="margin:0 0 8px">Clock In / Out</h3>'+
+          '<div id="sc-status" class="hint">Lade…</div>'+
+          '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'+
+          '<button type="button" class="btn btn-p" id="sc-in">🟢 Clock In</button>'+
+          '<button type="button" class="btn" id="sc-out">🔴 Clock Out</button>'+
+          '</div>'+
+          fieldRow('Duty-Panel Kanal','sc-duty-ch')+
+          saveBtn('sc-duty-save')+panelSendBlock('duty','Duty / Clock Panel')+
+          '</div>'+
+          '<div class="set-card" style="margin-top:12px">'+
+          '<h3 style="margin:0 0 8px">Schichtplaner</h3>'+
+          '<div class="field"><label>Titel</label><input id="sp-title" placeholder="z.B. Abendschicht"/></div>'+
+          '<div class="grid2">'+
+          '<div class="field"><label>Start</label><input type="datetime-local" id="sp-start"/></div>'+
+          '<div class="field"><label>Ende</label><input type="datetime-local" id="sp-end"/></div></div>'+
+          '<div class="field"><label>Zugewiesen (Discord-ID, optional)</label><input id="sp-user" placeholder="User-ID"/></div>'+
+          '<div class="field"><label>Notiz</label><input id="sp-note"/></div>'+
+          '<button type="button" class="btn btn-p btn-sm" id="sp-add">Schicht einplanen</button>'+
+          '</div>'+
+          '<div class="set-card" style="margin-top:12px" id="sp-list"><span class="spinner"></span></div>'+
+          '<div class="set-card" style="margin-top:12px" id="sc-stats"><span class="spinner"></span></div>';
+        var dutyCh=ss($('sc-duty-ch'),{items:ch,multi:false,value:s.dutyPanelChannelId||s.onlineAdminPanelChannelId||'',placeholder:'Kanal…'});
+        $('sc-duty-save').onclick=function(){patchSettings({dutyPanelChannelId:dutyCh.getValue()||null,dutyPanelTitle:'On Duty'},'Duty');};
+        wirePanelSend('duty','duty',s.dutyPanelChannelId||'');
+        async function refreshClock(){
+          try{
+            var data=await api('/api/guilds/'+guildId+'/schicht/open');
+            var me=data.me;
+            $('sc-status').innerHTML=me
+              ? ('Du bist <b>eingestempelt</b> seit '+new Date(me.started_at).toLocaleString('de-DE'))
+              : 'Du bist <b>nicht</b> eingestempelt.';
+            var open=data.open||[];
+            if(open.length) $('sc-status').innerHTML+=('<div class="hint" style="margin-top:6px">Offen: '+open.length+' Staff</div>');
+          }catch(e){ $('sc-status').textContent=e.message; }
+        }
+        $('sc-in').onclick=async function(){
+          try{ await api('/api/guilds/'+guildId+'/schicht/clock-in',{method:'POST',body:{}}); toast('Clock In','ok'); refreshClock(); }
+          catch(e){ toast(e.message,'err'); }
+        };
+        $('sc-out').onclick=async function(){
+          try{ await api('/api/guilds/'+guildId+'/schicht/clock-out',{method:'POST',body:{}}); toast('Clock Out','ok'); refreshClock(); }
+          catch(e){ toast(e.message,'err'); }
+        };
+        async function loadPlans(){
+          var box=$('sp-list');
+          try{
+            var data=await api('/api/guilds/'+guildId+'/schicht/plans');
+            var plans=data.plans||[];
+            if(!plans.length){ box.innerHTML='<p class="hint">Keine geplanten Schichten.</p>'; return; }
+            box.innerHTML='<h3 style="margin:0 0 8px">Geplant</h3>'+plans.map(function(p){
+              var st=new Date(p.start_at).toLocaleString('de-DE');
+              var en=p.end_at?new Date(p.end_at).toLocaleString('de-DE'):'—';
+              return '<div class="set-row" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">'+
+                '<div style="flex:1"><strong>'+esc(p.title)+'</strong><div class="hint">'+esc(st)+' → '+esc(en)+
+                (p.assignee_id?(' · '+esc(p.assignee_id)):'')+' · '+esc(p.status)+'</div></div>'+
+                '<button type="button" class="btn btn-sm" data-sp-del="'+esc(p.id)+'" style="color:var(--err)">Löschen</button></div>';
+            }).join('');
+            box.querySelectorAll('[data-sp-del]').forEach(function(btn){
+              btn.onclick=async function(){
+                if(!confirm('Löschen?')) return;
+                try{ await api('/api/guilds/'+guildId+'/schicht/plans/'+btn.getAttribute('data-sp-del'),{method:'DELETE'}); loadPlans(); }
+                catch(e){ toast(e.message,'err'); }
+              };
+            });
+          }catch(e){ box.innerHTML='<p class="hint" style="color:var(--err)">'+esc(e.message)+'</p>'; }
+        }
+        $('sp-add').onclick=async function(){
+          var start=$('sp-start').value; if(!start){ toast('Start fehlt','err'); return; }
+          try{
+            await api('/api/guilds/'+guildId+'/schicht/plans',{method:'POST',body:{
+              title:($('sp-title').value||'Schicht').trim(),
+              startAt:new Date(start).getTime(),
+              endAt:$('sp-end').value?new Date($('sp-end').value).getTime():null,
+              assigneeId:($('sp-user').value||'').trim()||null,
+              note:($('sp-note').value||'').trim()||null
+            }});
+            toast('Eingeplant','ok'); loadPlans();
+          }catch(e){ toast(e.message,'err'); }
+        };
+        async function loadStats(){
+          var box=$('sc-stats');
+          try{
+            var data=await api('/api/guilds/'+guildId+'/schicht/stats?days=7');
+            var st=data.stats||[];
+            box.innerHTML='<h3 style="margin:0 0 8px">Stats (7 Tage)</h3>'+(st.length?st.map(function(u){
+              return '<div class="set-row"><span>'+esc(u.discordId)+'</span><span class="hint">'+esc(u.minutes)+' min · '+esc(u.shifts)+' Schichten</span></div>';
+            }).join(''):'<p class="hint">Noch keine Daten.</p>');
+          }catch(e){ box.innerHTML=''; }
+        }
+        refreshClock(); loadPlans(); loadStats();
+        return;
+      }
+
+
       if(cat==='team'){
         pickCards('👥 Team','Bereich wählen',[
           {id:'list',ic:'📋',l:'Teamliste',d:'Kanal und Rollen'},
@@ -6312,13 +6469,133 @@ async function api(path,opts){
         return;
       }
 
+      
+      
+      if(cat==='automod' || cat==='mod_automod'){
+        await ensureDisc();
+        main.innerHTML=backBtn()+
+          '<h1>🤖 AutoMod</h1><p class="sdesc">Links · Caps · Spam · Wortliste</p>'+
+          '<div class="set-card">'+
+          '<div class="toggle-row"><div class="lbl">AutoMod aktiv</div><div id="am-on" class="toggle-sw"></div></div>'+
+          '<div class="toggle-row"><div class="lbl">Links löschen</div><div id="am-links" class="toggle-sw"></div></div>'+
+          '<div class="field"><label>Max. Caps %</label><input type="number" id="am-caps" min="40" max="100" value="70"/></div>'+
+          '<div class="field"><label>Blockierte Wörter (Komma)</label><input id="am-words" placeholder="wort1, wort2"/></div>'+
+          fieldRow('Log-Kanal','am-log')+fieldRow('Ignorierte Rollen','am-ign')+
+          saveBtn('am-save')+'</div>';
+        bindToggle($('am-on'), !!s.autoModEnabled);
+        bindToggle($('am-links'), !!s.autoModDeleteLinks);
+        $('am-caps').value=s.autoModMaxCaps||70;
+        $('am-words').value=s.autoModWords||'';
+        var amLog=ss($('am-log'),{items:ch,multi:false,value:s.autoModLogChannelId||'',placeholder:'Log…'});
+        var amIgn=ss($('am-ign'),{items:roles,multi:true,values:s.autoModIgnoreRoleIds||[],placeholder:'Rollen…'});
+        $('am-save').onclick=function(){
+          patchSettings({
+            autoModEnabled:$('am-on').isOn(),
+            autoModDeleteLinks:$('am-links').isOn(),
+            autoModMaxCaps:Number($('am-caps').value)||70,
+            autoModWords:$('am-words').value.trim(),
+            autoModLogChannelId:amLog.getValue()||null,
+            autoModIgnoreRoleIds:amIgn.getValue()
+          },'AutoMod');
+          try{ api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{autoMod:$('am-on').isOn()}}); }catch(e){}
+        };
+        return;
+      }
+
+      if(cat==='cases'){
+        await ensureDisc();
+        main.innerHTML=backBtn()+
+          '<h1>⚖️ Strafregister / Cases</h1><p class="sdesc">Case-IDs · Reports · Notizen · Status</p>'+
+          '<div class="set-card">'+
+          '<div class="grid2"><div class="field"><label>Suche</label><input id="cs-q" placeholder="CASE-0001, User-ID, Grund…"/></div>'+
+          '<div class="field"><label>Typ</label><select id="cs-type"><option value="">Alle</option><option>warn</option><option>kick</option><option>ban</option><option>report</option><option>note</option><option>timeout</option></select></div></div>'+
+          '<button type="button" class="btn btn-sm" id="cs-reload">Aktualisieren</button></div>'+
+          '<div class="set-card" style="margin-top:12px">'+
+          '<h3 style="margin:0 0 8px">Neuer Eintrag / Report</h3>'+
+          '<div class="field"><label>Typ</label><select id="cs-nt"><option value="report">Report</option><option value="note">Notiz</option><option value="warn">Warn</option></select></div>'+
+          '<div class="field"><label>Ziel Discord-ID</label><input id="cs-target" placeholder="User-ID"/></div>'+
+          '<div class="field"><label>Roblox (optional)</label><input id="cs-rbx"/></div>'+
+          '<div class="field"><label>Grund</label><textarea id="cs-reason" rows="2"></textarea></div>'+
+          '<div class="field"><label>Beweis (Link/Text)</label><input id="cs-ev"/></div>'+
+          '<button type="button" class="btn btn-p" id="cs-create">Anlegen</button></div>'+
+          '<div class="set-card" style="margin-top:12px" id="cs-list"><span class="spinner"></span></div>';
+        async function loadCases(){
+          var box=$('cs-list'); if(!box) return;
+          try{
+            var q=$('cs-q').value.trim();
+            var type=$('cs-type').value;
+            var url='/api/guilds/'+guildId+'/cases?limit=50'+(q?'&q='+encodeURIComponent(q):'')+(type?'&type='+encodeURIComponent(type):'');
+            var data=await api(url);
+            var list=(data&&data.cases)||[];
+            if(!list.length){ box.innerHTML='<p class="hint">Keine Cases.</p>'; return; }
+            box.innerHTML=list.map(function(c){
+              return '<div class="set-row" style="flex-wrap:wrap;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">'+
+                '<div style="flex:1;min-width:180px"><strong>'+esc(c.code)+'</strong> · '+esc(c.type)+' · <span class="hint">'+esc(c.status)+'</span>'+
+                '<div class="hint">'+(c.target_id?('User '+esc(c.target_id)):'')+(c.roblox_username?(' · '+esc(c.roblox_username)):'')+'</div>'+
+                '<div>'+esc((c.reason||'').slice(0,120))+'</div></div>'+
+                '<button type="button" class="btn btn-sm" data-cs-close="'+esc(c.id)+'">Schließen</button></div>';
+            }).join('');
+            box.querySelectorAll('[data-cs-close]').forEach(function(btn){
+              btn.onclick=async function(){
+                try{ await api('/api/guilds/'+guildId+'/cases/'+btn.getAttribute('data-cs-close'),{method:'PATCH',body:{status:'closed'}}); toast('Geschlossen','ok'); loadCases(); }
+                catch(e){ toast(e.message,'err'); }
+              };
+            });
+          }catch(e){ box.innerHTML='<p class="hint" style="color:var(--err)">'+esc(e.message)+'</p>'; }
+        }
+        $('cs-reload').onclick=loadCases;
+        $('cs-create').onclick=async function(){
+          var reason=($('cs-reason').value||'').trim();
+          if(!reason){ toast('Grund fehlt','err'); return; }
+          try{
+            await api('/api/guilds/'+guildId+'/cases',{method:'POST',body:{
+              type:$('cs-nt').value, targetId:($('cs-target').value||'').trim()||null,
+              robloxUsername:($('cs-rbx').value||'').trim()||null, reason:reason, evidence:($('cs-ev').value||'').trim()||null
+            }});
+            toast('Case angelegt','ok'); $('cs-reason').value=''; loadCases();
+          }catch(e){ toast(e.message,'err'); }
+        };
+        loadCases();
+        return;
+      }
+      if(cat==='stats'){
+        main.innerHTML=backBtn()+
+          '<h1>📊 Team-Statistiken</h1><p class="sdesc">Aktivität der letzten Tage (Logs, Tickets, XP)</p>'+
+          '<div class="set-card"><div class="field"><label>Zeitraum (Tage)</label><input type="number" id="ts-days" min="1" max="90" value="7"/></div>'+
+          '<button type="button" class="btn btn-p btn-sm" id="ts-load">Laden</button></div>'+
+          '<div class="set-card" style="margin-top:12px" id="ts-box"><span class="spinner"></span></div>';
+        async function loadStats(){
+          var box=$('ts-box');
+          try{
+            var days=Number($('ts-days').value)||7;
+            var data=await api('/api/guilds/'+guildId+'/team-stats?days='+days);
+            var s=data.summary||{};
+            var staff=data.staff||[];
+            box.innerHTML='<div class="grid2" style="margin-bottom:12px">'+
+              '<div class="stat"><div class="lbl">Aktionen</div><div class="val">'+esc(s.totalActions||0)+'</div></div>'+
+              '<div class="stat"><div class="lbl">Aktive Staff</div><div class="val">'+esc(s.staffActive||0)+'</div></div>'+
+              '<div class="stat"><div class="lbl">Offene Tickets</div><div class="val">'+esc(s.openTickets||0)+'</div></div>'+
+              '<div class="stat"><div class="lbl">Tage</div><div class="val">'+esc(s.days||days)+'</div></div></div>'+
+              (staff.length?staff.map(function(u){
+                return '<div class="set-row" style="margin-bottom:8px"><div style="flex:1"><strong>'+esc(u.userId)+'</strong>'+
+                  '<div class="hint">Tickets '+esc(u.ticketsClaimed)+'/'+esc(u.ticketsClosed)+' · Warn '+esc(u.warns)+' · Kick '+esc(u.kicks)+' · Ban '+esc(u.bans)+' · XP '+esc(u.xp)+'</div></div>'+
+                  '<span class="hint">'+esc(u.actions)+' Akt.</span></div>';
+              }).join(''):'<p class="hint">Keine Daten im Zeitraum.</p>');
+          }catch(e){ box.innerHTML='<p class="hint" style="color:var(--err)">'+esc(e.message)+'</p>'; }
+        }
+        $('ts-load').onclick=loadStats; loadStats();
+        return;
+      }
+
+
       if(cat==='mod'){
         pickCards('🛡️ Moderation','Bereich wählen',[
           {id:'unban',ic:'🔓',l:'Unban',d:'Anfragen und Kanal'},
           {id:'dizzy',ic:'🎮',l:'Dizzy Control',d:'Kanal, Log, Rollen'},
           {id:'ingame',ic:'🖥️',l:'Ingame Access',d:'Panel-Zugriff'},
           {id:'fly',ic:'✈️',l:'Fly & Nametag',d:'Anfragen'},
-          {id:'security',ic:'🔒',l:'Security',d:'Anti-Nuke · Limit & Strafe'}
+          {id:'security',ic:'🔒',l:'Security',d:'Anti-Nuke · Limit & Strafe'},
+          {id:'automod',ic:'🤖',l:'AutoMod',d:'Links · Caps · Spam · Wörter'}
         ], async function(sub){
           await ensureDisc();
           if(sub==='unban'){
@@ -6336,6 +6613,19 @@ async function api(path,opts){
             detailShell('🖥️ Ingame Access','<div class="set-card">'+fieldRow('Zugriff-Rollen','mi-r')+saveBtn('mi-save')+'</div>');
             var mi=ss($('mi-r'),{items:roles,multi:true,values:s.ingamePanelAccessRoleIds||s.ingameAccessRoleIds||[],placeholder:'Rollen…'});
             $('mi-save').onclick=function(){patchSettings({ingamePanelAccessRoleIds:mi.getValue(),ingameAccessRoleIds:mi.getValue()},'Ingame')};
+          } else if(sub==='automod'){
+            detailShell('🤖 AutoMod','<div class="set-card">'+
+              '<div class="toggle-row"><div class="lbl">AutoMod aktiv</div><div id="am-on" class="toggle-sw"></div></div>'+
+              '<div class="toggle-row"><div class="lbl">Links löschen</div><div id="am-links" class="toggle-sw"></div></div>'+
+              '<div class="field"><label>Max. Caps %</label><input type="number" id="am-caps" min="40" max="100"/></div>'+
+              '<div class="field"><label>Blockierte Wörter (Komma)</label><input id="am-words"/></div>'+
+              fieldRow('Log-Kanal','am-log')+fieldRow('Ignorierte Rollen','am-ign')+saveBtn('am-save')+'</div>');
+            bindToggle($('am-on'), !!s.autoModEnabled);
+            bindToggle($('am-links'), !!s.autoModDeleteLinks);
+            $('am-caps').value=s.autoModMaxCaps||70; $('am-words').value=s.autoModWords||'';
+            var amLog=ss($('am-log'),{items:ch,multi:false,value:s.autoModLogChannelId||''});
+            var amIgn=ss($('am-ign'),{items:roles,multi:true,values:s.autoModIgnoreRoleIds||[]});
+            $('am-save').onclick=function(){patchSettings({autoModEnabled:$('am-on').isOn(),autoModDeleteLinks:$('am-links').isOn(),autoModMaxCaps:Number($('am-caps').value)||70,autoModWords:$('am-words').value.trim(),autoModLogChannelId:amLog.getValue()||null,autoModIgnoreRoleIds:amIgn.getValue()},'AutoMod'); try{api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{autoMod:$('am-on').isOn()}});}catch(e){}};
           } else if(sub==='security'){
             sessionStorage.setItem('staffora_set_cat','security');
             location.hash='security';
