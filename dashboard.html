@@ -2211,6 +2211,23 @@ async function api(path,opts){
       }
     });
   })();
+  
+  async function refreshGuildList(){
+    try{
+      var g=await api('/api/guilds?refresh=1',{timeoutMs:10000});
+      guilds=(g&&g.guilds)||[];
+      try{ sessionStorage.setItem('staffora_guilds', JSON.stringify(guilds)); }catch(e){}
+      var sel=$('guild-sel-main')||$('guild-sel');
+      if(sel){
+        var cur=guildId;
+        sel.innerHTML=guilds.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name||x.id)+'</option>';}).join('')||'<option value="">Keine Server</option>';
+        if(cur&&guilds.some(function(x){return x.id===cur;})) sel.value=cur;
+        else if(guilds[0]){ guildId=guilds[0].id; sel.value=guildId; }
+      }
+      toast('Serverliste aktualisiert ('+guilds.length+')','ok');
+    }catch(e){ toast(e.message||'Serverliste Fehler','err'); }
+  }
+
   async function boot(){
     try{
       var tm=location.search.match(/[?&]token=([^&#]+)/);
@@ -2236,9 +2253,11 @@ async function api(path,opts){
       if(sub0) sub0.innerHTML='<span style="color:#a78bfa">Anmeldung…</span>';
       /* show shell ASAP so UI is not blank */
       try{ document.body.classList.add('gp-full','dash-settings'); }catch(_e){}
+      var cachedG=[];
+      try{ cachedG=JSON.parse(sessionStorage.getItem('staffora_guilds')||'[]'); }catch(e){}
       var pack=await Promise.all([
-        api('/api/me',{timeoutMs:6000}),
-        api('/api/guilds',{timeoutMs:6000}).catch(function(){ return {guilds:[]}; })
+        api('/api/me',{timeoutMs:5000}),
+        api('/api/guilds',{timeoutMs:8000}).catch(function(){ return {guilds:cachedG}; })
       ]);
       me=pack[0];
       try{ history.replaceState({},'', location.pathname); }catch(e0){}
@@ -2250,6 +2269,7 @@ async function api(path,opts){
       }catch(e0){}
       var g=pack[1];
       guilds=(g&&g.guilds)||g||[];
+      try{ if(guilds.length) sessionStorage.setItem('staffora_guilds', JSON.stringify(guilds)); }catch(e){}
       if(LOCAL_MODE && !guilds.length) guilds=[{id:'local-guild',name:'Staffora (lokal)'}];
       if(LOCAL_MODE && !guildId) guildId='local-guild';
       var sel=$('guild-sel');
@@ -5708,7 +5728,7 @@ async function api(path,opts){
 '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
 '<label style="font-size:12px;color:var(--muted)">Server</label>'+
 '<select class="guild-sel" id="guild-sel-main" style="min-width:200px"></select>'+
-'<button type="button" class="btn btn-sm btn-p" id="btn-refresh-discord-main" title="Kanäle &amp; Rollen">↻ Rollen</button>'+
+'<button type="button" class="btn btn-sm btn-p" id="btn-refresh-discord-main" title="Kanäle &amp; Rollen">↻ Rollen</button>'+'<button type="button" class="btn btn-sm" id="btn-refresh-guilds" title="Serverliste">↻ Server</button>'+
 '</div></div>'+
       ''+
       '<div class="settings-shell settings-shell-main">'+
@@ -5735,6 +5755,7 @@ async function api(path,opts){
           render();
         };
       }
+      var bg=$('btn-refresh-guilds'); if(bg) bg.onclick=function(){ refreshGuildList(); };
       var br=$('btn-refresh-discord-main');
       if(br){
         br.onclick=function(){
