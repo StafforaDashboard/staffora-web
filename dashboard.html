@@ -530,11 +530,7 @@ html.pre-auth #v-app{opacity:1}
 #topbar-staffora, .topbar#topbar-staffora{display:none!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;border:none!important}
 body.gp-full #topbar-staffora{display:none!important}
 
-/* always-visible server picker */
-.server-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:rgba(15,15,22,.92);position:sticky;top:0;z-index:40}
-body.gp-full .topbar{display:flex!important;height:auto;min-height:52px;padding:8px 16px;border-bottom:1px solid var(--border);background:rgba(12,12,18,.95)}
-body.gp-full .topbar .user-chip{display:flex}
-body.gp-full .sidebar{display:none!important}
+
 </style>
 
 <style id="galaxy-extra">
@@ -1931,6 +1927,38 @@ html.pre-auth #v-app{opacity:1}
   }catch(e){}
 })();
 </script>
+<style id="layout-fix-v4">
+/* === Layout fix v4: single server select, no double chrome === */
+body.gp-full .sidebar,
+body.gp-full aside.sidebar,
+body.gp-full #sidebar{display:none!important;width:0!important;min-width:0!important}
+body.gp-full .app-shell{display:flex!important;flex-direction:column!important;min-height:100vh!important;height:100vh!important;overflow:hidden!important}
+body.gp-full .topbar{display:none!important;height:0!important;min-height:0!important;padding:0!important;margin:0!important;border:none!important;overflow:hidden!important}
+body.gp-full main.content,
+body.gp-full .content,
+body.gp-full #panel,
+body.gp-full .panel{
+  flex:1!important;width:100%!important;max-width:100%!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+  min-height:0!important;height:auto!important
+}
+body.gp-full .settings-shell,
+body.gp-full .settings-shell-main{
+  display:flex!important;width:100%!important;max-width:100%!important;
+  height:100vh!important;min-height:100vh!important;
+  margin:0!important;border:none!important;border-radius:0!important;overflow:hidden!important
+}
+body.gp-full .settings-nav{
+  width:240px!important;min-width:220px!important;max-width:260px!important;
+  overflow-y:auto!important;flex-shrink:0!important
+}
+body.gp-full .settings-main{
+  flex:1!important;overflow-y:auto!important;min-width:0!important;
+  padding:20px 24px 32px!important
+}
+#guild-sel{display:none!important} /* only main select in dashboard header */
+.guild-sel{min-width:180px;max-width:280px}
+</style>
 </head>
 <body>
 <div id="v-login" class="login-wrap">
