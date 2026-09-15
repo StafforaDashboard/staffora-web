@@ -2526,14 +2526,32 @@ async function api(path,opts){
     return (roles||[]).map(function(r){return {id:r.id,name:r.name,meta:'Rolle'};});
   }
   function channelItems(channels, types){
+    /* types: array of Discord channel type ints, or 'text' | 'voice' | 'category' | null=all */
+    var TEXT=[0,5,15,16]; /* text, announcement, forum, media */
+    var VOICE=[2,13]; /* voice, stage */
+    var CAT=[4];
+    var allow=types;
+    if(types==='text' || types==='TEXT') allow=TEXT;
+    if(types==='voice' || types==='VOICE') allow=VOICE;
+    if(types==='category' || types==='CATEGORY') allow=CAT;
     return (channels||[]).filter(function(c){
-      if(!types) return true;
-      return types.indexOf(c.type)>=0 || types.indexOf(String(c.type))>=0;
+      var t=c.type;
+      if(allow==null||allow===undefined){
+        /* default: text-like only — never bare VCs in log/panel pickers */
+        return TEXT.indexOf(t)>=0 || TEXT.indexOf(Number(t))>=0 || String(t)==='0'||String(t)==='5'||String(t)==='15'||String(t)==='16'||String(t)==='GUILD_TEXT'||String(t)==='GUILD_ANNOUNCEMENT';
+      }
+      if(!allow || !allow.length) return true;
+      return allow.indexOf(t)>=0 || allow.indexOf(Number(t))>=0 || allow.indexOf(String(t))>=0;
     }).map(function(c){
-      var meta=c.parentName?('Kategorie: '+c.parentName):'Kanal';
-      return {id:c.id,name:'#'+c.name,meta:meta};
+      var meta=c.parentName?('Kategorie: '+c.parentName):'Textkanal';
+      var t=c.type;
+      if(t===2||t===13||t==='2'||t==='GUILD_VOICE') meta='Voice';
+      if(t===4||t==='4'||t==='GUILD_CATEGORY') meta='Kategorie';
+      return {id:c.id,name:(t===2||t===13?'🔊 ':'#')+c.name,meta:meta};
     });
   }
+  function textChannels(channels){ return channelItems(channels,'text'); }
+  function categoryChannels(channels){ return channelItems(channels,'category'); }
 
 
   var onlineTimer=null;
@@ -3272,7 +3290,7 @@ async function api(path,opts){
       $('bw-title').value=s.applicationPanelTitle||'Team Bewerbung';
       $('bw-text').value=s.applicationPanelText||'';
       var pCh=makeSearchSelect($('bw-ch'),{items:channelItems(disc.channels),multi:false,value:s.applicationPanelChannelId||'',placeholder:'Kanal…'});
-      var pLog=makeSearchSelect($('bw-log'),{items:channelItems(disc.channels),multi:false,value:s.applicationLogChannelId||'',placeholder:'Log…'});
+      var pLog=makeSearchSelect($('bw-log'),{items:channelItems(disc.channels),multi:false,value:s.applicationLogChannelId||'',placeholder:'Text-Log…'});
       function renderQs(){
         $('bw-qs').innerHTML=questions.map(function(q,i){
           return '<div class="fac-card" data-qi="'+i+'"><div class="grid2">'+
@@ -3370,7 +3388,7 @@ async function api(path,opts){
     try{disc=await loadDiscord()}catch(e){}
     if(!(disc.channels&&disc.channels.length)){ try{disc=await loadDiscord(true)}catch(e){} }
     var roles=roleItems(disc.roles||[]);
-    var ch=channelItems(disc.channels||[],null);
+    var ch=channelItems(disc.channels||[],'text');
     var mode=s.rankCareerMode||'discord';
     var career=Array.isArray(s.rankCareer)?s.rankCareer.slice():[];
     var manual=Array.isArray(s.rankCareerManual)?s.rankCareerManual.slice():career.slice();
@@ -5605,7 +5623,7 @@ async function api(path,opts){
     var mods=(cfg&&cfg.modules)||{};
     var disc=(window.__discCache && window.__discCache.gid===guildId && window.__discCache.data) ? window.__discCache.data : {roles:[],channels:[]};
     var roles=roleItems(disc.roles||[]);
-    var ch=channelItems(disc.channels||[],null);
+    var ch=channelItems(disc.channels||[],'text');
     /* background refresh — does not block first paint */
     (function(){
       var gid=guildId;
@@ -5638,6 +5656,8 @@ async function api(path,opts){
       {id:'cases',ic:'⚖️',l:'Strafregister'},
       {id:'stats',ic:'📊',l:'Team-Stats'},
       {id:'security',ic:'🔒',l:'Security'},
+      {id:'welcome',ic:'👋',l:'Welcome / Leave'},
+      {id:'verify',ic:'🔐',l:'Verify'},
       {id:'community',ic:'🤝',l:'Community'},
       {id:'xp',ic:'⭐',l:'XP'},
       {id:'rp',ic:'🚀',l:'RP'},
@@ -5944,14 +5964,14 @@ async function api(path,opts){
             /* use cache first — only force refresh if empty after */
             disc=await loadDiscord(false);
             roles=roleItems(disc.roles||[]);
-            ch=channelItems(disc.channels||[],null);
+            ch=channelItems(disc.channels||[],'text');
             if(!(ch && ch.length)){
               disc=await Promise.race([
                 loadDiscord(true),
                 new Promise(function(r){ setTimeout(function(){ r(disc||{roles:[],channels:[]}); }, 2500); })
               ]);
               roles=roleItems(disc.roles||[]);
-              ch=channelItems(disc.channels||[],null);
+              ch=channelItems(disc.channels||[],'text');
             }
           }catch(e){}
         })();
@@ -6039,7 +6059,7 @@ async function api(path,opts){
             var types=Array.isArray(s.ticketTypes)?s.ticketTypes.slice():[];
             detailShell('🎫 Tickets','<div class="set-card">'+
               fieldRow('Standard-Kategorie (Discord)','st-cat')+fieldRow('Support-Rollen','st-roles')+
-              fieldRow('Log-Kanal','st-log')+fieldRow('Blacklist-Rollen','st-bl')+
+              fieldRow('Ticket-Log (Textkanal)','st-log')+fieldRow('Blacklist-Rollen','st-bl')+
               '<div class="field"><label>Panel-Bild (optional)</label><input type="file" id="st-img-panel" accept="image/*"/><button type="button" class="btn btn-sm" id="st-img-up">Bild hochladen</button><span class="hint" id="st-img-status"></span></div>'+
               '<div class="field"><label>Panel-Titel</label><input id="st-title"/></div>'+
               '<div class="field"><label>Panel-Text</label><textarea id="st-text"></textarea></div>'+
@@ -6761,6 +6781,80 @@ async function api(path,opts){
             showSaveHint('Security-Modul '+($('sec-mod').isOn()?'AN':'AUS'), true);
           } catch(e){}
         };
+        return;
+      }
+
+
+      
+      
+      if(cat==='welcome'){
+        await ensureDisc();
+        main.innerHTML=backBtn()+
+          '<h1>👋 Welcome & Leave</h1><p class="sdesc">Nachrichten bei Join und Leave · Platzhalter unten</p>'+
+          '<div class="set-card">'+
+          '<div class="toggle-row"><div class="lbl">Modul aktiv</div><div id="wl-mod" class="toggle-sw"></div></div>'+
+          '<h3 style="margin:12px 0 8px">Willkommen</h3>'+
+          '<div class="toggle-row"><div class="lbl">Willkommensnachricht an</div><div id="wl-wen" class="toggle-sw"></div></div>'+
+          '<div class="toggle-row"><div class="lbl">User pingen</div><div id="wl-ping" class="toggle-sw"></div></div>'+
+          fieldRow('Willkommens-Kanal','wl-wch')+
+          '<div class="field"><label>Titel</label><input id="wl-wt" placeholder="Willkommen!"/></div>'+
+          '<div class="field"><label>Text</label><textarea id="wl-wtx" rows="3" placeholder="Hey {mention} …"></textarea></div>'+
+          '<h3 style="margin:16px 0 8px">Leave</h3>'+
+          '<div class="toggle-row"><div class="lbl">Leave-Nachricht an</div><div id="wl-len" class="toggle-sw"></div></div>'+
+          fieldRow('Leave-Kanal','wl-lch')+
+          '<div class="field"><label>Titel</label><input id="wl-lt" placeholder="Tschüss"/></div>'+
+          '<div class="field"><label>Text</label><textarea id="wl-ltx" rows="3"></textarea></div>'+
+          saveBtn('wl-save')+
+          '<p class="hint" style="margin-top:10px">Platzhalter: <code>{mention}</code> <code>{userName}</code> <code>{userTag}</code> <code>{server}</code> <code>{memberCount}</code></p>'+
+          '</div>';
+        bindToggle($('wl-mod'), mods.welcomeLeave!==false);
+        bindToggle($('wl-wen'), s.welcomeEnabled!==false);
+        bindToggle($('wl-ping'), s.welcomePing!==false);
+        bindToggle($('wl-len'), s.leaveEnabled!==false);
+        var wch=ss($('wl-wch'),{items:ch,multi:false,value:s.welcomeChannelId||'',placeholder:'Kanal…'});
+        var lch=ss($('wl-lch'),{items:ch,multi:false,value:s.leaveChannelId||'',placeholder:'Kanal…'});
+        $('wl-wt').value=s.welcomeTitle||'Willkommen!';
+        $('wl-wtx').value=s.welcomeText||'Hey {mention} — willkommen auf **{server}**!\nDu bist Mitglied **#{memberCount}**.';
+        $('wl-lt').value=s.leaveTitle||'Tschüss';
+        $('wl-ltx').value=s.leaveText||'**{userName}** hat **{server}** verlassen.\nMitglieder: **{memberCount}**.';
+        $('wl-save').onclick=function(){
+          patchSettings({
+            welcomeEnabled:$('wl-wen').isOn(),
+            leaveEnabled:$('wl-len').isOn(),
+            welcomePing:$('wl-ping').isOn(),
+            welcomeChannelId:wch.getValue()||null,
+            leaveChannelId:lch.getValue()||null,
+            welcomeTitle:$('wl-wt').value.trim(),
+            welcomeText:$('wl-wtx').value,
+            leaveTitle:$('wl-lt').value.trim(),
+            leaveText:$('wl-ltx').value
+          },'Welcome/Leave');
+          try{ api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{welcomeLeave:$('wl-mod').isOn()}}); }catch(e){}
+        };
+        return;
+      }
+
+
+      if(cat==='verify'){
+        await ensureDisc();
+        main.innerHTML=backBtn()+
+          '<h1>🔐 Verify</h1><p class="sdesc">6-stellige Zahl auf Bild · 4 Optionen · Rolle bei Erfolg</p>'+
+          '<div class="set-card">'+
+          '<div class="toggle-row"><div class="lbl">Modul aktiv</div><div id="vf-on" class="toggle-sw"></div></div>'+
+          fieldRow('Verify-Rolle','vf-role')+
+          fieldRow('Panel-Kanal','vf-ch')+
+          saveBtn('vf-save')+
+          panelSendBlock('verify','Verify-Panel')+
+          '</div>'+
+          '<div class="set-card" style="margin-top:12px"><p class="hint">User klickt Verifizieren → sieht Bild mit Zahl → wählt eine von 4 Zahlen. Richtig = Rolle. Falsch = neues Bild.</p></div>';
+        bindToggle($('vf-on'), mods.verify!==false);
+        var vfRole=ss($('vf-role'),{items:roles,multi:false,value:s.verifyRoleId||'',placeholder:'Rolle…'});
+        var vfCh=ss($('vf-ch'),{items:ch,multi:false,value:s.verifyChannelId||'',placeholder:'Kanal…'});
+        $('vf-save').onclick=function(){
+          patchSettings({verifyRoleId:vfRole.getValue()||null,verifyChannelId:vfCh.getValue()||null},'Verify');
+          try{ api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{verify:$('vf-on').isOn()}}); }catch(e){}
+        };
+        wirePanelSend('verify','verify',s.verifyChannelId||'');
         return;
       }
 
