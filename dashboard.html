@@ -6524,7 +6524,7 @@ async function api(path,opts){
       if(cat==='aufgaben'){
         await ensureDisc();
         main.innerHTML=backBtn()+
-          '<h1>📋 Aufgaben</h1><p class="sdesc">Erstellen · Zuständig · Status · Deadlines & Erinnerungen</p>'+
+          '<h1>📋 Aufgaben</h1><p class="sdesc">Aufgaben erstellen & Panel senden nur hier. Discord: /aufgabe → Person wählen → Aufgabe aus Liste (ohne ID).</p>'+
           '<div class="set-card">'+
           '<div class="toggle-row"><div class="lbl">Modul aktiv</div><div id="auf-mod" class="toggle-sw"></div></div>'+
           fieldRow('Log- / Erinnerungs-Kanal','auf-log','Kanal für neue Aufgaben und Deadline-Erinnerungen.')+
@@ -7285,15 +7285,24 @@ if(sub==='list'){
           var d = {botAdd:2,channelDelete:2,roleDelete:2}[k] || 3;
           return Object.assign({enabled:true,limit:d,windowSec:20,punish:'ban'}, acts[k]||{});
         }
+        var CRITICAL={botAdd:1,webhookCreate:1,webhookUpdate:1,webhookDelete:1,integrationCreate:1,integrationUpdate:1,integrationDelete:1};
         var rows = ACTION_KEYS.map(function(a){
           var v = defAct(a.k);
           var on = v.enabled!==false;
+          var crit = !!CRITICAL[a.k];
+          var extra = crit
+            ? '<p class="hint" style="margin:6px 0 0">Kritisch · bei 1× sofort · Auto-Remove wenn aktiv</p>'
+            : ('<div class="grid2" style="margin-top:8px">'+
+              '<div class="field"><label>Limit</label><input type="number" min="1" max="50" id="sec-lim-'+a.k+'" value="'+(v.limit||3)+'"/></div>'+
+              '<div class="field"><label>Zeitraum (Sek.)</label><input type="number" min="5" max="600" id="sec-win-'+a.k+'" value="'+(v.windowSec||30)+'"/></div>'+
+              '</div>');
           return '<div class="set-card" style="padding:12px 14px;margin-bottom:8px" data-ak="'+a.k+'">'+
             '<div class="toggle-row" style="margin:0">'+
             '<div class="lbl" style="font-weight:600">'+a.l+
-            ' <span class="hint" id="sec-st-'+a.k+'" style="font-weight:500">'+(on?'· An':'· Aus')+'</span></div>'+
+            ' <span class="hint" id="sec-st-'+a.k+'" style="font-weight:500">'+(on?'· An':'· Aus')+(crit?' · kritisch':'')+'</span></div>'+
             '<div id="sec-en-'+a.k+'" class="toggle-sw"></div></div>'+
-            '<div class="field" style="margin-top:8px;margin-bottom:0"><label>Strafe (wenn An)</label><select id="sec-pun-'+a.k+'">'+
+            extra+
+            '<div class="field" style="margin-top:8px;margin-bottom:0"><label>Strafe (wenn Limit erreicht / kritisch)</label><select id="sec-pun-'+a.k+'">'+
             ['none|Nur loggen','timeout|Timeout','kick|Kick','strip|Rollen entfernen','ban|Ban'].map(function(o){
               var p=o.split('|'); return '<option value="'+p[0]+'"'+(v.punish===p[0]?' selected':'')+'>'+p[1]+'</option>';
             }).join('')+
@@ -7310,7 +7319,18 @@ if(sub==='list'){
           fieldRow('Rollen (Externe Apps)','sec-extroles','Für diese Rollen wird „Externe App verwenden“ in allen Kanälen verweigert. Leer = @everyone.')+
           '<p class="field-desc">An = sperren · Aus = erlauben. Danach „Anwenden“. Neue Kanäle werden mitgesperrt.</p>'+
           '<button type="button" class="btn btn-sm" id="sec-extapps-apply" style="margin-top:6px">Jetzt auf alle Kanäle anwenden</button>'+
+          '<div class="toggle-row" style="margin-top:14px"><div class="lbl">Auto-Remove kritische Adds</div><div id="sec-autorev" class="toggle-sw"></div></div>'+
+          '<p class="field-desc">Wenn an: neu hinzugefügte Bots werden gekickt, Webhooks gelöscht, Integrationen soweit möglich entfernt.</p>'+
           '</div>'+
+          '<div class="set-card" style="margin-top:12px">'+
+          '<h3 style="margin:0 0 8px">💾 Backup</h3>'+
+          '<p class="field-desc">Speichert Bot-Settings, Module, Rollen-, Kanal-, Webhook- und Integrations-Snapshot. Laden stellt Bot-Einstellungen wieder her. Nur Owner oder Whitelist-Rolle.</p>'+
+          fieldRow('Backup-Whitelist-Rollen','sec-bak-wl','Dürfen Backup erstellen/laden (zusätzlich zum Server-Owner).')+
+          '<div id="sec-bak-info" class="hint" style="margin:8px 0">Lade Status…</div>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+          '<button type="button" class="btn btn-p btn-sm" id="sec-bak-save">Backup erstellen</button>'+
+          '<button type="button" class="btn btn-sm" id="sec-bak-load">Backup laden</button>'+
+          '</div></div>'+
           '<h3 style="margin:16px 0 8px;font-size:15px">Aktionen</h3>'+rows+
           saveBtn('sec-save')
         );
@@ -7318,6 +7338,33 @@ if(sub==='list'){
         bindToggle($('sec-mod'), !!mods.security);
         bindToggle($('sec-extapps'), !!sec.disableExternalApps);
         var secExtRoles=ss($('sec-extroles'),{items:roles,multi:true,values:sec.externalAppsRoleIds||[],placeholder:'Rollen… (leer = @everyone)'});
+
+        if($('sec-autorev')) bindToggle($('sec-autorev'), sec.autoRevertCritical!==false);
+        var secBakWl = $('sec-bak-wl') ? ss($('sec-bak-wl'),{items:roles,multi:true,values:s.backupWhitelistRoleIds||[],placeholder:'Backup-Rollen…'}) : null;
+        async function refreshBak(){
+          try{
+            var info = await api('/api/guilds/'+guildId+'/backup');
+            var b = info.backup;
+            var el = $('sec-bak-info');
+            if(el) el.textContent = b ? ('Letztes Backup: '+b.createdAt+' · Rollen '+(b.counts&&b.counts.roles||0)+' · Kanäle '+(b.counts&&b.counts.channels||0)+' · Webhooks '+(b.counts&&b.counts.webhooks||0)) : 'Noch kein Backup.';
+          }catch(e){ if($('sec-bak-info')) $('sec-bak-info').textContent = e.message||'Keine Info'; }
+        }
+        refreshBak();
+        if($('sec-bak-save')) $('sec-bak-save').onclick=async function(){
+          try{
+            if(secBakWl) await patchSettings({backupWhitelistRoleIds:secBakWl.getValue()}, null);
+            var r=await api('/api/guilds/'+guildId+'/backup',{method:'POST',body:{}});
+            toast('Backup erstellt','ok'); refreshBak();
+          }catch(e){ toast(e.message||'Backup fehlgeschlagen','err'); }
+        };
+        if($('sec-bak-load')) $('sec-bak-load').onclick=async function(){
+          if(!confirm('Backup laden? Bot-Settings und Module werden überschrieben.')) return;
+          try{
+            var r=await api('/api/guilds/'+guildId+'/backup/restore',{method:'POST',body:{}});
+            toast('Backup geladen · Seite neu laden','ok');
+            try{ location.reload(); }catch(e){}
+          }catch(e){ toast(e.message||'Laden fehlgeschlagen','err'); }
+        };
         if($('sec-extapps-apply')) $('sec-extapps-apply').onclick=async function(){
           try{
             var on=$('sec-extapps').isOn();
@@ -7347,10 +7394,13 @@ if(sub==='list'){
           var actions = {};
           ACTION_KEYS.forEach(function(a){
             var on = $('sec-en-'+a.k).isOn();
+            var crit = !!CRITICAL[a.k];
+            var limEl = $('sec-lim-'+a.k);
+            var winEl = $('sec-win-'+a.k);
             actions[a.k] = {
               enabled: on,
-              limit: 1,
-              windowSec: 60,
+              limit: crit ? 1 : Math.max(1, parseInt(limEl&&limEl.value,10)||3),
+              windowSec: crit ? 60 : Math.max(5, parseInt(winEl&&winEl.value,10)||30),
               punish: ($('sec-pun-'+a.k)&&$('sec-pun-'+a.k).value) || 'ban'
             };
           });
@@ -7364,9 +7414,13 @@ if(sub==='list'){
               logWarnings: true,
               disableExternalApps: $('sec-extapps')?$('sec-extapps').isOn():!!(sec.disableExternalApps),
               externalAppsRoleIds: (typeof secExtRoles!=='undefined'&&secExtRoles.getValue)?secExtRoles.getValue():(sec.externalAppsRoleIds||[]),
+              autoRevertCritical: $('sec-autorev')?$('sec-autorev').isOn():(sec.autoRevertCritical!==false),
               actions: actions
             }
           };
+          if(typeof secBakWl!=='undefined'&&secBakWl&&secBakWl.getValue){
+            payload.backupWhitelistRoleIds = secBakWl.getValue();
+          }
           await patchSettings(payload, 'Security');
           Object.assign(s, payload);
           if(s.security) Object.assign(s.security, payload.security||{});
@@ -7382,6 +7436,8 @@ if(sub==='list'){
       
       
       if(cat==='welcome'){
+        try{ refreshLiveSettings(s); }catch(e){}
+        var mods={}; try{ mods=await loadModules(); }catch(e){ mods={}; }
         await ensureDisc();
         main.innerHTML=backBtn()+
           '<h1>👋 Welcome, Leave & Boost</h1><p class="sdesc">Join · Leave · Server-Boost Danke & Logs</p>'+
@@ -7466,13 +7522,19 @@ if(sub==='list'){
 
 
       if(cat==='verify'){
+        try{ refreshLiveSettings(s); }catch(e){}
+        var mods={};
+        try{ mods=await loadModules(); }catch(e){ mods={}; }
         main.innerHTML=backBtn()+
           '<h1>🔐 Verify</h1><p class="sdesc">Captcha · Unverified bis Verifizierung · nur Verify-Kanal sichtbar</p>'+
           '<div class="set-card" id="vf-body"><span class="spinner"></span> Kanäle &amp; Rollen laden…</div>';
         try{
+          if(typeof ensureDisc==='function') await ensureDisc();
+        }catch(e){}
+        try{
           disc=await loadDiscord(true);
         }catch(e){
-          try{ disc=await loadDiscord(false); }catch(e2){}
+          try{ disc=await loadDiscord(false); }catch(e2){ disc={roles:[],channels:[]}; }
         }
         roles=roleItems((disc&&disc.roles)||[]);
         ch=channelItems((disc&&disc.channels)||[],'text');
@@ -7484,18 +7546,18 @@ if(sub==='list'){
           fieldRow('Verified-Rolle','vf-role','Wird nach erfolgreichem Captcha vergeben. Leer = Bot legt „Verified“ an.')+
           fieldRow('Unverified-Rolle','vf-unv','Neue Member bis zur Verifizierung. Sieht nur den Verify-Kanal.')+
           fieldRow('Verify-Panel-Kanal','vf-ch','Kanal mit Verify-Button; Unverified dürfen nur hier schreiben.')+
-          '<p class="hint">Leer lassen → Bot legt „Verified“ / „Unverified“ automatisch an.</p>'+
+          '<p class="hint">Leer lassen → Bot legt „Verified“ / „Unverified“ automatisch an. Nach Speichern bleiben die Werte sichtbar.</p>'+
           '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
           '<button type="button" class="btn btn-p" id="vf-save">Speichern</button>'+
           '<button type="button" class="btn" id="vf-setup">Rollen anlegen + Kanal-Sperre</button>'+
-          '<button type="button" class="btn btn-sm" id="vf-refresh">↻ Kanäle</button></div>'+
+          '<button type="button" class="btn btn-sm" id="vf-refresh">↻ Kanäle &amp; Rollen</button></div>'+
           panelSendBlock('verify','Verify-Panel')+
           '<p class="hint" style="margin-top:12px">Ablauf: Join → Unverified → nur Verify-Kanal → Captcha → Verified, Unverified weg.</p>';
         bindToggle($('vf-on'), mods.verify!==false);
         bindToggle($('vf-auto'), s.verifyAutoUnverified!==false);
-        var vfRole=ss($('vf-role'),{items:roles,multi:false,value:s.verifyRoleId||'',placeholder:roles.length?'Rolle…':'Keine Rollen geladen'});
+        var vfRole=ss($('vf-role'),{items:roles,multi:false,value:s.verifyRoleId||'',placeholder:roles.length?('Rolle… ('+roles.length+')'):'Keine Rollen geladen — ↻ drücken'});
         var vfUnv=ss($('vf-unv'),{items:roles,multi:false,value:s.unverifiedRoleId||'',placeholder:roles.length?'Rolle…':'Keine Rollen'});
-        var vfCh=ss($('vf-ch'),{items:ch,multi:false,value:s.verifyChannelId||'',placeholder:ch.length?'Kanal…':'Keine Kanäle'});
+        var vfCh=ss($('vf-ch'),{items:ch,multi:false,value:s.verifyChannelId||'',placeholder:ch.length?('Kanal… ('+ch.length+')'):'Keine Kanäle — ↻ drücken'});
         wirePanelSend('verify','verify',s.verifyChannelId||'');
         $('vf-refresh').onclick=async function(){
           try{
@@ -7506,24 +7568,33 @@ if(sub==='list'){
             renderCat('verify');
           }catch(e){ toast(e.message,'err'); }
         };
-        $('vf-save').onclick=function(){
-          patchSettings({
+        $('vf-save').onclick=async function(){
+          var payload={
             verifyRoleId:vfRole.getValue()||null,
             unverifiedRoleId:vfUnv.getValue()||null,
             verifyChannelId:vfCh.getValue()||null,
             verifyAutoUnverified:$('vf-auto').isOn()
-          },'Verify');
-          try{ api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{verify:$('vf-on').isOn()}}); }catch(e){}
+          };
+          try{
+            await patchSettings(payload,'Verify');
+            Object.assign(s, payload);
+            window.__settingsLive=Object.assign(window.__settingsLive||{}, payload);
+            try{ await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{verify:$('vf-on').isOn()}}); }catch(e){}
+            toast('Verify gespeichert','ok');
+          }catch(e){ toast(e.message||'Fehler','err'); }
         };
         $('vf-setup').onclick=async function(){
           try{
-            await patchSettings({
+            var payload={
               verifyRoleId:vfRole.getValue()||null,
               unverifiedRoleId:vfUnv.getValue()||null,
               verifyChannelId:vfCh.getValue()||null,
               verifyAutoUnverified:$('vf-auto').isOn()
-            },'Verify');
-            var out=await api('/api/guilds/'+guildId+'/verify/setup',{method:'POST',body:{
+            };
+            await patchSettings(payload,'Verify');
+            Object.assign(s, payload);
+            window.__settingsLive=Object.assign(window.__settingsLive||{}, payload);
+            await api('/api/guilds/'+guildId+'/verify/setup',{method:'POST',body:{
               verifyChannelId:vfCh.getValue()||null,
               applyGate:true
             }});
