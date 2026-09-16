@@ -2104,7 +2104,6 @@ body.gp-full .settings-main{
     setSaveUI('saving','Speichern…');
     try{
       await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
-      // Keep settings visible: merge into live cache (do NOT wipe form state)
       try{
         window.__settingsLive = Object.assign(window.__settingsLive||{}, body||{});
         if(!window.__cfgCache || window.__cfgCache.gid!==guildId){
@@ -2114,6 +2113,10 @@ body.gp-full .settings-main{
         if(!window.__cfgCache.data.settings) window.__cfgCache.data.settings = {};
         Object.assign(window.__cfgCache.data.settings, body||{});
         window.__cfgCache.at = Date.now();
+        // expose for active pageSettings closure
+        if(window.__settingsRef && typeof window.__settingsRef==='object'){
+          Object.assign(window.__settingsRef, body||{});
+        }
       }catch(_e){}
       window.__saveState.dirty=false;
       window.__saveState.lastOk=Date.now();
@@ -2125,6 +2128,15 @@ body.gp-full .settings-main{
       toast(e.message,'err');
       return false;
     }
+  }
+  function refreshLiveSettings(sObj){
+    try{
+      if(window.__settingsLive) Object.assign(sObj, window.__settingsLive);
+      if(window.__cfgCache && window.__cfgCache.gid===guildId && window.__cfgCache.data && window.__cfgCache.data.settings){
+        Object.assign(sObj, window.__cfgCache.data.settings);
+      }
+    }catch(e){}
+    return sObj;
   }
   function withTimeout(promise,ms){
     return Promise.race([promise, new Promise(function(_,rej){setTimeout(function(){rej(new Error('Timeout'))},ms||8000)})]);
@@ -5662,6 +5674,7 @@ async function api(path,opts){
     /* instant shell: use cache if any, otherwise empty — fetch in background */
     var cfg=(window.__cfgCache && window.__cfgCache.gid===guildId) ? window.__cfgCache.data : {};
     var s=Object.assign({}, (cfg&&cfg.settings)||{}, window.__settingsLive||{});
+    window.__settingsRef=s;
     var mods=(cfg&&cfg.modules)||{};
     var disc=(window.__discCache && window.__discCache.gid===guildId && window.__discCache.data) ? window.__discCache.data : {roles:[],channels:[]};
     var roles=roleItems(disc.roles||[]);
@@ -6104,6 +6117,7 @@ async function api(path,opts){
           {id:'buero',ic:'🏢',l:'Büros',d:'Warteraum und Log'},
           {id:'ac',ic:'🚨',l:'Admin Call',d:'Panel, Log, Ping'}
         ], async function(sub){
+          try{refreshLiveSettings(s);}catch(e){}
           await ensureDisc();
           if(sub==='tix'){
             var types=Array.isArray(s.ticketTypes)?s.ticketTypes.slice():[];
@@ -6301,6 +6315,7 @@ async function api(path,opts){
           {id:'iv',ic:'🎤',l:'Interviews',d:'Kanal und Rollen'},
           {id:'unban',ic:'🔓',l:'Unban / Appeal',d:'Fragen, Kanal, Pflicht-Ban'}
         ], async function(sub){
+          try{refreshLiveSettings(s);}catch(e){}
           await ensureDisc();
           if(sub==='team'){
             detailShell('📝 Team-Bewerbung','<div class="set-card">'+fieldRow('Bewerbungs-Kanal','ap-ch')+fieldRow('Review-Rollen','ap-roles')+'<div class="field"><label>Panel-Titel</label><input id="ap-title"/></div><div class="field"><label>Panel-Text</label><textarea id="ap-text"></textarea></div>'+saveBtn('ap-save')+panelSendBlock('app','Bewerbungs-Panel')+'</div>');
@@ -6375,12 +6390,15 @@ if(sub==='dn'){
           '<h1>📋 Aufgaben</h1><p class="sdesc">Erstellen · Zuständig · Status · Deadlines & Erinnerungen</p>'+
           '<div class="set-card">'+
           '<div class="toggle-row"><div class="lbl">Modul aktiv</div><div id="auf-mod" class="toggle-sw"></div></div>'+
-          fieldRow('Log- / Erinnerungs-Kanal','auf-log')+
+          fieldRow('Log- / Erinnerungs-Kanal','auf-log','Kanal für neue Aufgaben und Deadline-Erinnerungen.')+
+          fieldRow('Panel-Kanal','auf-panel','Board mit offenen Aufgaben + Dropdown zum Übernehmen.')+
+          '<div class="field"><label>XP bei Übernehmen</label><p class="field-desc">XP fürs Claimen einer Aufgabe.</p><input id="auf-xp" type="number" min="0" placeholder="12"/></div>'+
           saveBtn('auf-set-save')+
+          ' <button type="button" class="btn btn-sm" id="auf-panel-go">Panel senden / aktualisieren</button>'+
           '</div>'+
           '<div class="set-card" style="margin-top:12px">'+
           '<h3 style="margin:0 0 10px">Neue Aufgabe</h3>'+
-          '<div class="field"><label>Titel</label><input id="auf-title" placeholder="z.B. Regelwerk prüfen"/></div>'+
+          '<div class="field"><label>Titel</label><input id="auf-title" placeholder="z.B. Regelwerk prüfen"/></div>'+'<div class="field"><label>Dringlichkeit</label><select id="auf-prio"><option value="low">Niedrig</option><option value="normal" selected>Normal</option><option value="high">Hoch</option><option value="urgent">Dringend</option></select></div>'+'<div class="field"><label>Access-Rolle (optional)</label><div id="auf-access"></div></div>'+
           '<div class="field"><label>Beschreibung</label><textarea id="auf-desc" rows="2" placeholder="Optional"></textarea></div>'+
           fieldRow('Zuständig (optional)','auf-assignee')+
           '<div class="grid2">'+
@@ -6392,14 +6410,29 @@ if(sub==='dn'){
           '<div class="set-card" style="margin-top:12px" id="auf-list"><span class="spinner"></span> Lade…</div>';
 
         var aufLog=ss($('auf-log'),{items:ch,multi:false,value:s.aufgabenLogChannelId||s.aufgabenChannelId||'',placeholder:'Kanal…'});
+        var aufPanel=$('auf-panel')?ss($('auf-panel'),{items:ch,multi:false,value:s.aufgabenPanelChannelId||s.aufgabenChannelId||'',placeholder:'Panel-Kanal…'}):{getValue:function(){return null}};
+        if($('auf-xp')) $('auf-xp').value=s.xpTaskClaim!=null?s.xpTaskClaim:12;
+        if($('auf-access')) window.__aufAccess=ss($('auf-access'),{items:roles,multi:false,value:'',placeholder:'Access-Rolle…'});
         bindToggle($('auf-mod'), mods.tasks!==false);
+        if($('auf-panel-go')) $('auf-panel-go').onclick=async function(){
+          try{
+            await patchSettings({aufgabenPanelChannelId:aufPanel.getValue()||null,aufgabenLogChannelId:aufLog.getValue()||null},'Aufgaben');
+            await api('/api/guilds/'+guildId+'/tasks/panel',{method:'POST',body:{}});
+            toast('Aufgaben-Panel aktualisiert','ok');
+          }catch(e){ toast(e.message,'err'); }
+        };
         // assignee: use roles? better text id or skip - use member search via input discord id
         // Use a simple text field for discord user id + optional select from staff - for UX use input
         if($('auf-assignee')){
           $('auf-assignee').innerHTML='<input id="auf-assignee-id" placeholder="Discord User-ID oder leer" style="width:100%"/>';
         }
         $('auf-set-save').onclick=async function(){
-          await patchSettings({aufgabenLogChannelId:aufLog.getValue()||null,aufgabenChannelId:aufLog.getValue()||null},'Aufgaben');
+          await patchSettings({
+            aufgabenLogChannelId:aufLog.getValue()||null,
+            aufgabenChannelId:aufLog.getValue()||null,
+            aufgabenPanelChannelId:aufPanel.getValue()||null,
+            xpTaskClaim:($('auf-xp')&&$('auf-xp').value!=='')?Number($('auf-xp').value):12
+          },'Aufgaben');
           try{ await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{tasks:$('auf-mod').isOn()}}); }catch(e){}
         };
         async function loadAufgaben(){
@@ -6460,7 +6493,9 @@ if(sub==='dn'){
             assigneeId:($('auf-assignee-id')&&$('auf-assignee-id').value.trim())||null,
             deadline:dlVal?new Date(dlVal).getTime():null,
             remindHours:Number($('auf-rem').value)||24,
-            status:'open'
+            status:'open',
+            priority:($('auf-prio')&&$('auf-prio').value)||'normal',
+            accessRoleIds:(window.__aufAccess&&window.__aufAccess.getValue)?([].concat(window.__aufAccess.getValue()||[]).filter(Boolean)):[]
           };
           try{
             await api('/api/guilds/'+guildId+'/tasks',{method:'POST',body:body});
@@ -6577,6 +6612,7 @@ if(sub==='dn'){
       if(cat==='team'){
         pickCards('👥 Team','Bereich wählen',[
           {id:'list',ic:'📋',l:'Teamliste',d:'Kanal und Rollen'},
+          {id:'activity',ic:'📋',l:'Activity Check',d:'Button, Ergebnis, Zeitplan'},
           {id:'nick',ic:'🏷️',l:'Auto-Nick',d:'Format und Aktiv'},
           {id:'duty',ic:'🟢',l:'Duty / Online',d:'Panel und Rechte'},
           {id:'xp',ic:'✨',l:'XP',d:'Punkte und Quellen'},
@@ -6584,8 +6620,71 @@ if(sub==='dn'){
           {id:'fb',ic:'⭐',l:'Feedback',d:'Log und Panel'},
           {id:'warn',ic:'⚠️',l:'Team-Warns',d:'Auto-Kick'}
         ], async function(sub){
+          try{refreshLiveSettings(s);}catch(e){}
           await ensureDisc();
-          if(sub==='list'){
+          
+          if(sub==='activity'){
+            detailShell('📋 Activity Check','<div class="set-card">'+
+              '<div class="toggle-row"><div class="lbl">Modul / Checks erlauben</div><div id="ac-on" class="toggle-sw"></div></div>'+
+              fieldRow('Kanal','ac-ch','Textkanal, in dem der Check und das Ergebnis gepostet werden.')+
+              fieldRow('Team-Rollen','ac-roles','Nur Mitglieder mit diesen Rollen müssen den Button drücken und erscheinen in der Auswertung.')+
+              '<div class="field"><label>Dauer (Minuten)</label><p class="field-desc">Danach wird automatisch das Ergebnis gepostet (wer hat / wer nicht).</p><input id="ac-dur" type="number" min="5" max="10080" placeholder="60"/></div>'+
+              '<div class="field"><label>Titel</label><input id="ac-title" placeholder="Aktivitäts-Check"/></div>'+
+              '<div class="field"><label>Text im Embed</label><textarea id="ac-text" rows="3" placeholder="Bitte bestätige…"></textarea></div>'+
+              '<div class="field"><label>Button-Text</label><input id="ac-btn" placeholder="Ich bin aktiv"/></div>'+
+              '<div class="toggle-row"><div class="lbl">Rollen pingen</div><div id="ac-ping" class="toggle-sw"></div></div>'+
+              '</div><div class="set-card" style="margin-top:12px"><h3 style="margin:0 0 8px">Zeitplan</h3>'+
+              '<div class="toggle-row"><div class="lbl">Täglich automatisch posten</div><div id="ac-sch" class="toggle-sw"></div></div>'+
+              '<div class="field"><label>Uhrzeit (HH:MM)</label><p class="field-desc">Wann der Check jeden Tag gestartet wird.</p><input id="ac-time" placeholder="18:00"/></div>'+
+              '<div class="field"><label>UTC-Offset (Minuten)</label><p class="field-desc">z.B. 120 für CEST (UTC+2).</p><input id="ac-off" type="number" placeholder="120"/></div>'+
+              '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+
+              saveBtn('ac-save')+
+              '<button type="button" class="btn btn-p" id="ac-start">Jetzt starten</button>'+
+              '<button type="button" class="btn" id="ac-end">Jetzt beenden</button></div>'+
+              '<p class="hint" style="margin-top:10px">Discord: <code>/activity-check start</code> · <code>/activity-check end</code></p></div>');
+            bindToggle($('ac-on'), s.activityCheckEnabled!==false);
+            bindToggle($('ac-ping'), s.activityCheckPingRoles!==false);
+            bindToggle($('ac-sch'), s.activityCheckScheduleEnabled===true);
+            var acCh=ss($('ac-ch'),{items:ch,multi:false,value:s.activityCheckChannelId||'',placeholder:'Kanal…'});
+            var acR=ss($('ac-roles'),{items:roles,multi:true,values:s.activityCheckRoleIds||[],placeholder:'Team-Rollen…'});
+            $('ac-dur').value=s.activityCheckDurationMin||60;
+            $('ac-title').value=s.activityCheckTitle||'Aktivitäts-Check';
+            $('ac-text').value=s.activityCheckText||'Bitte bestätige deine Aktivität mit dem Button unten.';
+            $('ac-btn').value=s.activityCheckButtonLabel||'Ich bin aktiv';
+            $('ac-time').value=s.activityCheckScheduleTime||'';
+            $('ac-off').value=s.activityCheckScheduleUtcOffsetMin!=null?s.activityCheckScheduleUtcOffsetMin:120;
+            function acPayload(){
+              return {
+                activityCheckEnabled:$('ac-on').isOn(),
+                activityCheckChannelId:acCh.getValue()||null,
+                activityCheckRoleIds:acR.getValue(),
+                activityCheckDurationMin:Number($('ac-dur').value)||60,
+                activityCheckTitle:$('ac-title').value.trim()||null,
+                activityCheckText:$('ac-text').value||null,
+                activityCheckButtonLabel:$('ac-btn').value.trim()||null,
+                activityCheckPingRoles:$('ac-ping').isOn(),
+                activityCheckScheduleEnabled:$('ac-sch').isOn(),
+                activityCheckScheduleTime:$('ac-time').value.trim()||null,
+                activityCheckScheduleUtcOffsetMin:Number($('ac-off').value)||0
+              };
+            }
+            $('ac-save').onclick=function(){ var p=acPayload(); patchSettings(p,'Activity Check'); Object.assign(s,p); };
+            $('ac-start').onclick=async function(){
+              try{
+                await patchSettings(acPayload(),'Activity Check');
+                await api('/api/guilds/'+guildId+'/activity-check/start',{method:'POST',body:{}});
+                toast('Activity-Check gestartet','ok');
+              }catch(e){ toast(e.message||'Start fehlgeschlagen','err'); }
+            };
+            $('ac-end').onclick=async function(){
+              try{
+                await api('/api/guilds/'+guildId+'/activity-check/end',{method:'POST',body:{}});
+                toast('Check beendet · Ergebnis gepostet','ok');
+              }catch(e){ toast(e.message||'Beenden fehlgeschlagen','err'); }
+            };
+            return;
+          }
+if(sub==='list'){
             detailShell('📋 Teamliste','<div class="set-card">'+
               '<p class="desc" style="margin:0 0 12px">Rollen werden mit <code>@Rolle</code> angezeigt und nach Discord-Hierarchie sortiert. Titel standardmäßig = Servername.</p>'+
               fieldRow('Kanal','tm-ch')+fieldRow('Rollen','tm-roles')+
@@ -6620,12 +6719,34 @@ if(sub==='dn'){
             $('tm-aw-save').onclick=function(){patchSettings({ausweisChannelId:awCh.getValue()||null,ausweisStaffRoleIds:awR.getValue(),ausweisServerName:$('tm-aw-sn').value.trim()||null,ausweisMaxExtra:Number($('tm-aw-max').value)||0},'Ausweis')};
             wirePanelSend('aw','ausweis',s.ausweisPanelChannelId||s.ausweisChannelId||'');
           } else if(sub==='fb'){
-            detailShell('⭐ Feedback','<div class="set-card">'+fieldRow('Log-Kanal','tm-fb',dLog('allgemeine Bot-Aktionen, wenn kein spezieller Log gesetzt ist'))+fieldRow('Rollen','tm-fb-r')+'<div class="field"><label>Titel</label><input id="tm-fb-t"/></div><div class="field"><label>Text</label><textarea id="tm-fb-tx"></textarea></div>'+saveBtn('tm-fb-save')+panelSendBlock('fb','Feedback-Panel')+'</div>');
+            detailShell('⭐ Feedback','<div class="set-card">'+
+              '<div class="toggle-row"><div class="lbl">Feedback aktiv</div><div id="tm-fb-on" class="toggle-sw"></div></div>'+
+              fieldRow('Feedback-Log-Kanal','tm-fb','Kanal für Bewertungen (Sterne + Grund).')+
+              fieldRow('Wer Feedback geben darf','tm-fb-r','Leer = jeder. Sonst nur diese Rollen.')+
+              '<div class="field"><label>Panel-Titel</label><input id="tm-fb-t" placeholder="Feedback"/></div>'+
+              '<div class="field"><label>Panel-Text</label><textarea id="tm-fb-tx" rows="3" placeholder="Bewerte ein Teammitglied…"></textarea></div>'+
+              '<div class="field"><label>XP bei Feedback (≥3 Sterne)</label><input id="tm-fb-xp" type="number" min="0" placeholder="10"/></div>'+
+              saveBtn('tm-fb-save')+
+              panelSendBlock('fb','Feedback-Panel')+
+              '<p class="hint">Button öffnet Modal: Teamler, Sterne 1–5, Grund.</p></div>');
+            bindToggle($('tm-fb-on'), s.feedbackEnabled!==false);
             var fb=ss($('tm-fb'),{items:ch,multi:false,value:s.feedbackLogChannelId||'',placeholder:'Log…'});
             var fbR=ss($('tm-fb-r'),{items:roles,multi:true,values:s.feedbackRoleIds||[],placeholder:'Rollen…'});
-            $('tm-fb-t').value=s.feedbackPanelTitle||''; $('tm-fb-tx').value=s.feedbackPanelText||'';
-            $('tm-fb-save').onclick=function(){patchSettings({feedbackLogChannelId:fb.getValue()||null,feedbackRoleIds:fbR.getValue(),feedbackPanelTitle:$('tm-fb-t').value.trim(),feedbackPanelText:$('tm-fb-tx').value},'Feedback')};
-            wirePanelSend('fb','feedback',s.feedbackPanelChannelId||'');
+            $('tm-fb-t').value=s.feedbackPanelTitle||'Feedback';
+            $('tm-fb-tx').value=s.feedbackPanelText||'Hast du Lob oder Kritik? Klicke auf den Button.';
+            if($('tm-fb-xp')) $('tm-fb-xp').value=s.xpFeedback!=null?s.xpFeedback:10;
+            $('tm-fb-save').onclick=function(){
+              var p={
+                feedbackEnabled:$('tm-fb-on').isOn(),
+                feedbackLogChannelId:fb.getValue()||null,
+                feedbackRoleIds:fbR.getValue(),
+                feedbackPanelTitle:$('tm-fb-t').value.trim(),
+                feedbackPanelText:$('tm-fb-tx').value,
+                xpFeedback:Number($('tm-fb-xp')&&$('tm-fb-xp').value)||10
+              };
+              patchSettings(p,'Feedback'); Object.assign(s,p);
+            };
+            wirePanelSend('fb','feedback',s.feedbackPanelChannelId||s.feedbackLogChannelId||'');
           } else {
             detailShell('⚠️ Team-Warns','<div class="set-card"><div class="field"><label>Warns bis Kick</label><input id="tm-tw" type="number" min="1"/></div>'+fieldRow('Team-Log','tm-tlog',dLog('Team-Invites, Kicks, Warns und Upranks'))+saveBtn('tm-tw-save')+'</div>');
             $('tm-tw').value=s.teamWarnKickAt||3;
@@ -6641,6 +6762,7 @@ if(sub==='dn'){
           {id:'haus',ic:'🏠',l:'Hausliste',d:'Panel und Kanal'},
           {id:'frak',ic:'🏴',l:'Fraktionen',d:'Announce, Frak-Verwaltung, Warns'}
         ], async function(sub){
+          try{refreshLiveSettings(s);}catch(e){}
           await ensureDisc();
           if(sub==='haus'){
             detailShell('🏠 Hausliste','<div class="set-card">'+fieldRow('Kanal','hh-ch')+'<div class="field"><label>Titel</label><input id="hh-t"/></div><div class="field"><label>Text</label><textarea id="hh-tx"></textarea></div>'+saveBtn('hh-save')+'</div>');
@@ -6718,61 +6840,171 @@ if(sub==='dn'){
       }
 
       if(cat==='cases'){
-        await ensureDisc();
-        main.innerHTML=backBtn()+
-          '<h1>⚖️ Strafregister / Cases</h1><p class="sdesc">Case-IDs · Reports · Notizen · Status</p>'+
-          '<div class="set-card">'+
-          '<div class="grid2"><div class="field"><label>Suche</label><input id="cs-q" placeholder="CASE-0001, User-ID, Grund…"/></div>'+
-          '<div class="field"><label>Typ</label><select id="cs-type"><option value="">Alle</option><option>warn</option><option>kick</option><option>ban</option><option>report</option><option>note</option><option>timeout</option></select></div></div>'+
-          '<button type="button" class="btn btn-sm" id="cs-reload">Aktualisieren</button></div>'+
-          '<div class="set-card" style="margin-top:12px">'+
-          '<h3 style="margin:0 0 8px">Neuer Eintrag / Report</h3>'+
-          '<div class="field"><label>Typ</label><select id="cs-nt"><option value="report">Report</option><option value="note">Notiz</option><option value="warn">Warn</option></select></div>'+
-          '<div class="field"><label>Ziel Discord-ID</label><input id="cs-target" placeholder="User-ID"/></div>'+
-          '<div class="field"><label>Roblox (optional)</label><input id="cs-rbx"/></div>'+
-          '<div class="field"><label>Grund</label><textarea id="cs-reason" rows="2"></textarea></div>'+
-          '<div class="field"><label>Beweis (Link/Text)</label><input id="cs-ev"/></div>'+
-          '<button type="button" class="btn btn-p" id="cs-create">Anlegen</button></div>'+
-          '<div class="set-card" style="margin-top:12px" id="cs-list"><span class="spinner"></span></div>';
-        async function loadCases(){
-          var box=$('cs-list'); if(!box) return;
-          try{
-            var q=$('cs-q').value.trim();
-            var type=$('cs-type').value;
-            var url='/api/guilds/'+guildId+'/cases?limit=50'+(q?'&q='+encodeURIComponent(q):'')+(type?'&type='+encodeURIComponent(type):'');
-            var data=await api(url);
-            var list=(data&&data.cases)||[];
-            if(!list.length){ box.innerHTML='<p class="hint">Keine Cases.</p>'; return; }
-            box.innerHTML=list.map(function(c){
-              return '<div class="set-row" style="flex-wrap:wrap;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">'+
-                '<div style="flex:1;min-width:180px"><strong>'+esc(c.code)+'</strong> · '+esc(c.type)+' · <span class="hint">'+esc(c.status)+'</span>'+
-                '<div class="hint">'+(c.target_id?('User '+esc(c.target_id)):'')+(c.roblox_username?(' · '+esc(c.roblox_username)):'')+'</div>'+
-                '<div>'+esc((c.reason||'').slice(0,120))+'</div></div>'+
-                '<button type="button" class="btn btn-sm" data-cs-close="'+esc(c.id)+'">Schließen</button></div>';
-            }).join('');
-            box.querySelectorAll('[data-cs-close]').forEach(function(btn){
-              btn.onclick=async function(){
-                try{ await api('/api/guilds/'+guildId+'/cases/'+btn.getAttribute('data-cs-close'),{method:'PATCH',body:{status:'closed'}}); toast('Geschlossen','ok'); loadCases(); }
-                catch(e){ toast(e.message,'err'); }
-              };
-            });
-          }catch(e){ box.innerHTML='<p class="hint" style="color:var(--err)">'+esc(e.message)+'</p>'; }
-        }
-        $('cs-reload').onclick=loadCases;
-        $('cs-create').onclick=async function(){
-          var reason=($('cs-reason').value||'').trim();
-          if(!reason){ toast('Grund fehlt','err'); return; }
-          try{
-            await api('/api/guilds/'+guildId+'/cases',{method:'POST',body:{
-              type:$('cs-nt').value, targetId:($('cs-target').value||'').trim()||null,
-              robloxUsername:($('cs-rbx').value||'').trim()||null, reason:reason, evidence:($('cs-ev').value||'').trim()||null
-            }});
-            toast('Case angelegt','ok'); $('cs-reason').value=''; loadCases();
-          }catch(e){ toast(e.message,'err'); }
-        };
-        loadCases();
+        pickCards('⚖️ Strafregister','Bereich wählen',[
+          {id:'reasons',ic:'📜',l:'Verstoßgründe',d:'VDM · Stufen 1 Warn / 2 Kick / 3 Ban'},
+          {id:'list',ic:'📋',l:'Cases / Akten',d:'Suche und neue Einträge'}
+        ], async function(sub){
+          try{refreshLiveSettings(s);}catch(e){}
+          await ensureDisc();
+          if(sub==='reasons'){
+            detailShell('📜 Verstoßgründe','<div class="set-card">'+
+              '<p class="field-desc">Pro Grund: Name + Stufen (z.B. 1 = Warn, 2 = Kick, 3 = Ban). Wird im Ingame-Panel und bei Moderations-Aktionen genutzt.</p>'+
+              '<div id="mr-list"></div>'+
+              '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+
+              '<button type="button" class="btn btn-sm" id="mr-add">+ Grund</button>'+
+              saveBtn('mr-save')+'</div></div>');
+            var reasons=[];
+            try{
+              var data=await api('/api/guilds/'+guildId+'/mod-reasons');
+              reasons=(data&&data.reasons)||[];
+            }catch(e){ toast(e.message,'err'); }
+            function stepHtml(steps, ri){
+              steps=steps||[];
+              if(!steps.length) steps=[{count:1,action:'warn'},{count:2,action:'kick'},{count:3,action:'ban'}];
+              return steps.map(function(st,si){
+                return '<div class="set-row" style="gap:6px;margin:4px 0;flex-wrap:wrap" data-si="'+si+'">'+
+                  '<span class="hint">#</span><input class="mr-sc" type="number" min="1" max="20" value="'+(st.count||si+1)+'" style="width:52px"/>'+
+                  '<select class="mr-sa">'+
+                  ['warn','kick','timeout','ban','softban','note'].map(function(a){
+                    return '<option value="'+a+'"'+(st.action===a?' selected':'')+'>'+a+'</option>';
+                  }).join('')+'</select>'+
+                  '<input class="mr-sd" placeholder="Dauer z.B. 7d" value="'+esc(st.duration||'')+'" style="width:90px"/>'+
+                  '<button type="button" class="btn btn-sm mr-sdel" style="color:var(--err)">✕</button></div>';
+              }).join('')+'<button type="button" class="btn btn-sm mr-sadd" data-ri="'+ri+'">+ Stufe</button>';
+            }
+            function draw(){
+              var box=$('mr-list'); if(!box) return;
+              if(!reasons.length){ box.innerHTML='<p class="hint">Noch keine Gründe — z.B. VDM hinzufügen.</p>'; }
+              else {
+                box.innerHTML=reasons.map(function(r,i){
+                  return '<div class="set-card" style="margin:10px 0;padding:12px" data-ri="'+i+'">'+
+                    '<div class="grid2">'+
+                    '<div class="field"><label>Name</label><input class="mr-name" value="'+esc(r.name||'')+'" placeholder="VDM"/></div>'+
+                    '<div class="field"><label>ID</label><input class="mr-id" value="'+esc(r.id||'')+'" placeholder="vdm"/></div></div>'+
+                    '<div class="field"><label>Beschreibung</label><textarea class="mr-desc" rows="2">'+esc(r.description||'')+'</textarea></div>'+
+                    '<label style="font-size:12px;color:var(--muted)">Stufen (Verstoß-Nummer → Aktion)</label>'+
+                    '<div class="mr-steps">'+stepHtml(r.steps,i)+'</div>'+
+                    '<button type="button" class="btn btn-sm mr-del" style="margin-top:8px;color:var(--err)">Grund entfernen</button></div>';
+                }).join('');
+              }
+              box.querySelectorAll('.mr-del').forEach(function(btn){
+                btn.onclick=function(){
+                  var ri=Number(btn.closest('[data-ri]').getAttribute('data-ri'));
+                  reasons.splice(ri,1); draw();
+                };
+              });
+              box.querySelectorAll('.mr-sadd').forEach(function(btn){
+                btn.onclick=function(){
+                  var ri=Number(btn.getAttribute('data-ri'));
+                  if(!reasons[ri].steps) reasons[ri].steps=[];
+                  var n=reasons[ri].steps.length+1;
+                  reasons[ri].steps.push({count:n,action:'warn'});
+                  // collect current form values first
+                  collect(); draw();
+                };
+              });
+              box.querySelectorAll('.mr-sdel').forEach(function(btn){
+                btn.onclick=function(){
+                  var card=btn.closest('[data-ri]');
+                  var ri=Number(card.getAttribute('data-ri'));
+                  var si=Number(btn.closest('[data-si]').getAttribute('data-si'));
+                  collect();
+                  reasons[ri].steps.splice(si,1);
+                  draw();
+                };
+              });
+            }
+            function collect(){
+              var out=[];
+              document.querySelectorAll('#mr-list > [data-ri]').forEach(function(card){
+                var name=(card.querySelector('.mr-name')||{}).value||'';
+                if(!name.trim()) return;
+                var id=(card.querySelector('.mr-id')||{}).value||name.toLowerCase().replace(/\s+/g,'_');
+                var steps=[];
+                card.querySelectorAll('.mr-steps [data-si]').forEach(function(row){
+                  steps.push({
+                    count:Number(row.querySelector('.mr-sc').value)||1,
+                    action:(row.querySelector('.mr-sa')||{}).value||'warn',
+                    duration:(row.querySelector('.mr-sd')||{}).value||null
+                  });
+                });
+                out.push({
+                  id:id.trim(),
+                  name:name.trim(),
+                  description:(card.querySelector('.mr-desc')||{}).value||'',
+                  steps:steps
+                });
+              });
+              reasons=out;
+              return out;
+            }
+            draw();
+            $('mr-add').onclick=function(){
+              collect();
+              reasons.push({
+                id:'grund_'+Date.now().toString(36),
+                name:'Neuer Grund',
+                description:'',
+                steps:[{count:1,action:'warn'},{count:2,action:'kick'},{count:3,action:'ban'}]
+              });
+              draw();
+            };
+            $('mr-save').onclick=async function(){
+              try{
+                var out=collect();
+                await api('/api/guilds/'+guildId+'/mod-reasons',{method:'PUT',body:{reasons:out}});
+                toast('Verstoßgründe gespeichert','ok');
+                try{ var d=await api('/api/guilds/'+guildId+'/mod-reasons'); reasons=(d&&d.reasons)||out; draw(); }catch(e){}
+              }catch(e){ toast(e.message,'err'); }
+            };
+            return;
+          }
+
+          // list cases
+          detailShell('📋 Cases / Akten','<div class="set-card">'+
+            '<div class="grid2"><div class="field"><label>Suche</label><input id="cs-q" placeholder="CASE-0001, User-ID…"/></div>'+
+            '<div class="field"><label>Typ</label><select id="cs-type"><option value="">Alle</option><option>warn</option><option>kick</option><option>ban</option><option>report</option><option>note</option></select></div></div>'+
+            '<button type="button" class="btn btn-sm" id="cs-reload">Aktualisieren</button></div>'+
+            '<div class="set-card" style="margin-top:12px"><h3 style="margin:0 0 8px">Neuer Eintrag</h3>'+
+            '<div class="field"><label>Typ</label><select id="cs-nt"><option value="report">Report</option><option value="note">Notiz</option><option value="warn">Warn</option></select></div>'+
+            '<div class="field"><label>Ziel Discord-ID</label><input id="cs-target"/></div>'+
+            '<div class="field"><label>Roblox (optional)</label><input id="cs-rbx"/></div>'+
+            '<div class="field"><label>Grund</label><textarea id="cs-reason" rows="2"></textarea></div>'+
+            '<div class="field"><label>Beweis</label><input id="cs-ev"/></div>'+
+            '<button type="button" class="btn btn-p" id="cs-create">Anlegen</button></div>'+
+            '<div class="set-card" style="margin-top:12px" id="cs-list"><span class="spinner"></span></div>');
+          async function loadCases(){
+            var box=$('cs-list'); if(!box) return;
+            try{
+              var q=$('cs-q').value.trim();
+              var type=$('cs-type').value;
+              var url='/api/guilds/'+guildId+'/cases?limit=50'+(q?'&q='+encodeURIComponent(q):'')+(type?'&type='+encodeURIComponent(type):'');
+              var data=await api(url);
+              var list=(data&&data.cases)||[];
+              if(!list.length){ box.innerHTML='<p class="hint">Keine Cases.</p>'; return; }
+              box.innerHTML=list.map(function(c){
+                return '<div class="set-row" style="flex-wrap:wrap;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">'+
+                  '<div style="flex:1;min-width:180px"><strong>'+esc(c.code||c.id)+'</strong> · '+esc(c.type)+' · <span class="hint">'+esc(c.status||'')+'</span>'+
+                  '<div class="hint">'+esc((c.reason||'').slice(0,120))+'</div></div></div>';
+              }).join('');
+            }catch(e){ box.innerHTML='<p class="hint" style="color:var(--err)">'+esc(e.message)+'</p>'; }
+          }
+          if($('cs-reload')) $('cs-reload').onclick=loadCases;
+          if($('cs-create')) $('cs-create').onclick=async function(){
+            try{
+              await api('/api/guilds/'+guildId+'/cases',{method:'POST',body:{
+                type:$('cs-nt').value, targetId:$('cs-target').value.trim()||null,
+                roblox:$('cs-rbx').value.trim()||null, reason:$('cs-reason').value, evidence:$('cs-ev').value
+              }});
+              toast('Angelegt','ok'); loadCases();
+            }catch(e){ toast(e.message,'err'); }
+          };
+          loadCases();
+        });
         return;
       }
+
+
       if(cat==='stats'){
         main.innerHTML=backBtn()+
           '<h1>📊 Team-Statistiken</h1><p class="sdesc">Aktivität der letzten Tage (Logs, Tickets, XP)</p>'+
@@ -6812,6 +7044,7 @@ if(sub==='dn'){
           {id:'security',ic:'🔒',l:'Security',d:'Anti-Nuke · Limit & Strafe'},
           {id:'automod',ic:'🤖',l:'AutoMod',d:'Links · Caps · Spam · Wörter'}
         ], async function(sub){
+          try{refreshLiveSettings(s);}catch(e){}
           await ensureDisc();
           if(sub==='unban'){
             detailShell('🔓 Unban','<div class="set-card"><div class="toggle-row"><div class="lbl">Aktiv</div><div id="mu-on" class="toggle-sw"></div></div><div class="toggle-row"><div class="lbl">Nur aktiver Ban</div><div id="mu-act" class="toggle-sw"></div></div>'+fieldRow('Kanal','mu-ch')+saveBtn('mu-save')+'</div>');
@@ -6832,33 +7065,51 @@ if(sub==='dn'){
             detailShell('🤖 AutoMod','<div class="set-card">'+
               '<div class="toggle-row"><div class="lbl">AutoMod aktiv</div><div id="am-on" class="toggle-sw"></div></div>'+
               '<div class="toggle-row"><div class="lbl">Links löschen</div><div id="am-links" class="toggle-sw"></div></div>'+
-              '<div class="field"><label>Max. Caps %</label><input type="number" id="am-caps" min="40" max="100"/></div>'+
-              '<div class="field"><label>Blockierte Wörter (Komma)</label><input id="am-words"/></div>'+
-              fieldRow('Log-Kanal','am-log',dLog('allgemeine Bot-Aktionen, wenn kein spezieller Log gesetzt ist'))+fieldRow('Ignorierte Rollen','am-ign')+saveBtn('am-save')+'</div>');
+              '<div class="toggle-row"><div class="lbl">Invite-Links löschen</div><div id="am-inv" class="toggle-sw"></div></div>'+
+              '<div class="toggle-row"><div class="lbl">Spam (Wiederholung) löschen</div><div id="am-spam" class="toggle-sw"></div></div>'+
+              '<div class="field"><label>Max. Caps %</label><p class="field-desc">Nachrichten über diesem Caps-Anteil werden gelöscht (0 = aus).</p><input type="number" id="am-caps" min="0" max="100" placeholder="70"/></div>'+
+              '<div class="field"><label>Blockierte Wörter (Komma)</label><p class="field-desc">Wortfilter — Treffer werden gelöscht und optional geloggt.</p><input id="am-words" placeholder="schimpf1, schimpf2"/></div>'+
+              fieldRow('AutoMod-Log-Kanal','am-log','Log für gelöschte Nachrichten und Filter-Treffer.')+
+              fieldRow('Ignorierte Rollen','am-ign','Diese Rollen sind vom AutoMod ausgenommen.')+
+              saveBtn('am-save')+'</div>');
             bindToggle($('am-on'), !!s.autoModEnabled);
             bindToggle($('am-links'), !!s.autoModDeleteLinks);
-            $('am-caps').value=s.autoModMaxCaps||70; $('am-words').value=s.autoModWords||'';
-            var amLog=ss($('am-log'),{items:ch,multi:false,value:s.autoModLogChannelId||''});
-            var amIgn=ss($('am-ign'),{items:roles,multi:true,values:s.autoModIgnoreRoleIds||[]});
-            $('am-save').onclick=function(){patchSettings({autoModEnabled:$('am-on').isOn(),autoModDeleteLinks:$('am-links').isOn(),autoModMaxCaps:Number($('am-caps').value)||70,autoModWords:$('am-words').value.trim(),autoModLogChannelId:amLog.getValue()||null,autoModIgnoreRoleIds:amIgn.getValue()},'AutoMod'); try{api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{autoMod:$('am-on').isOn()}});}catch(e){}};
-          } else if(sub==='security'){
-            sessionStorage.setItem('staffora_set_cat','security');
-            location.hash='security';
-            try{ document.querySelector('.settings-nav [data-cat="security"]')?.click(); }catch(e){}
-            // fall through: open security cat
-            var _nav=document.querySelectorAll('.settings-nav button, .settings-nav .nav-item, [data-cat]');
-            for(var _i=0;_i<_nav.length;_i++){ if((_nav[_i].getAttribute('data-cat')||_nav[_i].dataset.cat)==='security'){ _nav[_i].click(); break; } }
-          } else {
-            detailShell('✈️ Fly & Nametag','<div class="set-card">'+fieldRow('Kanal','mf-ch')+fieldRow('Staff','mf-r')+saveBtn('mf-save')+'</div>');
-            var mf=ss($('mf-ch'),{items:ch,multi:false,value:s.flyNametagChannelId||'',placeholder:'Kanal…'});
-            var mfr=ss($('mf-r'),{items:roles,multi:true,values:s.flyNametagStaffRoleIds||[],placeholder:'Staff…'});
-            $('mf-save').onclick=function(){patchSettings({flyNametagChannelId:mf.getValue()||null,flyNametagStaffRoleIds:mfr.getValue()},'Fly')};
+            bindToggle($('am-inv'), !!s.autoModDeleteInvites);
+            bindToggle($('am-spam'), !!s.autoModAntiSpam);
+            $('am-caps').value=s.autoModMaxCaps!=null?s.autoModMaxCaps:70;
+            $('am-words').value=Array.isArray(s.autoModWords)?s.autoModWords.join(', '):(s.autoModWords||'');
+            var amLog=ss($('am-log'),{items:ch,multi:false,value:s.autoModLogChannelId||'',placeholder:'Log…'});
+            var amIgn=ss($('am-ign'),{items:roles,multi:true,values:s.autoModIgnoreRoleIds||[],placeholder:'Rollen…'});
+            $('am-save').onclick=function(){
+              var words=($('am-words').value||'').split(',').map(function(x){return x.trim();}).filter(Boolean);
+              var p={
+                autoModEnabled:$('am-on').isOn(),
+                autoModDeleteLinks:$('am-links').isOn(),
+                autoModDeleteInvites:$('am-inv').isOn(),
+                autoModAntiSpam:$('am-spam').isOn(),
+                autoModMaxCaps:Number($('am-caps').value)||0,
+                autoModWords:words,
+                autoModLogChannelId:amLog.getValue()||null,
+                autoModIgnoreRoleIds:amIgn.getValue()
+              };
+              patchSettings(p,'AutoMod'); Object.assign(s,p);
+            };
+            return;
           }
+          // Fly & Nametag
+          detailShell('✈️ Fly & Nametag','<div class="set-card">'+fieldRow('Kanal','mf-ch','Kanal für Fly/Nametag-Anfragen.')+fieldRow('Staff-Rollen','mf-r','Dürfen Anfragen annehmen.')+saveBtn('mf-save')+'</div>');
+          var mf=ss($('mf-ch'),{items:ch,multi:false,value:s.flyNametagChannelId||'',placeholder:'Kanal…'});
+          var mfr=ss($('mf-r'),{items:roles,multi:true,values:s.flyNametagStaffRoleIds||[],placeholder:'Staff…'});
+          $('mf-save').onclick=function(){
+            var p={flyNametagChannelId:mf.getValue()||null,flyNametagStaffRoleIds:mfr.getValue()};
+            patchSettings(p,'Fly'); Object.assign(s,p);
+          };
         });
         return;
       }
 
       if(cat==='security'){
+        try{refreshLiveSettings(s);}catch(e){}
         await ensureDisc();
         var sec = (s.security && typeof s.security==='object') ? s.security : {};
         var acts = sec.actions || {};
@@ -6936,13 +7187,18 @@ if(sub==='dn'){
           });
           var payload = {
             security: {
+              mainLogChannelId: secLog.getValue()||null,
               logChannelId: secLog.getValue()||null,
               whitelistRoleIds: secWl.getValue(),
               timeoutSeconds: parseInt(($('sec-to-inp')||{}).value,10)||600,
+              logPunishments: true,
+              logWarnings: true,
               actions: actions
             }
           };
           await patchSettings(payload, 'Security');
+          Object.assign(s, payload);
+          if(s.security) Object.assign(s.security, payload.security||{});
           try {
             await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{security:$('sec-mod').isOn()}});
             showSaveHint('Security-Modul '+($('sec-mod').isOn()?'AN':'AUS'), true);
@@ -7079,6 +7335,7 @@ if(sub==='dn'){
           {id:'gw',ic:'🎁',l:'Giveaways',d:'Kanal und Rollen'},
           {id:'sug',ic:'💡',l:'Vorschläge',d:'Kanal und Staff'}
         ], async function(sub){
+          try{refreshLiveSettings(s);}catch(e){}
           await ensureDisc();
           if(sub==='partner'){
             var tiers=Array.isArray(s.partnerTiers)?s.partnerTiers.slice():[
@@ -7262,6 +7519,7 @@ if(sub==='dn'){
           {id:'logs',ic:'📋',l:'Log-Kanäle',d:'System, Mod, Tickets, Security'},
           {id:'stats',ic:'📈',l:'Server-Stats',d:'Server, Code, Players, Online/Offline'}
         ], async function(sub){
+          try{refreshLiveSettings(s);}catch(e){}
           await ensureDisc();
           if(sub==='logs'){
             detailShell('📋 Logs','<div class="set-card">'+
