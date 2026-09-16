@@ -2531,7 +2531,10 @@ async function api(path,opts){
 
     function labelOf(id){
       var it=items.find(function(x){return String(x.id)===String(id)});
-      return it?it.name:id;
+      if(it) return it.name;
+      var sid=String(id||'');
+      if(!sid) return '';
+      return 'Gespeichert · ' + sid.slice(0,6)+'…';
     }
     function syncInput(){
       if(multi){
@@ -5710,9 +5713,22 @@ async function api(path,opts){
       ]).then(function(pack){
         if(guildId!==gid) return;
         var c=pack[0]||{};
-        if(c && (c.settings||c.modules)) window.__cfgCache={gid:gid, at:Date.now(), data:c};
+        if(c && (c.settings||c.modules)){
+          window.__cfgCache={gid:gid, at:Date.now(), data:c};
+          try{
+            if(c.settings) Object.assign(s, c.settings);
+            if(c.modules) Object.assign(mods, c.modules);
+            window.__settingsLive=Object.assign(window.__settingsLive||{}, c.settings||{});
+          }catch(e){}
+        }
         var d=pack[1]||{};
-        if(d && (d.channels||d.roles)) window.__discCache={gid:gid, at:Date.now(), data:d};
+        if(d && (d.channels||d.roles)){
+          window.__discCache={gid:gid, at:Date.now(), data:d};
+          try{
+            roles=roleItems(d.roles||[]);
+            ch=channelItems(d.channels||[],'text');
+          }catch(e){}
+        }
       }).catch(function(){});
     })();
 
@@ -5840,6 +5856,13 @@ async function api(path,opts){
 
     async function renderCat(cat){
       activeCat=cat;
+      try{ if(typeof refreshLiveSettings==='function') refreshLiveSettings(s); }catch(e){}
+      try{
+        if(window.__discCache && window.__discCache.gid===guildId && window.__discCache.data){
+          roles=roleItems(window.__discCache.data.roles||[]);
+          ch=channelItems(window.__discCache.data.channels||[],'text');
+        }
+      }catch(e){}
       function backBtn(){
         return '<button type="button" class="btn-back" id="set-back">← Zurück</button>';
       }
@@ -6002,6 +6025,7 @@ async function api(path,opts){
       }
 
       if(cat==='perms'){
+        await ensureDisc();
         main.innerHTML=backBtn()+
           '<h1>🔐 Rollen & Berechtigungen</h1><p class="sdesc">Zugriff und Staff-Rechte</p>'+
           '<div class="set-card"><h3>Staff & Admin</h3><p class="hint">Rollen ohne sichtbare IDs</p>'+
@@ -6067,24 +6091,29 @@ async function api(path,opts){
       }
       function ensureDisc(){
         return (async function(){
+          try{
+            if(window.__discCache && window.__discCache.gid===guildId && window.__discCache.data){
+              roles=roleItems(window.__discCache.data.roles||[]);
+              ch=channelItems(window.__discCache.data.channels||[],'text');
+            }
+          }catch(e){}
           if(roles && roles.length && ch && ch.length) return;
           try{
-            /* use cache first — only force refresh if empty after */
             disc=await loadDiscord(false);
             roles=roleItems(disc.roles||[]);
             ch=channelItems(disc.channels||[],'text');
-            if(!(ch && ch.length)){
+            if(!(roles && roles.length) || !(ch && ch.length)){
               disc=await Promise.race([
                 loadDiscord(true),
-                new Promise(function(r){ setTimeout(function(){ r(disc||{roles:[],channels:[]}); }, 2500); })
+                new Promise(function(r){ setTimeout(function(){ r(disc||{roles:[],channels:[]}); }, 4000); })
               ]);
-              roles=roleItems(disc.roles||[]);
-              ch=channelItems(disc.channels||[],'text');
+              roles=roleItems((disc&&disc.roles)||[]);
+              ch=channelItems((disc&&disc.channels)||[],'text');
             }
-          }catch(e){}
+          }catch(e){ console.warn('ensureDisc', e); }
         })();
       }
-      function ss(el, opts){
+function ss(el, opts){
         if(!el) return {getValue:function(){return opts.multi?[]:''}, getValues:function(){return []}};
         try{ return makeSearchSelect(el, opts); }catch(e){ console.warn(e); return {getValue:function(){return opts.multi?[]:''}}; }
       }
@@ -6111,48 +6140,6 @@ async function api(path,opts){
           }catch(e){ toast(e.message||'Senden fehlgeschlagen','err'); }
           btn.disabled=false;
         };
-      }
-
-      if(cat==='design'){
-        main.innerHTML=backBtn()+
-          '<h1>🎨 Design & Darstellung</h1><p class="sdesc">Darstellung und Theme</p>'+
-          '<div class="set-card"><h3>Design</h3><p class="hint">Dunkles Theme mit Akzentfarbe (aktiv)</p>'+
-            '<div class="set-row"><div><div class="lbl">Dark Mode</div><div class="sub">Immer aktiv</div></div><span class="badge-on">AN</span></div>'+
-            '<div class="set-row"><div><div class="lbl">Akzentfarbe</div><div class="sub">Staffora Lila</div></div></div>'+
-            '<div class="set-row"><div><div class="lbl">Karten-Stil</div><div class="sub">Glass / Border Glow</div></div></div></div>'+
-          '<div class="set-card"><h3>Panels</h3><p class="hint">Panel-Versand</p>'+
-            '<button type="button" class="btn btn-p btn-sm" id="des-panels">Panels senden →</button></div>';
-        try{bindBack()}catch(e){}
-        var pb=$('des-panels'); if(pb) pb.onclick=function(){ goFeature('panels'); };
-        return;
-      }
-
-      if(cat==='nav'){
-        main.innerHTML=backBtn()+
-          '<h1>🧭 Navigation</h1><p class="sdesc">Sidebar und Menüpunkte</p>'+
-          '<div class="set-card"><h3>Sidebar</h3><p class="hint">Menüpunkte folgen den Feature-Tabs. Module aus = Funktionen inaktiv.</p>'+
-            '<div class="set-row"><div><div class="lbl">Sidebar</div><div class="sub">Links, Icons, Kategorien</div></div><span class="badge-on">Standard</span></div></div>';
-        try{bindBack()}catch(e){}
-        return;
-      }
-
-      if(cat==='perms'){
-        main.innerHTML=backBtn()+
-          '<h1>🔐 Rollen & Rechte</h1><p class="sdesc">Zugriff und Staff-Rechte</p>'+
-          '<div class="set-card"><h3>Staff & Admin</h3>'+
-            fieldRow('Staff-Rollen','pr-staff','Grund-Staff-Rollen für Moderations- und Team-Funktionen.')+fieldRow('Admin-Rollen','pr-admin','Volle Rechte im Dashboard und kritische Bot-Aktionen.')+fieldRow('Stats verwalten','pr-stats')+
-            saveBtn('pr-save')+'</div>'+
-          '<div class="set-card"><h3>Weitere Rechte</h3>'+
-            '<button type="button" class="btn btn-sm" data-g="modperms">Moderation Permissions →</button> '+
-            '<button type="button" class="btn btn-sm" data-g="commands">Commands →</button> '+
-            '<button type="button" class="btn btn-sm" data-g="cmdrights">Commands & Rechte →</button></div>';
-        try{bindBack()}catch(e){}
-        var prS=ss($('pr-staff'),{items:roles,multi:true,values:s.staffRoleIds||[],placeholder:'Staff…'});
-        var prA=ss($('pr-admin'),{items:roles,multi:true,values:s.adminRoleIds||[],placeholder:'Admin…'});
-        var prT=ss($('pr-stats'),{items:roles,multi:true,values:s.statsManageRoleIds||[],placeholder:'Stats…'});
-        $('pr-save').onclick=function(){patchSettings({staffRoleIds:prS.getValue(),adminRoleIds:prA.getValue(),statsManageRoleIds:prT.getValue()},'Rechte')};
-        main.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-g'))}});
-        return;
       }
 
       if(cat==='tickets'){
