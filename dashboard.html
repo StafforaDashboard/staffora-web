@@ -1260,6 +1260,8 @@ html.pre-auth #v-app{opacity:1}
 }
 .settings-main h1{font-size:1.4rem;margin:0 0 4px}
 .settings-main .sdesc{color:#8b8b9a;font-size:13px;margin-bottom:18px}
+.field-desc{color:#7a7a8c;font-size:12px;line-height:1.45;margin:4px 0 8px;opacity:.95}
+.field label{display:block;font-weight:600;font-size:13px;margin-bottom:2px}
 .settings-search{
   width:100%;
   max-width:360px;
@@ -2102,7 +2104,17 @@ body.gp-full .settings-main{
     setSaveUI('saving','Speichern…');
     try{
       await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
-      window.__cfgCache=null;
+      // Keep settings visible: merge into live cache (do NOT wipe form state)
+      try{
+        window.__settingsLive = Object.assign(window.__settingsLive||{}, body||{});
+        if(!window.__cfgCache || window.__cfgCache.gid!==guildId){
+          window.__cfgCache = { gid:guildId, data:{ settings:{}, modules:{} } };
+        }
+        if(!window.__cfgCache.data) window.__cfgCache.data = { settings:{}, modules:{} };
+        if(!window.__cfgCache.data.settings) window.__cfgCache.data.settings = {};
+        Object.assign(window.__cfgCache.data.settings, body||{});
+        window.__cfgCache.at = Date.now();
+      }catch(_e){}
       window.__saveState.dirty=false;
       window.__saveState.lastOk=Date.now();
       setSaveUI('ok', (label||'Gespeichert')+' · '+new Date().toLocaleTimeString());
@@ -2391,12 +2403,12 @@ async function api(path,opts){
   }
 
   async function loadDiscord(force){
-    if(!force && window.__discCache && window.__discCache.gid===guildId && Date.now()-window.__discCache.at<300000){
+    if(!force && window.__discCache && window.__discCache.gid===guildId && Date.now()-window.__discCache.at<600000){
       return window.__discCache.data;
     }
     var data={channels:[],roles:[],emojis:[],stickers:[]};
     try{
-      data=await api('/api/guilds/'+guildId+'/discord'+(force?'?refresh=1':''));
+      data=await api('/api/guilds/'+guildId+'/discord'+(force?'?refresh=1':''),{timeoutMs:force?12000:8000});
     }catch(e){
       console.warn('loadDiscord', e);
       try{ data=await api('/api/guilds/'+guildId+'/discord?refresh=1'); }catch(e2){}
@@ -4553,7 +4565,7 @@ async function api(path,opts){
     var disc={channels:[],emojis:[]}; try{disc=await loadDiscord()}catch(e){}
     p.innerHTML='<h1>Panels senden</h1><p class="desc">Panel in einen Kanal senden</p>'+
       '<div class="card">'+
-      '<div class="field"><label>Panel-Typ</label><select id="pn-type">'+'<option value="ticket">Tickets</option>'+'<option value="admin_call">Admin Call</option>'+'<option value="interview">Interview</option>'+'<option value="feedback">Feedback</option>'+'<option value="dn_bewerben">DN Bewerbung</option>'+'<option value="dn_search">DN Suche</option>'+'<option value="ausweis">Ausweis</option>'+'<option value="duty">Duty / Online</option>'+'<option value="partner">Partnerschaft</option>'+'<option value="faction_apply">Fraktions-Bewerbung</option>'+'<option value="support_ping">Support-Ping</option>'+'<option value="team_roblox">Team Roblox-Name</option>'+'<option value="verify">Verify</option>'+'<option value="hausliste">Hausliste</option></select></div>'+
+      '<div class="field"><label>Panel-Typ</label><select id="pn-type">'+'<option value="ticket">Tickets</option>'+'<option value="admin_call">Admin Call</option>'+'<option value="interview">Interview</option>'+'<option value="feedback">Feedback</option>'+'<option value="dn_bewerben">DN Bewerbung</option>'+'<option value="dn_search">DN Suche</option>'+'<option value="ausweis">Ausweis</option>'+'<option value="duty">Duty / Online</option>'+'<option value="partner">Partnerschaft</option>'+'<option value="faction_apply">Fraktions-Bewerbung</option>'+'<option value="team_roblox">Team Roblox-Name</option>'+'<option value="verify">Verify</option>'+'<option value="hausliste">Hausliste</option></select></div>'+
       '<div class="field"><label>Kanal</label><div id="pn-ch"></div></div>'+
       '<button type="button" class="btn btn-p" id="pn-send">Senden</button></div>';
     var pick=makeSearchSelect($('pn-ch'),{items:channelItems(disc.channels),multi:false,value:'',placeholder:'Kanal…'});
@@ -4987,61 +4999,71 @@ async function api(path,opts){
   
   
   async function pageServerStats(p){
-    var __mods=await loadModules();
-
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
-    var s=cfg.settings||{};
+    var s=Object.assign({}, (cfg&&cfg.settings)||{}, window.__settingsLive||{});
     var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
-    var live={}; try{live=await api('/api/guilds/'+guildId+'/team/online')}catch(e){live={}}
-    p.innerHTML='<h1>📈 Server-Stats & On Duty</h1>'+
+    p.innerHTML='<h1>📈 Server Stats</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
-      '<p class="desc">Zwei Discord-Panels: Ingame-Stats (Roblox-Online) und Online-Admin (Duty).</p>'+
-      '<div class="stat-row">'+
-      '<div class="stat-box"><b id="ss-n-duty">'+String(live.total||0)+'</b><span>On Duty</span></div>'+
-      '<div class="stat-box"><b id="ss-n-adm">'+String((live.withAdmin||[]).length)+'</b><span>Mit Admin</span></div>'+
-      '<div class="stat-box"><b id="ss-n-no">'+String((live.withoutAdmin||[]).length)+'</b><span>Ohne Admin</span></div></div>'+
-      '<div class="grid2">'+
-      '<div class="card"><h2>📊 Ingame Server-Stats</h2>'+
-      '<div class="field"><label>Stats-Kanal</label><div id="ss-ch"></div></div>'+
-      '<div class="field"><label>Titel (optional)</label><input id="ss-title" placeholder="Server Stats"/></div>'+
-      '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px">'+
+      '<p class="desc">Discord-Panel: <b>Server</b>, <b>Code</b>, <b>Players</b>, <b>Online/Offline</b> — kein Online-Admin-Listing.</p>'+
+      '<div class="card">'+
+      '<div class="field"><label>Stats-Kanal</label><p class="field-desc">Textkanal für das Auto-Update-Panel (alle ~30s).</p><div id="ss-ch"></div></div>'+
+      '<div class="field"><label>Titel</label><input id="ss-title" placeholder="Server Stats"/></div>'+
+      '<div class="field"><label>Server-Name</label><p class="field-desc">Anzeigename im Panel (z.B. Notruf Hamburg).</p><input id="ss-server" placeholder="Servername"/></div>'+
+      '<div class="field"><label>Code (Private Server)</label><p class="field-desc">Join-Code, der im Panel angezeigt wird.</p><input id="ss-code" placeholder="z.B. abc123"/></div>'+
+      '<div class="field"><label>Players (aktuell)</label><p class="field-desc">Aktuelle Spielerzahl — manuell oder per Update.</p><input id="ss-players" type="number" min="0" placeholder="0"/></div>'+
+      '<div class="field"><label>Max Players (optional)</label><input id="ss-max" type="number" min="0" placeholder="z.B. 40"/></div>'+
+      '<div class="field"><label>Extra-Info (optional)</label><input id="ss-extra" placeholder="Kurzer Infotext"/></div>'+
+      '<div class="toggle-row"><div class="lbl">Server Online</div><div id="ss-online" class="toggle-sw"></div></div>'+
+      '<p class="field-desc">Online/Offline-Status. Wird auch durch /rp-start und /rp-stop gesetzt.</p>'+
+      '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">'+
       '<button type="button" class="btn btn-p" id="ss-save">Speichern</button>'+
-      '<button type="button" class="btn" id="ss-upd">Jetzt aktualisieren</button></div>'+
-      '<p class="desc" style="margin-top:8px">Oder Discord: <code>/stats</code></p></div>'+
-      '</div>';
+      '<button type="button" class="btn" id="ss-upd">Panel jetzt aktualisieren</button></div>'+
+      '<p class="desc" style="margin-top:8px">Discord: <code>/stats</code> · Status ändert sich mit <code>/rp-start</code> / <code>/rp-stop</code></p></div>';
 
-    $('ss-title').value=s.serverStatsTitle||s.systemName||'Server Stats';
-        var pick=makeSearchSelect($('ss-ch'),{items:channelItems(disc.channels),multi:false,value:s.statusChannelId||s.serverStatsChannelId||'',placeholder:'Stats-Kanal…'});
-    /* online admin removed */
-    /* online admin removed */
-
+    var pick=makeSearchSelect($('ss-ch'),{items:channelItems(disc.channels||[],'text'),multi:false,value:s.statusChannelId||s.serverStatsChannelId||'',placeholder:'Stats-Kanal…'});
+    $('ss-title').value=s.serverStatsTitle||'Server Stats';
+    $('ss-server').value=s.serverStatsServerName||s.systemName||'';
+    $('ss-code').value=s.serverStatsCode||s.privateServerCode||s.joinCode||'';
+    $('ss-players').value=s.serverStatsPlayers!=null?s.serverStatsPlayers:'';
+    $('ss-max').value=s.serverStatsMaxPlayers!=null?s.serverStatsMaxPlayers:'';
+    $('ss-extra').value=s.serverStatsExtra||'';
+    bindToggle($('ss-online'), s.serverStatsOnline===true||s.rpActive===true);
+    function payload(){
+      return {
+        statusChannelId:pick.getValue()||null,
+        serverStatsChannelId:pick.getValue()||null,
+        serverStatsTitle:$('ss-title').value.trim()||null,
+        serverStatsServerName:$('ss-server').value.trim()||null,
+        serverStatsCode:$('ss-code').value.trim()||null,
+        privateServerCode:$('ss-code').value.trim()||null,
+        serverStatsPlayers:$('ss-players').value!==''?Number($('ss-players').value):null,
+        serverStatsMaxPlayers:$('ss-max').value!==''?Number($('ss-max').value):null,
+        serverStatsExtra:$('ss-extra').value.trim()||null,
+        serverStatsOnline:$('ss-online').isOn(),
+        rpActive:$('ss-online').isOn(),
+        serverStatsStatus:$('ss-online').isOn()?'online':'offline'
+      };
+    }
     $('ss-save').onclick=async function(){
       try{
-        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-          statusChannelId:pick.getValue()||null,
-          serverStatsChannelId:pick.getValue()||null,
-          serverStatsTitle:$('ss-title').value.trim()||null
-        }});
-        toast('Stats-Kanal gespeichert','ok');
+        var body=payload();
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
+        Object.assign(s, body); window.__settingsLive=Object.assign(window.__settingsLive||{}, body);
+        toast('Server Stats gespeichert','ok');
       }catch(e){toast(e.message,'err')}
     };
     $('ss-upd').onclick=async function(){
       try{
+        var body=payload();
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
         var ch=pick.getValue();
-        if(ch) await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{statusChannelId:ch,serverStatsChannelId:ch,serverStatsTitle:$('ss-title').value.trim()||null}});
-        try{
-          await api('/api/guilds/'+guildId+'/status-panel/update',{method:'POST',body:{}});
-        }catch(e1){
-          await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'status',channelId:ch||s.statusChannelId}});
-        }
-        toast('Stats-Panel aktualisiert','ok');
+        if(ch) await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'status',channelId:ch}});
+        else await api('/api/guilds/'+guildId+'/stats/refresh',{method:'POST',body:{}}).catch(function(){});
+        toast('Panel aktualisiert','ok');
       }catch(e){toast(e.message,'err')}
     };
-    /* removed oa save */
-
-    /* removed oa upd */
-
   }
+
 
   async function pageRp(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
@@ -5639,7 +5661,7 @@ async function api(path,opts){
 
     /* instant shell: use cache if any, otherwise empty — fetch in background */
     var cfg=(window.__cfgCache && window.__cfgCache.gid===guildId) ? window.__cfgCache.data : {};
-    var s=(cfg&&cfg.settings)||{};
+    var s=Object.assign({}, (cfg&&cfg.settings)||{}, window.__settingsLive||{});
     var mods=(cfg&&cfg.modules)||{};
     var disc=(window.__discCache && window.__discCache.gid===guildId && window.__discCache.data) ? window.__discCache.data : {roles:[],channels:[]};
     var roles=roleItems(disc.roles||[]);
@@ -5953,9 +5975,16 @@ async function api(path,opts){
 
 
 
-      function fieldRow(label, id){
-        return '<div class="field"><label>'+label+'</label><div id="'+id+'"></div></div>';
+      function fieldRow(label, id, desc){
+        return '<div class="field"><label>'+label+'</label>'+
+          (desc?('<p class="field-desc">'+desc+'</p>'):'')+
+          '<div id="'+id+'"></div></div>';
       }
+      /** Short helper: log / role / channel descriptions */
+      function dLog(what){ return 'Textkanal, in dem '+what+' protokolliert werden (Wer, Was, Wann).'; }
+      function dRole(what){ return 'Discord-Rollen, die '+what+' dürfen.'; }
+      function dCh(what){ return 'Text- oder Voice-Kanal für '+what+'.'; }
+
       function saveBtn(id, label){
         return '<button type="button" class="btn btn-p btn-sm" id="'+id+'">'+(label||'Speichern')+'</button>';
       }
@@ -6005,7 +6034,7 @@ async function api(path,opts){
       function panelSendBlock(id, label){
         return '<div class="set-card" style="margin-top:12px">'+
           '<h3 style="margin:0 0 8px;font-size:14px">📨 '+(label||'Panel senden')+'</h3>'+
-          fieldRow('Kanal','ps-ch-'+id)+
+          fieldRow('Kanal','ps-ch-'+id,'Textkanal, in den das Panel (Embed + Buttons) gesendet wird.')+
           '<button type="button" class="btn btn-p btn-sm" id="ps-go-'+id+'">Panel senden</button></div>';
       }
       function wirePanelSend(id, type, defaultCh){
@@ -6053,7 +6082,7 @@ async function api(path,opts){
         main.innerHTML=backBtn()+
           '<h1>🔐 Rollen & Rechte</h1><p class="sdesc">Zugriff und Staff-Rechte</p>'+
           '<div class="set-card"><h3>Staff & Admin</h3>'+
-            fieldRow('Staff-Rollen','pr-staff')+fieldRow('Admin-Rollen','pr-admin')+fieldRow('Stats verwalten','pr-stats')+
+            fieldRow('Staff-Rollen','pr-staff','Grund-Staff-Rollen für Moderations- und Team-Funktionen.')+fieldRow('Admin-Rollen','pr-admin','Volle Rechte im Dashboard und kritische Bot-Aktionen.')+fieldRow('Stats verwalten','pr-stats')+
             saveBtn('pr-save')+'</div>'+
           '<div class="set-card"><h3>Weitere Rechte</h3>'+
             '<button type="button" class="btn btn-sm" data-g="modperms">Moderation Permissions →</button> '+
@@ -6079,9 +6108,10 @@ async function api(path,opts){
           if(sub==='tix'){
             var types=Array.isArray(s.ticketTypes)?s.ticketTypes.slice():[];
             detailShell('🎫 Tickets','<div class="set-card">'+
-              fieldRow('Standard-Kategorie (Discord)','st-cat')+fieldRow('Support-Rollen','st-roles')+
-              fieldRow('Ticket-Log (Textkanal)','st-log')+fieldRow('Blacklist-Rollen','st-bl')+
-              '<div class="field"><label>Panel-Bild (optional)</label><input type="file" id="st-img-panel" accept="image/*"/><button type="button" class="btn btn-sm" id="st-img-up">Bild hochladen</button><span class="hint" id="st-img-status"></span></div>'+
+              fieldRow('Standard-Kategorie (Discord)','st-cat','Discord-Kategorie, unter der neue Ticket-Kanäle erstellt werden.')+fieldRow('Support-Rollen','st-roles','Rollen, die Tickets sehen, übernehmen und schließen können.')+
+              '<div class="field"><label>Text bei Ticket-Eröffnung</label><textarea id="st-hint" rows="2" placeholder="Support wird sich bald…"></textarea></div>'+
+              fieldRow('Ticket-Log (Textkanal)','st-log',dLog('Ticket-Öffnungen, Claims und Schließungen (inkl. Transcript)'))+fieldRow('Blacklist-Rollen','st-bl','Mitglieder mit diesen Rollen können keine Tickets öffnen.')+
+              '<div class="field"><label>Panel-Bild (optional)</label><input type="file" id="st-img-panel" accept="image/*"/><button type="button" class="btn btn-sm" id="st-img-up">Panel-Bild</button> '+ '<input type="file" id="st-img-create" accept="image/*" style="margin-top:6px"/><button type="button" class="btn btn-sm" id="st-img-up-create">Eröffnungs-Bild</button> '+ '<span class="hint" id="st-img-status"></span><div id="st-img-prev" style="margin-top:8px"></div></div>'+
               '<div class="field"><label>Panel-Titel</label><input id="st-title"/></div>'+
               '<div class="field"><label>Panel-Text</label><textarea id="st-text"></textarea></div>'+
               '<div class="field"><label>Auto-Close (Stunden, 0 = aus)</label><input id="st-ac" type="number" min="0"/></div>'+
@@ -6094,13 +6124,15 @@ async function api(path,opts){
               '<div id="st-types-list"></div>'+
               '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">'+
               '<div class="field"><label>Name *</label><input id="st-tn" placeholder="z.B. Support, Highteam, Beschwerde"/></div>'+
+              '<div class="field"><label>Beschreibung</label><input id="st-td" placeholder="z.B. Allgemeine Hilfe"/></div>'+
               '<div class="field"><label>Emoji</label><input id="st-te" placeholder="🎫" maxlength="8"/></div>'+
-              fieldRow('Discord-Kategorie (optional)','st-tcat')+
-              fieldRow('Support-Rollen (optional)','st-troles')+
+              fieldRow('Discord-Kategorie (optional)','st-tcat','Eigene Kategorie nur für diese Ticket-Art (sonst Standard-Kategorie).')+
+              fieldRow('Support-Rollen (optional)','st-troles','Eigene Support-Rollen nur für diese Ticket-Art.')+
               '<button type="button" class="btn btn-p btn-sm" id="st-tadd">Art hinzufügen</button>'+
               '</div></div>');
             var pCat=ss($('st-cat'),{items:channelItems(disc.channels||[],[4,'4','GUILD_CATEGORY']),multi:false,value:s.ticketCategoryId||'',placeholder:'Kategorie…'});
             var pRoles=ss($('st-roles'),{items:roles,multi:true,values:s.ticketSupportRoleIds||[],placeholder:'Support…'});
+            try{ if($('st-hint')) $('st-hint').value=s.ticketOpenHint||'Support wird sich bald um dich kümmern.\nBitte beschreibe dein Anliegen möglichst klar.'; }catch(e){}
             var pLog=ss($('st-log'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
             var pBl=ss($('st-bl'),{items:roles,multi:true,values:s.ticketBlacklistRoleIds||[],placeholder:'Blacklist…'});
             var pTCat=ss($('st-tcat'),{items:channelItems(disc.channels||[],[4,'4','GUILD_CATEGORY']),multi:false,value:'',placeholder:'Optional…'});
@@ -6130,6 +6162,20 @@ async function api(path,opts){
               });
             }
             renderTypes();
+            $('st-img-up-create')&&($('st-img-up-create').onclick=async function(){
+              var f=$('st-img-create')&&$('st-img-create').files&&$('st-img-create').files[0];
+              if(!f){ toast('Datei wählen','err'); return; }
+              var reader=new FileReader();
+              reader.onload=async function(){
+                try{
+                  var out=await api('/api/guilds/'+guildId+'/ticket-image/upload',{method:'POST',body:{kind:'create',data:reader.result}});
+                  $('st-img-status').textContent='Eröffnungs-Bild gespeichert';
+                  if(out&&out.url){ var p=$('st-img-prev'); if(p) p.innerHTML='<img src="'+out.url+'" style="max-width:220px;border-radius:10px"/>'; }
+                  toast('Eröffnungs-Bild OK','ok');
+                }catch(e){ toast(e.message,'err'); }
+              };
+              reader.readAsDataURL(f);
+            });
             $('st-img-up')&&($('st-img-up').onclick=async function(){
               var f=$('st-img-panel')&&$('st-img-panel').files&&$('st-img-panel').files[0];
               if(!f){ toast('Datei wählen','err'); return; }
@@ -6137,6 +6183,7 @@ async function api(path,opts){
               reader.onload=async function(){
                 try{
                   await api('/api/guilds/'+guildId+'/ticket-image/upload',{method:'POST',body:{kind:'panel',data:reader.result}});
+                  if(out&&out.url){ var p=$('st-img-prev'); if(p) p.innerHTML='<img src="'+out.url+'" style="max-width:220px;border-radius:10px;margin-top:6px"/>'; }
                   $('st-img-status').textContent='Hochgeladen';
                   toast('Ticket-Bild gespeichert','ok');
                 }catch(e){ toast(e.message,'err'); }
@@ -6154,6 +6201,7 @@ async function api(path,opts){
                 id:id,
                 name:name,
                 emoji:($('st-te').value||'🎫').trim()||'🎫',
+                description:(($('st-td')&&$('st-td').value)||'').trim(),
                 categoryId:pTCat.getValue()||null,
                 staffRoleIds:pTRoles.getValue()||[]
               });
@@ -6163,37 +6211,67 @@ async function api(path,opts){
               patchSettings({ticketTypes:types},'Ticket-Arten');
               toast('Art hinzugefügt','ok');
             };
-            $('st-save').onclick=function(){patchSettings({ticketCategoryId:pCat.getValue()||null,ticketSupportRoleIds:pRoles.getValue(),ticketLogChannelId:pLog.getValue()||null,ticketBlacklistRoleIds:pBl.getValue(),ticketPanelTitle:$('st-title').value.trim(),ticketPanelText:$('st-text').value,ticketAutoCloseHours:Number($('st-ac').value)||0,aiAssistEnabled:$('st-ai').isOn(),ticketTypes:types},'Tickets');};
+            $('st-save').onclick=function(){patchSettings({ticketCategoryId:pCat.getValue()||null,ticketSupportRoleIds:pRoles.getValue(),ticketOpenHint:($('st-hint')&&$('st-hint').value)||null,ticketLogChannelId:pLog.getValue()||null,ticketBlacklistRoleIds:pBl.getValue(),ticketPanelTitle:$('st-title').value.trim(),ticketPanelText:$('st-text').value,ticketAutoCloseHours:Number($('st-ac').value)||0,aiAssistEnabled:$('st-ai').isOn(),ticketTypes:types},'Tickets');};
             wirePanelSend('ticket','ticket',s.ticketPanelChannelId||'');
           } else if(sub==='wart'){
-            detailShell('🎧 Warteraum','<div class="set-card">'+
-              fieldRow('Warteraum-Voice','sw-vc')+fieldRow('Support-Textkanal','sw-txt')+
-              fieldRow('Staff-Ping-Rollen','sw-ping')+fieldRow('XP-fähige Support-Räume','sw-xp')+
+            detailShell('🎧 Warteraum Support','<div class="set-card">'+
+              '<div class="toggle-row"><div class="lbl">Warteraum aktiv</div><div id="sw-on" class="toggle-sw"></div></div>'+
+              fieldRow('Warteraum-Voice','sw-vc','Voice-Kanal: User joint → Support-Fall wird automatisch erstellt.')+
+              fieldRow('Support-Fälle Kanal (Notify)','sw-txt','Textkanal mit „Übernehmen“-Button und Staff-Ping bei neuem Fall.')+
+              fieldRow('Übernehmen-Log Kanal','sw-log',dLog('wer einen Support-Fall übernommen hat (Staff + User + Raum)'))+
+              fieldRow('Staff-Rollen (Ping + Übernehmen)','sw-ping','Werden bei neuem Fall gepingt und dürfen „Übernehmen“ drücken.')+
+              fieldRow('Support-Rollen (Raum)','sw-sup','Zusätzliche Rollen mit Zugriff auf den Support-Voice-Raum.')+
+              fieldRow('XP-fähige Support-Räume','sw-xp','In diesen Voice-Räumen sammeln Staff XP (z. B. Temp-Support).')+
               '<div class="toggle-row"><div class="lbl">Musik</div><div id="sw-mus" class="toggle-sw"></div></div>'+
               '<div class="field"><label>Musik-Datei (mp3/ogg/wav)</label><input type="file" id="sw-file" accept="audio/*,.mp3,.ogg,.wav,.m4a"/></div>'+
               '<p class="hint" id="sw-file-info">Noch keine Datei</p>'+
               '<div class="field"><label>Oder Musik-URL</label><input id="sw-url" placeholder="https://…"/></div>'+
               '<button type="button" class="btn btn-sm" id="sw-upload">Datei hochladen</button> '+
-              saveBtn('sw-save')+'</div>');
-            var wVc=ss($('sw-vc'),{items:channelItems(disc.channels||[],[2,'2','GUILD_VOICE']),multi:false,value:s.warteraumChannelId||s.supportWaitingChannelId||'',placeholder:'Voice…'});
-            var wTx=ss($('sw-txt'),{items:ch,multi:false,value:s.warteraumTextChannelId||s.supportCaseChannelId||'',placeholder:'Text…'});
-            var wPing=ss($('sw-ping'),{items:roles,multi:true,values:s.warteraumPingRoleIds||s.supportPingRoleIds||[],placeholder:'Ping…'});
-            var wXp=ss($('sw-xp'),{items:channelItems(disc.channels||[],[2,'2','GUILD_VOICE']),multi:true,values:s.xpVoiceChannelIds||[],placeholder:'XP-Räume…'});
-            bindToggle($('sw-mus'), s.warteraumMusicEnabled!==false); $('sw-url').value=s.warteraumMusicUrl||'';
-            $('sw-url').value=s.warteraumMusicUrl||'';
-            if($('sw-file-info')) $('sw-file-info').textContent=(s.warteraumMusicFile||s.warteraumMusicUrl)?'Musik hinterlegt: '+(s.warteraumMusicUrl||'Datei'):'Noch keine Datei';
-            $('sw-save').onclick=function(){patchSettings({warteraumChannelId:wVc.getValue()||null,supportWaitingChannelId:wVc.getValue()||null,warteraumTextChannelId:wTx.getValue()||null,supportCaseChannelId:wTx.getValue()||null,warteraumPingRoleIds:wPing.getValue(),supportPingRoleIds:wPing.getValue(),xpVoiceChannelIds:wXp.getValue(),warteraumMusicEnabled:$('sw-mus').isOn(),warteraumMusicUrl:$('sw-url').value.trim()||null},'Warteraum')};
+              saveBtn('sw-save')+
+              '<p class="hint" style="margin-top:10px">User joint Voice → Fall im Notify-Kanal mit Übernehmen. Log optional separat.</p></div>');
+            var voiceCh=channelItems(disc.channels||[],[2,'2','GUILD_VOICE']);
+            var wVc=ss($('sw-vc'),{items:voiceCh,multi:false,value:s.warteraumChannelId||s.waitingRoomChannelId||'',placeholder:'Voice…'});
+            var wTx=ss($('sw-txt'),{items:ch,multi:false,value:s.warteraumNotifyChannelId||s.warteraumTextChannelId||s.supportCaseChannelId||'',placeholder:'Notify-Textkanal…'});
+            var wLog=ss($('sw-log'),{items:ch,multi:false,value:s.warteraumClaimLogChannelId||s.warteraumLogChannelId||'',placeholder:'Log (optional)…'});
+            var wPing=ss($('sw-ping'),{items:roles,multi:true,values:s.warteraumStaffRoleIds||s.warteraumPingRoleIds||s.supportPingRoleIds||[],placeholder:'Staff…'});
+            var wSup=ss($('sw-sup'),{items:roles,multi:true,values:s.warteraumSupportRoleIds||[],placeholder:'Support…'});
+            var wXp=ss($('sw-xp'),{items:voiceCh,multi:true,values:s.xpVoiceChannelIds||[],placeholder:'XP-Räume…'});
+            bindToggle($('sw-on'), s.warteraumSupportEnabled!==false);
+            bindToggle($('sw-mus'), s.warteraumMusicEnabled!==false);
+            if($('sw-url')) $('sw-url').value=s.warteraumMusicUrl||'';
+            if($('sw-file-info')) $('sw-file-info').textContent=(s.warteraumMusicFile||s.warteraumMusicUrl)?('Musik hinterlegt'):'Noch keine Datei';
+            $('sw-save').onclick=function(){
+              var payload={
+                warteraumSupportEnabled:$('sw-on').isOn(),
+                warteraumChannelId:wVc.getValue()||null,
+                waitingRoomChannelId:wVc.getValue()||null,
+                warteraumNotifyChannelId:wTx.getValue()||null,
+                warteraumTextChannelId:wTx.getValue()||null,
+                supportCaseChannelId:wTx.getValue()||null,
+                warteraumClaimLogChannelId:wLog.getValue()||null,
+                warteraumLogChannelId:wLog.getValue()||wTx.getValue()||null,
+                warteraumStaffRoleIds:wPing.getValue(),
+                warteraumPingRoleIds:wPing.getValue(),
+                supportPingRoleIds:wPing.getValue(),
+                warteraumSupportRoleIds:wSup.getValue(),
+                xpVoiceChannelIds:wXp.getValue(),
+                warteraumMusicEnabled:$('sw-mus').isOn(),
+                warteraumMusicUrl:($('sw-url')&&$('sw-url').value.trim())||null
+              };
+              patchSettings(payload,'Warteraum');
+              Object.assign(s, payload);
+            };
             if($('sw-upload')) $('sw-upload').onclick=async function(){
               var f=$('sw-file')&&$('sw-file').files&&$('sw-file').files[0];
               if(!f){ toast('Datei wählen','err'); return; }
-              if(f.size>8*1024*1024){ toast('Max. 8 MB','err'); return; }
               try{
-                var b64=await new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){ res(String(r.result||'')); }; r.onerror=rej; r.readAsDataURL(f); });
+                var b64=await new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(String(r.result||''));}; r.onerror=rej; r.readAsDataURL(f); });
                 await api('/api/guilds/'+guildId+'/music/upload',{method:'POST',body:{filename:f.name,data:b64}});
-                if($('sw-file-info')) $('sw-file-info').textContent='Hochgeladen: '+f.name;
-                toast('Musik hochgeladen','ok');
-                try{ s=await loadSettings(true); }catch(e){}
-              }catch(e){ toast(e.message||'Upload fehlgeschlagen','err'); }
+                await patchSettings({warteraumMusicEnabled:true},'Musik');
+                if($('sw-file-info')) $('sw-file-info').textContent='Musik: '+f.name;
+                bindToggle($('sw-mus'), true);
+                s.warteraumMusicEnabled=true;
+              }catch(e){ toast(e.message,'err'); }
             };
           } else if(sub==='buero'){
             detailShell('🏢 Büros','<div class="set-card">'+fieldRow('Büro-Warteraum Voice','so-vc')+fieldRow('Büro-Log-Kanal','so-log')+fieldRow('Büro-Staff-Rollen','so-roles')+saveBtn('so-save')+'</div>');
@@ -6202,7 +6280,7 @@ async function api(path,opts){
             var oRoles=ss($('so-roles'),{items:roles,multi:true,values:s.officeStaffRoleIds||[],placeholder:'Staff…'});
             $('so-save').onclick=function(){patchSettings({officeWaitingChannelId:oVc.getValue()||null,officeLogChannelId:oLog.getValue()||null,officeStaffRoleIds:oRoles.getValue()},'Büros')};
           } else if(sub==='ac'){
-            detailShell('🚨 Admin Call','<div class="set-card">'+fieldRow('Panel-Kanal','sa-ch')+fieldRow('Log-Kanal','sa-log')+fieldRow('Ping-Rollen','sa-ping')+
+            detailShell('🚨 Admin Call','<div class="set-card">'+fieldRow('Panel-Kanal','sa-ch')+fieldRow('Log-Kanal','sa-log',dLog('allgemeine Bot-Aktionen, wenn kein spezieller Log gesetzt ist'))+fieldRow('Ping-Rollen','sa-ping')+
               '<div class="field"><label>Panel-Titel</label><input id="sa-title"/></div><div class="field"><label>Panel-Text</label><textarea id="sa-text"></textarea></div>'+saveBtn('sa-save')+panelSendBlock('ac','Admin-Call-Panel')+'</div>');
             var aCh=ss($('sa-ch'),{items:ch,multi:false,value:s.adminCallPanelChannelId||s.adminCallChannelId||'',placeholder:'Panel…'});
             var aLog=ss($('sa-log'),{items:ch,multi:false,value:s.adminCallLogChannelId||'',placeholder:'Log…'});
@@ -6218,8 +6296,10 @@ async function api(path,opts){
       if(cat==='apps'){
         pickCards('📝 Bewerbungen','Bereich wählen',[
           {id:'team',ic:'📝',l:'Team-Bewerbung',d:'Kanal, Review, Panel'},
+          {id:'frakapp',ic:'🏴',l:'Fraktions-Bewerbung',d:'Kanal, Fragen, Panel'},
           {id:'dn',ic:'🔢',l:'Dienstnummern',d:'Log und Staff'},
-          {id:'iv',ic:'🎤',l:'Interviews',d:'Kanal und Rollen'}
+          {id:'iv',ic:'🎤',l:'Interviews',d:'Kanal und Rollen'},
+          {id:'unban',ic:'🔓',l:'Unban / Appeal',d:'Fragen, Kanal, Pflicht-Ban'}
         ], async function(sub){
           await ensureDisc();
           if(sub==='team'){
@@ -6229,7 +6309,48 @@ async function api(path,opts){
             $('ap-title').value=s.bewerbungPanelTitle||s.applicationPanelTitle||''; $('ap-text').value=s.bewerbungPanelText||s.applicationPanelText||'';
             $('ap-save').onclick=function(){patchSettings({applicationChannelId:apCh.getValue()||null,bewerbungChannelId:apCh.getValue()||null,applicationReviewRoleIds:apR.getValue(),bewerbungPanelTitle:$('ap-title').value.trim(),applicationPanelTitle:$('ap-title').value.trim(),bewerbungPanelText:$('ap-text').value,applicationPanelText:$('ap-text').value},'Bewerbung')};
             wirePanelSend('app','application',s.applicationPanelChannelId||'');
-          } else if(sub==='dn'){
+          } else 
+          if(sub==='frakapp'){
+            detailShell('🏴 Fraktions-Bewerbung','<div class="set-card">'+
+              fieldRow('Bewerbungs-Kanal','fa-ch')+
+              fieldRow('Review-Rollen','fa-roles')+
+              '<div class="field"><label>Panel-Titel</label><input id="fa-title" placeholder="Fraktion bewerben"/></div>'+
+              '<div class="field"><label>Panel-Text</label><textarea id="fa-text" rows="3"></textarea></div>'+
+              saveBtn('fa-save')+panelSendBlock('faction_apply','Fraktions-Bewerbung')+
+              '<p class="hint">Fragen unter Haus &amp; Fraktionen bzw. factionAppQuestions in den Settings.</p></div>');
+            var faCh=ss($('fa-ch'),{items:ch,multi:false,value:s.factionAppChannelId||s.factionApplyChannelId||'',placeholder:'Kanal…'});
+            var faR=ss($('fa-roles'),{items:roles,multi:true,values:s.factionLeaderRoleIds||s.factionVerwaltungRoleIds||[],placeholder:'Rollen…'});
+            $('fa-title').value=s.factionAppPanelTitle||'Fraktion bewerben';
+            $('fa-text').value=s.factionAppPanelText||'Bewirb dich hier als Fraktion.';
+            $('fa-save').onclick=function(){
+              var p={factionAppChannelId:faCh.getValue()||null,factionApplyChannelId:faCh.getValue()||null,factionAppPanelTitle:$('fa-title').value.trim(),factionAppPanelText:$('fa-text').value};
+              patchSettings(p,'Frak-Bewerbung'); Object.assign(s,p);
+            };
+            wirePanelSend('faction_apply','faction_apply',s.factionAppChannelId||'');
+            return;
+          }
+          if(sub==='unban'){
+            detailShell('🔓 Unban / Appeal','<div class="set-card">'+
+              '<div class="toggle-row"><div class="lbl">Unban-Requests aktiv</div><div id="ub-on" class="toggle-sw"></div></div>'+
+              '<div class="toggle-row"><div class="lbl">Nur bei aktivem Ban</div><div id="ub-req" class="toggle-sw"></div></div>'+
+              fieldRow('Appeal-Log-Kanal','ub-ch',dLog('neue Unban-Anträge vom Web-Formular'))+
+              '<div class="field"><label>Fragen (eine pro Zeile)</label><textarea id="ub-q" rows="5" placeholder="Warum solltest du entbannt werden?"></textarea></div>'+
+              saveBtn('ub-save')+
+              '<p class="hint">Öffentliches Formular: unban.html — User gibt Roblox-Name ein.</p></div>');
+            bindToggle($('ub-on'), s.unbanRequestEnabled!==false);
+            bindToggle($('ub-req'), !!s.unbanRequireActiveBan);
+            var ubCh=ss($('ub-ch'),{items:ch,multi:false,value:s.unbanRequestChannelId||'',placeholder:'Kanal…'});
+            var qs=s.unbanQuestions||[];
+            if(typeof qs==='string') try{qs=JSON.parse(qs)}catch(e){qs=[]}
+            $('ub-q').value=(Array.isArray(qs)?qs.map(function(x){return x.label||x.question||x;}).join('\n'):'');
+            $('ub-save').onclick=function(){
+              var lines=($('ub-q').value||'').split('\n').map(function(l){return l.trim();}).filter(Boolean).map(function(l,i){return {id:'uq'+i,label:l};});
+              var p={unbanRequestEnabled:$('ub-on').isOn(),unbanRequireActiveBan:$('ub-req').isOn(),unbanRequestChannelId:ubCh.getValue()||null,unbanQuestions:lines};
+              patchSettings(p,'Unban'); Object.assign(s,p);
+            };
+            return;
+          }
+if(sub==='dn'){
             detailShell('🔢 Dienstnummern','<div class="set-card">'+fieldRow('DN-Log','dn-log')+fieldRow('DN-Staff','dn-roles')+saveBtn('dn-save')+panelSendBlock('dnapp','DN-Bewerbung')+panelSendBlock('dnsearch','DN-Suche')+'</div>');
             var dnL=ss($('dn-log'),{items:ch,multi:false,value:s.dienstnummerLogChannelId||'',placeholder:'Log…'});
             var dnR=ss($('dn-roles'),{items:roles,multi:true,values:s.dienstnummerStaffRoleIds||[],placeholder:'Staff…'});
@@ -6499,14 +6620,14 @@ async function api(path,opts){
             $('tm-aw-save').onclick=function(){patchSettings({ausweisChannelId:awCh.getValue()||null,ausweisStaffRoleIds:awR.getValue(),ausweisServerName:$('tm-aw-sn').value.trim()||null,ausweisMaxExtra:Number($('tm-aw-max').value)||0},'Ausweis')};
             wirePanelSend('aw','ausweis',s.ausweisPanelChannelId||s.ausweisChannelId||'');
           } else if(sub==='fb'){
-            detailShell('⭐ Feedback','<div class="set-card">'+fieldRow('Log-Kanal','tm-fb')+fieldRow('Rollen','tm-fb-r')+'<div class="field"><label>Titel</label><input id="tm-fb-t"/></div><div class="field"><label>Text</label><textarea id="tm-fb-tx"></textarea></div>'+saveBtn('tm-fb-save')+panelSendBlock('fb','Feedback-Panel')+'</div>');
+            detailShell('⭐ Feedback','<div class="set-card">'+fieldRow('Log-Kanal','tm-fb',dLog('allgemeine Bot-Aktionen, wenn kein spezieller Log gesetzt ist'))+fieldRow('Rollen','tm-fb-r')+'<div class="field"><label>Titel</label><input id="tm-fb-t"/></div><div class="field"><label>Text</label><textarea id="tm-fb-tx"></textarea></div>'+saveBtn('tm-fb-save')+panelSendBlock('fb','Feedback-Panel')+'</div>');
             var fb=ss($('tm-fb'),{items:ch,multi:false,value:s.feedbackLogChannelId||'',placeholder:'Log…'});
             var fbR=ss($('tm-fb-r'),{items:roles,multi:true,values:s.feedbackRoleIds||[],placeholder:'Rollen…'});
             $('tm-fb-t').value=s.feedbackPanelTitle||''; $('tm-fb-tx').value=s.feedbackPanelText||'';
             $('tm-fb-save').onclick=function(){patchSettings({feedbackLogChannelId:fb.getValue()||null,feedbackRoleIds:fbR.getValue(),feedbackPanelTitle:$('tm-fb-t').value.trim(),feedbackPanelText:$('tm-fb-tx').value},'Feedback')};
             wirePanelSend('fb','feedback',s.feedbackPanelChannelId||'');
           } else {
-            detailShell('⚠️ Team-Warns','<div class="set-card"><div class="field"><label>Warns bis Kick</label><input id="tm-tw" type="number" min="1"/></div>'+fieldRow('Team-Log','tm-tlog')+saveBtn('tm-tw-save')+'</div>');
+            detailShell('⚠️ Team-Warns','<div class="set-card"><div class="field"><label>Warns bis Kick</label><input id="tm-tw" type="number" min="1"/></div>'+fieldRow('Team-Log','tm-tlog',dLog('Team-Invites, Kicks, Warns und Upranks'))+saveBtn('tm-tw-save')+'</div>');
             $('tm-tw').value=s.teamWarnKickAt||3;
             var tlog=ss($('tm-tlog'),{items:ch,multi:false,value:s.teamLogChannelId||'',placeholder:'Log…'});
             $('tm-tw-save').onclick=function(){patchSettings({teamWarnKickAt:Number($('tm-tw').value)||3,teamLogChannelId:tlog.getValue()||null},'Team-Warns')};
@@ -6527,12 +6648,37 @@ async function api(path,opts){
             $('hh-t').value=s.hauslistePanelTitle||''; $('hh-tx').value=s.hauslistePanelText||'';
             $('hh-save').onclick=function(){patchSettings({hauslistePanelChannelId:hh.getValue()||null,hauslistePanelTitle:$('hh-t').value.trim(),hauslistePanelText:$('hh-tx').value},'Hausliste')};
           } else {
-            detailShell('🏴 Fraktionen','<div class="set-card">'+fieldRow('Announce-Kanal','hf-ch')+fieldRow('Leader-Rollen','hf-lead')+'<div class="field"><label>Warns bis Kick</label><input id="hf-w" type="number"/></div>'+saveBtn('hf-save')+'</div>');
-            var hf=ss($('hf-ch'),{items:ch,multi:false,value:s.factionAnnounceChannelId||'',placeholder:'Kanal…'});
-            var hl=ss($('hf-lead'),{items:roles,multi:true,values:s.factionLeaderRoleIds||[],placeholder:'Leader…'});
-            $('hf-w').value=s.factionWarnKickAt||3;
-            $('hf-save').onclick=function(){patchSettings({factionAnnounceChannelId:hf.getValue()||null,factionManagerRoleIds:hl.getValue(),factionVerwaltungRoleIds:hl.getValue(),factionLeaderRoleIds:[],factionWarnKickAt:Number($('hf-w').value)||3,factionMaxWarns:Number($('hf-w').value)||3},'Fraktionen')};
-            wirePanelSend('faction','faction_apply',s.factionApplyChannelId||'');
+            detailShell('🏴 Fraktionen','<div class="set-card">'+
+              fieldRow('Announce-Kanal','hf-ch','Öffentliche Ankündigungen: Fraktion hinzugefügt, gewarnt oder entfernt.')+
+              fieldRow('Frak-Verwaltung Rollen','hf-lead','Dürfen /fraktion add, warn, remove und Bewerbungen bearbeiten.')+
+              fieldRow('Bewerbungs-Kanal','hf-app','Kanal für eingehende Fraktions-Bewerbungen (Review).')+
+              '<div class="field"><label>Warns bis Auto-Kick</label><input id="hf-w" type="number" min="1"/></div>'+
+              '<div class="field"><label>Bewerbungs-Fragen (eine pro Zeile)</label><textarea id="hf-q" rows="4" placeholder="Fraktionsname\\nDiscord-Invite\\nWarum?"></textarea></div>'+
+              saveBtn('hf-save')+
+              panelSendBlock('faction_apply','Fraktions-Bewerbung')+
+              '<p class="hint">Commands: /fraktion add · remove · warn · list</p></div>');
+            var hf=ss($('hf-ch'),{items:ch,multi:false,value:s.factionAnnounceChannelId||s.factionAnnounceDefaultChannelId||'',placeholder:'Announce…'});
+            var hl=ss($('hf-lead'),{items:roles,multi:true,values:s.factionVerwaltungRoleIds||s.factionManagerRoleIds||s.factionLeaderRoleIds||[],placeholder:'Verwaltung…'});
+            var ha=ss($('hf-app'),{items:ch,multi:false,value:s.factionAppChannelId||'',placeholder:'Bewerbung…'});
+            $('hf-w').value=s.factionMaxWarns||s.factionWarnKickAt||3;
+            var fqs=s.factionAppQuestions||[];
+            $('hf-q').value=(Array.isArray(fqs)?fqs.map(function(x){return x.label||x.question||x;}).join('\n'):'');
+            $('hf-save').onclick=function(){
+              var lines=($('hf-q').value||'').split('\n').map(function(l){return l.trim();}).filter(Boolean).map(function(l,i){return {id:'fq'+i,label:l,type:'text',required:true};});
+              var p={
+                factionAnnounceChannelId:hf.getValue()||null,
+                factionAnnounceDefaultChannelId:hf.getValue()||null,
+                factionVerwaltungRoleIds:hl.getValue(),
+                factionManagerRoleIds:hl.getValue(),
+                factionAppChannelId:ha.getValue()||null,
+                factionApplyChannelId:ha.getValue()||null,
+                factionWarnKickAt:Number($('hf-w').value)||3,
+                factionMaxWarns:Number($('hf-w').value)||3,
+                factionAppQuestions:lines
+              };
+              patchSettings(p,'Fraktionen'); Object.assign(s,p);
+            };
+            wirePanelSend('faction_apply','faction_apply',s.factionAppChannelId||'');
           }
         });
         return;
@@ -6549,7 +6695,7 @@ async function api(path,opts){
           '<div class="toggle-row"><div class="lbl">Links löschen</div><div id="am-links" class="toggle-sw"></div></div>'+
           '<div class="field"><label>Max. Caps %</label><input type="number" id="am-caps" min="40" max="100" value="70"/></div>'+
           '<div class="field"><label>Blockierte Wörter (Komma)</label><input id="am-words" placeholder="wort1, wort2"/></div>'+
-          fieldRow('Log-Kanal','am-log')+fieldRow('Ignorierte Rollen','am-ign')+
+          fieldRow('Log-Kanal','am-log',dLog('allgemeine Bot-Aktionen, wenn kein spezieller Log gesetzt ist'))+fieldRow('Ignorierte Rollen','am-ign')+
           saveBtn('am-save')+'</div>';
         bindToggle($('am-on'), !!s.autoModEnabled);
         bindToggle($('am-links'), !!s.autoModDeleteLinks);
@@ -6688,7 +6834,7 @@ async function api(path,opts){
               '<div class="toggle-row"><div class="lbl">Links löschen</div><div id="am-links" class="toggle-sw"></div></div>'+
               '<div class="field"><label>Max. Caps %</label><input type="number" id="am-caps" min="40" max="100"/></div>'+
               '<div class="field"><label>Blockierte Wörter (Komma)</label><input id="am-words"/></div>'+
-              fieldRow('Log-Kanal','am-log')+fieldRow('Ignorierte Rollen','am-ign')+saveBtn('am-save')+'</div>');
+              fieldRow('Log-Kanal','am-log',dLog('allgemeine Bot-Aktionen, wenn kein spezieller Log gesetzt ist'))+fieldRow('Ignorierte Rollen','am-ign')+saveBtn('am-save')+'</div>');
             bindToggle($('am-on'), !!s.autoModEnabled);
             bindToggle($('am-links'), !!s.autoModDeleteLinks);
             $('am-caps').value=s.autoModMaxCaps||70; $('am-words').value=s.autoModWords||'';
@@ -6759,7 +6905,7 @@ async function api(path,opts){
           '<div class="set-card" style="margin-bottom:12px">'+
           '<p class="desc" style="margin:0 0 12px">Modul ist standardmäßig <b>AUS</b>. Oben unter Module aktivieren. Pro Aktion: Limit + Zeitfenster + Strafe.</p>'+
           '<div class="toggle-row"><div class="lbl">Modul Security</div><div id="sec-mod" class="toggle-sw"></div></div>'+
-          fieldRow('Log-Kanal','sec-log')+
+          fieldRow('Log-Kanal','sec-log',dLog('allgemeine Bot-Aktionen, wenn kein spezieller Log gesetzt ist'))+
           fieldRow('Whitelist-Rollen','sec-wlr')+
           fieldRow('Timeout (Sek.)','sec-to')+
           '</div>'+
@@ -6857,25 +7003,72 @@ async function api(path,opts){
 
 
       if(cat==='verify'){
-        await ensureDisc();
         main.innerHTML=backBtn()+
-          '<h1>🔐 Verify</h1><p class="sdesc">6-stellige Zahl auf Bild · 4 Optionen · Rolle bei Erfolg</p>'+
-          '<div class="set-card">'+
+          '<h1>🔐 Verify</h1><p class="sdesc">Captcha · Unverified bis Verifizierung · nur Verify-Kanal sichtbar</p>'+
+          '<div class="set-card" id="vf-body"><span class="spinner"></span> Kanäle &amp; Rollen laden…</div>';
+        try{
+          disc=await loadDiscord(true);
+        }catch(e){
+          try{ disc=await loadDiscord(false); }catch(e2){}
+        }
+        roles=roleItems((disc&&disc.roles)||[]);
+        ch=channelItems((disc&&disc.channels)||[],'text');
+        var body=$('vf-body');
+        if(!body) return;
+        body.innerHTML=
           '<div class="toggle-row"><div class="lbl">Modul aktiv</div><div id="vf-on" class="toggle-sw"></div></div>'+
-          fieldRow('Verify-Rolle','vf-role')+
-          fieldRow('Panel-Kanal','vf-ch')+
-          saveBtn('vf-save')+
+          '<div class="toggle-row"><div class="lbl">Auto Unverified bei Join</div><div id="vf-auto" class="toggle-sw"></div></div>'+
+          fieldRow('Verified-Rolle','vf-role','Wird nach erfolgreichem Captcha vergeben. Leer = Bot legt „Verified“ an.')+
+          fieldRow('Unverified-Rolle','vf-unv','Neue Member bis zur Verifizierung. Sieht nur den Verify-Kanal.')+
+          fieldRow('Verify-Panel-Kanal','vf-ch','Kanal mit Verify-Button; Unverified dürfen nur hier schreiben.')+
+          '<p class="hint">Leer lassen → Bot legt „Verified“ / „Unverified“ automatisch an.</p>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
+          '<button type="button" class="btn btn-p" id="vf-save">Speichern</button>'+
+          '<button type="button" class="btn" id="vf-setup">Rollen anlegen + Kanal-Sperre</button>'+
+          '<button type="button" class="btn btn-sm" id="vf-refresh">↻ Kanäle</button></div>'+
           panelSendBlock('verify','Verify-Panel')+
-          '</div>'+
-          '<div class="set-card" style="margin-top:12px"><p class="hint">User klickt Verifizieren → sieht Bild mit Zahl → wählt eine von 4 Zahlen. Richtig = Rolle. Falsch = neues Bild.</p></div>';
+          '<p class="hint" style="margin-top:12px">Ablauf: Join → Unverified → nur Verify-Kanal → Captcha → Verified, Unverified weg.</p>';
         bindToggle($('vf-on'), mods.verify!==false);
-        var vfRole=ss($('vf-role'),{items:roles,multi:false,value:s.verifyRoleId||'',placeholder:'Rolle…'});
-        var vfCh=ss($('vf-ch'),{items:ch,multi:false,value:s.verifyChannelId||'',placeholder:'Kanal…'});
+        bindToggle($('vf-auto'), s.verifyAutoUnverified!==false);
+        var vfRole=ss($('vf-role'),{items:roles,multi:false,value:s.verifyRoleId||'',placeholder:roles.length?'Rolle…':'Keine Rollen geladen'});
+        var vfUnv=ss($('vf-unv'),{items:roles,multi:false,value:s.unverifiedRoleId||'',placeholder:roles.length?'Rolle…':'Keine Rollen'});
+        var vfCh=ss($('vf-ch'),{items:ch,multi:false,value:s.verifyChannelId||'',placeholder:ch.length?'Kanal…':'Keine Kanäle'});
+        wirePanelSend('verify','verify',s.verifyChannelId||'');
+        $('vf-refresh').onclick=async function(){
+          try{
+            disc=await loadDiscord(true);
+            roles=roleItems(disc.roles||[]);
+            ch=channelItems(disc.channels||[],'text');
+            toast('Aktualisiert ('+ch.length+' Kanäle, '+roles.length+' Rollen)','ok');
+            renderCat('verify');
+          }catch(e){ toast(e.message,'err'); }
+        };
         $('vf-save').onclick=function(){
-          patchSettings({verifyRoleId:vfRole.getValue()||null,verifyChannelId:vfCh.getValue()||null},'Verify');
+          patchSettings({
+            verifyRoleId:vfRole.getValue()||null,
+            unverifiedRoleId:vfUnv.getValue()||null,
+            verifyChannelId:vfCh.getValue()||null,
+            verifyAutoUnverified:$('vf-auto').isOn()
+          },'Verify');
           try{ api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{verify:$('vf-on').isOn()}}); }catch(e){}
         };
-        wirePanelSend('verify','verify',s.verifyChannelId||'');
+        $('vf-setup').onclick=async function(){
+          try{
+            await patchSettings({
+              verifyRoleId:vfRole.getValue()||null,
+              unverifiedRoleId:vfUnv.getValue()||null,
+              verifyChannelId:vfCh.getValue()||null,
+              verifyAutoUnverified:$('vf-auto').isOn()
+            },'Verify');
+            var out=await api('/api/guilds/'+guildId+'/verify/setup',{method:'POST',body:{
+              verifyChannelId:vfCh.getValue()||null,
+              applyGate:true
+            }});
+            toast('Setup OK · Verified/Unverified bereit','ok');
+            try{ disc=await loadDiscord(true); }catch(e){}
+            renderCat('verify');
+          }catch(e){ toast(e.message||'Setup fehlgeschlagen','err'); }
+        };
         return;
       }
 
@@ -6888,12 +7081,64 @@ async function api(path,opts){
         ], async function(sub){
           await ensureDisc();
           if(sub==='partner'){
-            detailShell('🤝 Partner','<div class="set-card"><div class="toggle-row"><div class="lbl">Aktiv</div><div id="cp-on" class="toggle-sw"></div></div>'+fieldRow('Antrags-Kanal','cp-ch')+fieldRow('Manager','cp-r')+saveBtn('cp-save')+'</div>');
+            var tiers=Array.isArray(s.partnerTiers)?s.partnerTiers.slice():[
+              {key:'bronze',name:'Bronze',minMembers:0,adChannelId:null},
+              {key:'silver',name:'Silber',minMembers:50,adChannelId:null},
+              {key:'gold',name:'Gold',minMembers:100,adChannelId:null}
+            ];
+            detailShell('🤝 Partnerschaft','<div class="set-card">'+
+              '<div class="toggle-row"><div class="lbl">Aktiv</div><div id="cp-on" class="toggle-sw"></div></div>'+
+              fieldRow('Antrags-Kanal','cp-ch','Kanal, in dem neue Partner-Anträge zur Prüfung landen.')+fieldRow('Manager-Rollen','cp-r','Dürfen Partner-Anträge annehmen, ablehnen und Tiers verwalten.')+
+              fieldRow('Werbe-Kanal (Standard)','cp-ad','Kanal für Partner-Werbung, wenn kein Tier-eigener Kanal gesetzt ist.')+
+              '<div class="field"><label>Kanal-Typ</label><select id="cp-type"><option value="text">Text</option><option value="thread">Thread</option></select></div>'+
+              saveBtn('cp-save')+panelSendBlock('partner','Partner-Panel')+
+              '</div><div class="set-card" style="margin-top:12px"><h3 style="margin:0 0 8px">Partner-Tiers</h3>'+
+              '<div id="cp-tiers"></div>'+
+              '<button type="button" class="btn btn-sm" id="cp-tier-add">+ Tier</button> '+
+              '<button type="button" class="btn btn-p btn-sm" id="cp-tier-save">Tiers speichern</button>'+
+              '<p class="hint">min. Mitglieder → Tier. Ad-Kanal optional pro Tier.</p></div>');
             bindToggle($('cp-on'), s.partnerEnabled!==false);
-            var cp=ss($('cp-ch'),{items:ch,multi:false,value:s.partnerApplicationChannelId||'',placeholder:'Kanal…'});
+            var cp=ss($('cp-ch'),{items:ch,multi:false,value:s.partnerAppChannelId||s.partnerApplicationChannelId||'',placeholder:'Kanal…'});
             var cpr=ss($('cp-r'),{items:roles,multi:true,values:s.partnerManagerRoleIds||[],placeholder:'Manager…'});
-            $('cp-save').onclick=function(){patchSettings({partnerEnabled:$('cp-on').isOn(),partnerApplicationChannelId:cp.getValue()||null,partnerManagerRoleIds:cpr.getValue()},'Partner')};
-            wirePanelSend('partner','partner',s.partnerApplicationChannelId||'');
+            var cpad=ss($('cp-ad'),{items:ch,multi:false,value:s.partnerAdChannelId||'',placeholder:'Werbe-Kanal…'});
+            if($('cp-type')) $('cp-type').value=s.partnerChannelType||'text';
+            function renderTiers(){
+              var box=$('cp-tiers'); if(!box) return;
+              box.innerHTML=tiers.map(function(t,i){
+                return '<div class="set-row" style="flex-wrap:wrap;gap:6px;margin-bottom:8px">'+
+                  '<input data-ti="'+i+'" data-k="name" value="'+esc(t.name||t.key||'')+'" placeholder="Name" style="width:100px"/>'+
+                  '<input data-ti="'+i+'" data-k="key" value="'+esc(t.key||'')+'" placeholder="key" style="width:80px"/>'+
+                  '<input data-ti="'+i+'" data-k="min" type="number" value="'+(t.minMembers!=null?t.minMembers:0)+'" placeholder="Min Members" style="width:90px"/>'+
+                  '<button type="button" class="btn btn-sm" data-tdel="'+i+'" style="color:var(--err)">✕</button></div>';
+              }).join('')||'<p class="hint">Keine Tiers</p>';
+              box.querySelectorAll('[data-tdel]').forEach(function(b){
+                b.onclick=function(){ tiers.splice(Number(b.getAttribute('data-tdel')),1); renderTiers(); };
+              });
+            }
+            renderTiers();
+            $('cp-tier-add').onclick=function(){ tiers.push({key:'tier'+Date.now().toString(36),name:'Neu',minMembers:0}); renderTiers(); };
+            $('cp-tier-save').onclick=function(){
+              $('cp-tiers').querySelectorAll('[data-ti]').forEach(function(inp){
+                var i=Number(inp.getAttribute('data-ti')); var k=inp.getAttribute('data-k');
+                if(!tiers[i]) return;
+                if(k==='min') tiers[i].minMembers=Number(inp.value)||0;
+                else if(k==='name') tiers[i].name=inp.value.trim();
+                else if(k==='key') tiers[i].key=inp.value.trim()||tiers[i].key;
+              });
+              patchSettings({partnerTiers:tiers},'Partner-Tiers'); s.partnerTiers=tiers;
+            };
+            $('cp-save').onclick=function(){
+              var p={
+                partnerEnabled:$('cp-on').isOn(),
+                partnerAppChannelId:cp.getValue()||null,
+                partnerApplicationChannelId:cp.getValue()||null,
+                partnerManagerRoleIds:cpr.getValue(),
+                partnerAdChannelId:cpad.getValue()||null,
+                partnerChannelType:($('cp-type')&&$('cp-type').value)||'text'
+              };
+              patchSettings(p,'Partner'); Object.assign(s,p);
+            };
+            wirePanelSend('partner','partner',s.partnerAppChannelId||s.partnerApplicationChannelId||'');
           } else if(sub==='gw'){
             detailShell('🎁 Giveaways','<div class="set-card">'+fieldRow('Kanal','cg-ch')+fieldRow('Rollen','cg-r')+saveBtn('cg-save')+'</div>');
             var cg=ss($('cg-ch'),{items:ch,multi:false,value:s.giveawayChannelId||'',placeholder:'Kanal…'});
@@ -6957,42 +7202,56 @@ async function api(path,opts){
         await ensureDisc();
         detailShell('🚀 RP Start / Stop',
           '<div class="set-card">'+
-          '<div class="toggle-row"><div class="lbl">RP-Status Panel aktiv</div><div id="rp-on" class="toggle-sw"></div></div>'+
-          fieldRow('Kanal','rp-ch')+
-          fieldRow('Ping-Rollen','rp-roles')+
-          '<div class="field"><label>Start-Titel</label><input id="rp-st-title" value=""/></div>'+
+          '<p class="field-desc">Commands: <code>/rp-start</code> und <code>/rp-stop</code> — setzen Server-Stats auf Online/Offline und senden das Embed.</p>'+
+          fieldRow('Announce-Kanal','rp-ch','Kanal für RP-Start/Stop-Embeds (auch Zeitplan).')+
+          '<div class="field"><label>Start-Titel</label><input id="rp-st-title"/></div>'+
           '<div class="field"><label>Start-Text</label><textarea id="rp-start" rows="3"></textarea></div>'+
-          '<div class="field"><label>Stop-Titel</label><input id="rp-sp-title" value=""/></div>'+
+          '<div class="field"><label>Stop-Titel</label><input id="rp-sp-title"/></div>'+
           '<div class="field"><label>Stop-Text</label><textarea id="rp-stop" rows="3"></textarea></div>'+
+          '</div><div class="set-card" style="margin-top:12px"><h3 style="margin:0 0 8px">Zeitplan (täglich)</h3>'+
+          '<div class="toggle-row"><div class="lbl">Zeitplan aktiv</div><div id="rp-sch-on" class="toggle-sw"></div></div>'+
+          '<div class="field"><label>Start (HH:MM UTC)</label><p class="field-desc">Tägliche Auto-Start-Zeit, z.B. 16:00</p><input id="rp-sch-start" placeholder="16:00"/></div>'+
+          '<div class="field"><label>Stop (HH:MM UTC)</label><p class="field-desc">Tägliche Auto-Stop-Zeit, z.B. 23:00</p><input id="rp-sch-stop" placeholder="23:00"/></div>'+
+          '<div class="field"><label>UTC-Offset (Minuten)</label><p class="field-desc">z.B. 120 für UTC+2 (CEST). 0 = reine UTC.</p><input id="rp-sch-off" type="number" placeholder="120"/></div>'+
           '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">'+
           '<button type="button" class="btn btn-p" id="rp-save">Speichern</button>'+
-          '<button type="button" class="btn btn-sm" id="rp-send-start">Start senden</button>'+
-          '<button type="button" class="btn btn-sm" id="rp-send-stop">Stop senden</button>'+
-          '</div></div>'
-        );
-        bindToggle($('rp-on'), s.rpEnabled!==false);
-        var rp=ss($('rp-ch'),{items:ch,multi:false,value:s.rpChannelId||s.statusChannelId||'',placeholder:'Kanal…'});
-        var rpr=ss($('rp-roles'),{items:roles,multi:true,values:s.rpPingRoleIds||s.statusPingRoleIds||[],placeholder:'Rollen…'});
+          '<button type="button" class="btn" id="rp-do-start">Jetzt Start</button>'+
+          '<button type="button" class="btn" id="rp-do-stop">Jetzt Stop</button></div></div>');
+        var rpCh=ss($('rp-ch'),{items:ch,multi:false,value:s.rpAnnounceChannelId||s.rpChannelId||s.statusChannelId||'',placeholder:'Kanal…'});
         $('rp-st-title').value=(s.rpStartEmbed&&s.rpStartEmbed.title)||s.rpStartTitle||'RP gestartet';
+        $('rp-start').value=(s.rpStartEmbed&&s.rpStartEmbed.description)||s.rpStartText||'Das Roleplay ist gestartet. Viel Spaß!';
         $('rp-sp-title').value=(s.rpStopEmbed&&s.rpStopEmbed.title)||s.rpStopTitle||'RP beendet';
-        $('rp-start').value=(s.rpStartEmbed&&s.rpStartEmbed.description)||s.rpStartText||'';
-        $('rp-stop').value=(s.rpStopEmbed&&s.rpStopEmbed.description)||s.rpStopText||'';
+        $('rp-stop').value=(s.rpStopEmbed&&s.rpStopEmbed.description)||s.rpStopText||'Das Roleplay ist beendet. Danke fürs Spielen!';
+        bindToggle($('rp-sch-on'), s.rpScheduleEnabled!==false);
+        $('rp-sch-start').value=s.rpScheduleStart||'';
+        $('rp-sch-stop').value=s.rpScheduleStop||'';
+        $('rp-sch-off').value=s.rpScheduleUtcOffsetMin!=null?s.rpScheduleUtcOffsetMin:120;
         $('rp-save').onclick=function(){
-          patchSettings({
-            rpEnabled:$('rp-on').isOn(),
-            rpChannelId:rp.getValue()||null, statusChannelId:rp.getValue()||null,
-            rpPingRoleIds:rpr.getValue(), statusPingRoleIds:rpr.getValue(),
-            rpStartTitle:$('rp-st-title').value, rpStopTitle:$('rp-sp-title').value,
-            rpStartText:$('rp-start').value, rpStopText:$('rp-stop').value
-          },'RP');
+          var p={
+            rpAnnounceChannelId:rpCh.getValue()||null,
+            rpChannelId:rpCh.getValue()||null,
+            rpStartEmbed:{title:$('rp-st-title').value.trim(),description:$('rp-start').value,footer:'Staffora · RP',color:'#22c55e'},
+            rpStopEmbed:{title:$('rp-sp-title').value.trim(),description:$('rp-stop').value,footer:'Staffora · RP',color:'#64748b'},
+            rpScheduleEnabled:$('rp-sch-on').isOn(),
+            rpScheduleStart:$('rp-sch-start').value.trim()||null,
+            rpScheduleStop:$('rp-sch-stop').value.trim()||null,
+            rpScheduleUtcOffsetMin:Number($('rp-sch-off').value)||0
+          };
+          patchSettings(p,'RP'); Object.assign(s,p);
         };
-        $('rp-send-start').onclick=async function(){
-          try{ await api('/api/guilds/'+guildId+'/rp/start',{method:'POST',body:{}}); toast('RP Start gesendet','ok'); }
-          catch(e){ toast(e.message||'Fehler','err'); }
+        $('rp-do-start').onclick=async function(){
+          try{
+            var chId=rpCh.getValue();
+            if(chId) await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{rpAnnounceChannelId:chId}});
+            await api('/api/guilds/'+guildId+'/rp/start',{method:'POST',body:{}});
+            toast('RP Start','ok');
+          }catch(e){ toast(e.message||'Fehler — nutze /rp-start im Discord','err'); }
         };
-        $('rp-send-stop').onclick=async function(){
-          try{ await api('/api/guilds/'+guildId+'/rp/stop',{method:'POST',body:{}}); toast('RP Stop gesendet','ok'); }
-          catch(e){ toast(e.message||'Fehler','err'); }
+        $('rp-do-stop').onclick=async function(){
+          try{
+            await api('/api/guilds/'+guildId+'/rp/stop',{method:'POST',body:{}});
+            toast('RP Stop','ok');
+          }catch(e){ toast(e.message||'Fehler — nutze /rp-stop im Discord','err'); }
         };
         return;
       }
@@ -7001,14 +7260,14 @@ async function api(path,opts){
       if(cat==='logs'){
         pickCards('📊 Logs & Stats','Bereich wählen',[
           {id:'logs',ic:'📋',l:'Log-Kanäle',d:'System, Mod, Tickets, Security'},
-          {id:'stats',ic:'📈',l:'Server-Stats',d:'Stats-Kanal'}
+          {id:'stats',ic:'📈',l:'Server-Stats',d:'Server, Code, Players, Online/Offline'}
         ], async function(sub){
           await ensureDisc();
           if(sub==='logs'){
             detailShell('📋 Logs','<div class="set-card">'+
               '<p class="desc" style="margin:0 0 12px">Main-Logs. Security-Extra-Logs pro Aktion unter <b>Security</b>.</p>'+
-              fieldRow('System-Log','lg-sys')+fieldRow('Mod-Log','lg-mod')+fieldRow('Ticket-Log','lg-tic')+
-              fieldRow('Security Main-Log','lg-sec')+
+              fieldRow('System-Log','lg-sys',dLog('allgemeine Bot-Events und Fallback, wenn kein Spezial-Log gesetzt ist'))+fieldRow('Mod-Log','lg-mod',dLog('Warns, Kicks, Bans und Timeouts'))+fieldRow('Ticket-Log','lg-tic',dLog('Ticket-Aktionen und Transcripts'))+
+              fieldRow('Security Main-Log','lg-sec',dLog('Anti-Raid / Webhook / Kanal-Schutz — Standard für alle Security-Aktionen'))+
               saveBtn('lg-save')+'</div>');
             var ls=ss($('lg-sys'),{items:ch,multi:false,value:s.logChannelId||'',placeholder:'System…'});
             var lm=ss($('lg-mod'),{items:ch,multi:false,value:s.modLogChannelId||'',placeholder:'Mod…'});
