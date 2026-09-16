@@ -7384,9 +7384,9 @@ if(sub==='list'){
       if(cat==='welcome'){
         await ensureDisc();
         main.innerHTML=backBtn()+
-          '<h1>👋 Welcome & Leave</h1><p class="sdesc">Nachrichten bei Join und Leave · Platzhalter unten</p>'+
+          '<h1>👋 Welcome, Leave & Boost</h1><p class="sdesc">Join · Leave · Server-Boost Danke & Logs</p>'+
           '<div class="set-card">'+
-          '<div class="toggle-row"><div class="lbl">Modul aktiv</div><div id="wl-mod" class="toggle-sw"></div></div>'+
+          '<div class="toggle-row"><div class="lbl">Welcome-Modul aktiv</div><div id="wl-mod" class="toggle-sw"></div></div>'+
           '<h3 style="margin:12px 0 8px">Willkommen</h3>'+
           '<div class="toggle-row"><div class="lbl">Willkommensnachricht an</div><div id="wl-wen" class="toggle-sw"></div></div>'+
           '<div class="toggle-row"><div class="lbl">User pingen</div><div id="wl-ping" class="toggle-sw"></div></div>'+
@@ -7400,6 +7400,19 @@ if(sub==='list'){
           '<div class="field"><label>Text</label><textarea id="wl-ltx" rows="3"></textarea></div>'+
           saveBtn('wl-save')+
           '<p class="hint" style="margin-top:10px">Platzhalter: <code>{mention}</code> <code>{userName}</code> <code>{userTag}</code> <code>{server}</code> <code>{memberCount}</code></p>'+
+          '</div>'+
+          '<div class="set-card" style="margin-top:14px">'+
+          '<h3 style="margin:0 0 8px">💜 Server Boost</h3>'+
+          '<div class="toggle-row"><div class="lbl">Boost-System aktiv</div><div id="bst-on" class="toggle-sw"></div></div>'+
+          '<div class="toggle-row"><div class="lbl">Booster pingen</div><div id="bst-ping" class="toggle-sw"></div></div>'+
+          '<div class="toggle-row"><div class="lbl">Auch bei Re-Boost danken</div><div id="bst-re" class="toggle-sw"></div></div>'+
+          '<div class="toggle-row"><div class="lbl">Level/Anzahl-Änderung loggen</div><div id="bst-lvl" class="toggle-sw"></div></div>'+
+          fieldRow('Danke-Kanal','bst-th','Öffentliche Dankesnachricht bei Boost.')+
+          fieldRow('Boost-Log-Kanal','bst-log','Log für Boost, Re-Boost, Boost-Ende und Level-Wechsel.')+
+          '<div class="field"><label>Danke-Titel</label><input id="bst-title" placeholder="💜 Danke für den Boost!"/></div>'+
+          '<div class="field"><label>Danke-Text</label><textarea id="bst-text" rows="3"></textarea></div>'+
+          saveBtn('bst-save')+
+          '<p class="hint" style="margin-top:10px">Platzhalter: <code>{mention}</code> <code>{userName}</code> <code>{server}</code> <code>{boosts}</code> <code>{tier}</code></p>'+
           '</div>';
         bindToggle($('wl-mod'), mods.welcomeLeave!==false);
         bindToggle($('wl-wen'), s.welcomeEnabled!==false);
@@ -7412,7 +7425,7 @@ if(sub==='list'){
         $('wl-lt').value=s.leaveTitle||'Tschüss';
         $('wl-ltx').value=s.leaveText||'**{userName}** hat **{server}** verlassen.\nMitglieder: **{memberCount}**.';
         $('wl-save').onclick=function(){
-          patchSettings({
+          var p={
             welcomeEnabled:$('wl-wen').isOn(),
             leaveEnabled:$('wl-len').isOn(),
             welcomePing:$('wl-ping').isOn(),
@@ -7422,8 +7435,31 @@ if(sub==='list'){
             welcomeText:$('wl-wtx').value,
             leaveTitle:$('wl-lt').value.trim(),
             leaveText:$('wl-ltx').value
-          },'Welcome/Leave');
+          };
+          patchSettings(p,'Welcome/Leave'); Object.assign(s,p);
           try{ api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{welcomeLeave:$('wl-mod').isOn()}}); }catch(e){}
+        };
+        bindToggle($('bst-on'), s.boostEnabled!==false);
+        bindToggle($('bst-ping'), s.boostPingUser!==false);
+        bindToggle($('bst-re'), s.boostThankOnReboost!==false);
+        bindToggle($('bst-lvl'), s.boostLogLevelChange!==false);
+        var bstTh=ss($('bst-th'),{items:ch,multi:false,value:s.boostThankChannelId||s.boostChannelId||'',placeholder:'Danke-Kanal…'});
+        var bstLog=ss($('bst-log'),{items:ch,multi:false,value:s.boostLogChannelId||'',placeholder:'Log…'});
+        $('bst-title').value=s.boostThankTitle||'💜 Danke für den Boost!';
+        $('bst-text').value=s.boostThankText||'Hey {mention} — danke, dass du **{server}** boostest!\nAktuell **{boosts}** Boosts · Level **{tier}**.';
+        $('bst-save').onclick=function(){
+          var p={
+            boostEnabled:$('bst-on').isOn(),
+            boostPingUser:$('bst-ping').isOn(),
+            boostThankOnReboost:$('bst-re').isOn(),
+            boostLogLevelChange:$('bst-lvl').isOn(),
+            boostThankChannelId:bstTh.getValue()||null,
+            boostChannelId:bstTh.getValue()||null,
+            boostLogChannelId:bstLog.getValue()||null,
+            boostThankTitle:$('bst-title').value.trim(),
+            boostThankText:$('bst-text').value
+          };
+          patchSettings(p,'Boost'); Object.assign(s,p);
         };
         return;
       }
