@@ -6161,6 +6161,8 @@ function ss(el, opts){
               '<div class="field"><label>Panel-Titel</label><input id="st-title"/></div>'+
               '<div class="field"><label>Panel-Text</label><textarea id="st-text"></textarea></div>'+
               '<div class="field"><label>Auto-Close (Stunden, 0 = aus)</label><input id="st-ac" type="number" min="0"/></div>'+
+              '<div class="field"><label>Max. Tickets pro Zeitraum</label><p class="field-desc">Wie viele Tickets ein User in einem Zeitfenster öffnen darf (0 = unbegrenzt).</p><input id="st-max" type="number" min="0" placeholder="z.B. 3"/></div>'+
+              '<div class="field"><label>Zeitfenster (Minuten)</label><p class="field-desc">Zeitraum für das Ticket-Limit oben.</p><input id="st-win" type="number" min="0" placeholder="z.B. 60"/></div>'+
               '<div class="toggle-row"><div class="lbl">Ticket-KI</div><div id="st-ai" class="toggle-sw"></div></div>'+
               saveBtn('st-save')+panelSendBlock('ticket','Ticket-Panel')+
               '</div>'+
@@ -6184,7 +6186,7 @@ function ss(el, opts){
             var pTCat=ss($('st-tcat'),{items:channelItems(disc.channels||[],[4,'4','GUILD_CATEGORY']),multi:false,value:'',placeholder:'Optional…'});
             var pTRoles=ss($('st-troles'),{items:roles,multi:true,values:[],placeholder:'Optional…'});
             $('st-title').value=s.ticketPanelTitle||''; $('st-text').value=s.ticketPanelText||'';
-            $('st-ac').value=s.ticketAutoCloseHours||0; bindToggle($('st-ai'), !!s.aiAssistEnabled);
+            $('st-ac').value=s.ticketAutoCloseHours||0; if($('st-max'))$('st-max').value=s.ticketMaxPerWindow||0; if($('st-win'))$('st-win').value=s.ticketWindowMinutes||60; bindToggle($('st-ai'), !!s.aiAssistEnabled);
             function renderTypes(){
               var box=$('st-types-list');
               if(!box) return;
@@ -6257,7 +6259,7 @@ function ss(el, opts){
               patchSettings({ticketTypes:types},'Ticket-Arten');
               toast('Art hinzugefügt','ok');
             };
-            $('st-save').onclick=function(){patchSettings({ticketCategoryId:pCat.getValue()||null,ticketSupportRoleIds:pRoles.getValue(),ticketOpenHint:($('st-hint')&&$('st-hint').value)||null,ticketLogChannelId:pLog.getValue()||null,ticketBlacklistRoleIds:pBl.getValue(),ticketPanelTitle:$('st-title').value.trim(),ticketPanelText:$('st-text').value,ticketAutoCloseHours:Number($('st-ac').value)||0,aiAssistEnabled:$('st-ai').isOn(),ticketTypes:types},'Tickets');};
+            $('st-save').onclick=function(){patchSettings({ticketCategoryId:pCat.getValue()||null,ticketSupportRoleIds:pRoles.getValue(),ticketOpenHint:($('st-hint')&&$('st-hint').value)||null,ticketLogChannelId:pLog.getValue()||null,ticketBlacklistRoleIds:pBl.getValue(),ticketPanelTitle:$('st-title').value.trim(),ticketPanelText:$('st-text').value,ticketAutoCloseHours:Number($('st-ac').value)||0,ticketMaxPerWindow:Number($('st-max')&&$('st-max').value)||0,ticketWindowMinutes:Number($('st-win')&&$('st-win').value)||0,aiAssistEnabled:$('st-ai').isOn(),ticketTypes:types},'Tickets');};
             wirePanelSend('ticket','ticket',s.ticketPanelChannelId||'');
           } else if(sub==='wart'){
             detailShell('🎧 Warteraum Support','<div class="set-card">'+
@@ -7142,16 +7144,43 @@ if(sub==='list'){
             var data=await api('/api/guilds/'+guildId+'/team-stats?days='+days);
             var s=data.summary||{};
             var staff=data.staff||[];
+            var tl=(data.timeline&&data.timeline.series)||[];
+            var maxV=1;
+            tl.forEach(function(b){ maxV=Math.max(maxV, b.total||0, b.tickets||0, b.adminCalls||0, b.support||0); });
+            var chart='';
+            if(tl.length){
+              chart='<div class="set-card" style="margin:12px 0;padding:14px"><h3 style="margin:0 0 10px;font-size:14px">📈 Support-Übersicht (Vergleich)</h3>'+
+                '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;font-size:12px">'+
+                '<span style="color:#a78bfa">■ Tickets</span><span style="color:#38bdf8">■ Admin Calls</span><span style="color:#34d399">■ Warteraum</span></div>'+
+                '<div style="display:flex;align-items:flex-end;gap:6px;height:140px;overflow-x:auto;padding-bottom:4px">'+
+                tl.map(function(b){
+                  var hT=Math.max(2, Math.round(((b.tickets||0)/maxV)*120));
+                  var hA=Math.max(2, Math.round(((b.adminCalls||0)/maxV)*120));
+                  var hS=Math.max(2, Math.round(((b.support||0)/maxV)*120));
+                  var lab=(b.date||'').slice(5);
+                  return '<div style="flex:1;min-width:28px;text-align:center">'+
+                    '<div style="display:flex;align-items:flex-end;justify-content:center;gap:2px;height:120px">'+
+                    '<div title="Tickets: '+(b.tickets||0)+'" style="width:8px;height:'+hT+'px;background:#a78bfa;border-radius:3px 3px 0 0"></div>'+
+                    '<div title="Admin Calls: '+(b.adminCalls||0)+'" style="width:8px;height:'+hA+'px;background:#38bdf8;border-radius:3px 3px 0 0"></div>'+
+                    '<div title="Support: '+(b.support||0)+'" style="width:8px;height:'+hS+'px;background:#34d399;border-radius:3px 3px 0 0"></div>'+
+                    '</div><div class="hint" style="font-size:10px;margin-top:4px">'+esc(lab)+'</div></div>';
+                }).join('')+
+                '</div></div>';
+            }
+            var sumT=tl.reduce(function(a,b){return a+(b.tickets||0)},0);
+            var sumA=tl.reduce(function(a,b){return a+(b.adminCalls||0)},0);
+            var sumS=tl.reduce(function(a,b){return a+(b.support||0)},0);
             box.innerHTML='<div class="grid2" style="margin-bottom:12px">'+
-              '<div class="stat"><div class="lbl">Aktionen</div><div class="val">'+esc(s.totalActions||0)+'</div></div>'+
-              '<div class="stat"><div class="lbl">Aktive Staff</div><div class="val">'+esc(s.staffActive||0)+'</div></div>'+
-              '<div class="stat"><div class="lbl">Offene Tickets</div><div class="val">'+esc(s.openTickets||0)+'</div></div>'+
-              '<div class="stat"><div class="lbl">Tage</div><div class="val">'+esc(s.days||days)+'</div></div></div>'+
-              (staff.length?staff.map(function(u){
+              '<div class="stat"><div class="lbl">Tickets geöffnet</div><div class="val">'+esc(sumT)+'</div></div>'+
+              '<div class="stat"><div class="lbl">Admin Calls</div><div class="val">'+esc(sumA)+'</div></div>'+
+              '<div class="stat"><div class="lbl">Warteraum-Support</div><div class="val">'+esc(sumS)+'</div></div>'+
+              '<div class="stat"><div class="lbl">Offene Tickets</div><div class="val">'+esc(s.openTickets||0)+'</div></div></div>'+
+              chart+
+              (staff.length?('<h3 style="margin:16px 0 8px;font-size:14px">Team</h3>'+staff.map(function(u){
                 return '<div class="set-row" style="margin-bottom:8px"><div style="flex:1"><strong>'+esc(u.userId)+'</strong>'+
-                  '<div class="hint">Tickets '+esc(u.ticketsClaimed)+'/'+esc(u.ticketsClosed)+' · Warn '+esc(u.warns)+' · Kick '+esc(u.kicks)+' · Ban '+esc(u.bans)+' · XP '+esc(u.xp)+'</div></div>'+
+                  '<div class="hint">Tickets '+esc(u.ticketsClaimed)+'/'+esc(u.ticketsClosed)+' · AdminCall '+esc(u.adminCalls||0)+' · Support '+esc(u.supportCases||0)+' · XP '+esc(u.xp)+'</div></div>'+
                   '<span class="hint">'+esc(u.actions)+' Akt.</span></div>';
-              }).join(''):'<p class="hint">Keine Daten im Zeitraum.</p>');
+              }).join('')):'<p class="hint">Keine Staff-Daten im Zeitraum.</p>');
           }catch(e){ box.innerHTML='<p class="hint" style="color:var(--err)">'+esc(e.message)+'</p>'; }
         }
         $('ts-load').onclick=loadStats; loadStats();
