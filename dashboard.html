@@ -3686,6 +3686,123 @@ async function api(path,opts){
 
 
   // Fix permissions page matrix after definition
+  
+  async function pageChannelPerms(p){
+    await ensureDisc();
+    var PERMS=[
+      {k:'ViewChannel',l:'Kanal ansehen',g:'Allgemein'},
+      {k:'ManageChannels',l:'Kanäle verwalten',g:'Allgemein'},
+      {k:'ManageRoles',l:'Rechte verwalten',g:'Allgemein'},
+      {k:'SendMessages',l:'Nachrichten senden',g:'Text'},
+      {k:'SendMessagesInThreads',l:'In Threads senden',g:'Text'},
+      {k:'CreatePublicThreads',l:'Öffentliche Threads',g:'Text'},
+      {k:'CreatePrivateThreads',l:'Private Threads',g:'Text'},
+      {k:'EmbedLinks',l:'Links einbetten',g:'Text'},
+      {k:'AttachFiles',l:'Dateien anhängen',g:'Text'},
+      {k:'AddReactions',l:'Reaktionen',g:'Text'},
+      {k:'UseExternalEmojis',l:'Externe Emojis',g:'Text'},
+      {k:'UseExternalStickers',l:'Externe Sticker',g:'Text'},
+      {k:'MentionEveryone',l:'@everyone',g:'Text'},
+      {k:'ManageMessages',l:'Nachrichten verwalten',g:'Text'},
+      {k:'ReadMessageHistory',l:'Verlauf lesen',g:'Text'},
+      {k:'Connect',l:'Verbinden',g:'Voice'},
+      {k:'Speak',l:'Sprechen',g:'Voice'},
+      {k:'Stream',l:'Video/Stream',g:'Voice'},
+      {k:'UseVAD',l:'Sprachaktivierung',g:'Voice'},
+      {k:'MuteMembers',l:'Stummschalten',g:'Voice'},
+      {k:'DeafenMembers',l:'Taub stellen',g:'Voice'},
+      {k:'MoveMembers',l:'Verschieben',g:'Voice'},
+      {k:'PrioritySpeaker',l:'Priority Speaker',g:'Voice'}
+    ];
+    var disc={roles:[],channels:[]};
+    try{ disc=await loadDiscord(true); }catch(e){ try{ disc=await loadDiscord(false);}catch(e2){} }
+    var roleItemsList=roleItems(disc.roles||[]);
+    var allCh=channelItems(disc.channels||[]); // all types if helper supports
+    // rebuild all channels including voice
+    try{
+      allCh=(disc.channels||[]).map(function(c){
+        var t=c.type, icon='#';
+        if(t===2||t==='GUILD_VOICE') icon='🔊';
+        else if(t===4||t==='GUILD_CATEGORY') icon='📁';
+        else if(t===13||t==='GUILD_STAGE_VOICE') icon='🎤';
+        else if(t===15||t==='GUILD_FORUM') icon='💬';
+        return {id:String(c.id),name:icon+' '+(c.name||c.id)};
+      });
+    }catch(e){}
+
+    p.innerHTML='<h1>📋 Kanal-Berechtigungen</h1>'+
+      '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+      '<p class="desc">Rolle wählen → Berechtigung(en) → optional Kanäle. <b>Keine Kanäle</b> = gilt für <b>alle Kanäle</b>.</p>'+
+      '<div class="card">'+
+      '<div class="field"><label>Rolle</label><div id="cp-role"></div></div>'+
+      '<div class="field"><label>Kanäle (leer = alle)</label><div id="cp-ch"></div></div>'+
+      '<div class="field"><label>Aktion</label><select id="cp-action">'+
+        '<option value="allow">✅ Erlauben (Allow)</option>'+
+        '<option value="deny">🚫 Verbieten (Deny)</option>'+
+        '<option value="clear">➖ Entfernen (Reset für diese Rechte)</option>'+
+      '</select></div>'+
+      '<div class="field"><label>Berechtigungen</label>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">'+
+        '<button type="button" class="btn btn-sm" id="cp-all">Alle</button>'+
+        '<button type="button" class="btn btn-sm" id="cp-none">Keine</button>'+
+        '<button type="button" class="btn btn-sm" id="cp-text">Nur Text</button>'+
+        '<button type="button" class="btn btn-sm" id="cp-voice">Nur Voice</button>'+
+      '</div>'+
+      '<div id="cp-perms" style="max-height:320px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px"></div></div>'+
+      '<button type="button" class="btn btn-p" id="cp-go">Anwenden</button>'+
+      '<p class="hint" id="cp-status" style="margin-top:10px"></p></div>';
+
+    var pickRole=makeSearchSelect($('cp-role'),{items:roleItemsList,multi:false,value:'',placeholder:'Rolle suchen…'});
+    var pickCh=makeSearchSelect($('cp-ch'),{items:allCh,multi:true,values:[],placeholder:'Kanäle (optional)…'});
+
+    var box=$('cp-perms');
+    box.innerHTML=PERMS.map(function(pr){
+      return '<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px">'+
+        '<input type="checkbox" class="cp-p" value="'+pr.k+'" data-g="'+pr.g+'"/> '+
+        '<span><b>'+pr.l+'</b><br/><span style="opacity:.6;font-size:11px">'+pr.g+' · '+pr.k+'</span></span></label>';
+    }).join('');
+
+    function setGroup(g, on){
+      box.querySelectorAll('.cp-p').forEach(function(cb){
+        if(!g || cb.getAttribute('data-g')===g) cb.checked=!!on;
+      });
+    }
+    $('cp-all').onclick=function(){ setGroup(null,true); };
+    $('cp-none').onclick=function(){ setGroup(null,false); };
+    $('cp-text').onclick=function(){ setGroup(null,false); setGroup('Text',true); setGroup('Allgemein',true); };
+    $('cp-voice').onclick=function(){ setGroup(null,false); setGroup('Voice',true); setGroup('Allgemein',true); };
+
+    $('cp-go').onclick=async function(){
+      var roleId=pickRole.getValue();
+      if(!roleId){ toast('Rolle wählen','err'); return; }
+      var perms=[];
+      box.querySelectorAll('.cp-p:checked').forEach(function(cb){ perms.push(cb.value); });
+      if(!perms.length){ toast('Berechtigung wählen','err'); return; }
+      var channelIds=pickCh.getValue()||[];
+      if(!Array.isArray(channelIds)) channelIds=channelIds?[channelIds]:[];
+      var action=$('cp-action').value;
+      var conf=channelIds.length
+        ? ('Rechte auf '+channelIds.length+' Kanal(en) ändern?')
+        : ('Rechte auf ALLEN Kanälen ändern? Das kann dauern.');
+      if(!confirm(conf)) return;
+      $('cp-go').disabled=true;
+      $('cp-status').textContent='Wird angewendet…';
+      try{
+        var r=await api('/api/guilds/'+guildId+'/channel-permissions',{
+          method:'POST',
+          body:{ roleId:roleId, permissions:perms, channelIds:channelIds, action:action }
+        });
+        $('cp-status').textContent='Fertig: '+(r.updated||0)+' Kanäle ok'+(r.failed?(', '+r.failed+' Fehler'):'')+(r.scope==='all'?' (alle Kanäle)':'');
+        toast('Kanal-Rechte aktualisiert','ok');
+      }catch(e){
+        $('cp-status').textContent=e.message||'Fehler';
+        toast(e.message||'Fehler','err');
+      }
+      $('cp-go').disabled=false;
+    };
+  }
+
+
   pagePerms = async function(p){
     var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
     var s=cfg.settings||{};
@@ -4754,6 +4871,7 @@ async function api(path,opts){
         var g=b.getAttribute('data-go');
         p.innerHTML='<div class="empty"><span class="spinner"></span></div>';
         if(g==='modperms') await pageModPerms(p);
+        else if(g==='channelperms') await pageChannelPerms(p);
         else if(g==='commands') await pageCommands(p);
         else if(g==='perms') await pagePerms(p);
         // prepend back to cmdrights
@@ -6186,6 +6304,7 @@ async function api(path,opts){
             '<div class="field"><label>Stats verwalten</label><div id="sp-stats"></div></div>'+
             '<button type="button" class="btn btn-p btn-sm" id="sp-save">Speichern</button></div>'+
           '<div class="set-card"><h3>Weitere Rechte</h3>'+
+            '<button type="button" class="set-link" data-go="channelperms">📋 Kanal-Berechtigungen →</button> '+
             '<button type="button" class="set-link" data-go="perms">Ingame Panel Access →</button> '+
             '<button type="button" class="set-link" data-go="modperms">Moderation Permissions →</button> '+
             '<button type="button" class="set-link" data-go="commands">Commands →</button></div>';
