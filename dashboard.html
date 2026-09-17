@@ -3376,8 +3376,8 @@ async function api(path,opts){
         '<div class="card"><h2>Eingänge</h2><div id="bw-list"></div></div>';
       $('bw-title').value=s.applicationPanelTitle||'Team Bewerbung';
       $('bw-text').value=s.applicationPanelText||'';
-      var pCh=makeSearchSelect($('bw-ch'),{items:channelItems(disc.channels),multi:false,value:s.applicationPanelChannelId||'',placeholder:'Kanal…'});
-      var pLog=makeSearchSelect($('bw-log'),{items:channelItems(disc.channels),multi:false,value:s.applicationLogChannelId||'',placeholder:'Text-Log…'});
+      var pCh=makeSearchSelect($('bw-ch'),{items:channelItems((disc&&disc.channels)||[],'text'),multi:false,value:s.applicationPanelChannelId||'',placeholder:'Kanal…'});
+      var pLog=makeSearchSelect($('bw-log'),{items:channelItems((disc&&disc.channels)||[],'text'),multi:false,value:s.applicationLogChannelId||'',placeholder:'Text-Log…'});
       function renderQs(){
         $('bw-qs').innerHTML=questions.map(function(q,i){
           return '<div class="fac-card" data-qi="'+i+'"><div class="grid2">'+
@@ -6287,7 +6287,12 @@ async function api(path,opts){
       function wirePanelSend(id, type, defaultCh){
         var el=$('ps-ch-'+id);
         if(!el) return;
-        var pick=ss(el,{items:(ch&&ch.length)?ch:[],multi:false,value:defaultCh||'',placeholder:'Kanal…'});
+        var items=[];
+        try{
+          if(ch&&ch.length) items=ch;
+          else if(typeof disc!=='undefined'&&disc&&disc.channels) items=channelItems(disc.channels||[],'text')||[];
+        }catch(e){ items=[]; }
+        var pick=ss(el,{items:items,multi:false,value:defaultCh||'',placeholder:'Kanal…'});
         var btn=$('ps-go-'+id);
         if(!btn) return;
         btn.onclick=async function(){
