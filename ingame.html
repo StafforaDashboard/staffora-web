@@ -9,22 +9,22 @@
   var cloud='https://staffora.apps.bot-hosting.cloud';
   try{
     var host=location.hostname||'';
-    // Same-origin API when served from bot host; otherwise cloud API
-    if(host.indexOf('bot-hosting')>=0||host==='localhost'||host==='127.0.0.1'||host.indexOf('staffora.info')>=0){
+    // Same-origin only on bot host; GitHub Pages / staffora.info use cloud API
+    if(host.indexOf('bot-hosting')>=0||host==='localhost'||host==='127.0.0.1'){
       window.STAFFORA_API='';
     } else {
-      window.STAFFORA_API=cloud;
+      window.STAFFORA_API=localStorage.getItem('staffora_api')||cloud;
     }
-    var path=location.pathname||'/';
+    var path=(location.pathname||'/').split('?')[0];
     if(/ingame(\.html)?$/i.test(path)){
-      window.STAFFORA_RETURN=location.origin+path.split('?')[0];
+      window.STAFFORA_RETURN=location.origin+path;
     } else {
       var base=location.origin+(path.replace(/[^/]+$/,'')||'/');
       window.STAFFORA_RETURN=base+(base.slice(-1)==='/'?'':'/')+'ingame.html';
     }
   }catch(e){
     window.STAFFORA_API=cloud;
-    window.STAFFORA_RETURN=cloud+'/ingame';
+    window.STAFFORA_RETURN=location.href.split('?')[0];
   }
 })();
 

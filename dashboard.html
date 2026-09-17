@@ -160,9 +160,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .ss-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);font-size:12px}
 .ss-tag button{background:0;border:0;color:var(--muted);cursor:pointer;font-size:14px;line-height:1}
 
-.side-mini{margin-top:auto;padding:12px 14px 8px;border-top:1px solid var(--border,#26262f);display:none;flex-direction:column;gap:4px}
-.side-mini a{color:#6b7280;text-decoration:none;font-size:11px;line-height:1.4;padding:2px 0;transition:color .15s}
-.side-mini a:hover{color:#a1a1aa}
+.side-mini{margin-top:auto;padding:12px 14px 10px;border-top:1px solid var(--border,#26262f);display:flex;flex-direction:column;gap:6px}
+.side-mini a{color:#a1a1aa;text-decoration:none;font-size:12px;line-height:1.4;padding:6px 10px;border-radius:8px;border:1px solid transparent;transition:color .15s,background .15s,border-color .15s}
+.side-mini a:hover{color:#e4e4e7;background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.25)}
+.side-mini .sm-title{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;padding:0 4px;margin-bottom:2px}
 .side-mini.show{display:flex}
 
 .sf-empty{text-align:center;padding:48px 20px;color:var(--muted)}
@@ -1993,9 +1994,10 @@ body.gp-full .settings-main{
       <a class="nav-btn" href="ingame.html" style="text-decoration:none"><span class="ic">🎮</span> IC Panel →</a>
       <a class="nav-btn" href="unban.html" style="text-decoration:none"><span class="ic">🔓</span> Ban Appeal →</a>
     </nav>
-    <div class="side-mini" id="side-mini">
-        <a href="./ingame.html">IC Panel</a>
-        <a href="./unban.html">Ban Appeal</a>
+    <div class="side-mini show" id="side-mini">
+        <div class="sm-title">Schnellzugriff</div>
+        <a href="ingame.html" id="link-ic-panel">🎮 IC Panel</a>
+        <a href="unban.html" id="link-ban-appeal">🔓 Ban Appeal</a>
       </div>
       <div class="side-foot" id="side-user">—</div>
   </aside>
@@ -2006,6 +2008,8 @@ body.gp-full .settings-main{
         <select class="guild-sel" id="guild-sel"></select>
       </div>
       <div class="user-chip"><span id="user-label"></span>
+        <a class="btn btn-sm" id="btn-ic-panel" href="ingame.html" style="text-decoration:none;font-weight:600">🎮 IC Panel</a>
+        <a class="btn btn-sm" id="btn-ban-appeal" href="unban.html" style="text-decoration:none;font-weight:600">🔓 Ban Appeal</a>
         <button type="button" class="btn btn-p btn-sm" id="btn-refresh-discord" title="Kanäle & Rollen neu laden" style="font-weight:700;box-shadow:0 4px 14px rgba(124,108,255,.35)">↻ Kanäle & Rollen</button>
         <button type="button" class="btn btn-sm" id="btn-logout">Logout</button>
       </div>
@@ -2018,12 +2022,14 @@ body.gp-full .settings-main{
 
 <script>
 (function(){
+  var CLOUD_API = 'https://staffora.apps.bot-hosting.cloud';
   var IS_GH = /github\.io$|staffora\.info$/i.test(location.hostname) || location.protocol==='file:';
   var API=(typeof window.STAFFORA_API==='string' && window.STAFFORA_API)
     ? window.STAFFORA_API
-    : (IS_GH ? (localStorage.getItem('staffora_api') || '') : 'https://staffora.apps.bot-hosting.cloud');
-  API=String(API||'').replace(/\/$/,'');
-  var LOCAL_MODE = !API;
+    : (localStorage.getItem('staffora_api') || CLOUD_API);
+  API=String(API||CLOUD_API).replace(/\/$/,'');
+  /* LOCAL_MODE only if user explicitly set staffora_api to empty and wants offline */
+  var LOCAL_MODE = (localStorage.getItem('staffora_local')==='1') && !localStorage.getItem('staffora_api');
   var token='';
   // URL token ALWAYS wins (fresh OAuth) — never let stale localStorage block login
   try{
@@ -2246,6 +2252,19 @@ async function api(path,opts){
     else el.classList.remove('show');
   }
   updateSideMini();
+  (function fixPanelLinks(){
+    try{
+      var base = location.pathname.replace(/[^/]+$/, '') || '/';
+      var ic = base + 'ingame.html';
+      var ub = base + 'unban.html';
+      ['btn-ic-panel','link-ic-panel'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.setAttribute('href', ic);
+      });
+      ['btn-ban-appeal','link-ban-appeal'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.setAttribute('href', ub);
+      });
+    }catch(e){}
+  })();
   $('guild-sel').onchange=function(){ invalidateDiscordCache();guildId=this.value;updateSideMini();render()};
 
   (function(){
@@ -3501,6 +3520,35 @@ async function api(path,opts){
         '<button type="button" class="btn btn-sm" id="tw-save">Speichern</button></div>';
     if($('an-on')) bindToggle($('an-on'), s.autoNickEnabled!==false);
     if($('an-fmt')) $('an-fmt').value=s.autoNickFormat||'[{rank}] {name}';
+    var anTrig=s.autoNickTriggers||{};
+    if($('an-join')) bindToggle($('an-join'), anTrig.onJoin!==false);
+    if($('an-add')) bindToggle($('an-add'), anTrig.onRoleAdd!==false);
+    if($('an-rem')) bindToggle($('an-rem'), anTrig.onRoleRemove!==false);
+    if($('an-pro')) bindToggle($('an-pro'), anTrig.onPromote!==false);
+    if($('an-always')) bindToggle($('an-always'), anTrig.onAlways===true);
+    var anRules=(s.autoNickRules||[]).slice();
+    function renderAnRules(){
+      var box=$('an-rules'); if(!box) return;
+      if(!anRules.length){ box.innerHTML='<p class="hint">Keine Regeln — Standard-Format + Ranglaufbahn.</p>'; return; }
+      box.innerHTML=anRules.map(function(r,i){
+        return '<div class="field" data-ari="'+i+'" style="border:1px solid var(--border);padding:8px;border-radius:8px;margin-bottom:8px">'+
+          '<label>Rolle</label><div class="an-role" id="an-role-'+i+'"></div>'+
+          '<label>Format</label><input class="an-fmt-r" data-i="'+i+'" value="'+esc(r.format||'[{rank}] {name}')+'"/>'+
+          '<button type="button" class="btn btn-sm btn-d an-rule-del" data-i="'+i+'">Entfernen</button></div>';
+      }).join('');
+      anRules.forEach(function(r,i){
+        var el=$('an-role-'+i);
+        if(el){ var ss=makeSearchSelect(el,{items:roles,multi:false,value:r.roleId||'',placeholder:'Rolle…'}); el.__ss=ss; }
+      });
+      box.querySelectorAll('.an-rule-del').forEach(function(b){
+        b.onclick=function(){ anRules.splice(+b.getAttribute('data-i'),1); renderAnRules(); };
+      });
+    }
+    renderAnRules();
+    if($('an-rule-add')) $('an-rule-add').onclick=function(){
+      anRules.push({roleId:'',format:($('an-fmt')&&$('an-fmt').value)||'[{rank}] {name}',enabled:true});
+      renderAnRules();
+    };
     function updPrev(){
       var fmt=($('an-fmt')&&$('an-fmt').value)||'[{rank}] {name}';
       var sample=fmt.replace(/\{rank\}/gi,'Support').replace(/\{name\}/gi,'Max').replace(/\{roblox\}/gi,'MaxRoblox').replace(/\{discord\}/gi,'max').replace(/\{username\}/gi,'max');
@@ -3508,7 +3556,51 @@ async function api(path,opts){
     }
     updPrev();
     if($('an-fmt')) $('an-fmt').oninput=updPrev;
-    if($('an-save')) $('an-save').onclick=function(){patchSettings({autoNickEnabled:$('an-on').isOn(),autoNickFormat:$('an-fmt').value.trim()},'Auto-Nick')};
+    if($('an-save')) $('an-save').onclick=function(){
+      var rules=[];
+      (anRules||[]).forEach(function(r,i){
+        var el=$('an-role-'+i);
+        var rid=el&&el._ss?el._ss.getValue():(r.roleId||'');
+        // makeSearchSelect may store on wrapper
+        try{ if(el&&typeof makeSearchSelect==='function'){ /* value from last select */ } }catch(e){}
+        var fmtIn=document.querySelector('.an-fmt-r[data-i="'+i+'"]');
+        var roleVal=rid;
+        try{
+          var inp=el&&el.querySelector('input');
+          // search select value API
+          if(window.__ssGet) roleVal=window.__ssGet(el)||rid;
+        }catch(e){}
+        // recover from data-value attribute set by makeSearchSelect
+        if(el&&el.getAttribute('data-value')) roleVal=el.getAttribute('data-value');
+        rules.push({
+          roleId: roleVal||r.roleId||'',
+          format:(fmtIn&&fmtIn.value)||r.format||'[{rank}] {name}',
+          enabled:true
+        });
+      });
+      // better: re-read selects via stored refs
+      rules=[];
+      anRules.forEach(function(r,i){
+        var el=$('an-role-'+i);
+        var v=r.roleId;
+        if(el&&el.__ss&&el.__ss.getValue) v=el.__ss.getValue();
+        else if(el&&el._pick&&el._pick.getValue) v=el._pick.getValue();
+        var fmtIn=document.querySelector('.an-fmt-r[data-i="'+i+'"]');
+        if(v) rules.push({roleId:v,format:(fmtIn&&fmtIn.value.trim())||'[{rank}] {name}',enabled:true});
+      });
+      patchSettings({
+        autoNickEnabled:$('an-on').isOn(),
+        autoNickFormat:$('an-fmt').value.trim(),
+        autoNickTriggers:{
+          onJoin:$('an-join')&&$('an-join').isOn(),
+          onRoleAdd:$('an-add')&&$('an-add').isOn(),
+          onRoleRemove:$('an-rem')&&$('an-rem').isOn(),
+          onPromote:$('an-pro')&&$('an-pro').isOn(),
+          onAlways:$('an-always')&&$('an-always').isOn()
+        },
+        autoNickRules:rules
+      },'Auto-Nick');
+    };
     var pickTl=makeSearchSelect($('tl-ch'),{items:ch,multi:false,value:s.teamlistChannelId||'',placeholder:'Kanal…'});
     var pickTlR=makeSearchSelect($('tl-roles'),{items:roles,multi:true,values:s.teamlistRoleIds||[],placeholder:'Rollen…'});
     if($('tl-save')) $('tl-save').onclick=function(){patchSettings({teamlistChannelId:pickTl.getValue()||null,teamlistRoleIds:pickTlR.getValue()},'Teamliste')};
@@ -4520,22 +4612,23 @@ async function api(path,opts){
         '<div class="card"><h2>Allgemein</h2>'+
         '<div class="field"><label>Modus</label><select id="fb-mode">'+
         '<option value="panel">Externes Panel</option>'+
-        '<option value="sticky">Sticky Message im Feedback-Kanal</option>'+
+        '<option value="sticky">Sticky Message</option>'+
         '</select></div>'+
-        '<div class="field"><label>Feedback-Log-Kanal</label><div id="fb-log"></div></div>'+
+        '<div class="field"><label>Feedback-Log-Kanal</label><p class="field-desc">Hier landen Bewertungen. Sticky kann denselben Kanal nutzen.</p><div id="fb-log"></div></div>'+
         '<div class="field"><label>Rollen die Feedback geben dürfen (leer = alle)</label><div id="fb-roles"></div></div>'+
         '</div>'+
         '<div class="card" id="fb-panel-box" style="display:none"><h2>Panel-Einstellungen</h2>'+
         '<div class="field"><label>Panel-Titel</label><input id="fb-title"/></div>'+
         '<div class="field"><label>Panel-Text</label><textarea id="fb-text" rows="3"></textarea></div>'+
-        '<p class="desc">Panel senden über Tab „Panels“ → Typ Feedback.</p>'+
+        '<button type="button" class="btn btn-sm" id="fb-panel-send">Panel senden / erneut senden</button>'+
         '</div>'+
         '<div class="card" id="fb-sticky-box" style="display:none"><h2>Sticky-Einstellungen</h2>'+
-        '<div class="field"><label>Feedback-Kanal (Sticky)</label><div id="fb-sticky-ch"></div></div>'+
+        '<p class="field-desc">Sticky = Feedback-Panel-Nachricht. Alte wird gelöscht und neu gesendet.</p>'+
+        '<div class="toggle-row"><div class="lbl">Sticky im Log-Kanal senden</div><div id="fb-sticky-in-log" class="toggle-sw"></div></div>'+
+        '<div class="field"><label>Anderer Sticky-Kanal (optional)</label><div id="fb-sticky-ch"></div></div>'+
         '<div class="field"><label>Sticky-Titel</label><input id="fb-sticky-title"/></div>'+
         '<div class="field"><label>Sticky-Text</label><textarea id="fb-sticky-text" rows="3"></textarea></div>'+
-        '<button type="button" class="btn btn-sm" id="fb-sticky-deploy">Sticky jetzt senden / aktualisieren</button>'+
-        '<p class="desc">Bot hält die Sticky-Nachricht im Kanal (alte Sticky wird ersetzt).</p>'+
+        '<button type="button" class="btn btn-p btn-sm" id="fb-sticky-deploy">Sticky senden / aktualisieren</button>'+
         '</div>'+
         '<button type="button" class="btn btn-p" id="fb-save" style="margin-top:12px">Speichern</button>';
 
@@ -4543,42 +4636,61 @@ async function api(path,opts){
       var pickL=makeSearchSelect($('fb-log'),{items:channelItems(disc.channels),multi:false,value:s.feedbackLogChannelId||'',placeholder:'Log-Kanal…'});
       var pickR=makeSearchSelect($('fb-roles'),{items:roleItems(disc.roles),multi:true,values:s.feedbackRoleIds||[],placeholder:'Rollen…'});
       var pickSticky=null;
+      var stickyInLog = !s.feedbackStickyChannelId || String(s.feedbackStickyChannelId)===String(s.feedbackLogChannelId||'');
 
       function showMode(){
         mode=$('fb-mode').value;
-        $('fb-panel-box').style.display=mode==='panel'?'':'none';
-        $('fb-sticky-box').style.display=mode==='sticky'?'':'none';
-        if(mode==='sticky' && !pickSticky){
-          pickSticky=makeSearchSelect($('fb-sticky-ch'),{items:channelItems(disc.channels),multi:false,value:s.feedbackStickyChannelId||s.feedbackPanelChannelId||'',placeholder:'Kanal…'});
-          $('fb-sticky-title').value=s.feedbackStickyTitle||s.feedbackPanelTitle||'Feedback geben';
-          $('fb-sticky-text').value=s.feedbackStickyText||s.feedbackPanelText||'Bewerte ein Teammitglied — klicke auf den Button.';
+        if($('fb-panel-box')) $('fb-panel-box').style.display=mode==='panel'?'':'none';
+        if($('fb-sticky-box')) $('fb-sticky-box').style.display=mode==='sticky'?'':'none';
+        if(mode==='sticky'){
+          if($('fb-sticky-in-log') && !$('fb-sticky-in-log')._bound){
+            bindToggle($('fb-sticky-in-log'), stickyInLog);
+            $('fb-sticky-in-log')._bound=true;
+          }
+          if(!pickSticky && $('fb-sticky-ch')){
+            pickSticky=makeSearchSelect($('fb-sticky-ch'),{items:channelItems(disc.channels),multi:false,value:s.feedbackStickyChannelId||s.feedbackLogChannelId||s.feedbackPanelChannelId||'',placeholder:'Sticky-Kanal…'});
+          }
+          if($('fb-sticky-title')) $('fb-sticky-title').value=s.feedbackStickyTitle||s.feedbackPanelTitle||'Feedback geben';
+          if($('fb-sticky-text')) $('fb-sticky-text').value=s.feedbackStickyText||s.feedbackPanelText||'Bewerte ein Teammitglied — klicke auf den Button.';
         }
         if(mode==='panel'){
-          $('fb-title').value=s.feedbackPanelTitle||'Feedback geben';
-          $('fb-text').value=s.feedbackPanelText||'';
+          if($('fb-title')) $('fb-title').value=s.feedbackPanelTitle||'Feedback geben';
+          if($('fb-text')) $('fb-text').value=s.feedbackPanelText||'';
         }
       }
       $('fb-mode').onchange=showMode;
       showMode();
 
-      $('fb-save').onclick=async function(){
+      async function saveFeedback(){
         mode=$('fb-mode').value;
+        var logId=pickL.getValue()||null;
         var body={
           feedbackMode:mode,
-          feedbackLogChannelId:pickL.getValue()||null,
+          feedbackLogChannelId:logId,
           feedbackRoleIds:pickR.getValue()
         };
         if(mode==='panel'){
           body.feedbackPanelTitle=($('fb-title')&&$('fb-title').value.trim())||'Feedback geben';
           body.feedbackPanelText=($('fb-text')&&$('fb-text').value.trim())||'';
         } else {
-          body.feedbackStickyChannelId=pickSticky?pickSticky.getValue()||null:null;
+          var useLog=$('fb-sticky-in-log')&&$('fb-sticky-in-log').isOn();
+          var stickyCh=useLog?logId:(pickSticky?pickSticky.getValue()||null:null);
+          if(!stickyCh && logId) stickyCh=logId;
+          body.feedbackStickyChannelId=stickyCh;
           body.feedbackStickyTitle=($('fb-sticky-title')&&$('fb-sticky-title').value.trim())||'Feedback geben';
           body.feedbackStickyText=($('fb-sticky-text')&&$('fb-sticky-text').value.trim())||'';
+          body.feedbackPanelTitle=body.feedbackStickyTitle;
+          body.feedbackPanelText=body.feedbackStickyText;
         }
+        await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
+        s=Object.assign(s,body);
+        window.__settingsLive=Object.assign(window.__settingsLive||{}, body);
+        return body;
+      }
+
+      if($('fb-save')) $('fb-save').onclick=async function(){
         try{
-          await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
-          s=Object.assign(s,body);
+          await saveFeedback();
           toast('Feedback gespeichert','ok');
         }catch(e){toast(e.message,'err')}
       };
@@ -4586,13 +4698,26 @@ async function api(path,opts){
       if($('fb-sticky-deploy')){
         $('fb-sticky-deploy').onclick=async function(){
           try{
-            await $('fb-save').onclick();
-            var r=await api('/api/guilds/'+guildId+'/feedback/sticky',{method:'POST',body:{}});
-            toast(r.ok?'Sticky aktualisiert':'Fehler','ok');
+            var body=await saveFeedback();
+            var ch=body.feedbackStickyChannelId||body.feedbackLogChannelId;
+            var r=await api('/api/guilds/'+guildId+'/feedback/sticky',{method:'POST',body:{channelId:ch||undefined}});
+            toast(r&&r.ok?'Sticky im Kanal aktualisiert':'Fehler','ok');
+          }catch(e){toast(e.message,'err')}
+        };
+      }
+      if($('fb-panel-send')){
+        $('fb-panel-send').onclick=async function(){
+          try{
+            await saveFeedback();
+            var ch=pickL.getValue();
+            if(!ch) return toast('Log-Kanal oder Panel-Kanal wählen','err');
+            await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'feedback',channelId:ch}});
+            toast('Panel gesendet','ok');
           }catch(e){toast(e.message,'err')}
         };
       }
     }
+
     render();
   }
 
@@ -5040,21 +5165,21 @@ async function api(path,opts){
     var disc={channels:[],roles:[]}; try{disc=await loadDiscord()}catch(e){}
     p.innerHTML='<h1>📈 Server Stats</h1>'+
       '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
-      '<p class="desc">Discord-Panel: <b>Server</b>, <b>Code</b>, <b>Players</b>, <b>Online/Offline</b> — kein Online-Admin-Listing.</p>'+
+      '<p class="desc">Panel zeigt: <b>Server</b> · <b>Server Code</b> · <b>Players</b> · <b>Online/Offline</b> · <b>Inhaber (Roblox)</b></p>'+
       '<div class="card">'+
-      '<div class="field"><label>Stats-Kanal</label><p class="field-desc">Textkanal für das Auto-Update-Panel (alle ~30s).</p><div id="ss-ch"></div></div>'+
+      '<div class="field"><label>Stats-Kanal</label><p class="field-desc">Textkanal für das Auto-Update-Panel (~30s).</p><div id="ss-ch"></div></div>'+
       '<div class="field"><label>Titel</label><input id="ss-title" placeholder="Server Stats"/></div>'+
-      '<div class="field"><label>Server-Name</label><p class="field-desc">Anzeigename im Panel (z.B. Notruf Hamburg).</p><input id="ss-server" placeholder="Servername"/></div>'+
-      '<div class="field"><label>Code (Private Server)</label><p class="field-desc">Join-Code, der im Panel angezeigt wird.</p><input id="ss-code" placeholder="z.B. abc123"/></div>'+
-      '<div class="field"><label>Players (aktuell)</label><p class="field-desc">Aktuelle Spielerzahl — manuell oder per Update.</p><input id="ss-players" type="number" min="0" placeholder="0"/></div>'+
-      '<div class="field"><label>Max Players (optional)</label><input id="ss-max" type="number" min="0" placeholder="z.B. 40"/></div>'+
-      '<div class="field"><label>Extra-Info (optional)</label><input id="ss-extra" placeholder="Kurzer Infotext"/></div>'+
-      '<div class="toggle-row"><div class="lbl">Server Online</div><div id="ss-online" class="toggle-sw"></div></div>'+
-      '<p class="field-desc">Online/Offline-Status. Wird auch durch /rp-start und /rp-stop gesetzt.</p>'+
-      '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">'+
+      '<div class="field"><label>Server-Name</label><input id="ss-server" placeholder="z.B. Notruf Hamburg"/></div>'+
+      '<div class="field"><label>Server Code</label><p class="field-desc">Private-Server / Join-Code.</p><input id="ss-code" placeholder="Code"/></div>'+
+      '<div class="field"><label>Players (aktuell)</label><input id="ss-players" type="number" min="0" placeholder="0"/></div>'+
+      '<div class="field"><label>Max Players</label><input id="ss-max" type="number" min="0" placeholder="z.B. 40"/></div>'+
+      '<div class="toggle-row"><div class="lbl">Server online</div><div id="ss-online" class="toggle-sw"></div></div>'+
+      '<div class="field"><label>Inhaber Roblox-Name</label><p class="field-desc">Wird im Panel mit Profilbild, Display-Name und Profil-Link angezeigt.</p><input id="ss-owner" placeholder="Roblox Username"/></div>'+
+      '<div class="field"><label>Extra-Info (optional)</label><textarea id="ss-extra" rows="2" placeholder="Zusatztext im Embed"></textarea></div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
       '<button type="button" class="btn btn-p" id="ss-save">Speichern</button>'+
-      '<button type="button" class="btn" id="ss-upd">Panel jetzt aktualisieren</button></div>'+
-      '<p class="desc" style="margin-top:8px">Discord: <code>/stats</code> · Status ändert sich mit <code>/rp-start</code> / <code>/rp-stop</code></p></div>';
+      '<button type="button" class="btn btn-p" id="ss-upd">Panel senden / aktualisieren</button></div>'+
+      '<p class="hint" style="margin-top:10px">Status ändert sich auch mit <code>/rp-start</code> / <code>/rp-stop</code>.</p></div>';
 
     var pick=makeSearchSelect($('ss-ch'),{items:channelItems(disc.channels||[],'text'),multi:false,value:s.statusChannelId||s.serverStatsChannelId||'',placeholder:'Stats-Kanal…'});
     $('ss-title').value=s.serverStatsTitle||'Server Stats';
@@ -5063,6 +5188,7 @@ async function api(path,opts){
     $('ss-players').value=s.serverStatsPlayers!=null?s.serverStatsPlayers:'';
     $('ss-max').value=s.serverStatsMaxPlayers!=null?s.serverStatsMaxPlayers:'';
     $('ss-extra').value=s.serverStatsExtra||'';
+    if($('ss-owner')) $('ss-owner').value=s.serverStatsOwnerRoblox||s.serverOwnerRoblox||'';
     bindToggle($('ss-online'), s.serverStatsOnline===true||s.rpActive===true);
     function payload(){
       return {
@@ -5072,12 +5198,15 @@ async function api(path,opts){
         serverStatsServerName:$('ss-server').value.trim()||null,
         serverStatsCode:$('ss-code').value.trim()||null,
         privateServerCode:$('ss-code').value.trim()||null,
+        joinCode:$('ss-code').value.trim()||null,
         serverStatsPlayers:$('ss-players').value!==''?Number($('ss-players').value):null,
         serverStatsMaxPlayers:$('ss-max').value!==''?Number($('ss-max').value):null,
         serverStatsExtra:$('ss-extra').value.trim()||null,
         serverStatsOnline:$('ss-online').isOn(),
         rpActive:$('ss-online').isOn(),
-        serverStatsStatus:$('ss-online').isOn()?'online':'offline'
+        serverStatsStatus:$('ss-online').isOn()?'online':'offline',
+        serverStatsOwnerRoblox:($('ss-owner')&&$('ss-owner').value.trim())||null,
+        serverStatsUpdatedAt:Date.now()
       };
     }
     $('ss-save').onclick=async function(){
@@ -5092,6 +5221,7 @@ async function api(path,opts){
       try{
         var body=payload();
         await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
+        Object.assign(s, body); window.__settingsLive=Object.assign(window.__settingsLive||{}, body);
         var ch=pick.getValue();
         if(ch) await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'status',channelId:ch}});
         else await api('/api/guilds/'+guildId+'/stats/refresh',{method:'POST',body:{}}).catch(function(){});
@@ -5099,6 +5229,7 @@ async function api(path,opts){
       }catch(e){toast(e.message,'err')}
     };
   }
+
 
 
   async function pageRp(p){
@@ -5704,6 +5835,24 @@ async function api(path,opts){
     var disc=(window.__discCache && window.__discCache.gid===guildId && window.__discCache.data) ? window.__discCache.data : {roles:[],channels:[]};
     var roles=roleItems(disc.roles||[]);
     var ch=channelItems(disc.channels||[],'text');
+    if(!Array.isArray(roles)) roles=[];
+    if(!Array.isArray(ch)) ch=[];
+    /* searchable select alias used in settings tabs */
+    function ss(container, opts){
+      try{
+        if(!opts) opts={};
+        if(!opts.items) opts.items=[];
+        if(!Array.isArray(opts.items)) opts.items=[];
+        return makeSearchSelect(container, opts);
+      }catch(e){
+        console.warn('[ss]', e);
+        return {
+          getValue:function(){ return opts.multi?[]:''; },
+          setValue:function(){},
+          setItems:function(){}
+        };
+      }
+    }
     /* background refresh — does not block first paint */
     (function(){
       var gid=guildId;
@@ -5854,7 +6003,9 @@ async function api(path,opts){
 
     function goFeature(pg){ try{ navigate(pg); }catch(e){ page=pg; render(); } }
 
+    var __catGen=0;
     async function renderCat(cat){
+      var gen=++__catGen;
       activeCat=cat;
       try{ if(typeof refreshLiveSettings==='function') refreshLiveSettings(s); }catch(e){}
       try{
@@ -5863,6 +6014,7 @@ async function api(path,opts){
           ch=channelItems(window.__discCache.data.channels||[],'text');
         }
       }catch(e){}
+      function stillActive(){ return gen===__catGen; }
       function backBtn(){
         return '<button type="button" class="btn-back" id="set-back">← Zurück</button>';
       }
@@ -6071,6 +6223,7 @@ async function api(path,opts){
         return '<button type="button" class="btn btn-p btn-sm" id="'+id+'">'+(label||'Speichern')+'</button>';
       }
       function pickCards(title, desc, items, onPick){
+        if(typeof stillActive==='function' && !stillActive()) return;
         main.innerHTML=backBtn()+
           '<h1>'+title+'</h1><p class="sdesc">'+desc+'</p>'+
           '<div class="set-pick-grid">'+items.map(function(it){
@@ -6078,10 +6231,14 @@ async function api(path,opts){
           }).join('')+'</div>';
         try{bindBack()}catch(e){}
         main.querySelectorAll('.set-pick').forEach(function(b){
-          b.onclick=function(){ onPick(b.getAttribute('data-sub')); };
+          b.onclick=function(){
+            var id=b.getAttribute('data-sub');
+            Promise.resolve(onPick(id)).catch(function(e){ console.warn('[pick]', e); toast((e&&e.message)||'Fehler','err'); });
+          };
         });
       }
       function detailShell(title, html){
+        if(typeof stillActive==='function' && !stillActive()) return;
         main.innerHTML=backBtn()+
           '<div class="set-detail"><h1>'+title+'</h1>'+html+'</div>';
         try{
@@ -6092,42 +6249,45 @@ async function api(path,opts){
       function ensureDisc(){
         return (async function(){
           try{
+            if(!Array.isArray(roles)) roles=[];
+            if(!Array.isArray(ch)) ch=[];
+          }catch(e){ roles=[]; ch=[]; }
+          try{
             if(window.__discCache && window.__discCache.gid===guildId && window.__discCache.data){
-              roles=roleItems(window.__discCache.data.roles||[]);
-              ch=channelItems(window.__discCache.data.channels||[],'text');
+              roles=roleItems(window.__discCache.data.roles||[])||[];
+              ch=channelItems(window.__discCache.data.channels||[],'text')||[];
             }
           }catch(e){}
           if(roles && roles.length && ch && ch.length) return;
           try{
-            disc=await loadDiscord(false);
-            roles=roleItems(disc.roles||[]);
-            ch=channelItems(disc.channels||[],'text');
-            if(!(roles && roles.length) || !(ch && ch.length)){
-              disc=await Promise.race([
-                loadDiscord(true),
-                new Promise(function(r){ setTimeout(function(){ r(disc||{roles:[],channels:[]}); }, 4000); })
-              ]);
-              roles=roleItems((disc&&disc.roles)||[]);
-              ch=channelItems((disc&&disc.channels)||[],'text');
+            var loader = loadDiscord(false);
+            var timed = new Promise(function(res){ setTimeout(function(){ res(null); }, 4000); });
+            var d = await Promise.race([loader, timed]);
+            if(d){
+              roles=roleItems(d.roles||[])||[];
+              ch=channelItems(d.channels||[],'text')||[];
+              try{
+                window.__discCache={gid:guildId, at:Date.now(), data:d};
+              }catch(e){}
             }
-          }catch(e){ console.warn('ensureDisc', e); }
+          }catch(e){ console.warn('[ensureDisc]', e); }
+          if(!Array.isArray(roles)) roles=[];
+          if(!Array.isArray(ch)) ch=[];
         })();
       }
-function ss(el, opts){
-        if(!el) return {getValue:function(){return opts.multi?[]:''}, getValues:function(){return []}};
-        try{ return makeSearchSelect(el, opts); }catch(e){ console.warn(e); return {getValue:function(){return opts.multi?[]:''}}; }
-      }
+
+
 
       function panelSendBlock(id, label){
-        return '<div class="set-card" style="margin-top:12px">'+
-          '<h3 style="margin:0 0 8px;font-size:14px">📨 '+(label||'Panel senden')+'</h3>'+
-          fieldRow('Kanal','ps-ch-'+id,'Textkanal, in den das Panel (Embed + Buttons) gesendet wird.')+
-          '<button type="button" class="btn btn-p btn-sm" id="ps-go-'+id+'">Panel senden</button></div>';
+        return '<div class="set-card" style="margin-top:12px"><h3 style="margin:0 0 8px">📨 '+(label||'Panel')+' senden</h3>'+
+          '<p class="field-desc" style="margin:0 0 8px">Panel erneut in einen Kanal senden (oder ersten Versand). Altes Panel bleibt, außer der Bot ersetzt es automatisch.</p>'+
+          fieldRow('Kanal','ps-ch-'+id,'Textkanal für Embed + Buttons.')+
+          '<button type="button" class="btn btn-p btn-sm" id="ps-go-'+id+'">Panel senden / erneut senden</button></div>';
       }
       function wirePanelSend(id, type, defaultCh){
         var el=$('ps-ch-'+id);
         if(!el) return;
-        var pick=ss(el,{items:ch,multi:false,value:defaultCh||'',placeholder:'Kanal…'});
+        var pick=ss(el,{items:(ch&&ch.length)?ch:[],multi:false,value:defaultCh||'',placeholder:'Kanal…'});
         var btn=$('ps-go-'+id);
         if(!btn) return;
         btn.onclick=async function(){
@@ -6385,7 +6545,7 @@ function ss(el, opts){
               saveBtn('ap-save')+
               panelSendBlock('app','Bewerbungs-Panel')+
               '</div><div class="set-card" style="margin-top:12px"><h3 style="margin:0 0 8px">Fragen</h3>'+
-              '<p class="field-desc">Max. 5 Fragen im Discord-Modal.</p>'+
+              '<p class="field-desc">Beliebig viele Fragen (mehrere Seiten à 5 im Discord-Modal).</p>'+
               '<div id="ap-qlist"></div>'+
               '<div class="field" style="margin-top:8px"><label>Neue Frage</label><input id="ap-qnew" placeholder="z.B. Wie alt bist du?"/></div>'+
               '<button type="button" class="btn btn-sm" id="ap-qadd">+ Frage</button></div>');
@@ -6815,15 +6975,64 @@ if(sub==='list'){
               '<p class="desc" style="margin:0 0 12px">Rollen werden mit <code>@Rolle</code> angezeigt und nach Discord-Hierarchie sortiert. Titel standardmäßig = Servername.</p>'+
               fieldRow('Kanal','tm-ch')+fieldRow('Rollen','tm-roles')+
               '<div class="field"><label>Titel (leer = Servername)</label><input id="tm-title" placeholder="Teamliste – Servername"/></div>'+
-              saveBtn('tm-save')+'<button type="button" class="btn btn-p btn-sm" id="tm-pub" style="margin-left:8px">Teamliste senden / updaten</button></div>');
+              saveBtn('tm-save')+'<button type="button" class="btn btn-p btn-sm" id="tm-pub" style="margin-left:8px">Teamliste senden / erneut senden</button>'+panelSendBlock('tmlist','Teamliste Panel')+'</div>');
             var tmCh=ss($('tm-ch'),{items:ch,multi:false,value:s.teamlistChannelId||'',placeholder:'Kanal…'});
             var tmR=ss($('tm-roles'),{items:roles,multi:true,values:s.teamlistRoleIds||[],placeholder:'Rollen…'});
             if($('tm-title')) $('tm-title').value=s.teamlistTitle||'';
             $('tm-save').onclick=function(){patchSettings({teamlistChannelId:tmCh.getValue()||null,teamlistRoleIds:tmR.getValue(),teamlistTitle:($('tm-title')&&$('tm-title').value.trim())||null},'Teamliste')};
+            if($('tm-pub')) $('tm-pub').onclick=async function(){
+              var channelId=tmCh.getValue();
+              if(!channelId){ toast('Kanal wählen','err'); return; }
+              try{
+                await patchSettings({teamlistChannelId:channelId,teamlistRoleIds:tmR.getValue(),teamlistTitle:($('tm-title')&&$('tm-title').value.trim())||null},'Teamliste');
+                await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'teamlist',channelId:channelId}});
+                toast('Teamliste gesendet','ok');
+              }catch(e){ toast(e.message||'Senden fehlgeschlagen','err'); }
+            };
+            wirePanelSend('tmlist','teamlist',s.teamlistChannelId||'');
           } else if(sub==='nick'){
-            detailShell('🏷️ Auto-Nick','<div class="set-card"><div class="toggle-row"><div class="lbl">Aktiv</div><div id="tm-an" class="toggle-sw"></div></div><div class="field"><label>Format</label><input id="tm-fmt" placeholder="[{rank}] {name}"/></div>'+saveBtn('tm-an-save')+'</div>');
+            detailShell('🏷️ Auto-Nick','<div class="set-card">'+
+              '<div class="toggle-row"><div class="lbl">Aktiv</div><div id="tm-an" class="toggle-sw"></div></div>'+
+              '<div class="field"><label>Standard-Format</label><input id="tm-fmt" placeholder="[{rank}] {name}"/></div>'+
+              '<p class="field-desc">Höchste Discord-Rolle mit Regel gewinnt. Platzhalter: {rank} {name} {roblox}</p>'+
+              '<div class="toggle-row"><div class="lbl">Bei Join</div><div id="tm-join" class="toggle-sw"></div></div>'+
+              '<div class="toggle-row"><div class="lbl">Bei Rollen-Add</div><div id="tm-add" class="toggle-sw"></div></div>'+
+              '<div class="toggle-row"><div class="lbl">Bei Rollen-Remove</div><div id="tm-rem" class="toggle-sw"></div></div>'+
+              '<div class="toggle-row"><div class="lbl">Bei Promote</div><div id="tm-pro" class="toggle-sw"></div></div>'+
+              '<div class="field"><label>Rollen-Regeln</label><div id="tm-rules"></div><button type="button" class="btn btn-sm" id="tm-rule-add">+ Regel</button></div>'+
+              saveBtn('tm-an-save')+'</div>');
             bindToggle($('tm-an'), s.autoNickEnabled!==false); $('tm-fmt').value=s.autoNickFormat||'[{rank}] {name}';
-            $('tm-an-save').onclick=function(){patchSettings({autoNickEnabled:$('tm-an').isOn(),autoNickFormat:$('tm-fmt').value.trim()},'Auto-Nick')};
+            var tt=s.autoNickTriggers||{};
+            bindToggle($('tm-join'), tt.onJoin!==false);
+            bindToggle($('tm-add'), tt.onRoleAdd!==false);
+            bindToggle($('tm-rem'), tt.onRoleRemove!==false);
+            bindToggle($('tm-pro'), tt.onPromote!==false);
+            var tmRules=(s.autoNickRules||[]).slice();
+            function renderTmRules(){
+              var box=$('tm-rules'); if(!box) return;
+              box.innerHTML=tmRules.map(function(r,i){
+                return '<div data-i="'+i+'" style="margin-bottom:8px"><div id="tm-r-'+i+'"></div><input id="tm-f-'+i+'" value="'+esc(r.format||'[{rank}] {name}')+'"/><button type="button" class="btn btn-sm btn-d tm-del" data-i="'+i+'">×</button></div>';
+              }).join('')||'<p class="hint">Keine Regeln</p>';
+              tmRules.forEach(function(r,i){ var el=$('tm-r-'+i); if(el) el.__ss=makeSearchSelect(el,{items:roles,multi:false,value:r.roleId||'',placeholder:'Rolle…'}); });
+              box.querySelectorAll('.tm-del').forEach(function(b){ b.onclick=function(){ tmRules.splice(+b.getAttribute('data-i'),1); renderTmRules(); }; });
+            }
+            renderTmRules();
+            if($('tm-rule-add')) $('tm-rule-add').onclick=function(){ tmRules.push({roleId:'',format:'[{rank}] {name}',enabled:true}); renderTmRules(); };
+            $('tm-an-save').onclick=function(){
+              var rules=[];
+              tmRules.forEach(function(r,i){
+                var el=$('tm-r-'+i); var v=r.roleId;
+                if(el&&el.__ss&&el.__ss.getValue) v=el.__ss.getValue();
+                var f=$('tm-f-'+i);
+                if(v) rules.push({roleId:v,format:(f&&f.value.trim())||'[{rank}] {name}',enabled:true});
+              });
+              patchSettings({
+                autoNickEnabled:$('tm-an').isOn(),
+                autoNickFormat:$('tm-fmt').value.trim(),
+                autoNickTriggers:{ onJoin:$('tm-join').isOn(), onRoleAdd:$('tm-add').isOn(), onRoleRemove:$('tm-rem').isOn(), onPromote:$('tm-pro').isOn(), onAlways:false },
+                autoNickRules:rules
+              },'Auto-Nick');
+            };
           } else if(sub==='duty'){
             detailShell('🟢 Duty','<div class="set-card">'+fieldRow('Panel-Kanal','tm-duty')+fieldRow('Duty-Rollen','tm-duty-r')+fieldRow('Ingame-Admin','tm-ingame')+'<div class="field"><label>Titel</label><input id="tm-duty-t"/></div>'+saveBtn('tm-duty-save')+panelSendBlock('duty','Duty-Panel')+'</div>');
             var dCh=ss($('tm-duty'),{items:ch,multi:false,value:s.dutyPanelChannelId||'',placeholder:'Kanal…'});
@@ -6847,30 +7056,57 @@ if(sub==='list'){
           } else if(sub==='fb'){
             detailShell('⭐ Feedback','<div class="set-card">'+
               '<div class="toggle-row"><div class="lbl">Feedback aktiv</div><div id="tm-fb-on" class="toggle-sw"></div></div>'+
-              fieldRow('Feedback-Log-Kanal','tm-fb','Kanal für Bewertungen (Sterne + Grund).')+
+              fieldRow('Feedback-Log-Kanal','tm-fb','Hier landen Sterne + Grund. Sticky kann denselben Kanal nutzen.')+
               fieldRow('Wer Feedback geben darf','tm-fb-r','Leer = jeder. Sonst nur diese Rollen.')+
-              '<div class="field"><label>Panel-Titel</label><input id="tm-fb-t" placeholder="Feedback"/></div>'+
-              '<div class="field"><label>Panel-Text</label><textarea id="tm-fb-tx" rows="3" placeholder="Bewerte ein Teammitglied…"></textarea></div>'+
+              '<div class="field"><label>Modus</label><select id="tm-fb-mode"><option value="panel">Externes Panel</option><option value="sticky">Sticky Message</option></select></div>'+
+              '<div class="toggle-row"><div class="lbl">Sticky im Log-Kanal</div><div id="tm-fb-sticky-log" class="toggle-sw"></div></div>'+
+              fieldRow('Sticky-Kanal (optional)','tm-fb-st','Nur wenn „Sticky im Log-Kanal“ aus ist.')+
+              '<div class="field"><label>Panel / Sticky-Titel</label><input id="tm-fb-t" placeholder="Feedback"/></div>'+
+              '<div class="field"><label>Panel / Sticky-Text</label><textarea id="tm-fb-tx" rows="3" placeholder="Bewerte ein Teammitglied…"></textarea></div>'+
               '<div class="field"><label>XP bei Feedback (≥3 Sterne)</label><input id="tm-fb-xp" type="number" min="0" placeholder="10"/></div>'+
               saveBtn('tm-fb-save')+
+              '<button type="button" class="btn btn-p btn-sm" id="tm-fb-sticky" style="margin-left:8px">Sticky senden / aktualisieren</button>'+
               panelSendBlock('fb','Feedback-Panel')+
-              '<p class="hint">Button → Dropdown (User wählen) → Sterne + Grund. Log-Embed mit Staffora-Platzhalter.</p></div>');
+              '<p class="hint">Sticky = Panel-Nachricht wird im gewählten/Log-Kanal neu gesendet (alte gelöscht). Button → User wählen → Sterne + Grund.</p></div>');
             bindToggle($('tm-fb-on'), s.feedbackEnabled!==false);
             var fb=ss($('tm-fb'),{items:ch,multi:false,value:s.feedbackLogChannelId||'',placeholder:'Log…'});
             var fbR=ss($('tm-fb-r'),{items:roles,multi:true,values:s.feedbackRoleIds||[],placeholder:'Rollen…'});
-            $('tm-fb-t').value=s.feedbackPanelTitle||'Feedback';
-            $('tm-fb-tx').value=s.feedbackPanelText||'Hast du Lob oder Kritik? Klicke auf den Button.';
+            var fbSt=ss($('tm-fb-st'),{items:ch,multi:false,value:s.feedbackStickyChannelId||'',placeholder:'Sticky-Kanal…'});
+            $('tm-fb-mode').value=s.feedbackMode==='sticky'?'sticky':'panel';
+            bindToggle($('tm-fb-sticky-log'), !s.feedbackStickyChannelId || String(s.feedbackStickyChannelId)===String(s.feedbackLogChannelId||''));
+            $('tm-fb-t').value=s.feedbackPanelTitle||s.feedbackStickyTitle||'Feedback';
+            $('tm-fb-tx').value=s.feedbackPanelText||s.feedbackStickyText||'Hast du Lob oder Kritik? Klicke auf den Button.';
             if($('tm-fb-xp')) $('tm-fb-xp').value=s.xpFeedback!=null?s.xpFeedback:10;
-            $('tm-fb-save').onclick=function(){
-              var p={
+            function fbPayload(){
+              var logId=fb.getValue()||null;
+              var mode=$('tm-fb-mode').value;
+              var useLog=$('tm-fb-sticky-log').isOn();
+              var stickyCh=useLog?logId:(fbSt.getValue()||null);
+              return {
                 feedbackEnabled:$('tm-fb-on').isOn(),
-                feedbackLogChannelId:fb.getValue()||null,
+                feedbackMode:mode,
+                feedbackLogChannelId:logId,
                 feedbackRoleIds:fbR.getValue(),
                 feedbackPanelTitle:$('tm-fb-t').value.trim(),
                 feedbackPanelText:$('tm-fb-tx').value,
+                feedbackStickyTitle:$('tm-fb-t').value.trim(),
+                feedbackStickyText:$('tm-fb-tx').value,
+                feedbackStickyChannelId:mode==='sticky'?(stickyCh||logId):s.feedbackStickyChannelId||null,
                 xpFeedback:Number($('tm-fb-xp')&&$('tm-fb-xp').value)||10
               };
+            }
+            $('tm-fb-save').onclick=function(){
+              var p=fbPayload();
               patchSettings(p,'Feedback'); Object.assign(s,p);
+            };
+            if($('tm-fb-sticky')) $('tm-fb-sticky').onclick=async function(){
+              try{
+                var p=fbPayload();
+                p.feedbackMode='sticky';
+                await patchSettings(p,'Feedback'); Object.assign(s,p);
+                var r=await api('/api/guilds/'+guildId+'/feedback/sticky',{method:'POST',body:{channelId:p.feedbackStickyChannelId||p.feedbackLogChannelId}});
+                toast(r&&r.ok?'Sticky gesendet':'OK','ok');
+              }catch(e){toast(e.message,'err')}
             };
             wirePanelSend('fb','feedback',s.feedbackPanelChannelId||s.feedbackLogChannelId||'');
           } else {
@@ -6891,10 +7127,11 @@ if(sub==='list'){
           try{refreshLiveSettings(s);}catch(e){}
           await ensureDisc();
           if(sub==='haus'){
-            detailShell('🏠 Hausliste','<div class="set-card">'+fieldRow('Kanal','hh-ch')+'<div class="field"><label>Titel</label><input id="hh-t"/></div><div class="field"><label>Text</label><textarea id="hh-tx"></textarea></div>'+saveBtn('hh-save')+'</div>');
+            detailShell('🏠 Hausliste','<div class="set-card">'+fieldRow('Kanal','hh-ch')+'<div class="field"><label>Titel</label><input id="hh-t"/></div><div class="field"><label>Text</label><textarea id="hh-tx"></textarea></div>'+saveBtn('hh-save')+panelSendBlock('hh','Hausliste-Panel')+'</div>');
             var hh=ss($('hh-ch'),{items:ch,multi:false,value:s.hauslistePanelChannelId||'',placeholder:'Kanal…'});
             $('hh-t').value=s.hauslistePanelTitle||''; $('hh-tx').value=s.hauslistePanelText||'';
             $('hh-save').onclick=function(){patchSettings({hauslistePanelChannelId:hh.getValue()||null,hauslistePanelTitle:$('hh-t').value.trim(),hauslistePanelText:$('hh-tx').value},'Hausliste')};
+            wirePanelSend('hh','hausliste',s.hauslistePanelChannelId||'');
           } else {
             detailShell('🏴 Fraktionen','<div class="set-card">'+
               fieldRow('Announce-Kanal','hf-ch','Öffentliche Ankündigungen: Fraktion hinzugefügt, gewarnt oder entfernt.')+
@@ -7204,16 +7441,19 @@ if(sub==='list'){
             bindToggle($('mu-on'), s.unbanRequestEnabled!==false); bindToggle($('mu-act'), !!s.unbanRequireActiveBan);
             var mu=ss($('mu-ch'),{items:ch,multi:false,value:s.unbanRequestChannelId||'',placeholder:'Kanal…'});
             $('mu-save').onclick=function(){patchSettings({unbanRequestEnabled:$('mu-on').isOn(),unbanRequireActiveBan:$('mu-act').isOn(),unbanRequestChannelId:mu.getValue()||null},'Unban')};
+            return;
           } else if(sub==='dizzy'){
             detailShell('🎮 Dizzy','<div class="set-card">'+fieldRow('Control-Kanal','md-ch')+fieldRow('Log','md-log')+fieldRow('Rollen','md-r')+saveBtn('md-save')+'</div>');
             var md=ss($('md-ch'),{items:ch,multi:false,value:s.dizzyChannelId||s.ingameDizzyChannelId||'',placeholder:'Kanal…'});
             var mdl=ss($('md-log'),{items:ch,multi:false,value:s.dizzyLogChannelId||'',placeholder:'Log…'});
             var mdr=ss($('md-r'),{items:roles,multi:true,values:s.dizzyControllerRoleIds||[],placeholder:'Rollen…'});
             $('md-save').onclick=function(){patchSettings({dizzyChannelId:md.getValue()||null,ingameDizzyChannelId:md.getValue()||null,dizzyLogChannelId:mdl.getValue()||null,dizzyControllerRoleIds:mdr.getValue()},'Dizzy')};
+            return;
           } else if(sub==='ingame'){
             detailShell('🖥️ Ingame Access','<div class="set-card">'+fieldRow('Zugriff-Rollen','mi-r')+saveBtn('mi-save')+'</div>');
             var mi=ss($('mi-r'),{items:roles,multi:true,values:s.ingamePanelAccessRoleIds||s.ingameAccessRoleIds||[],placeholder:'Rollen…'});
             $('mi-save').onclick=function(){patchSettings({ingamePanelAccessRoleIds:mi.getValue(),ingameAccessRoleIds:mi.getValue()},'Ingame')};
+            return;
           } else if(sub==='automod'){
             detailShell('🤖 AutoMod','<div class="set-card">'+
               '<div class="toggle-row"><div class="lbl">AutoMod aktiv</div><div id="am-on" class="toggle-sw"></div></div>'+
@@ -7248,15 +7488,20 @@ if(sub==='list'){
               patchSettings(p,'AutoMod'); Object.assign(s,p);
             };
             return;
+          } else if(sub==='security'){
+            renderCat('security');
+            return;
+          } else if(sub==='fly'){
+            detailShell('✈️ Fly & Nametag','<div class="set-card">'+fieldRow('Kanal','mf-ch','Kanal für Fly/Nametag-Anfragen.')+fieldRow('Staff-Rollen','mf-r','Dürfen Anfragen annehmen.')+saveBtn('mf-save')+panelSendBlock('fly','Fly & Nametag Panel')+'</div>');
+            var mf=ss($('mf-ch'),{items:ch,multi:false,value:s.flyNametagChannelId||'',placeholder:'Kanal…'});
+            var mfr=ss($('mf-r'),{items:roles,multi:true,values:s.flyNametagStaffRoleIds||[],placeholder:'Staff…'});
+            $('mf-save').onclick=function(){
+              var p={flyNametagChannelId:mf.getValue()||null,flyNametagStaffRoleIds:mfr.getValue()};
+              patchSettings(p,'Fly'); Object.assign(s,p);
+            };
+            wirePanelSend('fly','fly_nametag',s.flyNametagChannelId||'');
+            return;
           }
-          // Fly & Nametag
-          detailShell('✈️ Fly & Nametag','<div class="set-card">'+fieldRow('Kanal','mf-ch','Kanal für Fly/Nametag-Anfragen.')+fieldRow('Staff-Rollen','mf-r','Dürfen Anfragen annehmen.')+saveBtn('mf-save')+'</div>');
-          var mf=ss($('mf-ch'),{items:ch,multi:false,value:s.flyNametagChannelId||'',placeholder:'Kanal…'});
-          var mfr=ss($('mf-r'),{items:roles,multi:true,values:s.flyNametagStaffRoleIds||[],placeholder:'Staff…'});
-          $('mf-save').onclick=function(){
-            var p={flyNametagChannelId:mf.getValue()||null,flyNametagStaffRoleIds:mfr.getValue()};
-            patchSettings(p,'Fly'); Object.assign(s,p);
-          };
         });
         return;
       }
@@ -7462,12 +7707,12 @@ if(sub==='list'){
           '<h3 style="margin:12px 0 8px">Willkommen</h3>'+
           '<div class="toggle-row"><div class="lbl">Willkommensnachricht an</div><div id="wl-wen" class="toggle-sw"></div></div>'+
           '<div class="toggle-row"><div class="lbl">User pingen</div><div id="wl-ping" class="toggle-sw"></div></div>'+
-          fieldRow('Willkommens-Kanal','wl-wch')+
+          fieldRow('Willkommens-Kanal','wl-wch','Hier wird die Willkommens-Nachricht gesendet (Textkanal wählen).')+
           '<div class="field"><label>Titel</label><input id="wl-wt" placeholder="Willkommen!"/></div>'+
           '<div class="field"><label>Text</label><textarea id="wl-wtx" rows="3" placeholder="Hey {mention} …"></textarea></div>'+
           '<h3 style="margin:16px 0 8px">Leave</h3>'+
           '<div class="toggle-row"><div class="lbl">Leave-Nachricht an</div><div id="wl-len" class="toggle-sw"></div></div>'+
-          fieldRow('Leave-Kanal','wl-lch')+
+          fieldRow('Leave-Kanal','wl-lch','Hier wird die Leave-Nachricht gesendet (kann ein anderer Kanal sein).')+
           '<div class="field"><label>Titel</label><input id="wl-lt" placeholder="Tschüss"/></div>'+
           '<div class="field"><label>Text</label><textarea id="wl-ltx" rows="3"></textarea></div>'+
           saveBtn('wl-save')+
@@ -7496,7 +7741,7 @@ if(sub==='list'){
         $('wl-wtx').value=s.welcomeText||'Hey {mention} — willkommen auf **{server}**!\nDu bist Mitglied **#{memberCount}**.';
         $('wl-lt').value=s.leaveTitle||'Tschüss';
         $('wl-ltx').value=s.leaveText||'**{userName}** hat **{server}** verlassen.\nMitglieder: **{memberCount}**.';
-        $('wl-save').onclick=function(){
+        $('wl-save').onclick=async function(){
           var p={
             welcomeEnabled:$('wl-wen').isOn(),
             leaveEnabled:$('wl-len').isOn(),
@@ -7508,8 +7753,13 @@ if(sub==='list'){
             leaveTitle:$('wl-lt').value.trim(),
             leaveText:$('wl-ltx').value
           };
-          patchSettings(p,'Welcome/Leave'); Object.assign(s,p);
-          try{ api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{welcomeLeave:$('wl-mod').isOn()}}); }catch(e){}
+          try{
+            await patchSettings(p,'Welcome/Leave');
+            Object.assign(s,p);
+            window.__settingsLive=Object.assign(window.__settingsLive||{}, p);
+            await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{welcomeLeave:$('wl-mod').isOn(),welcome:$('wl-mod').isOn()}});
+            toast('Welcome/Leave gespeichert · Kanäle: '+(p.welcomeChannelId?'W✓':'W–')+' / '+(p.leaveChannelId?'L✓':'L–'),'ok');
+          }catch(e){ toast(e.message||'Fehler','err'); }
         };
         bindToggle($('bst-on'), s.boostEnabled!==false);
         bindToggle($('bst-ping'), s.boostPingUser!==false);
@@ -7559,10 +7809,10 @@ if(sub==='list'){
         body.innerHTML=
           '<div class="toggle-row"><div class="lbl">Modul aktiv</div><div id="vf-on" class="toggle-sw"></div></div>'+
           '<div class="toggle-row"><div class="lbl">Auto Unverified bei Join</div><div id="vf-auto" class="toggle-sw"></div></div>'+
-          fieldRow('Verified-Rolle','vf-role','Wird nach erfolgreichem Captcha vergeben. Leer = Bot legt „Verified“ an.')+
+          fieldRow('Verified-Rollen (mehrere möglich)','vf-role','Alle diese Rollen werden nach erfolgreichem Captcha vergeben. Leer = Bot legt „Verified“ an.')+
           fieldRow('Unverified-Rolle','vf-unv','Neue Member bis zur Verifizierung. Sieht nur den Verify-Kanal.')+
           fieldRow('Verify-Panel-Kanal','vf-ch','Kanal mit Verify-Button; Unverified dürfen nur hier schreiben.')+
-          '<p class="hint">Leer lassen → Bot legt „Verified“ / „Unverified“ automatisch an. Nach Speichern bleiben die Werte sichtbar.</p>'+
+          '<p class="hint">Mehrere Verified-Rollen auswählen. Leer lassen → Bot legt „Verified“ / „Unverified“ automatisch an.</p>'+
           '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
           '<button type="button" class="btn btn-p" id="vf-save">Speichern</button>'+
           '<button type="button" class="btn" id="vf-setup">Rollen anlegen + Kanal-Sperre</button>'+
@@ -7571,7 +7821,8 @@ if(sub==='list'){
           '<p class="hint" style="margin-top:12px">Ablauf: Join → Unverified → nur Verify-Kanal → Captcha → Verified, Unverified weg.</p>';
         bindToggle($('vf-on'), mods.verify!==false);
         bindToggle($('vf-auto'), s.verifyAutoUnverified!==false);
-        var vfRole=ss($('vf-role'),{items:roles,multi:false,value:s.verifyRoleId||'',placeholder:roles.length?('Rolle… ('+roles.length+')'):'Keine Rollen geladen — ↻ drücken'});
+        var vfRoleVals = (s.verifyRoleIds&&s.verifyRoleIds.length)?s.verifyRoleIds:(s.verifyRoleId?[s.verifyRoleId]:[]);
+        var vfRole=ss($('vf-role'),{items:roles,multi:true,values:vfRoleVals,placeholder:roles.length?('Rollen… ('+roles.length+')'):'Keine Rollen geladen — ↻ drücken'});
         var vfUnv=ss($('vf-unv'),{items:roles,multi:false,value:s.unverifiedRoleId||'',placeholder:roles.length?'Rolle…':'Keine Rollen'});
         var vfCh=ss($('vf-ch'),{items:ch,multi:false,value:s.verifyChannelId||'',placeholder:ch.length?('Kanal… ('+ch.length+')'):'Keine Kanäle — ↻ drücken'});
         wirePanelSend('verify','verify',s.verifyChannelId||'');
@@ -7585,8 +7836,11 @@ if(sub==='list'){
           }catch(e){ toast(e.message,'err'); }
         };
         $('vf-save').onclick=async function(){
+          var roleIds=vfRole.getValue()||[];
+          if(!Array.isArray(roleIds)) roleIds=roleIds?[roleIds]:[];
           var payload={
-            verifyRoleId:vfRole.getValue()||null,
+            verifyRoleIds:roleIds,
+            verifyRoleId:roleIds[0]||null,
             unverifiedRoleId:vfUnv.getValue()||null,
             verifyChannelId:vfCh.getValue()||null,
             verifyAutoUnverified:$('vf-auto').isOn()
@@ -7601,8 +7855,11 @@ if(sub==='list'){
         };
         $('vf-setup').onclick=async function(){
           try{
+            var roleIds=vfRole.getValue()||[];
+            if(!Array.isArray(roleIds)) roleIds=roleIds?[roleIds]:[];
             var payload={
-              verifyRoleId:vfRole.getValue()||null,
+              verifyRoleIds:roleIds,
+              verifyRoleId:roleIds[0]||null,
               unverifiedRoleId:vfUnv.getValue()||null,
               verifyChannelId:vfCh.getValue()||null,
               verifyAutoUnverified:$('vf-auto').isOn()
@@ -7691,15 +7948,17 @@ if(sub==='list'){
             };
             wirePanelSend('partner','partner',s.partnerAppChannelId||s.partnerApplicationChannelId||'');
           } else if(sub==='gw'){
-            detailShell('🎁 Giveaways','<div class="set-card">'+fieldRow('Kanal','cg-ch')+fieldRow('Rollen','cg-r')+saveBtn('cg-save')+'</div>');
+            detailShell('🎁 Giveaways','<div class="set-card">'+fieldRow('Kanal','cg-ch')+fieldRow('Rollen','cg-r')+saveBtn('cg-save')+panelSendBlock('gw','Giveaway-Info Panel')+'</div>');
             var cg=ss($('cg-ch'),{items:ch,multi:false,value:s.giveawayChannelId||'',placeholder:'Kanal…'});
             var cgr=ss($('cg-r'),{items:roles,multi:true,values:s.giveawayRoleIds||[],placeholder:'Rollen…'});
             $('cg-save').onclick=function(){patchSettings({giveawayChannelId:cg.getValue()||null,giveawayRoleIds:cgr.getValue()},'Giveaway')};
+            wirePanelSend('gw','giveaway',s.giveawayChannelId||'');
           } else {
-            detailShell('💡 Vorschläge','<div class="set-card">'+fieldRow('Kanal','cs-ch')+fieldRow('Staff','cs-r')+saveBtn('cs-save')+'</div>');
+            detailShell('💡 Vorschläge','<div class="set-card">'+fieldRow('Kanal','cs-ch')+fieldRow('Staff','cs-r')+saveBtn('cs-save')+panelSendBlock('sg','Vorschläge-Panel')+'</div>');
             var cs=ss($('cs-ch'),{items:ch,multi:false,value:s.suggestChannelId||'',placeholder:'Kanal…'});
             var csr=ss($('cs-r'),{items:roles,multi:true,values:s.suggestStaffRoleIds||[],placeholder:'Staff…'});
             $('cs-save').onclick=function(){patchSettings({suggestChannelId:cs.getValue()||null,suggestStaffRoleIds:csr.getValue()},'Suggest')};
+            wirePanelSend('sg','suggest',s.suggestChannelId||'');
           }
         });
         return;
@@ -7830,10 +8089,52 @@ if(sub==='list'){
               patchSettings({logChannelId:ls.getValue()||null,modLogChannelId:lm.getValue()||null,ticketLogChannelId:lt.getValue()||null,securityLogChannelId:lsec.getValue()||null,security:secObj},'Logs');
             };
           } else {
-            detailShell('📈 Stats','<div class="set-card">'+fieldRow('Stats-Kanal','lg-st')+fieldRow('Verwalten','lg-sr')+saveBtn('lg-st-save')+'</div>');
-            var sst=ss($('lg-st'),{items:ch,multi:false,value:s.statusChannelId||s.statsChannelId||'',placeholder:'Stats…'});
+            detailShell('📈 Server Stats','<div class="set-card">'+
+              '<p class="field-desc" style="margin:0 0 10px">Panel: Server · Code · Players · Online/Offline · Inhaber (Roblox)</p>'+
+              fieldRow('Stats-Kanal','lg-st','Kanal für das Live-Panel (~30s Update).')+
+              fieldRow('Verwalten-Rollen','lg-sr','Dürfen Stats per Command aktualisieren.')+
+              '<div class="field"><label>Titel</label><input id="lg-title" placeholder="Server Stats"/></div>'+
+              '<div class="field"><label>Server-Name</label><input id="lg-server" placeholder="Servername"/></div>'+
+              '<div class="field"><label>Server Code</label><input id="lg-code" placeholder="Private Server Code"/></div>'+
+              '<div class="field"><label>Players</label><input id="lg-pl" type="number" min="0" placeholder="0"/></div>'+
+              '<div class="field"><label>Max Players</label><input id="lg-max" type="number" min="0" placeholder="40"/></div>'+
+              '<div class="toggle-row"><div class="lbl">Server online</div><div id="lg-on" class="toggle-sw"></div></div>'+
+              '<div class="field"><label>Inhaber Roblox-Name</label><p class="field-desc">Profilbild + Link im Embed.</p><input id="lg-owner" placeholder="Roblox Username"/></div>'+
+              '<div class="field"><label>Extra</label><textarea id="lg-extra" rows="2"></textarea></div>'+
+              saveBtn('lg-st-save')+panelSendBlock('stsp','Server-Stats Panel')+'</div>');
+            var sst=ss($('lg-st'),{items:ch,multi:false,value:s.statusChannelId||s.serverStatsChannelId||s.statsChannelId||'',placeholder:'Stats…'});
             var ssr=ss($('lg-sr'),{items:roles,multi:true,values:s.statsManageRoleIds||[],placeholder:'Rollen…'});
-            $('lg-st-save').onclick=function(){patchSettings({statusChannelId:sst.getValue()||null,statsChannelId:sst.getValue()||null,statsManageRoleIds:ssr.getValue()},'Stats')};
+            if($('lg-title')) $('lg-title').value=s.serverStatsTitle||'Server Stats';
+            if($('lg-server')) $('lg-server').value=s.serverStatsServerName||s.systemName||'';
+            if($('lg-code')) $('lg-code').value=s.serverStatsCode||s.privateServerCode||s.joinCode||'';
+            if($('lg-pl')) $('lg-pl').value=s.serverStatsPlayers!=null?s.serverStatsPlayers:'';
+            if($('lg-max')) $('lg-max').value=s.serverStatsMaxPlayers!=null?s.serverStatsMaxPlayers:'';
+            if($('lg-owner')) $('lg-owner').value=s.serverStatsOwnerRoblox||'';
+            if($('lg-extra')) $('lg-extra').value=s.serverStatsExtra||'';
+            bindToggle($('lg-on'), s.serverStatsOnline===true||s.rpActive===true);
+            $('lg-st-save').onclick=function(){
+              var p={
+                statusChannelId:sst.getValue()||null,
+                serverStatsChannelId:sst.getValue()||null,
+                statsChannelId:sst.getValue()||null,
+                statsManageRoleIds:ssr.getValue(),
+                serverStatsTitle:($('lg-title')&&$('lg-title').value.trim())||null,
+                serverStatsServerName:($('lg-server')&&$('lg-server').value.trim())||null,
+                serverStatsCode:($('lg-code')&&$('lg-code').value.trim())||null,
+                privateServerCode:($('lg-code')&&$('lg-code').value.trim())||null,
+                joinCode:($('lg-code')&&$('lg-code').value.trim())||null,
+                serverStatsPlayers:$('lg-pl')&&$('lg-pl').value!==''?Number($('lg-pl').value):null,
+                serverStatsMaxPlayers:$('lg-max')&&$('lg-max').value!==''?Number($('lg-max').value):null,
+                serverStatsOnline:$('lg-on')&&$('lg-on').isOn(),
+                rpActive:$('lg-on')&&$('lg-on').isOn(),
+                serverStatsStatus:($('lg-on')&&$('lg-on').isOn())?'online':'offline',
+                serverStatsOwnerRoblox:($('lg-owner')&&$('lg-owner').value.trim())||null,
+                serverStatsExtra:($('lg-extra')&&$('lg-extra').value.trim())||null,
+                serverStatsUpdatedAt:Date.now()
+              };
+              patchSettings(p,'Server Stats'); Object.assign(s,p);
+            };
+            wirePanelSend('stsp','status',s.statusChannelId||s.serverStatsChannelId||'');
           }
         });
         return;
