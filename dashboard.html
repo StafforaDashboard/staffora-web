@@ -2455,18 +2455,37 @@ async function api(path,opts){
   }
 
   async function loadDiscord(force){
-    if(!force && window.__discCache && window.__discCache.gid===guildId && Date.now()-window.__discCache.at<600000){
-      return window.__discCache.data;
+    function catCount(list){
+      return (list||[]).filter(function(c){ var t=c&&c.type; return t===4||t==='4'||Number(t)===4||t==='GUILD_CATEGORY'; }).length;
+    }
+    if(!force && window.__discCache && window.__discCache.gid===guildId && Date.now()-window.__discCache.at<300000){
+      var cached=window.__discCache.data;
+      // stale if zero categories but has other channels
+      if(cached && cached.channels && cached.channels.length && catCount(cached.channels)===0){
+        force=true;
+      } else {
+        return cached;
+      }
     }
     var data={channels:[],roles:[],emojis:[],stickers:[]};
     try{
-      data=await api('/api/guilds/'+guildId+'/discord'+(force?'?refresh=1':''),{timeoutMs:force?12000:8000});
+      data=await api('/api/guilds/'+guildId+'/discord'+(force?'?refresh=1':''),{timeoutMs:force?20000:12000});
     }catch(e){
       console.warn('loadDiscord', e);
-      try{ data=await api('/api/guilds/'+guildId+'/discord?refresh=1'); }catch(e2){}
+      try{ data=await api('/api/guilds/'+guildId+'/discord?refresh=1',{timeoutMs:20000}); }catch(e2){}
     }
+    if(!data||!data.channels) data=Object.assign({channels:[],roles:[],emojis:[],stickers:[]}, data||{});
     if(!data.channels) data.channels=[];
     if(!data.roles) data.roles=[];
+    // second try if still no categories
+    if(data.channels.length>0 && catCount(data.channels)===0 && !window.__discCatRetry){
+      window.__discCatRetry=true;
+      try{
+        var data2=await api('/api/guilds/'+guildId+'/discord?refresh=1',{timeoutMs:20000});
+        if(data2&&data2.channels&&catCount(data2.channels)>0) data=data2;
+      }catch(e){}
+      window.__discCatRetry=false;
+    }
     window.__discCache={gid:guildId, at:Date.now(), data:data};
     return data;
   }
@@ -2612,29 +2631,36 @@ async function api(path,opts){
   function roleItems(roles){
     return (roles||[]).map(function(r){return {id:r.id,name:r.name,meta:'Rolle'};});
   }
+  function isCategoryType(t){
+    return t===4||t==='4'||Number(t)===4||t==='GUILD_CATEGORY'||t==='GuildCategory';
+  }
   function channelItems(channels, types){
-    /* types: array of Discord channel type ints, or 'text' | 'voice' | 'category' | null=all */
-    var TEXT=[0,5,15,16]; /* text, announcement, forum, media */
-    var VOICE=[2,13]; /* voice, stage */
-    var CAT=[4];
+    /* types: array of Discord channel type ints, or 'text' | 'voice' | 'category' | null=all text */
+    var TEXT=[0,5,15,16];
+    var VOICE=[2,13];
+    var CAT=[4,'4','GUILD_CATEGORY','GuildCategory'];
     var allow=types;
     if(types==='text' || types==='TEXT') allow=TEXT;
     if(types==='voice' || types==='VOICE') allow=VOICE;
     if(types==='category' || types==='CATEGORY') allow=CAT;
     return (channels||[]).filter(function(c){
+      if(!c) return false;
       var t=c.type;
       if(allow==null||allow===undefined){
-        /* default: text-like only — never bare VCs in log/panel pickers */
-        return TEXT.indexOf(t)>=0 || TEXT.indexOf(Number(t))>=0 || String(t)==='0'||String(t)==='5'||String(t)==='15'||String(t)==='16'||String(t)==='GUILD_TEXT'||String(t)==='GUILD_ANNOUNCEMENT';
+        return TEXT.indexOf(t)>=0 || TEXT.indexOf(Number(t))>=0 || String(t)==='0'||String(t)==='5'||String(t)==='15'||String(t)==='16'||String(t)==='GUILD_TEXT'||String(t)==='GUILD_ANNOUNCEMENT'||String(t)==='GUILD_FORUM';
+      }
+      if(allow==='category'||(Array.isArray(allow)&&allow.indexOf(4)>=0)){
+        if(isCategoryType(t)) return true;
       }
       if(!allow || !allow.length) return true;
-      return allow.indexOf(t)>=0 || allow.indexOf(Number(t))>=0 || allow.indexOf(String(t))>=0;
+      return allow.indexOf(t)>=0 || allow.indexOf(Number(t))>=0 || allow.indexOf(String(t))>=0 || (isCategoryType(t)&&allow.some(function(x){return isCategoryType(x);}));
     }).map(function(c){
-      var meta=c.parentName?('Kategorie: '+c.parentName):'Textkanal';
       var t=c.type;
-      if(t===2||t===13||t==='2'||t==='GUILD_VOICE') meta='Voice';
-      if(t===4||t==='4'||t==='GUILD_CATEGORY') meta='Kategorie';
-      return {id:c.id,name:(t===2||t===13?'🔊 ':'#')+c.name,meta:meta};
+      var meta=c.parentName?('unter: '+c.parentName):'Textkanal';
+      var prefix='#';
+      if(t===2||t===13||t==='2'||t==='GUILD_VOICE'||t==='GUILD_STAGE_VOICE'){ meta='Voice'; prefix='🔊 '; }
+      if(isCategoryType(t)){ meta='Kategorie'; prefix='📁 '; }
+      return {id:String(c.id),name:prefix+c.name,meta:meta};
     });
   }
   function textChannels(channels){ return channelItems(channels,'text'); }
@@ -5901,7 +5927,7 @@ async function api(path,opts){
       '<div class="card"><h2>Panel senden</h2>'+
       '<div class="field"><label>Kanal</label><div id="cp-ch"></div></div>'+
       '<button type="button" class="btn btn-p btn-anim" id="cp-send">Beschwerde-Panel senden</button></div>';
-    var pickCat=makeSearchSelect($('cp-cat'),{items:channelItems(disc.channels),multi:false,value:s.complaintCategoryId||s.ticketCategoryId||'',placeholder:'Kategorie…'});
+    var pickCat=makeSearchSelect($('cp-cat'),{items:categoryChannels(disc.channels||[]),multi:false,value:s.complaintCategoryId||s.ticketCategoryId||'',placeholder:'Kategorie…'});
     var pickRoles=makeSearchSelect($('cp-roles'),{items:roleItems(disc.roles),multi:true,values:s.complaintSupportRoleIds||[],placeholder:'Rollen…'});
     var pickCh=makeSearchSelect($('cp-ch'),{items:channelItems(disc.channels),multi:false,value:'',placeholder:'Kanal…'});
     $('cp-en').onclick=async function(){
@@ -6375,13 +6401,15 @@ async function api(path,opts){
             if(window.__discCache && window.__discCache.gid===guildId && window.__discCache.data){
               roles=roleItems(window.__discCache.data.roles||[])||[];
               ch=channelItems(window.__discCache.data.channels||[],'text')||[];
+              // force reload if we have text channels but zero categories in raw data
+              var raw=window.__discCache.data.channels||[];
+              var cats=raw.filter(function(c){ var t=c&&c.type; return t===4||t==='4'||Number(t)===4||t==='GUILD_CATEGORY'; }).length;
+              if(raw.length>0 && cats===0){ /* fall through to fetch */ }
+              else if(roles && roles.length && ch && ch.length) return;
             }
           }catch(e){}
-          if(roles && roles.length && ch && ch.length) return;
           try{
-            var loader = loadDiscord(false);
-            var timed = new Promise(function(res){ setTimeout(function(){ res(null); }, 4000); });
-            var d = await Promise.race([loader, timed]);
+            var d = await loadDiscord(true);
             if(d){
               roles=roleItems(d.roles||[])||[];
               ch=channelItems(d.channels||[],'text')||[];
@@ -6462,12 +6490,12 @@ async function api(path,opts){
               fieldRow('Support-Rollen (optional)','st-troles','Eigene Support-Rollen nur für diese Ticket-Art.')+
               '<button type="button" class="btn btn-p btn-sm" id="st-tadd">Art hinzufügen</button>'+
               '</div></div>');
-            var pCat=ss($('st-cat'),{items:channelItems(disc.channels||[],[4,'4','GUILD_CATEGORY']),multi:false,value:s.ticketCategoryId||'',placeholder:'Kategorie…'});
+            var pCat=ss($('st-cat'),{items:categoryChannels(disc.channels||[]),multi:false,value:s.ticketCategoryId||'',placeholder:categoryChannels(disc.channels||[]).length?('Kategorie… ('+categoryChannels(disc.channels||[]).length+')'):'Keine Kategorien geladen — ↻'});
             var pRoles=ss($('st-roles'),{items:roles,multi:true,values:s.ticketSupportRoleIds||[],placeholder:'Support…'});
             try{ if($('st-hint')) $('st-hint').value=s.ticketOpenHint||'Support wird sich bald um dich kümmern.\nBitte beschreibe dein Anliegen möglichst klar.'; }catch(e){}
             var pLog=ss($('st-log'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
             var pBl=ss($('st-bl'),{items:roles,multi:true,values:s.ticketBlacklistRoleIds||[],placeholder:'Blacklist…'});
-            var pTCat=ss($('st-tcat'),{items:channelItems(disc.channels||[],[4,'4','GUILD_CATEGORY']),multi:false,value:'',placeholder:'Optional…'});
+            var pTCat=ss($('st-tcat'),{items:categoryChannels(disc.channels||[]),multi:false,value:'',placeholder:'Optional…'});
             var pTRoles=ss($('st-troles'),{items:roles,multi:true,values:[],placeholder:'Optional…'});
             $('st-title').value=s.ticketPanelTitle||''; $('st-text').value=s.ticketPanelText||'';
             $('st-ac').value=s.ticketAutoCloseHours||0; if($('st-max'))$('st-max').value=s.ticketMaxPerWindow||0; if($('st-win'))$('st-win').value=s.ticketWindowMinutes||60; bindToggle($('st-ai'), !!s.aiAssistEnabled);
