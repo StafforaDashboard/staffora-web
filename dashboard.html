@@ -3469,11 +3469,15 @@ async function api(path,opts){
           toast('Panel gesendet','ok');
         }catch(e){toast(e.message,'err')}
       };
-      $('bw-list').innerHTML=list.length?list.slice(0,30).map(function(a){
+      $('bw-list').innerHTML=list.length?list.slice(0,40).map(function(a){
+        var ans=a.answers||{};
+        var lines=Object.keys(ans).map(function(k){ return '<div class="hint"><b>'+esc(k)+':</b> '+esc(String(ans[k]).slice(0,200))+'</div>'; }).join('');
         return '<div class="fac-card"><div class="top"><strong>'+esc(a.id)+'</strong> <span class="pill">'+esc(a.status)+'</span></div>'+
-          '<div class="fac-actions"><button type="button" class="btn btn-sm btn-p ba-ok" data-id="'+esc(a.id)+'">Annehmen</button>'+
-          '<button type="button" class="btn btn-sm btn-d ba-no" data-id="'+esc(a.id)+'">Ablehnen</button></div></div>';
-      }).join(''):'<div class="empty">Keine</div>';
+          '<div class="hint">User: <code>'+esc(a.user_id||'')+'</code></div>'+lines+
+          (a.status==='pending'?'<div class="fac-actions"><button type="button" class="btn btn-sm btn-p ba-ok" data-id="'+esc(a.id)+'">Annehmen</button>'+
+          '<button type="button" class="btn btn-sm btn-d ba-no" data-id="'+esc(a.id)+'">Ablehnen</button></div>':'')+
+          '</div>';
+      }).join(''):'<div class="empty">Keine Bewerbungen</div>';
       document.querySelectorAll('.ba-ok').forEach(function(b){
         b.onclick=async function(){ try{ await api('/api/guilds/'+guildId+'/applications/'+b.getAttribute('data-id'),{method:'PATCH',body:{status:'accepted'}}); toast('OK','ok'); pageBewerbung(p);}catch(e){toast(e.message,'err')} };
       });
@@ -6762,27 +6766,34 @@ async function api(path,opts){
 
           if(sub==='team'){
             detailShell('📝 Team-Bewerbung','<div class="set-card">'+
-              fieldRow('Bewerbungs-Kanal','ap-ch','Kanal für neue Team-Bewerbungen.')+
-              fieldRow('Review-Rollen','ap-roles','Dürfen annehmen/ablehnen.')+
+              fieldRow('Log-Kanal (neue Bewerbungen)','ap-ch','Hier landen Annehmen/Ablehnen-Buttons + Antworten.')+
+              fieldRow('Review-Rollen','ap-roles','Dürfen annehmen/ablehnen (werden gepingt).')+
+              fieldRow('Rollen bei Annahme','ap-accept','Optional: diese Rollen erhält der User bei Annahme.')+
               '<div class="field"><label>Panel-Titel</label><input id="ap-title" placeholder="Team-Bewerbung"/></div>'+
               '<div class="field"><label>Panel-Text</label><textarea id="ap-text" rows="3" placeholder="Bewerbe dich hier…"></textarea></div>'+
               saveBtn('ap-save')+
               panelSendBlock('app','Bewerbungs-Panel')+
-              '</div><div class="set-card" style="margin-top:12px"><h3 style="margin:0 0 8px">Fragen</h3>'+
-              '<p class="field-desc">Beliebig viele Fragen (mehrere Seiten à 5 im Discord-Modal).</p>'+
+              '</div><div class="set-card" style="margin-top:12px"><h3 style="margin:0 0 8px">Fragen (DM)</h3>'+
+              '<p class="field-desc">Fragen laufen per DM — nicht als Modal. Speichern nicht vergessen.</p>'+
               '<div id="ap-qlist"></div>'+
               '<div class="field" style="margin-top:8px"><label>Neue Frage</label><input id="ap-qnew" placeholder="z.B. Wie alt bist du?"/></div>'+
               '<button type="button" class="btn btn-sm" id="ap-qadd">+ Frage</button></div>');
-            var apCh=ss($('ap-ch'),{items:ch,multi:false,value:s.applicationChannelId||s.bewerbungChannelId||'',placeholder:'Kanal…'});
+            var apCh=ss($('ap-ch'),{items:ch,multi:false,value:s.applicationLogChannelId||s.applicationChannelId||s.bewerbungChannelId||'',placeholder:'Log-Kanal…'});
             var apR=ss($('ap-roles'),{items:roles,multi:true,values:s.applicationReviewRoleIds||[],placeholder:'Review…'});
+            var apAcc=ss($('ap-accept'),{items:roles,multi:true,values:s.applicationAcceptRoleIds||s.bewerbungAcceptRoleIds||[],placeholder:'Rollen bei Annahme…'});
             $('ap-title').value=s.bewerbungPanelTitle||s.applicationPanelTitle||'Team-Bewerbung';
             $('ap-text').value=s.bewerbungPanelText||s.applicationPanelText||'Bewerbe dich über den Button.';
             var apQ=qEditor('ap-qlist','ap-qnew','ap-qadd', s.applicationQuestions||s.bewerbungQuestions||[]);
             $('ap-save').onclick=function(){
+              var chId=apCh.getValue()||null;
               var p={
-                applicationChannelId:apCh.getValue()||null,
-                bewerbungChannelId:apCh.getValue()||null,
+                applicationLogChannelId:chId,
+                applicationChannelId:chId,
+                bewerbungChannelId:chId,
+                bewerbungLogChannelId:chId,
                 applicationReviewRoleIds:apR.getValue(),
+                applicationAcceptRoleIds:apAcc.getValue(),
+                bewerbungAcceptRoleIds:apAcc.getValue(),
                 bewerbungPanelTitle:$('ap-title').value.trim(),
                 applicationPanelTitle:$('ap-title').value.trim(),
                 bewerbungPanelText:$('ap-text').value,
@@ -6792,7 +6803,7 @@ async function api(path,opts){
               };
               patchSettings(p,'Team-Bewerbung'); Object.assign(s,p);
             };
-            wirePanelSend('app','app',s.applicationChannelId||s.bewerbungChannelId||'');
+            wirePanelSend('app','app',s.applicationPanelChannelId||'');
             return;
           }
 
