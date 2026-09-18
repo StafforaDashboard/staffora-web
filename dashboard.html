@@ -6730,12 +6730,93 @@ async function api(path,opts){
               }catch(e){ toast(e.message,'err'); }
             };
           } else if(sub==='buero'){
-            detailShell('🏢 Büros','<div class="set-card">'+fieldRow('Büro-Warteraum Voice','so-vc')+fieldRow('Büro-Log-Kanal','so-log')+fieldRow('Büro-Staff-Rollen','so-roles')+saveBtn('so-save')+'</div>');
-            var oVc=ss($('so-vc'),{items:channelItems(disc.channels||[],[2,'2','GUILD_VOICE']),multi:false,value:s.officeWaitingChannelId||'',placeholder:'Voice…'});
+            detailShell('🏢 Büros',
+              '<div class="set-card">'+
+              '<p class="hint" style="margin:0 0 12px">Standard-Warteraum + einzelne Büros anlegen. Pro Büro eigenen Warteraum (z.B. Highteam / Leitung).</p>'+
+              fieldRow('Standard-Büro-Warteraum Voice','so-vc')+
+              fieldRow('Büro-Log / Notify-Kanal','so-log')+
+              fieldRow('Büro-Staff-Rollen','so-roles')+
+              fieldRow('Ping-Rollen','so-ping')+
+              saveBtn('so-save')+
+              '</div>'+
+              '<div class="set-card" style="margin-top:14px">'+
+              '<h3 style="margin:0 0 10px;font-size:1rem">Büro anlegen</h3>'+
+              '<div class="field"><label>Name</label><input id="so-oname" placeholder="z.B. Highteam Büro 1"/></div>'+
+              fieldRow('Büro-Voice','so-ovc')+
+              fieldRow('Warteraum für dieses Büro (leer = Standard)','so-owait')+
+              fieldRow('Bereitschafts-Rolle','so-orole')+
+              '<button type="button" class="btn btn-p" id="so-oadd">Büro speichern</button>'+
+              '</div>'+
+              '<div class="set-card" style="margin-top:14px">'+
+              '<h3 style="margin:0 0 10px;font-size:1rem">Angelegte Büros</h3>'+
+              '<div id="so-olist" class="hint">Lade…</div>'+
+              '</div>'
+            );
+            var voiceCh=channelItems(disc.channels||[],[2,'2','GUILD_VOICE']);
+            var oVc=ss($('so-vc'),{items:voiceCh,multi:false,value:s.officeWaitingChannelId||'',placeholder:'Standard-Warteraum…'});
             var oLog=ss($('so-log'),{items:ch,multi:false,value:s.officeLogChannelId||'',placeholder:'Log…'});
             var oRoles=ss($('so-roles'),{items:roles,multi:true,values:s.officeStaffRoleIds||[],placeholder:'Staff…'});
-            $('so-save').onclick=function(){patchSettings({officeWaitingChannelId:oVc.getValue()||null,officeLogChannelId:oLog.getValue()||null,officeStaffRoleIds:oRoles.getValue()},'Büros')};
-          } else if(sub==='ac'){
+            var oPing=ss($('so-ping'),{items:roles,multi:true,values:s.officePingRoleIds||[],placeholder:'Ping…'});
+            var oOvc=ss($('so-ovc'),{items:voiceCh,multi:false,placeholder:'Büro-Voice…'});
+            var oOwait=ss($('so-owait'),{items:voiceCh,multi:false,placeholder:'Warteraum…'});
+            var oOrole=ss($('so-orole'),{items:roles,multi:false,placeholder:'Bereitschaft…'});
+            $('so-save').onclick=function(){
+              patchSettings({
+                officeWaitingChannelId:oVc.getValue()||null,
+                officeLogChannelId:oLog.getValue()||null,
+                officeStaffRoleIds:oRoles.getValue(),
+                officePingRoleIds:oPing.getValue(),
+                officeEnabled:true
+              },'Büros');
+            };
+            async function refreshOfficeList(){
+              var box=$('so-olist'); if(!box) return;
+              try{
+                var data=await api('/api/guilds/'+guildId+'/offices');
+                var list=data.offices||data||[];
+                if(!Array.isArray(list)) list=[];
+                if(!list.length){ box.innerHTML='<div class="empty">Noch keine Büros — oben anlegen.</div>'; return; }
+                var chMap={}; (disc.channels||[]).forEach(function(c){ chMap[c.id]=c.name; });
+                var rMap={}; (disc.roles||[]).forEach(function(r){ rMap[r.id]=r.name; });
+                box.innerHTML=list.map(function(o){
+                  var vc=o.voice_channel_id||o.voiceChannelId||'';
+                  var w=o.waiting_channel_id||o.waitingChannelId||'';
+                  var role=o.role_id||o.roleId||'';
+                  var nm=(o.name||'Büro').replace(/</g,'&lt;');
+                  return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)">'+
+                    '<div><strong>'+nm+'</strong><div class="hint">VC: '+(chMap[vc]||vc||'—')+
+                    ' · Warteraum: '+(chMap[w]||(w?w:'Standard'))+
+                    ' · Rolle: '+(rMap[role]||role||'—')+'</div></div>'+
+                    '<button type="button" class="btn btn-sm" data-oid="'+String(o.id)+'" data-odel>Löschen</button></div>';
+                }).join('');
+                box.querySelectorAll('[data-odel]').forEach(function(btn){
+                  btn.onclick=async function(){
+                    if(!confirm('Büro löschen?')) return;
+                    try{
+                      await api('/api/guilds/'+guildId+'/offices/'+encodeURIComponent(btn.getAttribute('data-oid')),{method:'DELETE'});
+                      toast('Büro gelöscht','ok'); refreshOfficeList();
+                    }catch(e){ toast(e.message||'Fehler','err'); }
+                  };
+                });
+              }catch(e){ box.innerHTML='<div class="empty">'+(e.message||'Fehler')+'</div>'; }
+            }
+            $('so-oadd').onclick=async function(){
+              var name=($('so-oname').value||'').trim();
+              if(!name){ toast('Name fehlt','err'); return; }
+              try{
+                await api('/api/guilds/'+guildId+'/offices',{method:'POST',body:{
+                  name:name,
+                  voiceChannelId:oOvc.getValue()||null,
+                  waitingChannelId:oOwait.getValue()||null,
+                  roleId:oOrole.getValue()||null
+                }});
+                $('so-oname').value='';
+                toast('Büro angelegt','ok');
+                refreshOfficeList();
+              }catch(e){ toast(e.message||'Fehler','err'); }
+            };
+            refreshOfficeList();
+            } else if(sub==='ac'){
             detailShell('🚨 Admin Call','<div class="set-card">'+fieldRow('Panel-Kanal','sa-ch')+fieldRow('Log-Kanal','sa-log',dLog('allgemeine Bot-Aktionen, wenn kein spezieller Log gesetzt ist'))+fieldRow('Ping-Rollen','sa-ping')+
               '<div class="field"><label>Panel-Titel</label><input id="sa-title"/></div><div class="field"><label>Panel-Text</label><textarea id="sa-text"></textarea></div>'+saveBtn('sa-save')+panelSendBlock('ac','Admin-Call-Panel')+'</div>');
             var aCh=ss($('sa-ch'),{items:ch,multi:false,value:s.adminCallPanelChannelId||s.adminCallChannelId||'',placeholder:'Panel…'});
