@@ -2515,11 +2515,13 @@ async function api(path,opts){
     try{
       var d=await loadDiscord(true);
       showSaveHint('Geladen: '+(d.channels||[]).length+' Kanäle, '+(d.roles||[]).length+' Rollen', true);
-      toast((d.channels||[]).length+' Kanäle · '+(d.roles||[]).length+' Rollen','ok');
-      // re-render current page
-      if(typeof navigate==='function' && page) navigate(page);
+      var cats=(d.channels||[]).filter(function(c){var t=c&&c.type;return t===4||t==='4'||Number(t)===4||t==='GUILD_CATEGORY';}).length;
+      toast((d.channels||[]).length+' Kanäle · '+cats+' Kategorien · '+(d.roles||[]).length+' Rollen','ok');
+      try{ window.__rawChannels=d.channels||[]; }catch(e){}
+      // re-render settings without full reload
+      if(typeof render==='function') render();
+      else if(typeof navigate==='function' && page) navigate(page);
       else if(typeof renderPage==='function') renderPage();
-      else location.reload();
     }catch(e){
       toast(e.message||'Fehler beim Laden','err');
     }
@@ -6513,7 +6515,7 @@ async function api(path,opts){
           {id:'ac',ic:'🚨',l:'Admin Call',d:'Panel, Log, Ping'}
         ], async function(sub){
           try{refreshLiveSettings(s);}catch(e){}
-          await ensureDisc();
+          await ensureDisc(true);
           if(sub==='tix'){
             var types=Array.isArray(s.ticketTypes)?s.ticketTypes.slice():[];
             detailShell('🎫 Tickets','<div class="set-card">'+
@@ -6541,13 +6543,30 @@ async function api(path,opts){
               fieldRow('Support-Rollen (optional)','st-troles','Eigene Support-Rollen nur für diese Ticket-Art.')+
               '<button type="button" class="btn btn-p btn-sm" id="st-tadd">Art hinzufügen</button>'+
               '</div></div>');
-            var pCat=ss($('st-cat'),{items:categoryChannels(disc.channels||[]),multi:false,value:s.ticketCategoryId||'',placeholder:categoryChannels(disc.channels||[]).length?('Kategorie… ('+categoryChannels(disc.channels||[]).length+')'):'Keine Kategorien geladen — ↻'});
-            var pRoles=ss($('st-roles'),{items:roles,multi:true,values:s.ticketSupportRoleIds||[],placeholder:'Support…'});
+            var rawAll=(window.__rawChannels||(window.__discCache&&window.__discCache.data&&window.__discCache.data.channels)||(disc&&disc.channels)||[]);
+            var catItems=categoryChannels(rawAll);
+            var textItems=channelItems(rawAll,'text');
+            if(!textItems.length && ch && ch.length) textItems=ch;
+            if(!roles.length && window.__discCache && window.__discCache.data) roles=roleItems(window.__discCache.data.roles||[])||[];
+            var pCat=ss($('st-cat'),{items:catItems,multi:false,value:s.ticketCategoryId||'',placeholder:catItems.length?('Kategorie… ('+catItems.length+')'):'Keine Kategorien — ↻ Rollen oben'});
+            var pRoles=ss($('st-roles'),{items:roles,multi:true,values:s.ticketSupportRoleIds||[],placeholder:roles.length?'Support…':'Rollen laden…'});
             try{ if($('st-hint')) $('st-hint').value=s.ticketOpenHint||'Support wird sich bald um dich kümmern.\nBitte beschreibe dein Anliegen möglichst klar.'; }catch(e){}
-            var pLog=ss($('st-log'),{items:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
+            var pLog=ss($('st-log'),{items:textItems.length?textItems:ch,multi:false,value:s.ticketLogChannelId||'',placeholder:'Log…'});
             var pBl=ss($('st-bl'),{items:roles,multi:true,values:s.ticketBlacklistRoleIds||[],placeholder:'Blacklist…'});
-            var pTCat=ss($('st-tcat'),{items:categoryChannels(disc.channels||[]),multi:false,value:'',placeholder:'Optional…'});
+            var pTCat=ss($('st-tcat'),{items:catItems,multi:false,value:'',placeholder:catItems.length?'Optional…':'Keine Kategorie'});
             var pTRoles=ss($('st-troles'),{items:roles,multi:true,values:[],placeholder:'Optional…'});
+            try{
+              if($('st-disc-hint')){ /* noop */ }
+              else {
+                var hint=document.createElement('p');
+                hint.className='hint';
+                hint.id='st-disc-hint';
+                hint.style.marginTop='8px';
+                hint.textContent='Geladen: '+rawAll.length+' Kanäle · '+catItems.length+' Kategorien · '+roles.length+' Rollen. Falls leer: oben ↻ Rollen klicken.';
+                var shell=$('st-cat') && $('st-cat').closest && $('st-cat').closest('.set-card');
+                if(shell) shell.appendChild(hint);
+              }
+            }catch(e){}
             $('st-title').value=s.ticketPanelTitle||''; $('st-text').value=s.ticketPanelText||'';
             $('st-ac').value=s.ticketAutoCloseHours||0; if($('st-max'))$('st-max').value=s.ticketMaxPerWindow||0; if($('st-win'))$('st-win').value=s.ticketWindowMinutes||60; bindToggle($('st-ai'), !!s.aiAssistEnabled);
             function renderTypes(){
