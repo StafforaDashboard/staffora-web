@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /staffora-hq.html
+Disallow: /staffora-hq

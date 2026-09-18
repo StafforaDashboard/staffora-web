@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Staffora HQ</title>
+<style>
+:root{--bg:#0b0d14;--card:#12151f;--border:#1e2433;--text:#e8eaf0;--muted:#8b93a7;--accent:#8b5cf6;--ok:#22c55e;--err:#ef4444}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:radial-gradient(1200px 600px at 20% -10%,#1a1030 0%,var(--bg) 55%);color:var(--text);min-height:100vh}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:1.4rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.9rem;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.card h2{margin:0 0 12px;font-size:1.05rem}
+label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0e111a;color:var(--text);margin-bottom:10px;font-size:.95rem}
+select{cursor:pointer}
+button{cursor:pointer;border:none;border-radius:10px;padding:10px 14px;font-weight:600;font-size:.9rem;background:var(--accent);color:#fff}
+button.sec{background:#1e2433;color:var(--text)}
+button.danger{background:var(--err)}
+button.ok{background:var(--ok)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row > div{flex:1;min-width:160px}
+.hint{font-size:.8rem;color:var(--muted);margin-top:6px}
+.toast{position:fixed;right:16px;bottom:16px;padding:12px 16px;border-radius:10px;background:#1a1f2e;border:1px solid var(--border);z-index:99;display:none}
+.toast.ok{border-color:var(--ok)}.toast.err{border-color:var(--err)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.72rem;background:#1e2433}
+.badge.bl{background:#3f1d1d;color:#fca5a5}
+#gate{max-width:380px;margin:80px auto}
+#panel{display:none}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="gate" class="card">
+    <h1>Staffora HQ</h1>
+    <p class="sub">Nur für Staffora-Team. Passwort erforderlich.</p>
+    <label>Passwort</label>
+    <input type="password" id="pw" placeholder="HQ Passwort" autocomplete="current-password"/>
+    <button id="login">Einloggen</button>
+    <p class="hint" id="gate-err" style="color:var(--err)"></p>
+  </div>
+
+  <div id="panel">
+    <h1>Staffora HQ</h1>
+    <p class="sub">Globale Kontrolle · Blacklist · Server · Aktionen</p>
+    <div class="row" style="margin-bottom:12px">
+      <button class="sec" type="button" id="logout">Logout</button>
+      <button class="sec" type="button" id="refresh">Aktualisieren</button>
+    </div>
+
+    <div class="card">
+      <h2>🚫 Server blacklist</h2>
+      <p class="hint">Blacklisted Server: Bot verlässt den Server und reagiert dort nicht. Neue Invites → Leave.</p>
+      <div class="row">
+        <div>
+          <label>Server (Dropdown oder ID)</label>
+          <select id="bl-guild"><option value="">— Server wählen —</option></select>
+        </div>
+        <div>
+          <label>Oder Server-ID manuell</label>
+          <input id="bl-id" placeholder="nur wenn Server nicht in Liste"/>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Grund (optional)</label><input id="bl-reason" placeholder="Abuse / Raid …"/></div>
+      </div>
+      <div class="actions">
+        <button class="danger" type="button" id="bl-add">Blacklist</button>
+        <button class="sec" type="button" id="bl-rm">Blacklist entfernen</button>
+      </div>
+      <div id="bl-list" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2>🖥️ Server, auf denen der Bot ist</h2>
+      <div id="guilds"><span class="hint">Laden…</span></div>
+    </div>
+
+    <div class="card">
+      <h2>⚡ Aktionen</h2>
+      <div class="row">
+        <div>
+          <label>Server</label>
+          <select id="act-guild"><option value="">— Server wählen —</option></select>
+        </div>
+        <div>
+          <label>Rolle (für „Rolle geben“)</label>
+          <select id="act-role" disabled><option value="">— zuerst Server —</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>User-ID</label>
+          <input id="act-uid" placeholder="Discord User-ID"/>
+        </div>
+        <div>
+          <label>Invite max uses (0 = unbegrenzt)</label>
+          <input id="act-uses" type="number" value="1" min="0"/>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" id="act-invite">Invite-Link</button>
+        <button class="ok" type="button" id="act-role-btn">Rolle geben</button>
+        <button class="sec" type="button" id="act-unban">User unbannen</button>
+        <button class="danger" type="button" id="act-leave">Bot verlässt Server</button>
+      </div>
+      <p class="hint" id="act-out"></p>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  // On GitHub Pages set API to your bot host. Override: ?api=https://your-bot-host
+  var API_BASE = (function(){
+    try {
+      var q = new URLSearchParams(location.search).get('api');
+      if (q) return q.replace(/\/$/, '');
+    } catch (e) {}
+    // same origin (bot hosting) → empty; GitHub Pages → bot PUBLIC_URL
+    if (location.hostname.indexOf('github.io') >= 0 || location.hostname.indexOf('staffora.info') >= 0) {
+      return 'https://staffora.apps.bot-hosting.cloud';
+    }
+    return '';
+  })();
+  function apiUrl(path){ return (API_BASE || '') + path; }
+  var TOKEN_KEY='staffora_hq_token';
+  var token=sessionStorage.getItem(TOKEN_KEY)||'';
+  var guildCache=[];
+
+  function $(id){return document.getElementById(id)}
+  function toast(msg,ok){
+    var t=$('toast'); t.textContent=msg; t.className='toast '+(ok?'ok':'err'); t.style.display='block';
+    setTimeout(function(){t.style.display='none'},3200);
+  }
+  function esc(s){ return String(s||'').replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);}); }
+
+  async function api(path, opts){
+    opts=opts||{};
+    var headers=Object.assign({'Content-Type':'application/json','X-Staffora-HQ':token}, opts.headers||{});
+    var r=await fetch(apiUrl(path),{method:opts.method||'GET',headers:headers,body:opts.body?JSON.stringify(opts.body):undefined,credentials:'omit'});
+    var j=null; try{j=await r.json()}catch(e){}
+    if(!r.ok) throw new Error((j&&j.error)||('HTTP '+r.status));
+    return j;
+  }
+
+  function showPanel(on){
+    $('gate').style.display=on?'none':'block';
+    $('panel').style.display=on?'block':'none';
+  }
+
+  function fillGuildSelects(list){
+    guildCache=list||[];
+    var opts='<option value="">— Server wählen —</option>';
+    guildCache.forEach(function(g){
+      opts+='<option value="'+esc(g.id)+'">'+esc(g.name)+' ('+g.id+')'+(g.blacklisted?' [BL]':'')+'</option>';
+    });
+    $('bl-guild').innerHTML=opts;
+    $('act-guild').innerHTML=opts;
+  }
+
+  function selectedGuildId(selectId, manualId){
+    var fromSel=($(selectId)&&$(selectId).value)||'';
+    if(fromSel) return fromSel;
+    return (manualId&&$(manualId)?$(manualId).value.trim():'')||'';
+  }
+
+  async function loadRolesFor(guildId){
+    var sel=$('act-role');
+    if(!guildId){
+      sel.innerHTML='<option value="">— zuerst Server —</option>';
+      sel.disabled=true;
+      return;
+    }
+    sel.disabled=true;
+    sel.innerHTML='<option value="">Laden…</option>';
+    try{
+      var r=await api('/api/hq/guilds/'+encodeURIComponent(guildId)+'/roles');
+      var roles=r.roles||[];
+      if(!roles.length){
+        sel.innerHTML='<option value="">Keine Rollen</option>';
+        return;
+      }
+      sel.innerHTML='<option value="">— Rolle wählen —</option>'+roles.map(function(role){
+        return '<option value="'+esc(role.id)+'">'+esc(role.name)+'</option>';
+      }).join('');
+      sel.disabled=false;
+    }catch(e){
+      sel.innerHTML='<option value="">Fehler: '+esc(e.message)+'</option>';
+    }
+  }
+
+  async function loadAll(){
+    try{
+      var bl=await api('/api/hq/blacklist');
+      var list=bl.list||[];
+      $('bl-list').innerHTML=list.length
+        ? '<table><tr><th>ID</th><th>Grund</th><th>Wann</th></tr>'+list.map(function(x){
+            return '<tr><td><code>'+esc(x.id)+'</code></td><td>'+esc(x.reason||'')+'</td><td>'+(x.addedAt?new Date(x.addedAt).toLocaleString():'')+'</td></tr>';
+          }).join('')+'</table>'
+        : '<p class="hint">Keine blacklisted Server.</p>';
+    }catch(e){ $('bl-list').innerHTML='<p class="hint">'+esc(e.message)+'</p>'; }
+
+    try{
+      var g=await api('/api/hq/guilds');
+      var rows=g.guilds||[];
+      fillGuildSelects(rows);
+      $('guilds').innerHTML=rows.length
+        ? '<table><tr><th>Name</th><th>ID</th><th>Members</th><th>Owner</th></tr>'+rows.map(function(x){
+            return '<tr><td>'+esc(x.name)+' '+(x.blacklisted?'<span class="badge bl">BL</span>':'')+'</td><td><code>'+esc(x.id)+'</code></td><td>'+(x.memberCount||'?')+'</td><td><code>'+esc(x.ownerId||'')+'</code></td></tr>';
+          }).join('')+'</table>'
+        : '<p class="hint">Keine Server.</p>';
+    }catch(e){ $('guilds').innerHTML='<p class="hint">'+esc(e.message)+'</p>'; }
+  }
+
+  $('login').onclick=async function(){
+    var pw=$('pw').value;
+    $('gate-err').textContent='';
+    try{
+      var r=await fetch(apiUrl('/api/hq/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+      var j=await r.json().catch(function(){return{}});
+      if(!r.ok) throw new Error(j.error||'Login fehlgeschlagen');
+      token=j.token; sessionStorage.setItem(TOKEN_KEY,token);
+      showPanel(true); loadAll();
+      toast('Eingeloggt',true);
+    }catch(e){ $('gate-err').textContent=e.message; }
+  };
+  $('pw').onkeydown=function(e){ if(e.key==='Enter') $('login').click(); };
+  $('logout').onclick=function(){ token=''; sessionStorage.removeItem(TOKEN_KEY); showPanel(false); };
+  $('refresh').onclick=function(){ loadAll(); };
+
+  $('act-guild').onchange=function(){
+    loadRolesFor($('act-guild').value||'');
+  };
+
+  function blGuildId(){
+    return selectedGuildId('bl-guild','bl-id');
+  }
+
+  $('bl-add').onclick=async function(){
+    try{
+      var gid=blGuildId();
+      if(!gid){ toast('Server wählen',false); return; }
+      await api('/api/hq/blacklist',{method:'POST',body:{guildId:gid,reason:$('bl-reason').value.trim()}});
+      toast('Blacklisted',true); loadAll();
+    }catch(e){ toast(e.message,false); }
+  };
+  $('bl-rm').onclick=async function(){
+    try{
+      var gid=blGuildId();
+      if(!gid){ toast('Server wählen',false); return; }
+      await api('/api/hq/blacklist',{method:'DELETE',body:{guildId:gid}});
+      toast('Blacklist entfernt',true); loadAll();
+    }catch(e){ toast(e.message,false); }
+  };
+
+  async function act(path, body){
+    $('act-out').textContent='…';
+    try{
+      var r=await api(path,{method:'POST',body:body});
+      $('act-out').textContent=r.message||JSON.stringify(r);
+      toast('OK',true);
+      if(r.url) $('act-out').innerHTML='Invite: <a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.url)+'</a>';
+      loadAll();
+    }catch(e){ $('act-out').textContent=e.message; toast(e.message,false); }
+  }
+
+  $('act-invite').onclick=function(){
+    var gid=$('act-guild').value;
+    if(!gid){ toast('Server wählen',false); return; }
+    act('/api/hq/invite',{guildId:gid,maxUses:Number($('act-uses').value)||0});
+  };
+  $('act-role-btn').onclick=function(){
+    var gid=$('act-guild').value;
+    var rid=$('act-role').value;
+    var uid=$('act-uid').value.trim();
+    if(!gid){ toast('Server wählen',false); return; }
+    if(!rid){ toast('Rolle wählen',false); return; }
+    if(!uid){ toast('User-ID eingeben',false); return; }
+    act('/api/hq/add-role',{guildId:gid,userId:uid,roleId:rid});
+  };
+  $('act-unban').onclick=function(){
+    var gid=$('act-guild').value;
+    var uid=$('act-uid').value.trim();
+    if(!gid||!uid){ toast('Server + User-ID',false); return; }
+    act('/api/hq/unban',{guildId:gid,userId:uid});
+  };
+  $('act-leave').onclick=function(){
+    var gid=$('act-guild').value;
+    if(!gid){ toast('Server wählen',false); return; }
+    if(!confirm('Bot wirklich von diesem Server entfernen?')) return;
+    act('/api/hq/leave',{guildId:gid});
+  };
+
+  if(token){
+    api('/api/hq/ping').then(function(){ showPanel(true); loadAll(); }).catch(function(){ token=''; sessionStorage.removeItem(TOKEN_KEY); });
+  }
+})();
+</script>
+</body>
+</html>

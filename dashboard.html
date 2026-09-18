@@ -2205,7 +2205,7 @@ async function api(path,opts){
       tries++;
             try{
           var ctrl=typeof AbortController!=='undefined'?new AbortController():null;
-          var to=ctrl?setTimeout(function(){try{ctrl.abort()}catch(_e){}}, (opts&&opts.timeoutMs)||5000):null;
+          var to=ctrl?setTimeout(function(){try{ctrl.abort()}catch(_e){}}, (opts&&opts.timeoutMs)||20000):null;
           try{
             r=await fetch(API+path,{
               method:opts.method||'GET',
@@ -2226,9 +2226,28 @@ async function api(path,opts){
     var data=null;
     try{ data=await r.json(); }catch(e){}
     if(r.status===401) throw new Error('Session ungültig (401) — bitte erneut anmelden');
-    if(!r.ok) throw new Error((data&&(data.error||data.message))||('HTTP '+r.status));
+    if(!r.ok){
+      var msg=(data&&(data.error||data.message))||('HTTP '+r.status);
+      if(r.status===403) msg=(data&&data.error)||'Keine Berechtigung — du brauchst Administrator oder Server verwalten, oder eine Dashboard-Admin-Rolle.';
+      throw new Error(msg);
+    }
     return data;
   }
+
+
+  // Event delegation so set-pick / set-link always clickable after re-renders
+  document.addEventListener('click', function(ev){
+    var pick = ev.target && ev.target.closest && (ev.target.closest('.set-pick') || ev.target.closest('.set-link') || ev.target.closest('[data-go]'));
+    if(!pick) return;
+    var go = pick.getAttribute('data-go');
+    if(!go) return;
+    // Only handle if not already bound via stopPropagation on inner handlers
+    if(pick._stafforaBoundClick) return;
+    try{
+      if(typeof goFeature==='function'){ ev.preventDefault(); goFeature(go); }
+      else if(typeof openSetting==='function'){ ev.preventDefault(); openSetting(go); }
+    }catch(e){ console.warn('set-pick', e); }
+  }, true);
 
   // boot() handles missing token (shows login)
   if(window.matchMedia('(max-width:none)').matches){
@@ -3491,6 +3510,33 @@ async function api(path,opts){
           '<p><a href="'+esc(pr.profileUrl||'#')+'" target="_blank" rel="noopener">Profil öffnen</a></p>'+
           (dc?'<p>Discord verknüpft</p>':'')+'</div></div>';
       }catch(e){$('rbx-out').innerHTML='<div class="empty">'+esc(e.message||'Nicht gefunden')+'</div>'}
+    };
+  }
+
+  
+  async function pageTeamInviteKick(p){
+    await ensureDisc();
+    var cfg={}; try{cfg=await api('/api/guilds/'+guildId+'/config')}catch(e){}
+    var s=cfg.settings||{};
+    p.innerHTML='<h1>Team Invite / Kick</h1>'+
+      '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
+      '<div class="card">'+
+      '<div class="field"><label>Rollen bei /teaminvite</label><div id="ti-roles"></div></div>'+
+      '<div class="field"><label>Rollen bei /teamkick entfernen</label><div id="tk-roles"></div></div>'+
+      '<div class="field"><label>Team-Log Kanal</label><div id="tl-ch"></div></div>'+
+      '<div class="mod-toggle-row"><span>Team-Logs aktiv</span><div id="tl-on" class="toggle-sw"></div></div>'+
+      '<button type="button" class="btn btn-p" id="ti-save">Speichern</button></div>';
+    var rInv=makeSearchSelect($('ti-roles'),{items:roles,multi:true,values:s.teamInviteRoleIds||[],placeholder:'Invite-Rollen…'});
+    var rKick=makeSearchSelect($('tk-roles'),{items:roles,multi:true,values:s.teamKickRoleIds||s.staffRoleIds||[],placeholder:'Kick-Rollen…'});
+    var pLog=makeSearchSelect($('tl-ch'),{items:channelItems((window.__discCache&&window.__discCache.data&&window.__discCache.data.channels)||[],'text'),multi:false,value:s.teamLogChannelId||'',placeholder:'Log…'});
+    bindToggle($('tl-on'), s.teamLogEnabled!==false);
+    $('ti-save').onclick=function(){
+      patchSettings({
+        teamInviteRoleIds:rInv.getValue(),
+        teamKickRoleIds:rKick.getValue(),
+        teamLogChannelId:pLog.getValue()||null,
+        teamLogEnabled:$('tl-on').isOn()
+      },'Team Invite/Kick');
     };
   }
 
@@ -4897,6 +4943,7 @@ async function api(path,opts){
         var g=b.getAttribute('data-go');
         p.innerHTML='<div class="empty"><span class="spinner"></span></div>';
         if(g==='modperms') await pageModPerms(p);
+        else if(g==='teaminvite'||g==='teamroles') await pageTeamInviteKick(p);
         else if(g==='channelperms') await pageChannelPerms(p);
         else if(g==='commands') await pageCommands(p);
         else if(g==='perms') await pagePerms(p);
@@ -6507,17 +6554,40 @@ async function api(path,opts){
                 return;
               }
               box.innerHTML=types.map(function(t,idx){
-                return '<div class="set-row" style="gap:8px;margin-bottom:8px">'+
+                var aiOn=t.aiEnabled!==false;
+                return '<div class="set-card" style="margin-bottom:10px;padding:12px">'+
+                  '<div class="set-row" style="gap:8px;margin-bottom:8px">'+
                   '<div style="flex:1"><strong>'+esc((t.emoji||'🎫')+' '+(t.name||t.id))+'</strong>'+
-                  '<div class="hint">ID: '+esc(t.id||'')+(t.categoryId?' · eigene Kategorie':'')+
-                  ((t.staffRoleIds&&t.staffRoleIds.length)?' · eigene Rollen':'')+'</div></div>'+
-                  '<button type="button" class="btn btn-sm" data-tdel="'+idx+'" style="color:var(--err)">Entfernen</button></div>';
+                  '<div class="hint">ID: '+esc(t.id||'')+(t.categoryId?' · Kategorie':'')+'</div></div>'+
+                  '<button type="button" class="btn btn-sm" data-tdel="'+idx+'" style="color:var(--err)">Entfernen</button></div>'+
+                  '<div class="set-row" style="gap:12px;align-items:center;margin-bottom:8px">'+
+                  '<span class="hint">Ticket-AI</span>'+
+                  '<button type="button" class="btn btn-sm" data-tai="'+idx+'">'+(aiOn?'AN':'AUS')+'</button></div>'+
+                  '<div class="field"><label>Frage vor Öffnen (leer = keine)</label>'+
+                  '<input data-tq="'+idx+'" value="'+esc(t.openQuestion||t.preQuestion||'')+'" placeholder="z.B. Was ist dein Problem?"/></div>'+
+                  '</div>';
               }).join('');
               box.querySelectorAll('[data-tdel]').forEach(function(btn){
                 btn.onclick=function(){
                   types.splice(Number(btn.getAttribute('data-tdel')),1);
                   renderTypes();
                   patchSettings({ticketTypes:types},'Ticket-Arten');
+                };
+              });
+              box.querySelectorAll('[data-tai]').forEach(function(btn){
+                btn.onclick=function(){
+                  var i=Number(btn.getAttribute('data-tai'));
+                  types[i].aiEnabled = !(types[i].aiEnabled!==false);
+                  renderTypes();
+                  patchSettings({ticketTypes:types},'Ticket AI');
+                };
+              });
+              box.querySelectorAll('[data-tq]').forEach(function(inp){
+                inp.onchange=function(){
+                  var i=Number(inp.getAttribute('data-tq'));
+                  types[i].openQuestion=inp.value.trim();
+                  types[i].preQuestion=inp.value.trim();
+                  patchSettings({ticketTypes:types},'Ticket-Frage');
                 };
               });
             }
@@ -6563,7 +6633,9 @@ async function api(path,opts){
                 emoji:($('st-te').value||'🎫').trim()||'🎫',
                 description:(($('st-td')&&$('st-td').value)||'').trim(),
                 categoryId:pTCat.getValue()||null,
-                staffRoleIds:pTRoles.getValue()||[]
+                staffRoleIds:pTRoles.getValue()||[],
+                aiEnabled:true,
+                openQuestion:(($('st-tq')&&$('st-tq').value)||'').trim()
               });
               $('st-tn').value=''; $('st-te').value='';
               try{ pTCat.setValue&&pTCat.setValue(''); }catch(e){}
