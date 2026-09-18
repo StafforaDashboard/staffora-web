@@ -4115,7 +4115,7 @@ async function api(path,opts){
     function draw(){
       p.innerHTML=moduleBarHtml('offices','Büros')+'<h1>🏢 Büros</h1>'+
         '<div class="staffora-div"><div class="line"></div><span>Staffora</span><div class="line"></div></div>'+
-        '<p class="desc">Büro-Warteraum: User joint Voice → Staff wird gepingt, User bekommt DM. Staff übernimmt und zieht in Büro-Voice.</p>'+
+        '<p class="desc">User joint Büro-Warteraum → DM mit Büro-Auswahl → Staff (Bereitschaftsrolle / im Büro-VC) kann Annehmen, Ablehnen oder Zeit planen. Move nur wenn User noch im Warteraum ist.</p>'+
         '<div class="card"><h2>Büro-Warteraum</h2>'+
         '<div class="toggle-row"><span>Büro-System aktiv</span><div id="of-on" class="toggle-sw"></div></div>'+
         '<div class="toggle-row"><span>DM an User (Warte + Übernahme + Ende)</span><div id="of-dm" class="toggle-sw"></div></div>'+
@@ -4129,7 +4129,7 @@ async function api(path,opts){
         '<button type="button" class="btn btn-p" id="of-save-wr">Warteraum speichern</button></div>'+
         '<div class="card"><h2>Büro anlegen</h2><div class="grid2">'+
         '<div class="field"><label>Name</label><input id="of-name"/></div>'+
-        '<div class="field"><label>Büro-Voice</label><div id="of-vc"></div></div>'+
+        '<div class="field"><label>Büro-Voice</label><div id="of-vc"></div></div><div class="field"><label>Warteraum dieses Büros (leer = Standard-Warteraum)</label><div id="of-wait-office"></div></div>'+'<div class="field"><label>Warteraum für dieses Büro (optional, sonst Standard)</label><div id="of-wait-office"></div></div>'+
         '<div class="field"><label>Zugehörige Rolle (optional)</label><div id="of-role"></div></div></div>'+
         '<button type="button" class="btn btn-p" id="of-add">Hinzufügen</button></div>'+
         '<div class="card"><h2>Büro-Liste</h2><div id="of-list"></div></div>';
@@ -4144,6 +4144,7 @@ async function api(path,opts){
       var pStaff=makeSearchSelect($('of-staff'),{items:roles,multi:true,values:s.officeStaffRoleIds||[],placeholder:'Staff…'});
       var pCat=makeSearchSelect($('of-cat'),{items:cats,multi:false,value:s.officeCategoryId||'',placeholder:'Kategorie…'});
       var pickV=makeSearchSelect($('of-vc'),{items:voice,multi:false,placeholder:'Büro-Voice…'});
+      var pickWaitOffice=makeSearchSelect($('of-wait-office'),{items:voice,multi:false,placeholder:'Warteraum für dieses Büro…'});
       var pickR=makeSearchSelect($('of-role'),{items:roles,multi:false,placeholder:'Rolle…'});
 
       var box=$('of-list');
@@ -4168,7 +4169,7 @@ async function api(path,opts){
         try{
           var r=await api('/api/guilds/'+guildId+'/offices',{method:'POST',body:{
             name:$('of-name').value.trim(),
-            voiceChannelId:pickV.getValue(),
+            voiceChannelId:pickV.getValue(),waitingChannelId:(typeof pickWaitOffice!=='undefined'&&pickWaitOffice)?pickWaitOffice.getValue():null,
             roleId:pickR.getValue()
           }});
           list.push(r.office||r); draw(); toast('Büro angelegt','ok');
@@ -4921,7 +4922,7 @@ async function api(path,opts){
     var disc={channels:[],emojis:[]}; try{disc=await loadDiscord()}catch(e){}
     p.innerHTML='<h1>Panels senden</h1><p class="desc">Panel in einen Kanal senden</p>'+
       '<div class="card">'+
-      '<div class="field"><label>Panel-Typ</label><select id="pn-type">'+'<option value="ticket">Tickets</option>'+'<option value="admin_call">Admin Call</option>'+'<option value="interview">Interview</option>'+'<option value="feedback">Feedback</option>'+'<option value="dn_bewerben">DN Bewerbung</option>'+'<option value="dn_search">DN Suche</option>'+'<option value="ausweis">Ausweis</option>'+'<option value="duty">Duty / Online</option>'+'<option value="partner">Partnerschaft</option>'+'<option value="faction_apply">Fraktions-Bewerbung</option>'+'<option value="team_roblox">Team Roblox-Name</option>'+'<option value="verify">Verify</option>'+'<option value="hausliste">Hausliste</option></select></div>'+
+      '<div class="field"><label>Panel-Typ</label><select id="pn-type">'+'<option value="ticket">Tickets</option>'+'<option value="admin_call">Admin Call</option>'+'<option value="interview">Interview</option>'+'<option value="feedback">Feedback</option>'+'<option value="dn_bewerben">DN Bewerbung</option>'+'<option value="dn_search">DN Suche</option>'+'<option value="ausweis">Ausweis</option>'+'<option value="duty">Duty / Online</option>'+'<option value="partner">Partnerschaft</option>'+'<option value="faction_apply">Fraktions-Bewerbung</option>'+'<option value="team_roblox">Team Roblox-Name</option>'+'<option value="verify">Verify</option>'+'<option value="hausliste">Hausliste</option><option value="fraktionsliste">Fraktionsliste</option></select></div>'+
       '<div class="field"><label>Kanal</label><div id="pn-ch"></div></div>'+
       '<button type="button" class="btn btn-p" id="pn-send">Senden</button></div>';
     var pick=makeSearchSelect($('pn-ch'),{items:channelItems(disc.channels),multi:false,value:'',placeholder:'Kanal…'});
