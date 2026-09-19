@@ -6874,9 +6874,18 @@ async function api(path,opts){
           if(sub==='team'){
             detailShell('📝 Team-Bewerbung',
               '<div class="set-card">'+
-              '<p class="hint">Mehrere Bewerbungs-Arten. Panel zeigt ein Dropdown zur Auswahl.</p>'+
-              '<div class="field"><label>Neue Art — Name</label><input id="ap-tname" placeholder="z.B. Highteam / Support / Fraktion Staff"/></div>'+
-              '<div class="field"><label>Beschreibung (kurz)</label><input id="ap-tdesc" placeholder="Optional"/></div>'+
+              '<h3 style="margin:0 0 8px;font-size:1rem">Panel (Discord)</h3>'+
+              '<div class="field"><label>Titel</label><input id="ap-ptitle" placeholder="z.B. Team Bewerbung"/></div>'+
+              '<div class="field"><label>Text</label><textarea id="ap-ptext" rows="5" placeholder="Beschreibung auf dem Panel…"></textarea></div>'+
+              fieldRow('Panel-Kanal','ap-pchan','Kanal, in den das Bewerbungs-Panel gesendet wird')+
+              '<button type="button" class="btn btn-p btn-sm" id="ap-psave">Panel-Text speichern</button> '+
+              panelSendBlock('app','Bewerbungs-Panel senden')+
+              '</div>'+
+              '<div class="set-card" style="margin-top:12px">'+
+              '<h3 style="margin:0 0 8px;font-size:1rem">Bewerbungs-Arten</h3>'+
+              '<p class="hint">Mehrere Arten → Dropdown auf dem Panel. Mindestens eine Art anlegen.</p>'+
+              '<div class="field"><label>Neue Art — Name</label><input id="ap-tname" placeholder="z.B. Highteam / Support"/></div>'+
+              '<div class="field"><label>Beschreibung (kurz)</label><input id="ap-tdesc" placeholder="Optional, erscheint im Dropdown"/></div>'+
               '<button type="button" class="btn btn-p" id="ap-tadd">Art hinzufügen</button>'+
               '<div id="ap-tlist" style="margin-top:12px"></div>'+
               '</div>'+
@@ -6889,11 +6898,26 @@ async function api(path,opts){
               '<button type="button" class="btn btn-sm" id="ap-q-add">+ Nächste Frage hinzufügen</button>'+
               '<div id="ap-q-list" style="margin-top:10px"></div>'+
               saveBtn('ap-save')+
-              panelSendBlock('app','Bewerbungs-Panel (Dropdown)')+
               '</div>'
             );
             var types=[];
             try{ types=(s.bewerbungTypes&&s.bewerbungTypes.length)?s.bewerbungTypes.slice():[{id:'team',name:'Team',emoji:'📝',questions:s.applicationQuestions||s.bewerbungQuestions||[]}]; }catch(e){ types=[{id:'team',name:'Team',questions:[]}]; }
+            if($('ap-ptitle')) $('ap-ptitle').value=s.bewerbungPanelTitle||s.applicationPanelTitle||'Team Bewerbung';
+            if($('ap-ptext')) $('ap-ptext').value=s.bewerbungPanelText||s.applicationPanelText||'Wähle unten die Bewerbung, die du starten möchtest.';
+            var apPch=null;
+            try{ apPch=ss($('ap-pchan'),{items:ch,multi:false,value:s.bewerbungPanelChannelId||s.applicationPanelChannelId||'',placeholder:'Panel-Kanal…'}); }catch(e){}
+            if($('ap-psave')) $('ap-psave').onclick=function(){
+              var body={
+                bewerbungPanelTitle:($('ap-ptitle')&&$('ap-ptitle').value.trim())||'Team Bewerbung',
+                applicationPanelTitle:($('ap-ptitle')&&$('ap-ptitle').value.trim())||'Team Bewerbung',
+                bewerbungPanelText:($('ap-ptext')&&$('ap-ptext').value)||'',
+                applicationPanelText:($('ap-ptext')&&$('ap-ptext').value)||'',
+                bewerbungPanelChannelId:apPch?apPch.getValue()||null:null,
+                applicationPanelChannelId:apPch?apPch.getValue()||null:null,
+                bewerbungTypes:types
+              };
+              patchSettings(body,'Panel-Text'); Object.assign(s,body);
+            };
             function fillTypeSelect(){
               var sel=$('ap-tsel'); if(!sel) return;
               sel.innerHTML=types.map(function(t,i){ return '<option value="'+i+'">'+(t.emoji||'📝')+' '+(t.name||'Art')+'</option>'; }).join('');
@@ -6964,12 +6988,89 @@ async function api(path,opts){
               var i=Number($('ap-tsel').value||0);
               if(!types[i]) return;
               types[i].questions=apQs.map(function(q,j){ return {id:q.id||('q'+j),label:q.label,type:'text',required:true}; });
-              types[i].logChannelId=window._apCh.getValue()||null;
-              types[i].acceptRoleIds=window._apRoles.getValue()||[];
-              patchSettings({bewerbungTypes:types,applicationQuestions:types[0]?types[0].questions:[]},'Bewerbung gespeichert');
+              types[i].logChannelId=(window._apCh&&window._apCh.getValue())||null;
+              types[i].acceptRoleIds=(window._apRoles&&window._apRoles.getValue())||[];
+              var body={
+                bewerbungTypes:types,
+                applicationQuestions:types[0]?types[0].questions:[],
+                bewerbungPanelTitle:($('ap-ptitle')&&$('ap-ptitle').value.trim())||s.bewerbungPanelTitle||'Team Bewerbung',
+                applicationPanelTitle:($('ap-ptitle')&&$('ap-ptitle').value.trim())||s.applicationPanelTitle||'Team Bewerbung',
+                bewerbungPanelText:($('ap-ptext')&&$('ap-ptext').value)||s.bewerbungPanelText||'',
+                applicationPanelText:($('ap-ptext')&&$('ap-ptext').value)||s.applicationPanelText||''
+              };
+              if(apPch){ body.bewerbungPanelChannelId=apPch.getValue()||null; body.applicationPanelChannelId=apPch.getValue()||null; }
+              patchSettings(body,'Bewerbung gespeichert'); Object.assign(s,body);
             };
             wirePanelSend('app','bewerbung',s.bewerbungPanelChannelId||s.applicationPanelChannelId||'');
-            } else if(sub==='nick'){
+            } else if(sub==='iv'){
+            var ivQs=(s.interviewQuestions||[]).map(function(q){
+              if(typeof q==='string') return {id:'iq'+Date.now(),label:q,type:'text'};
+              return {id:q.id||('iq'+Date.now()),label:q.label||q.question||q.text||'',pointsCorrect:q.pointsCorrect||2,pointsAlmost:q.pointsAlmost||1,pointsWrong:q.pointsWrong||0};
+            }).filter(function(q){return q.label;});
+            detailShell('🎤 Interviews','<div class="set-card">'+
+              '<div class="toggle-row"><div class="lbl">Interviews aktiv</div><div id="iv-on" class="toggle-sw"></div></div>'+
+              '<div class="field"><label>Panel-Titel (Anfrage)</label><input id="iv-title" placeholder="Interview anfragen"/></div>'+
+              '<div class="field"><label>Panel-Text</label><textarea id="iv-text" rows="3" placeholder="Text auf dem Anfrage-Panel…"></textarea></div>'+
+              fieldRow('Anfrage-Log-Kanal','iv-log','Wohin neue Anfragen gepostet werden')+
+              fieldRow('Staff-Rollen (Ping)','iv-roles')+
+              fieldRow('Anfrage-Panel Kanal','iv-ch')+
+              fieldRow('Ausbilder-Rollen','iv-trainer','Dürfen das VC-Interview-Panel nutzen (optional)')+
+              saveBtn('iv-save')+
+              panelSendBlock('ivreq','Anfrage-Panel (User)')+
+              panelSendBlock('ivvc','Ausbilder-Panel (VC-Fragen)')+
+              '</div>'+
+              '<div class="set-card" style="margin-top:12px"><h3 style="margin:0 0 8px;font-size:1rem">VC-Fragen (Ausbilder)</h3>'+
+              '<p class="hint">Zufällige Fragen beim Interview. Ausbilder bewertet Richtig/Fast/Falsch.</p>'+
+              '<div class="field"><label>Neue Frage</label><input id="iv-q-in" placeholder="Frage eingeben…"/></div>'+
+              '<button type="button" class="btn btn-sm" id="iv-q-add">+ Nächste Frage</button>'+
+              '<div id="iv-q-list" style="margin-top:10px"></div>'+
+              '<button type="button" class="btn btn-p btn-sm" id="iv-q-save" style="margin-top:8px">Fragen speichern</button></div>');
+            bindToggle($('iv-on'), s.interviewEnabled!==false);
+            if($('iv-title')) $('iv-title').value=s.interviewPanelTitle||'Interview anfragen';
+            if($('iv-text')) $('iv-text').value=s.interviewPanelText||'Klicke den Button, um ein Interview anzufragen.';
+            var ivLog=ss($('iv-log'),{items:ch,multi:false,value:s.interviewChannelId||'',placeholder:'Log…'});
+            var ivRoles=ss($('iv-roles'),{items:roles,multi:true,values:s.interviewRoleIds||[],placeholder:'Ping…'});
+            var ivCh=ss($('iv-ch'),{items:ch,multi:false,value:s.interviewPanelChannelId||'',placeholder:'Anfrage-Panel…'});
+            var ivTr=ss($('iv-trainer'),{items:roles,multi:true,values:s.interviewTrainerRoleIds||s.interviewRoleIds||[],placeholder:'Ausbilder…'});
+            function renderIvQs(){
+              var box=$('iv-q-list'); if(!box) return;
+              box.innerHTML=ivQs.length?ivQs.map(function(q,idx){
+                return '<div class="set-row" style="gap:8px;margin-bottom:6px"><span style="flex:1">'+esc(q.label)+'</span>'+
+                  '<button type="button" class="btn btn-sm" data-iqi="'+idx+'" style="color:var(--err)">✕</button></div>';
+              }).join(''):'<p class="hint">Noch keine Fragen — ohne Fragen startet das Ausbilder-Panel nicht.</p>';
+              box.querySelectorAll('[data-iqi]').forEach(function(b){
+                b.onclick=function(){ ivQs.splice(Number(b.getAttribute('data-iqi')),1); renderIvQs(); };
+              });
+            }
+            renderIvQs();
+            if($('iv-q-add')) $('iv-q-add').onclick=function(){
+              var v=($('iv-q-in')&&$('iv-q-in').value||'').trim();
+              if(!v){ toast('Frage eingeben','err'); return; }
+              ivQs.push({id:'iq'+Date.now(),label:v,pointsCorrect:2,pointsAlmost:1,pointsWrong:0});
+              if($('iv-q-in')) $('iv-q-in').value='';
+              renderIvQs();
+            };
+            if($('iv-q-save')) $('iv-q-save').onclick=function(){
+              patchSettings({interviewQuestions:ivQs,interviewVcQuestions:ivQs},'Interview-Fragen');
+              s.interviewQuestions=ivQs;
+            };
+            $('iv-save').onclick=function(){
+              var body={
+                interviewEnabled:$('iv-on').isOn(),
+                interviewPanelTitle:($('iv-title')&&$('iv-title').value.trim())||'Interview anfragen',
+                interviewPanelText:($('iv-text')&&$('iv-text').value)||'',
+                interviewChannelId:ivLog.getValue()||null,
+                interviewRoleIds:ivRoles.getValue(),
+                interviewPanelChannelId:ivCh.getValue()||null,
+                interviewTrainerRoleIds:ivTr.getValue(),
+                interviewQuestions:ivQs,
+                interviewVcQuestions:ivQs
+              };
+              patchSettings(body,'Interview'); Object.assign(s,body);
+            };
+            wirePanelSend('ivreq','interview',s.interviewPanelChannelId||'');
+            wirePanelSend('ivvc','interview_vc',s.interviewPanelChannelId||'');
+} else if(sub==='nick'){
             detailShell('🏷️ Auto-Nick','<div class="set-card">'+
               '<div class="toggle-row"><div class="lbl">Aktiv</div><div id="tm-an" class="toggle-sw"></div></div>'+
               '<div class="field"><label>Standard-Format</label><input id="tm-fmt" placeholder="[{rank}] {name}"/></div>'+
