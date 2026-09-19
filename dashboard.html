@@ -7070,136 +7070,87 @@ async function api(path,opts){
             };
             wirePanelSend('ivreq','interview',s.interviewPanelChannelId||'');
             wirePanelSend('ivvc','interview_vc',s.interviewPanelChannelId||'');
-} else if(sub==='nick'){
-            detailShell('🏷️ Auto-Nick','<div class="set-card">'+
-              '<div class="toggle-row"><div class="lbl">Aktiv</div><div id="tm-an" class="toggle-sw"></div></div>'+
-              '<div class="field"><label>Standard-Format</label><input id="tm-fmt" placeholder="[{rank}] {name}"/></div>'+
-              '<p class="field-desc">Höchste Discord-Rolle mit Regel gewinnt. Platzhalter: {rank} {name} {roblox}</p>'+
-              '<div class="toggle-row"><div class="lbl">Bei Join</div><div id="tm-join" class="toggle-sw"></div></div>'+
-              '<div class="toggle-row"><div class="lbl">Bei Rollen-Add</div><div id="tm-add" class="toggle-sw"></div></div>'+
-              '<div class="toggle-row"><div class="lbl">Bei Rollen-Remove</div><div id="tm-rem" class="toggle-sw"></div></div>'+
-              '<div class="toggle-row"><div class="lbl">Bei Promote</div><div id="tm-pro" class="toggle-sw"></div></div>'+
-              '<div class="field"><label>Rollen-Regeln</label><div id="tm-rules"></div><button type="button" class="btn btn-sm" id="tm-rule-add">+ Regel</button></div>'+
-              saveBtn('tm-an-save')+'</div>');
-            bindToggle($('tm-an'), s.autoNickEnabled!==false); $('tm-fmt').value=s.autoNickFormat||'[{rank}] {name}';
-            var tt=s.autoNickTriggers||{};
-            bindToggle($('tm-join'), tt.onJoin!==false);
-            bindToggle($('tm-add'), tt.onRoleAdd!==false);
-            bindToggle($('tm-rem'), tt.onRoleRemove!==false);
-            bindToggle($('tm-pro'), tt.onPromote!==false);
-            var tmRules=(s.autoNickRules||[]).slice();
-            function renderTmRules(){
-              var box=$('tm-rules'); if(!box) return;
-              box.innerHTML=tmRules.map(function(r,i){
-                return '<div data-i="'+i+'" style="margin-bottom:8px"><div id="tm-r-'+i+'"></div><input id="tm-f-'+i+'" value="'+esc(r.format||'[{rank}] {name}')+'"/><button type="button" class="btn btn-sm btn-d tm-del" data-i="'+i+'">×</button></div>';
-              }).join('')||'<p class="hint">Keine Regeln</p>';
-              tmRules.forEach(function(r,i){ var el=$('tm-r-'+i); if(el) el.__ss=makeSearchSelect(el,{items:roles,multi:false,value:r.roleId||'',placeholder:'Rolle…'}); });
-              box.querySelectorAll('.tm-del').forEach(function(b){ b.onclick=function(){ tmRules.splice(+b.getAttribute('data-i'),1); renderTmRules(); }; });
-            }
-            renderTmRules();
-            if($('tm-rule-add')) $('tm-rule-add').onclick=function(){ tmRules.push({roleId:'',format:'[{rank}] {name}',enabled:true}); renderTmRules(); };
-            $('tm-an-save').onclick=function(){
-              var rules=[];
-              tmRules.forEach(function(r,i){
-                var el=$('tm-r-'+i); var v=r.roleId;
-                if(el&&el.__ss&&el.__ss.getValue) v=el.__ss.getValue();
-                var f=$('tm-f-'+i);
-                if(v) rules.push({roleId:v,format:(f&&f.value.trim())||'[{rank}] {name}',enabled:true});
-              });
+
+            } else if(sub==='frakapp'){
+            detailShell('🏴 Fraktions-Bewerbung','<div class="set-card">'+
+              fieldRow('Bewerbungs-Kanal','fa-ch')+
+              fieldRow('Announce-Kanal','fa-ann')+
+              '<div class="field"><label>Panel-Titel</label><input id="fa-t"/></div>'+
+              '<div class="field"><label>Panel-Text</label><textarea id="fa-tx" rows="3"></textarea></div>'+
+              saveBtn('fa-save')+panelSendBlock('fa','Fraktions-Bewerbung-Panel')+'</div>');
+            var faCh=ss($('fa-ch'),{items:ch,multi:false,value:s.factionAppChannelId||'',placeholder:'Kanal…'});
+            var faAn=ss($('fa-ann'),{items:ch,multi:false,value:s.factionAnnounceChannelId||'',placeholder:'Announce…'});
+            if($('fa-t')) $('fa-t').value=s.factionAppPanelTitle||'Fraktion bewerben';
+            if($('fa-tx')) $('fa-tx').value=s.factionAppPanelText||'Bewirb dich mit deiner Fraktion.';
+            $('fa-save').onclick=function(){
               patchSettings({
-                autoNickEnabled:$('tm-an').isOn(),
-                autoNickFormat:$('tm-fmt').value.trim(),
-                autoNickTriggers:{ onJoin:$('tm-join').isOn(), onRoleAdd:$('tm-add').isOn(), onRoleRemove:$('tm-rem').isOn(), onPromote:$('tm-pro').isOn(), onAlways:false },
-                autoNickRules:rules
-              },'Auto-Nick');
+                factionAppChannelId:faCh.getValue()||null,
+                factionAnnounceChannelId:faAn.getValue()||null,
+                factionAppPanelTitle:($('fa-t')&&$('fa-t').value.trim())||'',
+                factionAppPanelText:($('fa-tx')&&$('fa-tx').value)||''
+              },'Fraktions-Bewerbung');
             };
-          } else if(sub==='duty'){
-            detailShell('🟢 Duty','<div class="set-card">'+fieldRow('Panel-Kanal','tm-duty')+fieldRow('Duty-Rollen','tm-duty-r')+fieldRow('Ingame-Admin','tm-ingame')+'<div class="field"><label>Titel</label><input id="tm-duty-t"/></div>'+saveBtn('tm-duty-save')+panelSendBlock('duty','Duty-Panel')+'</div>');
-            var dCh=ss($('tm-duty'),{items:ch,multi:false,value:s.dutyPanelChannelId||'',placeholder:'Kanal…'});
-            var dR=ss($('tm-duty-r'),{items:roles,multi:true,values:s.dutyRoleIds||[],placeholder:'Duty…'});
-            var dIg=ss($('tm-ingame'),{items:roles,multi:true,values:s.ingameAdminRoleIds||[],placeholder:'Ingame…'});
-            $('tm-duty-t').value=s.dutyPanelTitle||'';
-            $('tm-duty-save').onclick=function(){patchSettings({dutyPanelChannelId:dCh.getValue()||null,dutyRoleIds:dR.getValue(),ingameAdminRoleIds:dIg.getValue(),dutyPanelTitle:$('tm-duty-t').value.trim()},'Duty')};
-            wirePanelSend('duty','duty',s.dutyPanelChannelId||'');
-          } else if(sub==='xp'){
-            detailShell('✨ XP','<div class="set-card"><div class="toggle-row"><div class="lbl">XP-System</div><div id="tm-xp" class="toggle-sw"></div></div><div class="field"><label>XP Ticket-Übernahme</label><input id="tm-xp-t" type="number"/></div><div class="field"><label>XP VC / Minute</label><input id="tm-xp-v" type="number"/></div>'+saveBtn('tm-xp-save')+'</div>');
-            bindToggle($('tm-xp'), s.xpEnabled!==false);
-            $('tm-xp-t').value=s.xpTicketClaim||s.xpPerTicket||10; $('tm-xp-v').value=s.xpVoicePerMinute||1;
-            $('tm-xp-save').onclick=function(){patchSettings({xpEnabled:$('tm-xp').isOn(),xpTicketClaim:Number($('tm-xp-t').value)||0,xpPerTicket:Number($('tm-xp-t').value)||0,xpVoicePerMinute:Number($('tm-xp-v').value)||0},'XP')};
-          } else if(sub==='aw'){
-            detailShell('🪪 Ausweis','<div class="set-card">'+fieldRow('Kanal','tm-aw-ch')+fieldRow('Staff','tm-aw-r')+'<div class="field"><label>Server-Name</label><input id="tm-aw-sn"/></div><div class="field"><label>Max. Zusatz</label><input id="tm-aw-max" type="number"/></div>'+saveBtn('tm-aw-save')+panelSendBlock('aw','Ausweis-Panel')+'</div>');
-            var awCh=ss($('tm-aw-ch'),{items:ch,multi:false,value:s.ausweisChannelId||'',placeholder:'Kanal…'});
-            var awR=ss($('tm-aw-r'),{items:roles,multi:true,values:s.ausweisStaffRoleIds||[],placeholder:'Staff…'});
-            $('tm-aw-sn').value=s.ausweisServerName||''; $('tm-aw-max').value=s.ausweisMaxExtra!=null?s.ausweisMaxExtra:3;
-            $('tm-aw-save').onclick=function(){patchSettings({ausweisChannelId:awCh.getValue()||null,ausweisStaffRoleIds:awR.getValue(),ausweisServerName:$('tm-aw-sn').value.trim()||null,ausweisMaxExtra:Number($('tm-aw-max').value)||0},'Ausweis')};
-            wirePanelSend('aw','ausweis',s.ausweisPanelChannelId||s.ausweisChannelId||'');
-          } else if(sub==='fb'){
-            detailShell('⭐ Feedback','<div class="set-card">'+
-              '<div class="toggle-row"><div class="lbl">Feedback aktiv</div><div id="tm-fb-on" class="toggle-sw"></div></div>'+
-              fieldRow('Feedback-Log-Kanal','tm-fb','Hier landen Sterne + Grund. Sticky kann denselben Kanal nutzen.')+
-              fieldRow('Wer Feedback geben darf','tm-fb-r','Leer = jeder. Sonst nur diese Rollen.')+
-              '<div class="field"><label>Modus</label><select id="tm-fb-mode"><option value="panel">Externes Panel</option><option value="sticky">Sticky Message</option></select></div>'+
-              '<div class="toggle-row"><div class="lbl">Sticky im Log-Kanal</div><div id="tm-fb-sticky-log" class="toggle-sw"></div></div>'+
-              fieldRow('Sticky-Kanal (optional)','tm-fb-st','Nur wenn „Sticky im Log-Kanal“ aus ist.')+
-              '<div class="field"><label>Panel / Sticky-Titel</label><input id="tm-fb-t" placeholder="Feedback"/></div>'+
-              '<div class="field"><label>Panel / Sticky-Text</label><textarea id="tm-fb-tx" rows="3" placeholder="Bewerte ein Teammitglied…"></textarea></div>'+
-              '<div class="field"><label>XP bei Feedback (≥3 Sterne)</label><input id="tm-fb-xp" type="number" min="0" placeholder="10"/></div>'+
-              saveBtn('tm-fb-save')+
-              '<button type="button" class="btn btn-p btn-sm" id="tm-fb-sticky" style="margin-left:8px">Sticky senden / aktualisieren</button>'+
-              panelSendBlock('fb','Feedback-Panel')+
-              '<p class="hint">Sticky = Panel-Nachricht wird im gewählten/Log-Kanal neu gesendet (alte gelöscht). Button → User wählen → Sterne + Grund.</p></div>');
-            bindToggle($('tm-fb-on'), s.feedbackEnabled!==false);
-            var fb=ss($('tm-fb'),{items:ch,multi:false,value:s.feedbackLogChannelId||'',placeholder:'Log…'});
-            var fbR=ss($('tm-fb-r'),{items:roles,multi:true,values:s.feedbackRoleIds||[],placeholder:'Rollen…'});
-            var fbSt=ss($('tm-fb-st'),{items:ch,multi:false,value:s.feedbackStickyChannelId||'',placeholder:'Sticky-Kanal…'});
-            $('tm-fb-mode').value=s.feedbackMode==='sticky'?'sticky':'panel';
-            bindToggle($('tm-fb-sticky-log'), !s.feedbackStickyChannelId || String(s.feedbackStickyChannelId)===String(s.feedbackLogChannelId||''));
-            $('tm-fb-t').value=s.feedbackPanelTitle||s.feedbackStickyTitle||'Feedback';
-            $('tm-fb-tx').value=s.feedbackPanelText||s.feedbackStickyText||'Hast du Lob oder Kritik? Klicke auf den Button.';
-            if($('tm-fb-xp')) $('tm-fb-xp').value=s.xpFeedback!=null?s.xpFeedback:10;
-            function fbPayload(){
-              var logId=fb.getValue()||null;
-              var mode=$('tm-fb-mode').value;
-              var useLog=$('tm-fb-sticky-log').isOn();
-              var stickyCh=useLog?logId:(fbSt.getValue()||null);
-              return {
-                feedbackEnabled:$('tm-fb-on').isOn(),
-                feedbackMode:mode,
-                feedbackLogChannelId:logId,
-                feedbackRoleIds:fbR.getValue(),
-                feedbackPanelTitle:$('tm-fb-t').value.trim(),
-                feedbackPanelText:$('tm-fb-tx').value,
-                feedbackStickyTitle:$('tm-fb-t').value.trim(),
-                feedbackStickyText:$('tm-fb-tx').value,
-                feedbackStickyChannelId:mode==='sticky'?(stickyCh||logId):s.feedbackStickyChannelId||null,
-                xpFeedback:Number($('tm-fb-xp')&&$('tm-fb-xp').value)||10
-              };
+            wirePanelSend('fa','faction_apply',s.factionAppChannelId||'');
+            } else if(sub==='dn'){
+            detailShell('🔢 Dienstnummern','<div class="set-card">'+
+              fieldRow('Log-Kanal','dn-log')+
+              fieldRow('Staff-Rollen','dn-roles')+
+              '<div class="field"><label>Panel-Titel</label><input id="dn-t"/></div>'+
+              '<div class="field"><label>Panel-Text</label><textarea id="dn-tx" rows="3"></textarea></div>'+
+              saveBtn('dn-save')+
+              panelSendBlock('dn','DN-Bewerbungs-Panel')+'</div>');
+            var dnL=ss($('dn-log'),{items:ch,multi:false,value:s.dienstnummerLogChannelId||s.dnLogChannelId||'',placeholder:'Log…'});
+            var dnR=ss($('dn-roles'),{items:roles,multi:true,values:s.dienstnummerStaffRoleIds||[],placeholder:'Staff…'});
+            if($('dn-t')) $('dn-t').value=s.dnPanelTitle||'Dienstnummer beantragen';
+            if($('dn-tx')) $('dn-tx').value=s.dnPanelText||'Beantrage hier deine Dienstnummer.';
+            $('dn-save').onclick=function(){
+              patchSettings({
+                dienstnummerLogChannelId:dnL.getValue()||null,
+                dnLogChannelId:dnL.getValue()||null,
+                dienstnummerStaffRoleIds:dnR.getValue(),
+                dnPanelTitle:($('dn-t')&&$('dn-t').value.trim())||'',
+                dnPanelText:($('dn-tx')&&$('dn-tx').value)||''
+              },'Dienstnummern');
+            };
+            wirePanelSend('dn','dn_bewerben',s.dienstnummerPanelChannelId||'');
+            } else if(sub==='unban'){
+            detailShell('🔓 Unban / Appeal','<div class="set-card">'+
+              fieldRow('Log-Kanal','ub-log')+
+              '<div class="field"><label>Neue Frage</label><input id="ub-q-in" placeholder="Frage…"/></div>'+
+              '<button type="button" class="btn btn-sm" id="ub-q-add">+ Frage</button>'+
+              '<div id="ub-q-list"></div>'+
+              saveBtn('ub-save')+'</div>');
+            var ubQs=(s.unbanQuestions||[]).map(function(q){ return typeof q==='string'?{label:q}:q; });
+            function renderUb(){
+              var box=$('ub-q-list'); if(!box) return;
+              box.innerHTML=ubQs.map(function(q,i){
+                return '<div class="set-row"><span style="flex:1">'+esc(q.label||q)+'</span><button type="button" class="btn btn-sm" data-uqi="'+i+'" style="color:var(--err)">✕</button></div>';
+              }).join('')||'<p class="hint">Keine Fragen</p>';
+              box.querySelectorAll('[data-uqi]').forEach(function(b){
+                b.onclick=function(){ ubQs.splice(+b.getAttribute('data-uqi'),1); renderUb(); };
+              });
             }
-            $('tm-fb-save').onclick=function(){
-              var p=fbPayload();
-              patchSettings(p,'Feedback'); Object.assign(s,p);
+            renderUb();
+            var ubL=ss($('ub-log'),{items:ch,multi:false,value:s.unbanLogChannelId||'',placeholder:'Log…'});
+            if($('ub-q-add')) $('ub-q-add').onclick=function(){
+              var v=($('ub-q-in')&&$('ub-q-in').value||'').trim();
+              if(!v) return;
+              ubQs.push({id:'uq'+Date.now(),label:v});
+              if($('ub-q-in')) $('ub-q-in').value='';
+              renderUb();
             };
-            if($('tm-fb-sticky')) $('tm-fb-sticky').onclick=async function(){
-              try{
-                var p=fbPayload();
-                p.feedbackMode='sticky';
-                await patchSettings(p,'Feedback'); Object.assign(s,p);
-                var r=await api('/api/guilds/'+guildId+'/feedback/sticky',{method:'POST',body:{channelId:p.feedbackStickyChannelId||p.feedbackLogChannelId}});
-                toast(r&&r.ok?'Sticky gesendet':'OK','ok');
-              }catch(e){toast(e.message,'err')}
+            $('ub-save').onclick=function(){
+              patchSettings({unbanLogChannelId:ubL.getValue()||null,unbanQuestions:ubQs},'Unban');
             };
-            wirePanelSend('fb','feedback',s.feedbackPanelChannelId||s.feedbackLogChannelId||'');
-          } else {
-            detailShell('⚠️ Team-Warns','<div class="set-card"><div class="field"><label>Warns bis Kick</label><input id="tm-tw" type="number" min="1"/></div>'+fieldRow('Team-Log','tm-tlog',dLog('Team-Invites, Kicks, Warns und Upranks'))+saveBtn('tm-tw-save')+'</div>');
-            $('tm-tw').value=s.teamWarnKickAt||3;
-            var tlog=ss($('tm-tlog'),{items:ch,multi:false,value:s.teamLogChannelId||'',placeholder:'Log…'});
-            $('tm-tw-save').onclick=function(){patchSettings({teamWarnKickAt:Number($('tm-tw').value)||3,teamLogChannelId:tlog.getValue()||null},'Team-Warns')};
-          }
+            } else {
+              toast('Unbekannter Bereich','err');
+              renderCat('apps');
+            }
         });
         return;
       }
 
-      if(cat==='haus'){
+      if(cat==='haus')if(cat==='haus'){
         pickCards('🏠 Haus & Fraktionen','Bereich wählen',[
           {id:'haus',ic:'🏠',l:'Hausliste',d:'Panel und Kanal'},
           {id:'frak',ic:'🏴',l:'Fraktionen',d:'Announce, Frak-Verwaltung, Warns'}
