@@ -6086,9 +6086,7 @@ async function api(path,opts){
 
     var CATS=[
       {id:'allgemein',ic:'⚙️',l:'Allgemein'},
-      {id:'design',ic:'🎨',l:'Design'},
       {id:'modules',ic:'🧩',l:'Module'},
-      {id:'nav',ic:'🧭',l:'Navigation'},
       {id:'perms',ic:'🔐',l:'Rollen & Rechte'},
       {id:'tickets',ic:'🎫',l:'Tickets & Support'},
       {id:'apps',ic:'📝',l:'Bewerbungen'},
@@ -6312,106 +6310,91 @@ async function api(path,opts){
         return;
       }
 
-      if(cat==='design'){
-        main.innerHTML=backBtn()+
-          '<h1>🎨 Design & Darstellung</h1><p class="sdesc">Darstellung und Theme</p>'+
-          '<div class="set-card"><h3>Design</h3><p class="hint">Dunkles Theme mit Akzentfarbe (aktiv)</p>'+
-            '<div class="set-row"><div><div class="lbl">Dark Mode</div><div class="sub">Immer aktiv</div></div><span class="badge-on">AN</span></div>'+
-            '<div class="set-row"><div><div class="lbl">Akzentfarbe</div><div class="sub">Staffora Lila #8b5cf6</div></div></div>'+
-            '<div class="set-row"><div><div class="lbl">Karten-Stil</div><div class="sub">Glass / Border Glow</div></div></div>'+
-          '</div>'+
-          '<div class="set-card"><h3>Embeds & Panels</h3><p class="hint">Staffora-Platzhalter und Panel-Editor</p>'+
-            '<button type="button" class="set-link" data-go="panels">Panels senden →</button></div>';
-        main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
-        try{bindBack()}catch(e){}
-        return;
-      }
-
-      if(cat==='modules'){
-        main.innerHTML=backBtn()+
-          '<h1>🧩 Module</h1><p class="sdesc">Alle Systeme an- und ausschalten · Standard: AN</p>'+
-          '<div class="set-card" style="margin-bottom:14px">'+
-            '<h3 style="margin:0 0 6px">Übersicht</h3>'+
-            '<p class="hint" style="margin:0;line-height:1.55">Hier aktivierst du die Bereiche, die du auf dem Server nutzen willst: Tickets &amp; Support, Warteraum, Team &amp; Duty, Bewerbungen, Ausweis, Fraktionen, Giveaways, Feedback, XP, Moderation und mehr. Pro Modul kannst du in den jeweiligen Tabs Kanäle, Rollen, Panels und Regeln einstellen – hier nur an oder aus. Standard ist alles an.</p>'+
-          '</div>'+
-          '<input class="settings-search" id="mod-q" placeholder="Modul suchen…"/>'+
-          '<div class="set-grid" id="mod-grid"></div>'+
-          '<button type="button" class="btn btn-p" id="mod-save-all" style="margin-top:12px">Alle speichern</button>';
-        function drawMods(q){
-          q=(q||'').toLowerCase();
-          $('mod-grid').innerHTML=MOD_LIST.filter(function(m){
-            return !q||m.l.toLowerCase().indexOf(q)>=0||m.d.toLowerCase().indexOf(q)>=0||m.k.indexOf(q)>=0;
-          }).map(function(m){
-            var on=modOn(m.k);
-            return '<div class="set-card"><h3>'+esc(m.l)+' <span class="'+(on?'badge-on':'badge-off')+'">'+(on?'AN':'AUS')+'</span></h3>'+
-              '<p class="hint">'+esc(m.d)+'</p>'+
-              '<div class="set-row"><div class="lbl">Aktiv</div><div class="toggle-sw" data-mod="'+m.k+'"></div></div></div>';
-          }).join('');
-          document.querySelectorAll('#mod-grid [data-mod]').forEach(function(el){
-            bindToggle(el, modOn(el.getAttribute('data-mod')));
-            el.addEventListener('click', async function(){
-              var body={}; body[el.getAttribute('data-mod')]=el.isOn();
-              try{
-                await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:body});
-                mods[el.getAttribute('data-mod')]=el.isOn();
-                toast(el.isOn()?'An':'Aus','ok');
-                drawMods($('mod-q').value);
-              }catch(e){toast(e.message,'err')}
-            });
-          });
-        }
-        drawMods('');
-        $('mod-q').oninput=function(){drawMods(this.value)};
-        $('mod-save-all').onclick=async function(){
-          var body={};
-          document.querySelectorAll('#mod-grid [data-mod]').forEach(function(el){body[el.getAttribute('data-mod')]=el.isOn()});
-          try{await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:body});toast('Module gespeichert','ok')}catch(e){toast(e.message,'err')}
-        };
-        bindBack();
-        return;
-      }
-
-      if(cat==='nav'){
-        main.innerHTML=backBtn()+
-          '<h1>🧭 Navigation</h1><p class="sdesc">Sidebar und Menüpunkte</p>'+
-          '<div class="set-card"><h3>Sidebar</h3><p class="hint">Menüpunkte werden über die Feature-Tabs gesteuert. Module aus = Funktionen inaktiv.</p>'+
-            '<div class="set-row"><div><div class="lbl">Sidebar</div><div class="sub">Links, Icons, Kategorien</div></div><span class="badge-on">Standard</span></div></div>';
+      if(cat==='design'||cat==='nav'){
+        // Tabs entfernt — Redirect auf Allgemein
+        sessionStorage.setItem('staffora_set_cat','allgemein');
+        activeCat='allgemein';
+        renderCat('allgemein');
         return;
       }
 
       if(cat==='perms'){
         await ensureDisc();
+        var mp=s.modPermissions&&typeof s.modPermissions==='object'?JSON.parse(JSON.stringify(s.modPermissions)):{};
+        var MOD_CMDS=[
+          {k:'kick',l:'Kick'},{k:'ban',l:'Ban'},{k:'softban',l:'Softban'},
+          {k:'warn',l:'Warn'},{k:'timeout',l:'Timeout'},{k:'note',l:'Note'}
+        ];
         main.innerHTML=backBtn()+
-          '<h1>🔐 Rollen & Berechtigungen</h1><p class="sdesc">Zugriff und Staff-Rechte</p>'+
-          '<div class="set-card"><h3>Staff & Admin</h3><p class="hint">Rollen ohne sichtbare IDs</p>'+
-            '<div class="field"><label>Staff-Rollen</label><div id="sp-staff"></div></div>'+
-            '<div class="field"><label>Admin-Rollen</label><div id="sp-admin"></div></div>'+
-            '<div class="field"><label>Stats verwalten</label><div id="sp-stats"></div></div>'+
-            '<button type="button" class="btn btn-p btn-sm" id="sp-save">Speichern</button></div>'+
-          '<div class="set-card"><h3>Weitere Rechte</h3>'+
-            '<button type="button" class="set-link" data-go="channelperms">📋 Kanal-Berechtigungen →</button> '+
-            '<button type="button" class="set-link" data-go="perms">Ingame Panel Access →</button> '+
-            '<button type="button" class="set-link" data-go="modperms">Moderation Permissions →</button> '+
-            '<button type="button" class="set-link" data-go="commands">Commands →</button></div>';
+          '<h1>🔐 Rollen & Berechtigungen</h1><p class="sdesc">Staff, Admin, Ingame-Panel und Moderations-Rechte</p>'+
+          '<div class="set-card"><h3>Staff & Admin</h3>'+
+            '<div class="field"><label>Staff-Rollen</label><p class="field-desc">Allgemeine Staff-Rechte (Dashboard, Panels).</p><div id="sp-staff"></div></div>'+
+            '<div class="field"><label>Admin-Rollen</label><p class="field-desc">Volle Admin-Rechte am Dashboard.</p><div id="sp-admin"></div></div>'+
+            '<div class="field"><label>Stats verwalten</label><p class="field-desc">Dürfen Server-Stats und Team-Stats bearbeiten.</p><div id="sp-stats"></div></div>'+
+          '</div>'+
+          '<div class="set-card"><h3>Ingame Panel Access</h3>'+
+            '<p class="hint">Rollen, die das IC-Panel öffnen und nutzen dürfen.</p>'+
+            '<div class="field"><label>Zugriff-Rollen</label><div id="sp-ingame"></div></div>'+
+          '</div>'+
+          '<div class="set-card"><h3>Moderation Permissions</h3>'+
+            '<p class="hint">Pro Command: welche Rollen dürfen ihn nutzen (leer = Staff/Admin).</p>'+
+            '<div id="sp-modlist"></div>'+
+          '</div>'+
+          '<div class="set-card"><h3>Kanal-Berechtigungen (Bulk)</h3>'+
+            '<p class="hint">Rolle wählen und eine Permission für alle oder einen Kanal setzen.</p>'+
+            '<button type="button" class="btn btn-sm" id="sp-goto-ch">Kanal-Berechtigungen öffnen →</button>'+
+          '</div>'+
+          '<div class="set-card"><h3>Commands</h3>'+
+            '<p class="hint">Commands AN/AUS und Permissions pro Befehl.</p>'+
+            '<button type="button" class="btn btn-sm" id="sp-goto-cmd">Commands-Übersicht →</button>'+
+          '</div>'+
+          '<button type="button" class="btn btn-p" id="sp-save" style="margin-top:8px">Alles speichern</button>';
+
         var pStaff=makeSearchSelect($('sp-staff'),{items:roles,multi:true,values:s.staffRoleIds||[],placeholder:'Staff…'});
         var pAdmin=makeSearchSelect($('sp-admin'),{items:roles,multi:true,values:s.adminRoleIds||[],placeholder:'Admin…'});
         var pStats=makeSearchSelect($('sp-stats'),{items:roles,multi:true,values:s.statsManageRoleIds||[],placeholder:'Stats…'});
+        var pIngame=makeSearchSelect($('sp-ingame'),{items:roles,multi:true,values:s.ingamePanelAccessRoleIds||s.ingameAccessRoleIds||[],placeholder:'IC-Panel…'});
+
+        var modBox=$('sp-modlist');
+        if(modBox){
+          modBox.innerHTML=MOD_CMDS.map(function(c){
+            return '<div class="field" style="margin-bottom:10px"><label>'+c.l+'</label><div id="mp-'+c.k+'"></div></div>';
+          }).join('');
+          MOD_CMDS.forEach(function(c){
+            var vals=(mp[c.k]&&mp[c.k].roleIds)||mp[c.k]||[];
+            if(!Array.isArray(vals)) vals=[];
+            window['_mp_'+c.k]=makeSearchSelect($('mp-'+c.k),{items:roles,multi:true,values:vals,placeholder:c.l+' Rollen…'});
+          });
+        }
+
+        if($('sp-goto-ch')) $('sp-goto-ch').onclick=function(){ try{ goFeature('channelperms'); }catch(e){ toast('Kanal-Berechtigungen','ok'); } };
+        if($('sp-goto-cmd')) $('sp-goto-cmd').onclick=function(){ try{ goFeature('commands'); }catch(e){ toast('Commands','ok'); } };
+
         $('sp-save').onclick=async function(){
           try{
-            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
-              staffRoleIds:pStaff.getValue(),adminRoleIds:pAdmin.getValue(),statsManageRoleIds:pStats.getValue()
-            }});
-            toast('Gespeichert','ok');
+            MOD_CMDS.forEach(function(c){
+              var sel=window['_mp_'+c.k];
+              if(sel){
+                if(!mp[c.k]||typeof mp[c.k]!=='object'||Array.isArray(mp[c.k])) mp[c.k]={roleIds:[]};
+                mp[c.k].roleIds=sel.getValue()||[];
+              }
+            });
+            var body={
+              staffRoleIds:pStaff.getValue(),
+              adminRoleIds:pAdmin.getValue(),
+              statsManageRoleIds:pStats.getValue(),
+              ingamePanelAccessRoleIds:pIngame.getValue(),
+              ingameAccessRoleIds:pIngame.getValue(),
+              modPermissions:mp
+            };
+            await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:body});
+            Object.assign(s, body);
+            toast('Berechtigungen gespeichert','ok');
           }catch(e){toast(e.message,'err')}
         };
-        main.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){goFeature(b.getAttribute('data-go'))}});
         try{bindBack()}catch(e){}
         return;
       }
-
-
-
-
 
       function fieldRow(label, id, desc){
         return '<div class="field"><label>'+label+'</label>'+
@@ -6902,7 +6885,9 @@ async function api(path,opts){
               '<div class="field"><label>Bewerbungs-Art</label><select id="ap-tsel"></select></div>'+
               fieldRow('Log-Kanal (diese Art)','ap-ch','Annehmen/Ablehnen + Antworten')+
               fieldRow('Rollen bei Annahme','ap-roles')+
-              '<div class="field"><label>Fragen (eine pro Zeile)</label><textarea id="ap-qs" rows="6" placeholder="Warum willst du ins Team?&#10;Wie alt bist du?"></textarea></div>'+
+              '<div class="field"><label>Neue Frage</label><input id="ap-q-in" placeholder="Frage eingeben…"/></div>'+
+              '<button type="button" class="btn btn-sm" id="ap-q-add">+ Nächste Frage hinzufügen</button>'+
+              '<div id="ap-q-list" style="margin-top:10px"></div>'+
               saveBtn('ap-save')+
               panelSendBlock('app','Bewerbungs-Panel (Dropdown)')+
               '</div>'
@@ -6913,11 +6898,26 @@ async function api(path,opts){
               var sel=$('ap-tsel'); if(!sel) return;
               sel.innerHTML=types.map(function(t,i){ return '<option value="'+i+'">'+(t.emoji||'📝')+' '+(t.name||'Art')+'</option>'; }).join('');
             }
+            var apQs=[];
+            function renderApQs(){
+              var box=$('ap-q-list'); if(!box) return;
+              box.innerHTML=apQs.length?apQs.map(function(q,idx){
+                return '<div class="set-row" style="gap:8px;margin-bottom:6px">'+
+                  '<span style="flex:1">'+esc(q.label||q)+'</span>'+
+                  '<button type="button" class="btn btn-sm" data-aqi="'+idx+'" style="color:var(--err)">✕</button></div>';
+              }).join(''):'<p class="hint">Noch keine Fragen — oben eingeben und hinzufügen.</p>';
+              box.querySelectorAll('[data-aqi]').forEach(function(b){
+                b.onclick=function(){ apQs.splice(Number(b.getAttribute('data-aqi')),1); renderApQs(); };
+              });
+            }
             function loadTypeForm(){
               var i=Number($('ap-tsel').value||0);
               var t=types[i]||{};
-              var qs=(t.questions||[]).map(function(q){ return q.label||q.question||q.text||''; }).filter(Boolean);
-              $('ap-qs').value=qs.join('\n');
+              apQs=(t.questions||[]).map(function(q){
+                if(typeof q==='string') return {id:'q'+Date.now(),label:q,type:'text',required:true};
+                return {id:q.id||('q'+Date.now()),label:q.label||q.question||q.text||'',type:q.type||'text',required:q.required!==false};
+              }).filter(function(q){ return q.label; });
+              renderApQs();
               try{ if(window._apCh) window._apCh.setValue(t.logChannelId||s.bewerbungLogChannelId||''); }catch(e){}
               try{ if(window._apRoles) window._apRoles.setValues(t.acceptRoleIds||[]); }catch(e){}
             }
@@ -6953,11 +6953,17 @@ async function api(path,opts){
               fillTypeSelect(); renderTypeList();
               $('ap-tsel').value=String(types.length-1); loadTypeForm();
             };
+            if($('ap-q-add')) $('ap-q-add').onclick=function(){
+              var v=($('ap-q-in')&&$('ap-q-in').value||'').trim();
+              if(!v){ toast('Frage eingeben','err'); return; }
+              apQs.push({id:'q'+Date.now(),label:v,type:'text',required:true});
+              if($('ap-q-in')) $('ap-q-in').value='';
+              renderApQs();
+            };
             $('ap-save').onclick=function(){
               var i=Number($('ap-tsel').value||0);
               if(!types[i]) return;
-              var lines=($('ap-qs').value||'').split('\n').map(function(x){return x.trim();}).filter(Boolean);
-              types[i].questions=lines.map(function(label,j){ return {id:'q'+j,label:label,type:'text',required:true}; });
+              types[i].questions=apQs.map(function(q,j){ return {id:q.id||('q'+j),label:q.label,type:'text',required:true}; });
               types[i].logChannelId=window._apCh.getValue()||null;
               types[i].acceptRoleIds=window._apRoles.getValue()||[];
               patchSettings({bewerbungTypes:types,applicationQuestions:types[0]?types[0].questions:[]},'Bewerbung gespeichert');
@@ -7111,7 +7117,9 @@ async function api(path,opts){
               fieldRow('Frak-Verwaltung Rollen','hf-lead','Dürfen /fraktion add, warn, remove und Bewerbungen bearbeiten.')+
               fieldRow('Bewerbungs-Kanal','hf-app','Kanal für eingehende Fraktions-Bewerbungen (Review).')+
               '<div class="field"><label>Warns bis Auto-Kick</label><input id="hf-w" type="number" min="1"/></div>'+
-              '<div class="field"><label>Bewerbungs-Fragen (eine pro Zeile)</label><textarea id="hf-q" rows="4" placeholder="Fraktionsname\\nDiscord-Invite\\nWarum?"></textarea></div>'+
+              '<div class="field"><label>Neue Frage</label><input id="hf-q-in" placeholder="Frage eingeben…"/></div>'+
+              '<button type="button" class="btn btn-sm" id="hf-q-add">+ Nächste Frage hinzufügen</button>'+
+              '<div id="hf-q-list" style="margin-top:10px"></div>'+
               saveBtn('hf-save')+
               panelSendBlock('faction_apply','Fraktions-Bewerbung')+
               '<p class="hint">Commands: /fraktion add · remove · warn · list</p></div>');
@@ -7119,10 +7127,30 @@ async function api(path,opts){
             var hl=ss($('hf-lead'),{items:roles,multi:true,values:s.factionVerwaltungRoleIds||s.factionManagerRoleIds||s.factionLeaderRoleIds||[],placeholder:'Verwaltung…'});
             var ha=ss($('hf-app'),{items:ch,multi:false,value:s.factionAppChannelId||'',placeholder:'Bewerbung…'});
             $('hf-w').value=s.factionMaxWarns||s.factionWarnKickAt||3;
-            var fqs=s.factionAppQuestions||[];
-            $('hf-q').value=(Array.isArray(fqs)?fqs.map(function(x){return x.label||x.question||x;}).join('\n'):'');
+            var fqs=(s.factionAppQuestions||[]).map(function(x){
+              if(typeof x==='string') return {id:'fq'+Date.now(),label:x,type:'text',required:true};
+              return {id:x.id||('fq'+Date.now()),label:x.label||x.question||'',type:'text',required:true};
+            }).filter(function(x){return x.label;});
+            function renderFqs(){
+              var box=$('hf-q-list'); if(!box) return;
+              box.innerHTML=fqs.length?fqs.map(function(q,idx){
+                return '<div class="set-row" style="gap:8px;margin-bottom:6px"><span style="flex:1">'+esc(q.label)+'</span>'+
+                  '<button type="button" class="btn btn-sm" data-fqi="'+idx+'" style="color:var(--err)">✕</button></div>';
+              }).join(''):'<p class="hint">Noch keine Fragen.</p>';
+              box.querySelectorAll('[data-fqi]').forEach(function(b){
+                b.onclick=function(){ fqs.splice(Number(b.getAttribute('data-fqi')),1); renderFqs(); };
+              });
+            }
+            renderFqs();
+            if($('hf-q-add')) $('hf-q-add').onclick=function(){
+              var v=($('hf-q-in')&&$('hf-q-in').value||'').trim();
+              if(!v){ toast('Frage eingeben','err'); return; }
+              fqs.push({id:'fq'+Date.now(),label:v,type:'text',required:true});
+              if($('hf-q-in')) $('hf-q-in').value='';
+              renderFqs();
+            };
             $('hf-save').onclick=function(){
-              var lines=($('hf-q').value||'').split('\n').map(function(l){return l.trim();}).filter(Boolean).map(function(l,i){return {id:'fq'+i,label:l,type:'text',required:true};});
+              var lines=fqs.slice();
               var p={
                 factionAnnounceChannelId:hf.getValue()||null,
                 factionAnnounceDefaultChannelId:hf.getValue()||null,
@@ -8160,6 +8188,210 @@ async function api(path,opts){
         }catch(e){ console.warn(e); }
         return;
       }
+
+
+      if(cat==='modules'){
+        pickCards('🧩 Module','Module an / aus',[
+          {id:'list',ic:'🧩',l:'Modul-Übersicht',d:'Alle Module aktivieren oder deaktivieren'}
+        ], async function(sub){
+          detailShell('🧩 Module','<div class="set-card" id="mod-list"></div>');
+          var box=$('mod-list');
+          var mods=[
+            {k:'tickets',l:'Tickets'},{k:'warteraum',l:'Warteraum'},{k:'adminCall',l:'Admin Call'},
+            {k:'bewerbungen',l:'Bewerbungen'},{k:'teamverwaltung',l:'Team'},{k:'autoNick',l:'Auto-Nick'},
+            {k:'security',l:'Security'},{k:'xp',l:'XP'},{k:'feedback',l:'Feedback'},
+            {k:'verify',l:'Verify'},{k:'duty',l:'Duty / Clock'},{k:'fraktionen',l:'Fraktionen'}
+          ];
+          var me=s.modulesEnabled||{};
+          box.innerHTML=mods.map(function(m){
+            var on=me[m.k]!==false;
+            return '<div class="toggle-row"><div class="lbl">'+m.l+'</div><div id="mod-t-'+m.k+'" class="toggle-sw"></div></div>';
+          }).join('')+'<button type="button" class="btn btn-p btn-sm" id="mod-save" style="margin-top:12px">Speichern</button>';
+          mods.forEach(function(m){ bindToggle($('mod-t-'+m.k), me[m.k]!==false); });
+          $('mod-save').onclick=function(){
+            var out={};
+            mods.forEach(function(m){ out[m.k]=$('mod-t-'+m.k).isOn(); });
+            patchSettings({modulesEnabled:out},'Module'); Object.assign(s,{modulesEnabled:out});
+          };
+        });
+        return;
+      }
+
+      if(cat==='team'){
+        pickCards('👥 Team','Bereich wählen',[
+          {id:'list',ic:'📋',l:'Teamliste',d:'Rollen, Kanal, Panel publizieren'},
+          {id:'nick',ic:'🏷️',l:'Auto-Nickname',d:'Format und Trigger'},
+          {id:'rank',ic:'📶',l:'Ranglaufbahn',d:'Promote / Demote Reihenfolge'},
+          {id:'invite',ic:'➕',l:'Invite & Kick',d:'Rollen bei Team-Invite / Kick'},
+          {id:'warns',ic:'⚠️',l:'Team-Warns',d:'Warns bis Auto-Kick + Log'},
+          {id:'feedback',ic:'⭐',l:'Feedback',d:'Panel / Sticky und XP'}
+        ], async function(sub){
+          try{refreshLiveSettings(s);}catch(e){}
+          await ensureDisc();
+          if(sub==='list'){
+            detailShell('📋 Teamliste','<div class="set-card">'+
+              fieldRow('Panel-Kanal','tl-ch','Kanal für die Teamlisten-Nachricht')+
+              fieldRow('Angezeigte Rollen','tl-roles','Reihenfolge = Discord-Hierarchie')+
+              '<div class="field"><label>Titel</label><input id="tl-title" placeholder="Servername"/></div>'+
+              saveBtn('tl-save')+
+              '<button type="button" class="btn btn-sm" id="tl-pub">Liste publizieren / aktualisieren</button></div>');
+            var tlCh=ss($('tl-ch'),{items:ch,multi:false,value:s.teamlistChannelId||'',placeholder:'Kanal…'});
+            var tlR=ss($('tl-roles'),{items:roles,multi:true,values:s.teamlistRoleIds||[],placeholder:'Rollen…'});
+            if($('tl-title')) $('tl-title').value=s.teamlistTitle||'';
+            $('tl-save').onclick=function(){
+              patchSettings({teamlistChannelId:tlCh.getValue()||null,teamlistRoleIds:tlR.getValue(),teamlistTitle:($('tl-title')&&$('tl-title').value.trim())||null},'Teamliste');
+            };
+            if($('tl-pub')) $('tl-pub').onclick=async function(){
+              try{ await api('/api/guilds/'+guildId+'/teamlist/publish',{method:'POST',body:{}}); toast('Publiziert','ok'); }catch(e){ toast(e.message,'err'); }
+            };
+          } else if(sub==='nick'){
+            detailShell('🏷️ Auto-Nickname','<div class="set-card">'+
+              '<div class="toggle-row"><div class="lbl">Aktiv</div><div id="tm-an" class="toggle-sw"></div></div>'+
+              '<div class="field"><label>Standard-Format</label><input id="tm-fmt" placeholder="[{rank}] {name}"/></div>'+
+              '<p class="field-desc">Platzhalter: {rank} {name} {roblox} — höchste Rolle mit Regel gewinnt.</p>'+
+              '<div class="toggle-row"><div class="lbl">Bei Join</div><div id="tm-join" class="toggle-sw"></div></div>'+
+              '<div class="toggle-row"><div class="lbl">Bei Rollen-Add</div><div id="tm-add" class="toggle-sw"></div></div>'+
+              '<div class="toggle-row"><div class="lbl">Bei Rollen-Remove</div><div id="tm-rem" class="toggle-sw"></div></div>'+
+              '<div class="toggle-row"><div class="lbl">Bei Promote</div><div id="tm-pro" class="toggle-sw"></div></div>'+
+              saveBtn('tm-an-save')+'</div>');
+            bindToggle($('tm-an'), s.autoNickEnabled!==false);
+            $('tm-fmt').value=s.autoNickFormat||'[{rank}] {name}';
+            var tt=s.autoNickTriggers||{};
+            bindToggle($('tm-join'), tt.onJoin!==false);
+            bindToggle($('tm-add'), tt.onRoleAdd!==false);
+            bindToggle($('tm-rem'), tt.onRoleRemove!==false);
+            bindToggle($('tm-pro'), tt.onPromote!==false);
+            $('tm-an-save').onclick=function(){
+              patchSettings({
+                autoNickEnabled:$('tm-an').isOn(),
+                autoNickFormat:$('tm-fmt').value.trim()||'[{rank}] {name}',
+                autoNickTriggers:{onJoin:$('tm-join').isOn(),onRoleAdd:$('tm-add').isOn(),onRoleRemove:$('tm-rem').isOn(),onPromote:$('tm-pro').isOn()}
+              },'Auto-Nick');
+            };
+          } else if(sub==='rank'){
+            detailShell('📶 Ranglaufbahn','<div class="set-card">'+
+              '<p class="hint">Reihenfolge von oben (höchster Rang) nach unten. Discord-Hierarchie als Basis.</p>'+
+              fieldRow('Rollen in der Laufbahn','rk-roles')+
+              saveBtn('rk-save')+'</div>');
+            var rk=ss($('rk-roles'),{items:roles,multi:true,values:s.rankCareerRoleIds||s.teamRankRoleIds||[],placeholder:'Ränge…'});
+            $('rk-save').onclick=function(){
+              patchSettings({rankCareerRoleIds:rk.getValue(),teamRankRoleIds:rk.getValue()},'Ranglaufbahn');
+            };
+          } else if(sub==='invite'){
+            detailShell('➕ Invite & Kick','<div class="set-card">'+
+              fieldRow('Rollen bei Invite','ti-add','Werden bei /team invite vergeben')+
+              fieldRow('Rollen bei Kick','ti-rem','Werden bei /team kick entfernt')+
+              fieldRow('Log-Kanal','ti-log',dLog('Team Invite und Kick'))+
+              saveBtn('ti-save')+'</div>');
+            var tiA=ss($('ti-add'),{items:roles,multi:true,values:s.teamInviteRoleIds||[],placeholder:'Invite…'});
+            var tiR=ss($('ti-rem'),{items:roles,multi:true,values:s.teamKickRoleIds||s.teamInviteRoleIds||[],placeholder:'Kick…'});
+            var tiL=ss($('ti-log'),{items:ch,multi:false,value:s.teamLogChannelId||'',placeholder:'Log…'});
+            $('ti-save').onclick=function(){
+              patchSettings({
+                teamInviteRoleIds:tiA.getValue(),
+                teamKickRoleIds:tiR.getValue(),
+                teamLogChannelId:tiL.getValue()||null
+              },'Team Invite/Kick');
+            };
+          } else if(sub==='warns'){
+            detailShell('⚠️ Team-Warns','<div class="set-card">'+
+              '<div class="field"><label>Warns bis Auto-Kick</label><input id="tm-tw" type="number" min="1"/></div>'+
+              fieldRow('Team-Log','tm-tlog',dLog('Team-Invites, Kicks, Warns'))+
+              saveBtn('tm-tw-save')+'</div>');
+            $('tm-tw').value=s.teamWarnKickAt||3;
+            var tlog=ss($('tm-tlog'),{items:ch,multi:false,value:s.teamLogChannelId||'',placeholder:'Log…'});
+            $('tm-tw-save').onclick=function(){
+              patchSettings({teamWarnKickAt:Number($('tm-tw').value)||3,teamLogChannelId:tlog.getValue()||null},'Team-Warns');
+            };
+          } else if(sub==='feedback'){
+            detailShell('⭐ Feedback','<div class="set-card">'+
+              '<div class="toggle-row"><div class="lbl">Aktiv</div><div id="fb-on" class="toggle-sw"></div></div>'+
+              fieldRow('Log-Kanal','fb-log')+
+              fieldRow('Wer darf bewerten','fb-roles')+
+              saveBtn('fb-save')+
+              panelSendBlock('fb','Feedback-Panel')+'</div>');
+            bindToggle($('fb-on'), s.feedbackEnabled!==false);
+            var fbL=ss($('fb-log'),{items:ch,multi:false,value:s.feedbackLogChannelId||'',placeholder:'Log…'});
+            var fbR=ss($('fb-roles'),{items:roles,multi:true,values:s.feedbackRoleIds||[],placeholder:'Rollen…'});
+            $('fb-save').onclick=function(){
+              patchSettings({feedbackEnabled:$('fb-on').isOn(),feedbackLogChannelId:fbL.getValue()||null,feedbackRoleIds:fbR.getValue()},'Feedback');
+            };
+            wirePanelSend('fb','feedback',s.feedbackPanelChannelId||s.feedbackLogChannelId||'');
+          }
+        });
+        return;
+      }
+
+      if(cat==='schicht'){
+        await ensureDisc();
+        main.innerHTML=backBtn()+
+          '<h1>⏱️ Schicht & Clock</h1><p class="sdesc">Duty an/aus, Rollen und Panel</p>'+
+          '<div class="set-card"><h3>Duty / Clock</h3>'+
+            '<div class="toggle-row"><div class="lbl">Duty-System aktiv</div><div id="du-on" class="toggle-sw"></div></div>'+
+            '<div class="field"><label>Duty-Rollen</label><p class="field-desc">Beim On-Duty werden diese Rollen vergeben, beim Off-Duty entfernt. Button auf dem Panel: einmal = an, nochmal = aus.</p><div id="du-roles"></div></div>'+
+            fieldRow('Duty-Panel Kanal','du-ch','Kanal für das On-Duty-Panel')+
+            fieldRow('Admin-Rechte Rolle(n)','du-admin','Für Anzeige „Online mit Adminrechten“')+
+            fieldRow('Duty-Log','du-log')+
+            saveBtn('du-save')+
+            panelSendBlock('du','Duty-Panel')+
+          '</div>'+
+          '<div class="set-card" style="margin-top:12px"><h3>Schicht-Log</h3>'+
+            fieldRow('Schicht-Log-Kanal','sp-log')+
+            saveBtn('sp-save')+
+          '</div>';
+        try{bindBack()}catch(e){}
+        bindToggle($('du-on'), s.dutyEnabled!==false);
+        var duRoles=ss($('du-roles'),{items:roles,multi:true,values:s.dutyRoleIds||s.clockRoleIds||[],placeholder:'Duty-Rollen…'});
+        var duCh=ss($('du-ch'),{items:ch,multi:false,value:s.dutyPanelChannelId||s.onlineAdminPanelChannelId||'',placeholder:'Kanal…'});
+        var duAd=ss($('du-admin'),{items:roles,multi:true,values:s.dutyAdminRoleIds||s.ingameAdminRoleIds||[],placeholder:'Admin…'});
+        var duLog=ss($('du-log'),{items:ch,multi:false,value:s.dutyLogChannelId||'',placeholder:'Log…'});
+        var spLog=ss($('sp-log'),{items:ch,multi:false,value:s.shiftLogChannelId||s.dutyLogChannelId||'',placeholder:'Schicht-Log…'});
+        $('du-save').onclick=function(){
+          patchSettings({
+            dutyEnabled:$('du-on').isOn(),
+            dutyRoleIds:duRoles.getValue(),
+            clockRoleIds:duRoles.getValue(),
+            dutyPanelChannelId:duCh.getValue()||null,
+            onlineAdminPanelChannelId:duCh.getValue()||null,
+            dutyAdminRoleIds:duAd.getValue(),
+            ingameAdminRoleIds:duAd.getValue(),
+            dutyLogChannelId:duLog.getValue()||null
+          },'Duty');
+        };
+        $('sp-save').onclick=function(){ patchSettings({shiftLogChannelId:spLog.getValue()||null},'Schicht-Log'); };
+        wirePanelSend('du','duty',s.dutyPanelChannelId||s.onlineAdminPanelChannelId||'');
+        return;
+      }
+
+      if(cat==='aufgaben'){
+        await ensureDisc();
+        main.innerHTML=backBtn()+
+          '<h1>📋 Aufgaben</h1><p class="sdesc">Aufgaben-Panel, XP und wer erstellen darf</p>'+
+          '<div class="set-card">'+
+            fieldRow('Aufgaben-Panel Kanal','auf-ch','Kanal für das Aufgaben-Board')+
+            fieldRow('Wer darf Aufgaben erstellen','auf-create')+
+            fieldRow('Wer darf Aufgaben übernehmen','auf-claim')+
+            '<div class="field"><label>XP pro erledigter Aufgabe</label><input id="auf-xp" type="number" min="0"/></div>'+
+            saveBtn('auf-save')+
+            panelSendBlock('auf','Aufgaben-Panel')+
+          '</div>';
+        try{bindBack()}catch(e){}
+        var ac=ss($('auf-ch'),{items:ch,multi:false,value:s.tasksPanelChannelId||'',placeholder:'Kanal…'});
+        var ar=ss($('auf-create'),{items:roles,multi:true,values:s.tasksCreateRoleIds||[],placeholder:'Erstellen…'});
+        var acl=ss($('auf-claim'),{items:roles,multi:true,values:s.tasksClaimRoleIds||s.staffRoleIds||[],placeholder:'Übernehmen…'});
+        if($('auf-xp')) $('auf-xp').value=s.tasksXp||20;
+        $('auf-save').onclick=function(){
+          patchSettings({
+            tasksPanelChannelId:ac.getValue()||null,
+            tasksCreateRoleIds:ar.getValue(),
+            tasksClaimRoleIds:acl.getValue(),
+            tasksXp:Number($('auf-xp').value)||20
+          },'Aufgaben');
+        };
+        wirePanelSend('auf','tasks',s.tasksPanelChannelId||'');
+        return;
+      }
+
 
       main.innerHTML='<div class="empty">Kategorie wählen</div>';
       try{bindBack()}catch(e){}
