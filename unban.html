@@ -37,8 +37,7 @@ h1{text-align:center;font-size:1.35rem;margin-bottom:6px}
 <body>
 <div class="wrap">
   <div class="logo">🤖</div>
-  <div style="text-align:right;margin-bottom:8px"><select id="lang-sel" style="background:#16161a;color:#fff;border:1px solid #2a2a30;border-radius:8px;padding:4px 8px"><option value="de">DE</option><option value="en">EN</option></select></div>
-  <h1 id="uh1">Ban Appeal</h1>
+  <h1>Ban Appeal</h1>
   <p class="sub">Roblox-Name eingeben · Ban prüfen · Antrag stellen</p>
   <div class="steps">
     <span id="s1" class="on">1</span>
@@ -245,37 +244,5 @@ h1{text-align:center;font-size:1.35rem;margin-bottom:6px}
   };
 })();
 </script>
-
-<script>
-(function(){
-  var I18N={
-    de:{sub:'Roblox-Name prüfen · Server wählen · Antrag stellen',roblox:'Roblox-Name',next:'Weiter',back:'Zurück',server:'Server wählen',submit:'Antrag absenden',done:'Antrag gesendet',doneSub:'Das Team prüft deine Anfrage.',noBan:'Es sind keine Bans auf deinem Konto registriert.',again:'Neuen Antrag'},
-    en:{sub:'Check Roblox name · Choose server · Submit appeal',roblox:'Roblox username',next:'Next',back:'Back',server:'Choose server',submit:'Submit appeal',done:'Appeal submitted',doneSub:'Staff will review your request.',noBan:'There are no bans registered on your account.',again:'New appeal'}
-  };
-  function apply(lang){
-    lang=lang==='en'?'en':'de';
-    var t=I18N[lang];
-    document.documentElement.lang=lang;
-    try{localStorage.setItem('staffora_lang',lang)}catch(e){}
-    var sub=document.querySelector('.sub'); if(sub&&!sub.id) sub.textContent=t.sub;
-    var lab=document.querySelector('label'); // first
-    var rl=document.querySelector('#step-user label'); if(rl) rl.textContent=t.roblox;
-    var bn=document.getElementById('btn-next'); if(bn) bn.textContent=t.next;
-    var bb1=document.getElementById('btn-back1'); if(bb1) bb1.textContent=t.back;
-    var bb2=document.getElementById('btn-back2'); if(bb2) bb2.textContent=t.back;
-    var bs=document.getElementById('btn-submit'); if(bs) bs.textContent=t.submit;
-    var ba=document.getElementById('btn-again'); if(ba) ba.textContent=t.again;
-    var ss=document.querySelector('#step-server .sub'); if(ss) ss.textContent=t.server;
-    var done=document.querySelector('#step-done p[style*="font-weight"]'); if(done) done.textContent=t.done;
-    var dones=document.querySelector('#step-done .sub'); if(dones) dones.textContent=t.doneSub;
-    window.__stafforaUnbanT=t;
-  }
-  var sel=document.getElementById('lang-sel');
-  var lang='de'; try{lang=localStorage.getItem('staffora_lang')||'de'}catch(e){}
-  if(sel){ sel.value=lang==='en'?'en':'de'; sel.onchange=function(){apply(sel.value)}; }
-  apply(lang);
-})();
-</script>
-
 </body>
 </html>

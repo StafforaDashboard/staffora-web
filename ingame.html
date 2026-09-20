@@ -231,7 +231,7 @@ th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase}
   function st(label, n){ return '<div class="stat"><span>'+esc(label)+'</span><b>'+esc(n==null?'0':n)+'</b></div>'; }
 
   async function pageLookup(p){
-    p.innerHTML='<h1>Spieler Lookup</h1><p class="desc">Roblox-Name · zeigt Dizzy-Link, Profil, Bans &amp; Warns</p>'+
+    p.innerHTML='<h1>Spieler Lookup</h1><p class="desc">Roblox-Name · Dizzy-Link, Profil, Bans, Warns &amp; Playtime</p>'+
       '<div class="row"><input id="lk-q" placeholder="Roblox Username"/><button type="button" class="btn" id="lk-go">Suchen</button></div>'+
       '<div id="lk-res"></div>';
     $('lk-go').onclick=async function(){
@@ -262,6 +262,17 @@ th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase}
         html+=bans.length?('<table><tr><th>Art</th><th>Grund</th><th>Wann</th></tr>'+bans.map(function(b){
           return '<tr><td>'+(b.is_perma?'Perm':'Temp')+'</td><td>'+esc(b.reason||'—')+'</td><td>'+esc(fmtTime(b.created_at))+'</td></tr>';
         }).join('')+'</table>'):'<div class="empty">Keine aktiven Bans</div>';
+        var pt=d.playtime||{};
+        html+='</div><div class="card"><h2>⏱ Playtime</h2>';
+        if(pt.neverPlayed){
+          html+='<div class="empty">'+esc(pt.text||'User has never played on this server.')+'</div>';
+        }else if(pt.minimal){
+          html+='<div class="badge warn">'+esc(pt.text||'Too little play time to monitor.')+'</div>';
+        }else{
+          html+='<div class="stat"><span>Lifetime</span><b>'+esc(pt.totalSeconds!=null?Math.floor(pt.totalSeconds/60)+' min':(pt.text||'—'))+'</b></div>';
+          if(pt.text) html+='<p class="desc" style="margin-top:8px">'+esc(pt.text.replace(/\*\*/g,''))+'</p>';
+          if(pt.currentlyOnline) html+='<span class="badge ok">Currently online</span>';
+        }
         html+='</div><div class="card"><h2>Aktionen</h2><div class="row">'+
           '<button type="button" class="btn btn-warn" id="lk-warn">Warn</button>'+
           '<button type="button" class="btn btn-err" id="lk-ban">Ban</button></div></div>';
