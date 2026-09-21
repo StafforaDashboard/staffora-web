@@ -1928,6 +1928,30 @@ html.pre-auth #v-app{opacity:1}
 })();
 </script>
 <style id="layout-fix-v4">
+
+/* === Server picker gate === */
+#v-guild-pick{display:none;min-height:100vh;align-items:center;justify-content:center;padding:32px 16px;
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(139,92,246,.22),transparent 55%),#07070a}
+#v-guild-pick.show{display:flex}
+.gpick{max-width:520px;width:100%;background:rgba(18,18,26,.92);border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;padding:28px 24px;box-shadow:0 28px 70px rgba(0,0,0,.5);backdrop-filter:blur(16px);
+  animation:gpIn .4s cubic-bezier(.22,1,.36,1)}
+@keyframes gpIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.gpick h1{font-size:1.4rem;margin:0 0 6px;font-weight:800}
+.gpick .sub{color:#94a3b8;font-size:14px;margin-bottom:20px;line-height:1.5}
+.gpick-list{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow:auto;margin-bottom:16px}
+.gpick-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 14px;
+  border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);
+  color:#e2e8f0;cursor:pointer;font-weight:600;transition:.15s}
+.gpick-item:hover{border-color:rgba(139,92,246,.45);background:rgba(139,92,246,.1);transform:translateY(-1px)}
+.gpick-item .av{width:40px;height:40px;border-radius:12px;background:linear-gradient(145deg,#a78bfa,#6d28d9);
+  display:grid;place-items:center;font-weight:800;flex-shrink:0}
+.gpick-item .meta{flex:1;min-width:0}
+.gpick-item .meta small{display:block;color:#94a3b8;font-weight:500;font-size:12px;margin-top:2px}
+.gpick-item .go{color:#a78bfa;font-size:18px}
+.gpick-foot{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+.gpick-foot .hint{color:#64748b;font-size:12px}
+
 /* === Layout fix v4: single server select, no double chrome === */
 body.gp-full .sidebar,
 body.gp-full aside.sidebar,
@@ -1956,7 +1980,7 @@ body.gp-full .settings-main{
   flex:1!important;overflow-y:auto!important;min-width:0!important;
   padding:20px 24px 32px!important
 }
-#guild-sel{display:none!important} /* only main select in dashboard header */
+/* #guild-sel visible for server switch */
 .guild-sel{min-width:180px;max-width:280px}
 </style>
 </head>
@@ -1967,6 +1991,19 @@ body.gp-full .settings-main{
     <h1>STAFFORA</h1>
     <p class="sub">Premium Moderation · Discord + Roblox</p>
     <a class="btn btn-p btn-block" id="btn-login" href="#">Mit Discord anmelden</a>
+  </div>
+</div>
+
+
+<div id="v-guild-pick">
+  <div class="gpick">
+    <h1>Server wählen</h1>
+    <p class="sub">Wähle den Discord-Server, den du verwalten willst. So vermeidest du, Einstellungen am falschen Server zu speichern.</p>
+    <div class="gpick-list" id="gpick-list"></div>
+    <div class="gpick-foot">
+      <span class="hint">Nur Server, auf denen der Bot ist und du Rechte hast.</span>
+      <button type="button" class="btn btn-sm" id="btn-gpick-refresh">↻ Aktualisieren</button>
+    </div>
   </div>
 </div>
 
@@ -2281,7 +2318,16 @@ async function api(path,opts){
       });
     }catch(e){}
   })();
-  $('guild-sel').onchange=function(){ invalidateDiscordCache();guildId=this.value;updateSideMini();render()};
+  $('guild-sel').onchange=function(){
+    var v=this.value;
+    if(!v) return;
+    if(v===guildId) return;
+    if(!confirm('Server wechseln? Ungespeicherte Änderungen gehen verloren.')){
+      this.value=guildId||'';
+      return;
+    }
+    enterGuild(v);
+  };
 
   (function(){
     document.addEventListener('click', function(ev){
@@ -2307,6 +2353,69 @@ async function api(path,opts){
       toast('Serverliste aktualisiert ('+guilds.length+')','ok');
     }catch(e){ toast(e.message||'Serverliste Fehler','err'); }
   }
+
+  
+  function showGuildPicker(){
+    var root=$('v-guild-pick');
+    var list=$('gpick-list');
+    if(!root||!list){
+      // fallback: first guild
+      if(guilds[0]){ enterGuild(guilds[0].id); }
+      return;
+    }
+    root.classList.add('show');
+    try{ $('v-app').classList.add('hidden'); }catch(e){}
+    if(!guilds.length){
+      list.innerHTML='<div class="card" style="padding:16px;color:#94a3b8">Kein Server gefunden. Lade den Bot ein und stelle sicher, dass du Admin- oder Manage-Server-Rechte hast.</div>';
+      return;
+    }
+    list.innerHTML=guilds.map(function(x){
+      var name=esc(x.name||x.id);
+      var letter=esc(String(x.name||'S').charAt(0).toUpperCase());
+      return '<button type="button" class="gpick-item" data-gid="'+esc(x.id)+'">'+
+        '<span class="av">'+letter+'</span>'+
+        '<span class="meta">'+name+'<small>ID · '+esc(x.id)+'</small></span>'+
+        '<span class="go">→</span></button>';
+    }).join('');
+    list.querySelectorAll('.gpick-item').forEach(function(btn){
+      btn.onclick=function(){ enterGuild(btn.getAttribute('data-gid')); };
+    });
+    var ref=$('btn-gpick-refresh');
+    if(ref && !ref._bound){
+      ref._bound=1;
+      ref.onclick=async function(){
+        try{
+          var g=await api('/api/guilds');
+          guilds=(g&&g.guilds)||g||[];
+          showGuildPicker();
+          toast('Serverliste aktualisiert','ok');
+        }catch(e){ toast(String(e.message||e),'err'); }
+      };
+    }
+  }
+  async function enterGuild(id){
+    if(!id) return;
+    guildId=String(id);
+    try{ sessionStorage.setItem('staffora_guild', guildId); }catch(e){}
+    var sel=$('guild-sel');
+    if(sel){
+      if(!sel.querySelector('option[value="'+guildId.replace(/"/g,'')+'"]') && guilds.length){
+        sel.innerHTML=guilds.map(function(x){
+          return '<option value="'+esc(x.id)+'">'+esc(x.name||x.id)+'</option>';
+        }).join('');
+      }
+      sel.value=guildId;
+    }
+    try{ $('v-guild-pick').classList.remove('show'); }catch(e){}
+    try{ $('v-login').classList.add('hidden'); }catch(e){}
+    try{ $('v-app').classList.remove('hidden'); }catch(e){}
+    try{ updateSideMini(); }catch(e){}
+    try{ invalidateDiscordCache(); }catch(e){}
+    page='settings';
+    try{ sessionStorage.setItem('staffora_page','settings'); }catch(e){}
+    await render();
+  }
+
 
   async function boot(){
     try{
@@ -2351,28 +2460,20 @@ async function api(path,opts){
       guilds=(g&&g.guilds)||g||[];
       try{ if(guilds.length) sessionStorage.setItem('staffora_guilds', JSON.stringify(guilds)); }catch(e){}
       if(LOCAL_MODE && !guilds.length) guilds=[{id:'local-guild',name:'Staffora (lokal)'}];
-      if(LOCAL_MODE && !guildId) guildId='local-guild';
       var sel=$('guild-sel');
       if(sel){
         if(!guilds.length){
           sel.innerHTML='<option value="">Keine Server</option>';
-          guildId=null;
         }else{
           sel.innerHTML=guilds.map(function(x){
             return '<option value="'+esc(x.id)+'">'+esc(x.name||x.id)+'</option>';
           }).join('');
-          guildId=guilds[0].id;
-          sel.value=guildId;
         }
       }
-      try{ updateSideMini(); }catch(e0){}
-      if(guildId){
-        page='settings';
-        try{sessionStorage.setItem('staffora_page','settings')}catch(e){}
-        await render();
-      } else if($('panel')){
-        $('panel').innerHTML='<div class="card"><p>Kein Server. Bot muss auf dem Server sein; du brauchst Admin- oder Manage-Server-Rechte.</p></div>';
-      }
+      // Always show server picker before dashboard (avoids wrong-server bugs)
+      try{ $('v-app').classList.add('hidden'); }catch(e0){}
+      try{ $('v-login').classList.add('hidden'); }catch(e0){}
+      showGuildPicker();
     }catch(e){
       /* login failed */
       var msg=String(e.message||e);
