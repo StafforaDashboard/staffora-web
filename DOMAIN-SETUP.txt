@@ -1,0 +1,31 @@
+STAFFORA.INFO — WAS DU TUN MUSST
+================================
+
+1) GITHUB PAGES (Dashboard-Zip hochladen)
+   - Repo öffnen, das mit staffora.info verknüpft ist
+   - Alle Dateien aus staffora-github-pages.zip HOCHLADEN (überschreiben)
+   - CNAME Datei muss im Root liegen mit Inhalt: staffora.info
+   - Settings → Pages → Custom domain = staffora.info
+   - Enforce HTTPS aktivieren
+
+2) DISCORD DEVELOPER PORTAL
+   OAuth2 → Redirects hinzufügen (behalten + neu):
+   - https://staffora.apps.bot-hosting.cloud/auth/callback
+   (API bleibt auf bot-hosting — GitHub Pages kann kein OAuth)
+
+3) BOT HOSTING (.env)
+   PUBLIC_URL=https://staffora.apps.bot-hosting.cloud
+   OAUTH_REDIRECT_URI=https://staffora.apps.bot-hosting.cloud/auth/callback
+   DASHBOARD_URL=https://staffora.info
+   Bot neu starten
+
+4) TESTEN
+   https://staffora.info
+   https://staffora.info/dashboard.html
+   https://staffora.info/ingame.html
+   https://staffora.info/unban.html
+
+WICHTIG:
+- staffora.info = nur Frontend (GitHub Pages)
+- staffora.apps.bot-hosting.cloud = Bot + API + Login
+- Dashboard auf staffora.info spricht die API auf bot-hosting an

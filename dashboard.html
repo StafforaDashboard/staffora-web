@@ -9,14 +9,11 @@
 <script>
 (function(){
   var host=(location.hostname||'').toLowerCase();
-  var onStaffora=host==='staffora.info'||host==='www.staffora.info'||host.indexOf('staffora.info')>=0;
+  var cloud='https://staffora.apps.bot-hosting.cloud';
+  // staffora.info = GitHub Pages (static) → API always on bot-hosting
+  // bot-hosting / localhost → same origin (empty)
   var local=host==='localhost'||host==='127.0.0.1'||host.indexOf('bot-hosting')>=0;
-  // Prefer same origin on staffora.info / bot host
-  if(onStaffora||local){
-    window.STAFFORA_API='';
-  } else {
-    window.STAFFORA_API='https://staffora.apps.bot-hosting.cloud';
-  }
+  window.STAFFORA_API=local?'':cloud;
   window.STAFFORA_RETURN=location.origin+location.pathname.replace(/[^/]*$/,'')+'dashboard.html';
 })();
 </script>
