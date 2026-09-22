@@ -1984,6 +1984,158 @@ body.gp-full .settings-main{
 .guild-sel{min-width:180px;max-width:280px}
 </style>
 </head>
+
+<style id="staffora-3d">
+/* ===== STAFFORA 3D DASHBOARD ===== */
+html{perspective:1200px}
+body{
+  background:
+    radial-gradient(ellipse 90% 60% at 15% -10%, rgba(124,58,237,.22), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 90% 10%, rgba(34,211,238,.1), transparent 45%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(139,92,246,.08), transparent 50%),
+    #07070a !important;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 10% 20%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1px 1px at 30% 60%, rgba(167,139,250,.5), transparent),
+    radial-gradient(1.5px 1.5px at 70% 30%, rgba(34,211,238,.4), transparent),
+    radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,.25), transparent),
+    radial-gradient(1px 1px at 50% 50%, rgba(167,139,250,.3), transparent);
+  background-size:100% 100%;
+  animation:starDrift 40s linear infinite;
+  opacity:.55;
+}
+@keyframes starDrift{
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(-2%, -3%, 0)}
+}
+@keyframes cardFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-4px)}
+}
+@keyframes shimmerBorder{
+  0%{border-color:rgba(139,92,246,.2)}
+  50%{border-color:rgba(34,211,238,.35)}
+  100%{border-color:rgba(139,92,246,.2)}
+}
+.card, .settings-card, .module-card, .panel-card, .stat-card, .login-box,
+.settings-shell .card, #page .card, .content .card{
+  transform-style:preserve-3d;
+  transition:transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s, border-color .35s;
+  will-change:transform;
+  position:relative;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  box-shadow:
+    0 4px 24px rgba(0,0,0,.35),
+    0 0 0 1px rgba(139,92,246,.12),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+.card:hover, .settings-card:hover, .module-card:hover, .panel-card:hover, .stat-card:hover{
+  box-shadow:
+    0 18px 48px rgba(0,0,0,.45),
+    0 0 40px rgba(124,58,237,.15),
+    0 0 0 1px rgba(167,139,250,.35);
+  z-index:2;
+}
+.card.tilt-active, .settings-card.tilt-active, .module-card.tilt-active{
+  transition:transform .08s ease-out, box-shadow .2s;
+}
+.btn, button.btn, .btn-p, .btn-sm{
+  transform:translateZ(0);
+  transition:transform .18s, box-shadow .18s, background .18s;
+}
+.btn:hover, button.btn:hover, .btn-p:hover{
+  transform:translateY(-2px) scale(1.02);
+  box-shadow:0 8px 24px rgba(124,58,237,.35);
+}
+.btn:active, button.btn:active, .btn-p:active{
+  transform:translateY(0) scale(.98);
+}
+.settings-nav, .sidebar, aside.sidebar{
+  transform-style:preserve-3d;
+  box-shadow:8px 0 32px rgba(0,0,0,.35);
+}
+.settings-nav .nav-btn, .sidebar .nav-btn, .nav-btn{
+  transition:transform .2s, background .2s, box-shadow .2s;
+}
+.settings-nav .nav-btn:hover, .nav-btn:hover{
+  transform:translateX(4px);
+}
+.settings-nav .nav-btn.active, .nav-btn.active{
+  transform:translateX(2px);
+  box-shadow:inset 3px 0 0 #8b5cf6, 0 0 20px rgba(139,92,246,.15);
+}
+#page, .settings-main, .content-area, main.content{
+  position:relative;z-index:1;
+  animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both;
+}
+.login-box{
+  transform-style:preserve-3d;
+  animation:scaleIn .55s cubic-bezier(.22,1,.36,1) both;
+  box-shadow:0 24px 64px rgba(0,0,0,.5), 0 0 60px rgba(124,58,237,.2);
+}
+.login-box:hover{
+  transform:rotateX(2deg) rotateY(-3deg) scale(1.02);
+}
+.toggle-sw, .toggle-row{
+  transition:transform .2s;
+}
+.toggle-row:hover{transform:translateX(2px)}
+/* guild picker 3d */
+#v-guild-pick, .guild-pick, .server-picker{
+  perspective:1000px;
+}
+.guild-card, .server-card, [data-guild-id]{
+  transform-style:preserve-3d;
+  transition:transform .3s, box-shadow .3s;
+}
+.guild-card:hover, .server-card:hover{
+  transform:translateY(-6px) rotateX(4deg) scale(1.03);
+  box-shadow:0 20px 40px rgba(0,0,0,.4), 0 0 30px rgba(139,92,246,.2);
+}
+@media (prefers-reduced-motion:reduce){
+  body::before{animation:none}
+  .card, .btn, .nav-btn{transition:none!important;transform:none!important}
+}
+</style>
+<script id="staffora-3d-js">
+(function(){
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var max = 8; // degrees
+  function tilt(el, e){
+    var r = el.getBoundingClientRect();
+    var x = (e.clientX - r.left) / r.width;
+    var y = (e.clientY - r.top) / r.height;
+    var rx = (0.5 - y) * max;
+    var ry = (x - 0.5) * max;
+    el.classList.add('tilt-active');
+    el.style.transform = 'perspective(900px) rotateX('+rx+'deg) rotateY('+ry+'deg) translateZ(6px)';
+  }
+  function reset(el){
+    el.classList.remove('tilt-active');
+    el.style.transform = '';
+  }
+  function bind(el){
+    if(el._tiltBound) return;
+    el._tiltBound = true;
+    el.addEventListener('mousemove', function(e){ tilt(el, e); });
+    el.addEventListener('mouseleave', function(){ reset(el); });
+  }
+  function scan(){
+    document.querySelectorAll('.card, .settings-card, .module-card, .panel-card, .stat-card, .login-box, .guild-card, .server-card').forEach(bind);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', scan);
+  else scan();
+  // re-scan when dashboard content changes
+  var obs = new MutationObserver(function(){ scan(); });
+  obs.observe(document.documentElement, {childList:true, subtree:true});
+})();
+</script>
 <body>
 <div id="v-login" class="login-wrap">
   <div class="login-box">
@@ -4065,17 +4217,32 @@ async function api(path,opts){
       '<div class="card"><h2>Aktivierung</h2>'+
       '<div class="toggle-row"><span>Warteraum-Support aktiv</span><div id="wr-on" class="toggle-sw"></div></div>'+
       '<div class="toggle-row"><span>Musik aktiv</span><div id="wr-mus" class="toggle-sw"></div></div>'+
-      '<div class="toggle-row"><span>Staff pingen</span><div id="wr-ping" class="toggle-sw"></div></div>'+
-      '<div class="toggle-row"><span>Temp-Raum nach Ende löschen</span><div id="wr-del" class="toggle-sw"></div></div></div>'+
+      '<div class="toggle-row"><span>Staff pingen</span><div id="wr-ping" class="toggle-sw"></div></div></div>'+
       '<div class="card"><h2>Kanäle & Rollen</h2>'+
-      '<div class="field"><label>Warteraum-Voice</label><div id="wr-vc"></div></div>'+
+      '<div class="field"><label>Warteraum-Voice (User joint hier)</label><div id="wr-vc"></div></div>'+
       '<div class="field"><label>Notify-Kanal (Support-Fälle)</label><div id="wr-notify"></div></div>'+
       '<div class="field"><label>Staff-Rollen (Ping + Übernehmen)</label><div id="wr-staff"></div></div>'+
-      '<div class="field"><label>Support-Rollen (Raum-Zugriff)</label><div id="wr-sup"></div></div>'+
-      '<div class="field"><label>Raum-Modus</label><select id="wr-mode"><option value="temp">Temporärer Raum pro User</option><option value="fixed">Fester Support-Voice</option><option value="none">Kein Auto-Raum</option></select></div>'+
-      '<div class="field"><label>Support-Kategorie (Temp)</label><div id="wr-cat"></div></div>'+
-      '<div class="field"><label>Feste Support-Voice(s) — Mehrfachauswahl</label><div id="wr-fixed"></div></div>'+
-      '<div class="field"><label>Raum-Name</label><input id="wr-name" placeholder="Support – {user}"/></div></div>'+
+      '<div class="field"><label>Support-Rollen (Raum-Zugriff)</label><div id="wr-sup"></div></div></div>'+
+      '<div class="card"><h2>Support-Voice System</h2>'+
+      '<p class="desc" style="margin-top:0">Nach Übernehmen: User + Staff in einen Support-Voice bringen.</p>'+
+      '<div class="field"><label>Modus</label><select id="wr-mode">'+
+        '<option value="temp">Join2Create — neuer VC pro Fall</option>'+
+        '<option value="fixed">Bestehende VCs benutzen</option>'+
+        '<option value="none">Kein Auto-Move / kein Support-VC</option>'+
+      '</select></div>'+
+      '<div id="wr-box-j2c">'+
+        '<div class="field"><label>Kategorie für neue Support-VCs</label><div id="wr-cat"></div>'+
+        '<p class="hint">Join2Create legt den VC in dieser Kategorie an.</p></div>'+
+        '<div class="field"><label>Raum-Name</label><input id="wr-name" placeholder="Support – {user}"/>'+
+        '<p class="hint">{user} = Anzeigename des Users</p></div>'+
+        '<div class="toggle-row"><span>VC nach Support-Ende löschen</span><div id="wr-del" class="toggle-sw"></div></div>'+
+      '</div>'+
+      '<div id="wr-box-fixed" style="display:none">'+
+        '<div class="field"><label>Support-Voice(s) auswählen</label><div id="wr-fixed"></div>'+
+        '<p class="hint">Mehrere möglich. Es wird der nächste leere VC genutzt.</p></div>'+
+        '<div class="toggle-row"><span>Wenn alle belegt: trotzdem Join2Create</span><div id="wr-fallback" class="toggle-sw"></div></div>'+
+        '<div class="field" id="wr-fallback-cat-wrap" style="display:none"><label>Fallback-Kategorie (Join2Create)</label><div id="wr-cat2"></div></div>'+
+      '</div></div>'+
       '<div class="card"><h2>Musik</h2>'+
       '<div class="field"><label>Datei hochladen (mp3/ogg/wav)</label><input type="file" id="wr-file" accept="audio/*,.mp3,.ogg,.wav,.webm"/></div>'+
       '<p class="desc" id="wr-mus-info">'+(s.warteraumMusicFile||s.warteraumMusicUrl?'Musik hinterlegt':'Noch keine Datei')+'</p>'+
@@ -4087,34 +4254,64 @@ async function api(path,opts){
     if($('wr-bl')) window.__wrBl=makeSearchSelect($('wr-bl'),{items:roles,multi:true,values:s.warteraumBlacklistRoleIds||[],placeholder:'Blacklist…'});
     bindToggle($('wr-ping'), s.warteraumStaffPingEnabled!==false);
     bindToggle($('wr-del'), s.warteraumDeleteTempRoom!==false);
-    $('wr-mode').value=s.warteraumRoomMode||'temp';
+    if($('wr-fallback')) bindToggle($('wr-fallback'), !!s.warteraumFixedFallbackTemp);
+    var modeVal = s.warteraumRoomMode||'temp';
+    if(modeVal==='join2create') modeVal='temp';
+    if(modeVal==='existing') modeVal='fixed';
+    $('wr-mode').value=modeVal;
     $('wr-name').value=s.warteraumRoomName||'Support – {user}';
     var pVc=makeSearchSelect($('wr-vc'),{items:voice,multi:false,value:s.warteraumChannelId||'',placeholder:'Voice suchen…'});
     var pNo=makeSearchSelect($('wr-notify'),{items:text,multi:false,value:s.warteraumNotifyChannelId||'',placeholder:'Kanal suchen…'});
     var pSt=makeSearchSelect($('wr-staff'),{items:roles,multi:true,values:s.warteraumStaffRoleIds||[],placeholder:'Rollen…'});
     var pSu=makeSearchSelect($('wr-sup'),{items:roles,multi:true,values:s.warteraumSupportRoleIds||[],placeholder:'Rollen…'});
     var pCat=makeSearchSelect($('wr-cat'),{items:cats,multi:false,value:s.warteraumSupportCategoryId||'',placeholder:'Kategorie…'});
+    var pCat2=null;
+    if($('wr-cat2')) pCat2=makeSearchSelect($('wr-cat2'),{items:cats,multi:false,value:s.warteraumSupportCategoryId||'',placeholder:'Kategorie…'});
     var pFx=makeSearchSelect($('wr-fixed'),{items:voice,multi:true,values:s.warteraumFixedSupportChannelIds||(s.warteraumFixedSupportChannelId?[s.warteraumFixedSupportChannelId]:[]),placeholder:'Voice-Kanäle…'});
+
+    function wrSyncMode(){
+      var m=$('wr-mode').value;
+      var j2c=$('wr-box-j2c');
+      var fx=$('wr-box-fixed');
+      if(j2c) j2c.style.display=(m==='temp'||m==='none')?(m==='temp'?'block':'none'):'none';
+      if(fx) fx.style.display=(m==='fixed')?'block':'none';
+      if(m==='temp' && j2c) j2c.style.display='block';
+      if(m==='none'){ if(j2c) j2c.style.display='none'; if(fx) fx.style.display='none'; }
+      var fb=$('wr-fallback');
+      var wrap=$('wr-fallback-cat-wrap');
+      if(wrap && fb) wrap.style.display=(m==='fixed' && fb.isOn && fb.isOn())?'block':'none';
+    }
+    $('wr-mode').onchange=wrSyncMode;
+    if($('wr-fallback')){
+      var _fbObs=new MutationObserver(wrSyncMode);
+      try{_fbObs.observe($('wr-fallback'),{attributes:true,attributeFilter:['class']});}catch(e){}
+      $('wr-fallback').addEventListener('click',function(){ setTimeout(wrSyncMode,50); });
+    }
+    wrSyncMode();
 
     $('wr-save').onclick=async function(){
       try{
+        var mode=$('wr-mode').value;
+        var catId=(pCat&&pCat.getValue)?(pCat.getValue()||null):null;
+        if(mode==='fixed' && pCat2 && pCat2.getValue && pCat2.getValue()) catId=pCat2.getValue();
         await api('/api/guilds/'+guildId+'/settings',{method:'PATCH',body:{
           warteraumEnabled:$('wr-on').isOn(),
           warteraumSupportEnabled:$('wr-on').isOn(),
           warteraumBlacklistRoleIds:(window.__wrBl&&window.__wrBl.getValue)?window.__wrBl.getValue():(s.warteraumBlacklistRoleIds||[]),
           warteraumMusicEnabled:$('wr-mus').isOn(),
           warteraumStaffPingEnabled:$('wr-ping').isOn(),
-          warteraumDeleteTempRoom:$('wr-del').isOn(),
+          warteraumDeleteTempRoom: mode==='temp' ? ($('wr-del')?$('wr-del').isOn():true) : ($('wr-del')?$('wr-del').isOn():true),
+          warteraumFixedFallbackTemp: ($('wr-fallback')&&$('wr-fallback').isOn)?$('wr-fallback').isOn():false,
           warteraumChannelId:pVc.getValue()||null,
           waitingRoomChannelId:pVc.getValue()||null,
           warteraumNotifyChannelId:pNo.getValue()||null,
           warteraumStaffRoleIds:pSt.getValue(),
           warteraumSupportRoleIds:pSu.getValue(),
-          warteraumRoomMode:$('wr-mode').value,
-          warteraumSupportCategoryId:pCat.getValue()||null,
+          warteraumRoomMode:mode,
+          warteraumSupportCategoryId:catId,
           warteraumFixedSupportChannelIds:pFx.getValue()||[],
           warteraumFixedSupportChannelId:(pFx.getValue()&&pFx.getValue()[0])||null,
-          warteraumRoomName:$('wr-name').value.trim()||'Support – {user}'
+          warteraumRoomName:($('wr-name')&&$('wr-name').value.trim())||'Support – {user}'
         }});
         toast('Warteraum gespeichert','ok');
       }catch(e){toast(e.message,'err')}
@@ -6350,6 +6547,7 @@ async function api(path,opts){
             '<div class="field"><label>Sprache</label><select id="sg-lang">'+
             '<option value="de">Deutsch</option><option value="en">English</option></select></div>'+
             '<button type="button" class="btn btn-p btn-sm" id="sg-lang-save">Sprache speichern</button></div>'+
+          '<div class="set-card" id="premium-status-card"><h3>⭐ Staffora Premium</h3>'+'<p class="field-desc" id="prem-status-text">Lade Status…</p>'+'<p class="field-desc">Premium (€3.99/mo): Ticket-KI, Custom Bot-Nickname auf dem Server, Bio-Text. Daten liegen in <code>data/premium.json</code> und bleiben bei Bot-Updates erhalten.</p>'+'<div class="row" style="gap:8px;flex-wrap:wrap">'+'<button type="button" class="btn btn-p btn-sm" id="prem-buy">Premium kaufen</button>'+'<button type="button" class="btn btn-sm" id="prem-refresh">Status aktualisieren</button>'+'</div>'+'<div class="field" style="margin-top:12px"><label>Custom Bot-Nickname (nur Premium)</label><input id="prem-nick" maxlength="32" placeholder="Server-Nickname des Bots"/></div>'+'<div class="field"><label>Custom Bio / Notiz</label><input id="prem-bio" maxlength="120" placeholder="Kurztext"/></div>'+'<button type="button" class="btn btn-sm" id="prem-brand-save">Branding speichern</button></div>'+
           '<div class="set-card"><h3>Bot-Grundeinstellungen</h3><p class="hint">Name und Basis-Kanäle</p>'+
             '<div class="field"><label>System-Name</label><input id="sg-name"/></div>'+
             '<div class="field"><label>Log-Kanal</label><div id="sg-log"></div></div>'+
@@ -6365,6 +6563,35 @@ async function api(path,opts){
         
         if($('sg-lang')){
           $('sg-lang').value=(s.language==='en'?'en':'de');
+          
+          (async function premUI(){
+            async function loadPrem(){
+              try{
+                var st=await api('/api/guilds/'+guildId+'/premium');
+                var el=$('prem-status-text');
+                if(el) el.textContent = st.access ? ('Premium aktiv'+(st.guildPremium?' (Server)':' (User)')) : 'Kein Premium — KI & Branding gesperrt';
+                if(st.guild && st.guild.branding){
+                  if($('prem-nick')) $('prem-nick').value=st.guild.branding.botNickname||'';
+                  if($('prem-bio')) $('prem-bio').value=st.guild.branding.bio||'';
+                }
+              }catch(e){ if($('prem-status-text')) $('prem-status-text').textContent='Status: '+e.message; }
+            }
+            if($('prem-refresh')) $('prem-refresh').onclick=loadPrem;
+            if($('prem-buy')) $('prem-buy').onclick=async function(){
+              try{
+                var j=await api('/api/premium/checkout',{method:'POST',body:{guildId:guildId,discordUserId:(window.__stafforaUser&&window.__stafforaUser.id)||undefined}});
+                if(j.url) location.href=j.url; else toast(j.error||'Checkout Fehler','err');
+              }catch(e){toast(e.message,'err')}
+            };
+            if($('prem-brand-save')) $('prem-brand-save').onclick=async function(){
+              try{
+                await api('/api/guilds/'+guildId+'/premium/branding',{method:'POST',body:{botNickname:($('prem-nick')&&$('prem-nick').value)||'',bio:($('prem-bio')&&$('prem-bio').value)||''}});
+                toast('Branding gespeichert','ok');
+              }catch(e){toast(e.message,'err')}
+            };
+            loadPrem();
+          })();
+
           $('sg-lang-save').onclick=async function(){
             var lang=$('sg-lang').value==='en'?'en':'de';
             await patchSettings({language:lang}, lang==='en'?'Language':'Sprache');
@@ -7717,7 +7944,7 @@ async function api(path,opts){
           '<div class="toggle-row"><div class="lbl">Security-Modul</div><div id="sec-mod" class="toggle-sw"></div></div>'+
           fieldRow('Security-Log-Kanal','sec-log',dLog('Alle Security-Incidents'))+
           fieldRow('Whitelist-Rollen','sec-wl')+
-          fieldRow('Timeout (Sek.)','sec-to')+
+          fieldRow('Timeout (Sek.)','sec-to')+'<h3 style="margin:16px 0 8px">Anti-Raid</h3>'+'<div class="toggle-row"><div class="lbl">Anti-Raid aktiv</div><div id="sec-ar-on" class="toggle-sw"></div></div>'+'<div class="field"><label>Join-Threshold</label><input type="number" id="sec-ar-th" min="3" max="50" value="'+( (s.security&&s.security.antiRaidJoinThreshold)||s.antiRaidJoinThreshold||8)+'"/></div>'+'<div class="field"><label>Zeitfenster (Sek.)</label><input type="number" id="sec-ar-win" min="5" max="120" value="'+( (s.security&&s.security.antiRaidJoinWindowSec)||s.antiRaidJoinWindowSec||12)+'"/></div>'+'<div class="field"><label>Aktion</label><select id="sec-ar-act"><option value="kick">Kick</option><option value="ban">Ban</option><option value="timeout">Timeout</option></select></div>'+'<div class="toggle-row"><div class="lbl">Inviter bestrafen (bei unerlaubtem Bot)</div><div id="sec-ar-inv" class="toggle-sw"></div></div>'+
           '<div class="row" style="gap:10px;margin-top:12px;flex-wrap:wrap">'+
           '<button type="button" class="btn btn-p" id="sec-lock-on">🔒 Security Lockdown</button>'+
           '<button type="button" class="btn" id="sec-lock-off">🔓 Lockdown aus</button>'+
@@ -7759,7 +7986,10 @@ async function api(path,opts){
           '<div class="set-card" style="margin-top:14px"><h3 style="margin:0 0 8px">Incidents</h3><div id="sec-inc">…</div></div>'
         );
         var mods = {}; try{ mods = await api('/api/guilds/'+guildId+'/modules'); mods = mods.modules||mods||{}; }catch(e){}
-        bindToggle($('sec-mod'), !!mods.security);
+        if($('sec-ar-on')) bindToggle($('sec-ar-on'), (s.security&&s.security.antiRaidEnabled)!==false && s.antiRaidEnabled!==false);
+          if($('sec-ar-inv')) bindToggle($('sec-ar-inv'), (s.security&&s.security.antiRaidPunishInviter)!==false);
+          try{ if($('sec-ar-act')) $('sec-ar-act').value=(s.security&&s.security.antiRaidAction)||s.antiRaidAction||'kick'; }catch(e){}
+          bindToggle($('sec-mod'), !!mods.security);
         bindToggle($('sec-autorev'), sec.autoRevertCritical!==false);
         bindToggle($('ar-on'), raid.enabled!==false);
         bindToggle($('ar-join'), raid.joinFlood!==false);
@@ -7825,6 +8055,11 @@ async function api(path,opts){
               autoRevertCritical:$('sec-autorev').isOn(),
               disableExternalApps:true,
               actions:actions,
+              antiRaidEnabled:($('sec-ar-on')&&$('sec-ar-on').isOn)?$('sec-ar-on').isOn():true,
+              antiRaidJoinThreshold:parseInt(($('sec-ar-th')||{}).value,10)||8,
+              antiRaidJoinWindowSec:parseInt(($('sec-ar-win')||{}).value,10)||12,
+              antiRaidAction:($('sec-ar-act')&&$('sec-ar-act').value)||'kick',
+              antiRaidPunishInviter:($('sec-ar-inv')&&$('sec-ar-inv').isOn)?$('sec-ar-inv').isOn():true,
               antiRaid:{
                 enabled:$('ar-on').isOn(),
                 punish:$('ar-pun').value||'kick',
@@ -8140,11 +8375,27 @@ async function api(path,opts){
           fieldRow('Leaderboard-Kanal','xp-lb')+
           '<div class="toggle-row"><div class="lbl">Auto-Uprank (meiste XP)</div><div id="xp-uprank" class="toggle-sw"></div></div>'+
           '<div class="field"><label>Uprank-Periode (Tage)</label><input type="number" id="xp-days" min="1" max="90" value="'+(xs.xpUprankDays||7)+'"/></div>'+
-          saveBtn('xp-save')+panelSendBlock('xpboard','XP-Rangliste (Panel)')+'</div>'
+        '<div class="card"><h2>XP Board &amp; Uprank</h2>'+'<p class="desc">Panel mit <b>My Position</b> und <b>Leaderboard</b>. Uprank-Ankündigungen optional.</p>'+'<div class="field"><label>Kanal für XP-Board Panel</label><div id="xp-board-ch"></div></div>'+'<div class="field"><label>Kanal für Uprank-Ankündigungen</label><div id="xp-up-ch"></div></div>'+'<div class="row" style="gap:8px"><button type="button" class="btn btn-p" id="xp-board-send">XP-Board Panel senden</button></div></div>'+
+          saveBtn('xp-save')+panelSendBlock('xpboard','XP-Rangliste (Panel)')+panelSendBlock('modpanel','Mod Panel (IC Logs)')+'</div>'
         );
         var _xm=await loadModules();
         bindToggle($('xp-mod'), _xm.xp!==false);
-        bindToggle($('xp-uprank'), !!(xs.xpUprankEnabled));
+        
+    try{
+      var textCh=((disc&&disc.channels)||[]).filter(function(c){var ty=c.type;return ty===0||ty==='0'||ty==='GUILD_TEXT';}).map(function(c){return{id:c.id,name:'#'+c.name}});
+      if($('xp-board-ch')) window.__xpBoardCh=makeSearchSelect($('xp-board-ch'),{items:textCh,multi:false,value:xs.xpPanelChannelId||xs.xpLeaderboardChannelId||'',placeholder:'Kanal…'});
+      if($('xp-up-ch')) window.__xpUpCh=makeSearchSelect($('xp-up-ch'),{items:textCh,multi:false,value:xs.xpUprankChannelId||'',placeholder:'Kanal…'});
+      if($('xp-board-send')) $('xp-board-send').onclick=async function(){
+        var cid=window.__xpBoardCh&&window.__xpBoardCh.getValue&&window.__xpBoardCh.getValue();
+        if(!cid){toast('Kanal wählen','err');return;}
+        try{
+          await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'xpboard',channelId:cid}});
+          toast('XP-Board gesendet','ok');
+        }catch(e){toast(e.message,'err')}
+      };
+    }catch(e){console.warn(e)}
+
+    bindToggle($('xp-uprank'), !!(xs.xpUprankEnabled));
         var xpLog=ss($('xp-log'),{items:ch,multi:false,value:xs.xpLogChannelId||'',placeholder:'Log…'});
         var xpLb=ss($('xp-lb'),{items:ch,multi:false,value:xs.xpLeaderboardChannelId||'',placeholder:'Leaderboard…'});
         $('xp-save').onclick=async function(){
@@ -8156,10 +8407,11 @@ async function api(path,opts){
             xpMessage:+$('xp-msg').value||0, messageXp:+$('xp-msg').value||0,
             xpVcMinute:+$('xp-vc').value||0, vcXp:+$('xp-vc').value||0,
             xpLogChannelId:xpLog.getValue()||null, xpLeaderboardChannelId:xpLb.getValue()||null,
-            xpUprankEnabled:$('xp-uprank').isOn(), xpUprankDays:+$('xp-days').value||7
+            xpUprankEnabled:$('xp-uprank').isOn(), xpUprankDays:+$('xp-days').value||7, xpUprankChannelId:(window.__xpUpCh&&window.__xpUpCh.getValue)?window.__xpUpCh.getValue():null
           },'XP');
           try{ await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{xp:$('xp-mod').isOn()}}); }catch(e){}
           wirePanelSend('xpboard','xp_leaderboard',xs.xpLeaderboardChannelId||'');
+          wirePanelSend('modpanel','modpanel',s.modPanelChannelId||'');
         };
         wirePanelSend('xpboard','xp_leaderboard',xs.xpLeaderboardChannelId||'');
         return;
