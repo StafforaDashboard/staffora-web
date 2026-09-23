@@ -328,80 +328,10 @@ button{font:inherit}
 })();
 </script>
 
-<section id="plans" class="plans-3d" style="padding:64px 20px;max-width:960px;margin:0 auto;position:relative;z-index:2">
-  <h2 style="text-align:center;font-size:1.75rem;margin-bottom:8px">Plans</h2>
-  <p style="text-align:center;color:#8b8b9a;margin-bottom:28px">Start free. Upgrade when you need AI &amp; full branding.</p>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;perspective:1000px">
-    <div class="plan-card" style="background:rgba(20,20,28,.9);border:1px solid rgba(139,92,246,.25);border-radius:16px;padding:24px;transform-style:preserve-3d;transition:transform .3s,box-shadow .3s">
-      <h3 style="margin:0 0 8px">Free</h3>
-      <p style="font-size:2rem;font-weight:700;margin:0 0 12px">€0</p>
-      <ul style="color:#a1a1aa;padding-left:18px;line-height:1.7;margin:0 0 16px">
-        <li>Core moderation &amp; tickets</li>
-        <li>Warteraum · Team · XP</li>
-        <li>Dashboard on staffora.info</li>
-      </ul>
-      <a href="dashboard.html" style="display:inline-block;padding:10px 16px;border-radius:10px;background:#27272a;color:#fff;text-decoration:none">Open Dashboard</a>
-    </div>
-    <div class="plan-card plan-premium" style="background:linear-gradient(160deg,rgba(124,58,237,.25),rgba(20,20,28,.95));border:1px solid rgba(167,139,250,.5);border-radius:16px;padding:24px;box-shadow:0 12px 40px rgba(124,58,237,.25);transform-style:preserve-3d">
-      <h3 style="margin:0 0 8px">Premium</h3>
-      <p style="font-size:2rem;font-weight:700;margin:0 0 4px">€3.99<span style="font-size:1rem;font-weight:500;color:#a1a1aa">/mo</span></p>
-      <p style="color:#c4b5fd;font-size:.9rem;margin:0 0 12px">Everything in Free, plus:</p>
-      <ul style="color:#e4e4e7;padding-left:18px;line-height:1.7;margin:0 0 16px">
-        <li><strong>Custom bot name</strong></li>
-        <li><strong>Custom banner</strong> &amp; profile picture</li>
-        <li><strong>Custom bio</strong> / status text</li>
-        <li><strong>All AI features</strong> (Ticket AI &amp; more)</li>
-      </ul>
-      <button type="button" id="premium-checkout" style="display:inline-block;padding:10px 16px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;cursor:pointer;font-weight:600;font:inherit">Get Premium — €3.99/mo</button>
-      <p id="premium-msg" style="margin-top:10px;font-size:.85rem;color:#a1a1aa"></p>
-    </div>
-  </div>
-</section>
-<style>
-.plan-card:hover{transform:translateY(-8px) rotateX(3deg);box-shadow:0 20px 48px rgba(0,0,0,.4),0 0 32px rgba(124,58,237,.2)}
-</style>
 
 
-<script>
-(function(){
-  var API = (window.STAFFORA_API != null ? window.STAFFORA_API : '') || 'https://staffora.apps.bot-hosting.cloud';
-  var btn = document.getElementById('premium-checkout');
-  var msg = document.getElementById('premium-msg');
-  if(!btn) return;
-  function params(){ var q={}; location.search.slice(1).split('&').forEach(function(p){ var a=p.split('='); if(a[0]) q[decodeURIComponent(a[0])]=decodeURIComponent(a[1]||''); }); return q; }
-  var q = params();
-  if(q.premium==='ok' && msg) msg.textContent = 'Payment received — Premium activates within a minute. Open the Dashboard while logged in.';
-  if(q.premium==='cancel' && msg) msg.textContent = 'Checkout cancelled.';
-  btn.onclick = async function(){
-    msg.textContent = 'Opening checkout…';
-    var token = null;
-    try { token = localStorage.getItem('staffora_token'); } catch(e){}
-    var discordUserId = null;
-    try {
-      if(token){
-        var me = await fetch(API + '/api/me', { headers: { Authorization: 'Bearer ' + token } }).then(function(r){ return r.json(); });
-        discordUserId = me && (me.id || me.user && me.user.id);
-      }
-    } catch(e){}
-    if(!discordUserId){
-      msg.innerHTML = 'Please <a href="dashboard.html">log in on the Dashboard</a> first (Discord), then click Get Premium again.';
-      return;
-    }
-    try {
-      var r = await fetch(API + '/api/premium/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-        body: JSON.stringify({ discordUserId: discordUserId })
-      });
-      var j = await r.json();
-      if(j.url) location.href = j.url;
-      else msg.textContent = j.error || 'Checkout failed';
-    } catch(e) {
-      msg.textContent = e.message || 'Network error';
-    }
-  };
-})();
-</script>
+
+
 
 </body>
 </html>

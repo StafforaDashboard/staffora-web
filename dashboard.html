@@ -6547,7 +6547,7 @@ async function api(path,opts){
             '<div class="field"><label>Sprache</label><select id="sg-lang">'+
             '<option value="de">Deutsch</option><option value="en">English</option></select></div>'+
             '<button type="button" class="btn btn-p btn-sm" id="sg-lang-save">Sprache speichern</button></div>'+
-          '<div class="set-card" id="premium-status-card"><h3>⭐ Staffora Premium</h3>'+'<p class="field-desc" id="prem-status-text">Lade Status…</p>'+'<p class="field-desc">Premium (€3.99/mo): Ticket-KI, Custom Bot-Nickname auf dem Server, Bio-Text. Daten liegen in <code>data/premium.json</code> und bleiben bei Bot-Updates erhalten.</p>'+'<div class="row" style="gap:8px;flex-wrap:wrap">'+'<button type="button" class="btn btn-p btn-sm" id="prem-buy">Premium kaufen</button>'+'<button type="button" class="btn btn-sm" id="prem-refresh">Status aktualisieren</button>'+'</div>'+'<div class="field" style="margin-top:12px"><label>Custom Bot-Nickname (nur Premium)</label><input id="prem-nick" maxlength="32" placeholder="Server-Nickname des Bots"/></div>'+'<div class="field"><label>Custom Bio / Notiz</label><input id="prem-bio" maxlength="120" placeholder="Kurztext"/></div>'+'<button type="button" class="btn btn-sm" id="prem-brand-save">Branding speichern</button></div>'+
+          
           '<div class="set-card"><h3>Bot-Grundeinstellungen</h3><p class="hint">Name und Basis-Kanäle</p>'+
             '<div class="field"><label>System-Name</label><input id="sg-name"/></div>'+
             '<div class="field"><label>Log-Kanal</label><div id="sg-log"></div></div>'+
@@ -6564,33 +6564,7 @@ async function api(path,opts){
         if($('sg-lang')){
           $('sg-lang').value=(s.language==='en'?'en':'de');
           
-          (async function premUI(){
-            async function loadPrem(){
-              try{
-                var st=await api('/api/guilds/'+guildId+'/premium');
-                var el=$('prem-status-text');
-                if(el) el.textContent = st.access ? ('Premium aktiv'+(st.guildPremium?' (Server)':' (User)')) : 'Kein Premium — KI & Branding gesperrt';
-                if(st.guild && st.guild.branding){
-                  if($('prem-nick')) $('prem-nick').value=st.guild.branding.botNickname||'';
-                  if($('prem-bio')) $('prem-bio').value=st.guild.branding.bio||'';
-                }
-              }catch(e){ if($('prem-status-text')) $('prem-status-text').textContent='Status: '+e.message; }
-            }
-            if($('prem-refresh')) $('prem-refresh').onclick=loadPrem;
-            if($('prem-buy')) $('prem-buy').onclick=async function(){
-              try{
-                var j=await api('/api/premium/checkout',{method:'POST',body:{guildId:guildId,discordUserId:(window.__stafforaUser&&window.__stafforaUser.id)||undefined}});
-                if(j.url) location.href=j.url; else toast(j.error||'Checkout Fehler','err');
-              }catch(e){toast(e.message,'err')}
-            };
-            if($('prem-brand-save')) $('prem-brand-save').onclick=async function(){
-              try{
-                await api('/api/guilds/'+guildId+'/premium/branding',{method:'POST',body:{botNickname:($('prem-nick')&&$('prem-nick').value)||'',bio:($('prem-bio')&&$('prem-bio').value)||''}});
-                toast('Branding gespeichert','ok');
-              }catch(e){toast(e.message,'err')}
-            };
-            loadPrem();
-          })();
+          
 
           $('sg-lang-save').onclick=async function(){
             var lang=$('sg-lang').value==='en'?'en':'de';
