@@ -2,163 +2,332 @@
 <html lang="de">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Staffora</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Staffora Bot</title>
+<meta name="description" content="Staffora – Premium Discord & FiveM / Roblox Moderation"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
 <style>
-:root{--bg:#07070a;--card:#121218;--line:#26262f;--text:#f4f4f5;--muted:#9ca3af;--accent:#8b5cf6}
+:root{
+  --bg:#050508;--card:rgba(18,16,28,.72);--line:rgba(139,92,246,.22);
+  --text:#f4f4f8;--muted:#9b9bb0;--purple:#8b5cf6;--purple2:#a78bfa;
+  --cyan:#22d3ee;--pink:#e879f9;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
-  background-image:radial-gradient(ellipse 80% 50% at 50% -15%,rgba(139,92,246,.22),transparent 55%),
-  radial-gradient(ellipse 40% 30% at 90% 80%,rgba(59,130,246,.08),transparent)}
-.wrap{max-width:1000px;margin:0 auto;padding:48px 20px 100px}
-.hero{text-align:center;margin-bottom:36px;animation:up .55s ease both}
-@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-@keyframes glow{0%,100%{box-shadow:0 16px 40px rgba(139,92,246,.3)}50%{box-shadow:0 16px 48px rgba(139,92,246,.5)}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-@keyframes lineIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
-@keyframes shimmer{0%{background-position:0% 50%}100%{background-position:100% 50%}}
-@keyframes bounceY{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
-.logo{width:64px;height:64px;border-radius:18px;margin:0 auto 18px;background:linear-gradient(145deg,#a78bfa,#5b21b6);
-  display:grid;place-items:center;font-weight:800;font-size:24px;animation:up .55s ease both,glow 3s ease-in-out infinite}
-h1{font-size:2.2rem;letter-spacing:-.03em;margin-bottom:10px}
-.sub{color:var(--muted);font-size:1.05rem;max-width:480px;margin:0 auto 28px;line-height:1.5}
-.actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
-.btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 22px;border-radius:12px;
-  font-weight:600;text-decoration:none;transition:transform .15s,box-shadow .15s;border:none;cursor:pointer;font-size:15px}
-.btn:hover{transform:translateY(-2px)}
-.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 8px 24px rgba(139,92,246,.35)}
-.btn-g{background:var(--card);color:var(--text);border:1px solid var(--line)}
-.sec{margin:8px 0 14px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;font-weight:700;text-align:center}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-.card{background:rgba(18,18,24,.9);border:1px solid var(--line);border-radius:16px;padding:20px;
-  transition:transform .2s,border-color .2s,box-shadow .2s;opacity:0;animation:up .55s ease both}
-.card:hover{transform:translateY(-4px);border-color:#4c1d95;box-shadow:0 12px 28px rgba(139,92,246,.12)}
-.card .ic{font-size:1.35rem;margin-bottom:8px;display:inline-block;transition:transform .2s}
-.card:hover .ic{transform:scale(1.12)}
-.card h2{font-size:1.05rem;margin-bottom:6px}
-.card p{color:var(--muted);font-size:13.5px;line-height:1.45;margin:0}
-.corner{position:fixed;right:16px;bottom:16px;z-index:50;display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:11px}
-.corner a{color:#6b7280;text-decoration:none;padding:2px 0;transition:color .15s}
-.corner a:hover{color:#a1a1aa}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;color:var(--text);
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);overflow-x:hidden;-webkit-font-smoothing:antialiased;
+}
+#bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%,rgba(91,33,182,.45),transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 80%,rgba(34,211,238,.08),transparent 50%),
+    radial-gradient(ellipse 40% 35% at 10% 70%,rgba(232,121,249,.1),transparent 50%),
+    #050508;
+}
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+.nav{
+  position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:100;
+  display:flex;gap:8px;padding:8px;border-radius:999px;
+  background:rgba(12,10,20,.75);backdrop-filter:blur(16px);
+  border:1px solid rgba(139,92,246,.25);
+  box-shadow:0 8px 32px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.04) inset;
+  animation:navIn .7s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes navIn{from{opacity:0;transform:translateX(-50%) translateY(-16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.nav a{
+  padding:10px 18px;border-radius:999px;font-size:13.5px;font-weight:600;
+  color:var(--muted);text-decoration:none;transition:.2s;
+}
+.nav a:hover{color:var(--text);background:rgba(139,92,246,.12)}
+.nav a.primary{
+  background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;
+  box-shadow:0 4px 20px rgba(139,92,246,.4);
+}
+.nav a.primary:hover{filter:brightness(1.1)}
 
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:120px 20px 80px}
+
+/* Hero 3D */
+.hero{
+  text-align:center;perspective:1200px;margin-bottom:56px;
+  animation:heroIn .9s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes heroIn{from{opacity:0;transform:translateY(28px) scale(.98)}to{opacity:1;transform:none}}
+.logo-3d{
+  width:88px;height:88px;margin:0 auto 22px;border-radius:24px;
+  background:linear-gradient(145deg,#c4b5fd 0%,#8b5cf6 40%,#5b21b6 100%);
+  display:grid;place-items:center;font-weight:800;font-size:36px;color:#fff;
+  transform-style:preserve-3d;
+  box-shadow:
+    0 20px 50px rgba(139,92,246,.45),
+    0 0 0 1px rgba(255,255,255,.15) inset,
+    0 8px 0 rgba(91,33,182,.5);
+  animation:floatY 4s ease-in-out infinite, logoPulse 3s ease-in-out infinite;
+}
+@keyframes floatY{0%,100%{transform:translateY(0) rotateX(8deg) rotateY(-6deg)}50%{transform:translateY(-10px) rotateX(4deg) rotateY(6deg)}}
+@keyframes logoPulse{0%,100%{box-shadow:0 20px 50px rgba(139,92,246,.45),0 0 0 1px rgba(255,255,255,.15) inset,0 8px 0 rgba(91,33,182,.5)}50%{box-shadow:0 24px 60px rgba(139,92,246,.6),0 0 0 1px rgba(255,255,255,.2) inset,0 8px 0 rgba(91,33,182,.5)}}
+.hero h1{
+  font-size:clamp(2.2rem,5vw,3.4rem);font-weight:800;letter-spacing:-.04em;
+  background:linear-gradient(135deg,#fff 20%,#c4b5fd 50%,#22d3ee 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:12px;
+}
+.hero .sub{color:var(--muted);font-size:1.1rem;max-width:520px;margin:0 auto 28px;line-height:1.55}
+.cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 24px;border-radius:14px;font-weight:650;font-size:15px;
+  text-decoration:none;border:none;cursor:pointer;
+  transition:transform .2s,box-shadow .2s;transform-style:preserve-3d;
+}
+.btn:hover{transform:translateY(-3px) scale(1.02)}
+.btn-p{
+  background:linear-gradient(135deg,#a78bfa,#7c3aed 50%,#5b21b6);
+  color:#fff;box-shadow:0 10px 32px rgba(139,92,246,.4),0 1px 0 rgba(255,255,255,.2) inset;
+}
+.btn-g{
+  background:rgba(24,22,36,.8);color:var(--text);
+  border:1px solid rgba(139,92,246,.3);
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+}
+.btn-g:hover{border-color:rgba(139,92,246,.55);background:rgba(40,32,60,.9)}
+
+/* Promo glass card */
 .promo{
-  margin:8px 0 8px;padding:32px 26px 28px;border-radius:20px;
-  background:linear-gradient(160deg,rgba(24,24,32,.95),rgba(15,15,20,.98));
-  border:1px solid var(--line);position:relative;overflow:hidden;
-  opacity:0;transform:translateY(20px);transition:opacity .65s ease,transform .65s ease;
+  margin:0 auto 48px;padding:36px 28px;border-radius:24px;
+  background:linear-gradient(160deg,rgba(30,24,48,.85),rgba(12,10,20,.9));
+  border:1px solid rgba(139,92,246,.28);
+  box-shadow:0 24px 60px rgba(0,0,0,.35),0 0 80px rgba(139,92,246,.08);
+  backdrop-filter:blur(20px);
+  transform-style:preserve-3d;
+  opacity:0;transform:translateY(30px) rotateX(4deg);
+  transition:opacity .7s ease,transform .7s ease;
 }
 .promo.in{opacity:1;transform:none}
-.promo::before{
-  content:'';position:absolute;inset:-40% -20% auto auto;width:260px;height:260px;border-radius:50%;
-  background:radial-gradient(circle,rgba(139,92,246,.22),transparent 70%);pointer-events:none;
-  animation:float 6s ease-in-out infinite;
+.promo-head{text-align:center;margin-bottom:28px}
+.promo-head .bot{
+  width:48px;height:48px;margin:0 auto 14px;border-radius:14px;
+  background:linear-gradient(145deg,#8b5cf6,#4c1d95);
+  display:grid;place-items:center;font-size:22px;
+  box-shadow:0 8px 24px rgba(139,92,246,.35);
+  animation:floatY 5s ease-in-out infinite;
 }
-.promo::after{
-  content:'';position:absolute;left:0;top:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,#8b5cf6,transparent);
-  transform-origin:left;animation:lineIn .8s ease .2s both;
+.promo-head h2{font-size:1.45rem;margin-bottom:8px;font-weight:700}
+.promo-head p{color:var(--muted);font-size:14.5px;max-width:440px;margin:0 auto}
+.promo-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;
 }
-.promo-head{text-align:center;margin-bottom:18px;position:relative;z-index:1}
-.promo-head .bot{font-size:1.75rem;margin-bottom:8px;display:inline-block;animation:float 3.5s ease-in-out infinite}
-.promo-head h2{
-  font-size:1.3rem;margin-bottom:10px;letter-spacing:-.02em;
-  background:linear-gradient(90deg,#e9d5ff,#a78bfa,#c4b5fd,#e9d5ff);
-  background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
-  animation:shimmer 4s linear infinite;
-}
-.promo-head p{color:var(--muted);font-size:14.5px;max-width:540px;margin:0 auto;line-height:1.55}
-.promo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:18px 0 6px;position:relative;z-index:1}
 .promo-item{
-  padding:12px 14px;border-radius:12px;background:rgba(10,10,14,.55);border:1px solid #22222a;
-  transition:transform .2s,border-color .2s;
-  opacity:0;transform:translateY(10px);
+  padding:16px 14px;border-radius:14px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  transition:transform .25s,border-color .25s,background .25s;
+  transform-style:preserve-3d;
 }
-.promo.in .promo-item{animation:up .45s ease both}
-.promo.in .promo-item:nth-child(1){animation-delay:.06s}
-.promo.in .promo-item:nth-child(2){animation-delay:.1s}
-.promo.in .promo-item:nth-child(3){animation-delay:.14s}
-.promo.in .promo-item:nth-child(4){animation-delay:.18s}
-.promo.in .promo-item:nth-child(5){animation-delay:.22s}
-.promo.in .promo-item:nth-child(6){animation-delay:.26s}
-.promo-item:hover{transform:translateY(-2px);border-color:#5b21b6}
-.promo-item strong{display:block;font-size:13.5px;margin-bottom:3px}
-.promo-item span{color:var(--muted);font-size:12px;line-height:1.35}
+.promo-item:hover{
+  transform:translateY(-4px) scale(1.03);
+  border-color:rgba(139,92,246,.4);
+  background:rgba(139,92,246,.1);
+}
+.promo-item strong{display:block;font-size:13px;margin-bottom:4px}
+.promo-item span{font-size:12px;color:var(--muted);line-height:1.35}
 
-.more-arrow{
-  text-align:center;margin:22px 0 10px;color:#a78bfa;font-size:13px;font-weight:600;
-  letter-spacing:.04em;opacity:0;animation:up .5s ease .3s both;
+.more{
+  text-align:center;margin:8px 0 28px;color:var(--purple2);font-size:13px;font-weight:600;
+  letter-spacing:.04em;animation:bounceY 2s ease-in-out infinite;
 }
-.more-arrow .arr{
-  display:block;font-size:18px;margin-top:4px;color:#8b5cf6;
-  animation:bounceY 1.4s ease-in-out infinite;
+@keyframes bounceY{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+.sec-label{
+  text-align:center;font-size:12px;text-transform:uppercase;letter-spacing:.12em;
+  color:#6b6b80;font-weight:700;margin-bottom:18px;
 }
-.foot{text-align:center;margin-top:40px;color:#6b7280;font-size:13px}
+
+/* 3D feature cards */
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;
+  perspective:1000px;
+}
+.card{
+  position:relative;padding:24px 20px;border-radius:18px;
+  background:linear-gradient(165deg,rgba(28,24,42,.9),rgba(14,12,22,.95));
+  border:1px solid rgba(139,92,246,.18);
+  box-shadow:0 12px 40px rgba(0,0,0,.25);
+  transform-style:preserve-3d;
+  opacity:0;transform:translateY(24px) rotateX(6deg);
+  transition:opacity .55s ease,transform .35s ease,border-color .25s,box-shadow .25s;
+  overflow:hidden;
+}
+.card.in{opacity:1;transform:translateY(0) rotateX(0)}
+.card::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.06),transparent 40%);
+  opacity:0;transition:opacity .3s;
+}
+.card:hover::before{opacity:1}
+.card:hover{
+  border-color:rgba(139,92,246,.45);
+  box-shadow:0 20px 50px rgba(139,92,246,.18),0 0 0 1px rgba(139,92,246,.15);
+  transform:translateY(-8px) rotateX(2deg) scale(1.02);
+}
+.card .ic{
+  width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+  font-size:1.25rem;margin-bottom:14px;
+  background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.25);
+  transition:transform .3s;
+}
+.card:hover .ic{transform:scale(1.12) rotate(-6deg)}
+.card h2{font-size:1.08rem;font-weight:700;margin-bottom:8px}
+.card p{color:var(--muted);font-size:13.5px;line-height:1.5;margin:0}
+
+.footer{
+  text-align:center;margin-top:64px;padding-top:28px;
+  border-top:1px solid rgba(255,255,255,.06);
+  color:#5a5a6e;font-size:12px;letter-spacing:.08em;
+}
+.corner{
+  position:fixed;right:16px;bottom:16px;z-index:50;
+  display:flex;flex-direction:column;align-items:flex-end;gap:4px;
+}
+.corner a{
+  color:#6b6b80;font-size:11px;text-decoration:none;padding:4px 8px;
+  border-radius:8px;background:rgba(12,10,18,.6);border:1px solid rgba(255,255,255,.05);
+  transition:.2s;
+}
+.corner a:hover{color:#c4b5fd;border-color:rgba(139,92,246,.3)}
+
+@media(max-width:600px){
+  .nav{top:10px;padding:6px;gap:4px;max-width:calc(100% - 24px)}
+  .nav a{padding:8px 12px;font-size:12px}
+  .wrap{padding-top:100px}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="hero">
-    <div class="logo">S</div>
+<div id="bg"></div>
+<canvas id="stars"></canvas>
+
+<nav class="nav">
+  <a class="primary" href="./dashboard.html">Dashboard</a>
+  <a href="./choose/">Roblox oder FiveM</a>
+  <a href="./staffora-fivem-plugin.zip" download>Staffora FiveM Plugin</a>
+</nav>
+
+<main class="wrap">
+  <header class="hero">
+    <div class="logo-3d">S</div>
     <h1>Staffora</h1>
-    <p class="sub">Discord-Moderation und Server-Verwaltung.</p>
-    <div class="actions">
-      <a class="btn btn-p" href="./dashboard.html">Dashboard</a>
-      <a class="btn btn-g" href="./choose/">Roblox oder FiveM</a>
-      <a class="btn btn-g" href="./staffora-fivem-plugin.zip" download>Staffora FiveM Plugin</a>
+    <p class="sub">Premium Discord-Moderation, Team-Tools und IC-Verwaltung – für Roblox EH und FiveM.</p>
+    <div class="cta">
+      <a class="btn btn-p" href="./dashboard.html">Zum Dashboard</a>
+      <a class="btn btn-g" href="./choose/">Plattform wählen</a>
+      <a class="btn btn-g" href="./staffora-fivem-plugin.zip" download>FiveM Plugin ↓</a>
     </div>
-  </div>
+  </header>
 
   <section class="promo" id="promo">
     <div class="promo-head">
       <div class="bot">🤖</div>
-      <h2>Der All-in-One Discord Bot für deinen Server</h2>
+      <h2>Der All-in-One Bot für deinen Server</h2>
       <p>Moderation, Team und IC an einem Ort – über Dashboard und Discord steuerbar.</p>
     </div>
     <div class="promo-grid">
-      <div class="promo-item"><strong>🛡️ Moderation</strong><span>Warns, Bans, Logs, Ban Appeals</span></div>
-      <div class="promo-item"><strong>👥 Team</strong><span>Rollen, Bewerbungen, Teamlist, Duty</span></div>
-      <div class="promo-item"><strong>🎫 Tickets</strong><span>Support, Übernehmen, Transcript</span></div>
-      <div class="promo-item"><strong>⭐ XP &amp; Ränge</strong><span>XP, Feedback-Sterne, Auto-Nick</span></div>
-      <div class="promo-item"><strong>🪪 Ausweis</strong><span>Anträge und Personalausweis-Karte</span></div>
-      <div class="promo-item"><strong>🎮 IC Panel</strong><span>Lookup, Duty, Online Admin</span></div>
+      <div class="promo-item"><strong>🛡️ Moderation</strong><span>Warns, Bans, Logs, Appeals</span></div>
+      <div class="promo-item"><strong>👥 Team</strong><span>Rollen, Bewerbungen, Duty</span></div>
+      <div class="promo-item"><strong>🎫 Tickets</strong><span>Support & Transcript</span></div>
+      <div class="promo-item"><strong>⭐ XP &amp; Ränge</strong><span>XP, Feedback, Auto-Nick</span></div>
+      <div class="promo-item"><strong>🪪 Ausweis</strong><span>Anträge &amp; Karte</span></div>
+      <div class="promo-item"><strong>🎮 IC / FiveM</strong><span>Lookup, Duty, Plugin</span></div>
     </div>
   </section>
 
-  <div class="more-arrow">
-    Mehr Features
-    <span class="arr">↓</span>
+  <div class="more">Mehr Features ↓</div>
+  <div class="sec-label">Module &amp; Features</div>
+
+  <div class="grid" id="features">
+    <div class="card" data-i="0"><div class="ic">⭐</div><h2>XP-System</h2><p>XP für Chat, Voice, Dienst, Tickets und Admin Calls. Uprank am Periodenende optional.</p></div>
+    <div class="card" data-i="1"><div class="ic">💜</div><h2>Feedback</h2><p>Team bewerten (1–5 Sterne + Text). Log-Kanal. Gute Sterne mehr XP.</p></div>
+    <div class="card" data-i="2"><div class="ic">👮</div><h2>Online Admin</h2><p>On/Off Duty. Liste mit und ohne Admin-Rechte – synchron mit IC Panel.</p></div>
+    <div class="card" data-i="3"><div class="ic">🎫</div><h2>Tickets</h2><p>Support öffnen, übernehmen, schließen mit Transcript und optional KI.</p></div>
+    <div class="card" data-i="4"><div class="ic">🪪</div><h2>Ausweis</h2><p>Personalausweis, Führerschein, Waffenschein – als Embed-Karte.</p></div>
+    <div class="card" data-i="5"><div class="ic">🎵</div><h2>Warteraum-Musik</h2><p>Musik im Support-Warteraum. Presets DE/EN oder eigene Datei.</p></div>
+    <div class="card" data-i="6"><div class="ic">🏷️</div><h2>Auto-Nick &amp; Ränge</h2><p>Nickname nach Rang. Befördern und Degradieren über die Laufbahn.</p></div>
+    <div class="card" data-i="7"><div class="ic">🤝</div><h2>Partner &amp; Team</h2><p>Partner-Stufen, Bewerbungen, Teamliste, Abmelden, Fraktionen.</p></div>
+    <div class="card" data-i="8"><div class="ic">🔓</div><h2>Ban Appeal</h2><p>Unban-Anfrage per Roblox-Name. Team prüft im Dashboard.</p></div>
+    <div class="card" data-i="9"><div class="ic">📞</div><h2>Admin Calls</h2><p>Warteraum-Ping, Übernehmen, Logs und optionale Musik.</p></div>
+    <div class="card" data-i="10"><div class="ic">🛡️</div><h2>Security</h2><p>Anti-Nuke, Anti-Raid, Discord-Logs, Lockdown.</p></div>
+    <div class="card" data-i="11"><div class="ic">🎮</div><h2>FiveM Plugin</h2><p>F9 Staff-Menü, Duty, ACL-Permissions, API-Sync, Setup-Code.</p></div>
   </div>
 
-  <div class="sec">Module &amp; Features</div>
-  <div class="grid">
-    <div class="card" style="animation-delay:.05s"><div class="ic">⭐</div><h2>XP-System</h2><p>XP für Chat, Voice, Dienst, Tickets und Admin Calls. Am Periodenende Uprank für die höchste XP (abschaltbar).</p></div>
-    <div class="card" style="animation-delay:.08s"><div class="ic">💜</div><h2>Feedback</h2><p>Teammitglied bewerten (1–5 Sterne + Text). Eintrag im Log-Kanal. Gute Sterne mehr XP, 1–2 Sterne Abzug.</p></div>
-    <div class="card" style="animation-delay:.11s"><div class="ic">👮</div><h2>Online Admin</h2><p>On/Off Duty. Liste mit Admin-Rolle und ohne. Gleicher Status wie im IC Panel.</p></div>
-    <div class="card" style="animation-delay:.14s"><div class="ic">🎫</div><h2>Tickets</h2><p>Support öffnen, übernehmen, schließen mit Transcript.</p></div>
-    <div class="card" style="animation-delay:.17s"><div class="ic">🪪</div><h2>Ausweis</h2><p>Anträge für Ausweis, Führerschein, Waffenschein. Genehmigung und Karte als Embed.</p></div>
-    <div class="card" style="animation-delay:.2s"><div class="ic">🎵</div><h2>Warteraum-Musik</h2><p>Musik im Support-Warteraum. URL oder Datei im Dashboard.</p></div>
-    <div class="card" style="animation-delay:.23s"><div class="ic">🏷️</div><h2>Auto-Nick &amp; Ränge</h2><p>Nickname nach Rang. Befördern und Degradieren über die Rang-Laufbahn.</p></div>
-    <div class="card" style="animation-delay:.26s"><div class="ic">🤝</div><h2>Partner &amp; Team</h2><p>Partner-Stufen, Bewerbungen, Teamlist, Abmelden, Fraktionen.</p></div>
-    <div class="card" style="animation-delay:.29s"><div class="ic">🔓</div><h2>Ban Appeal</h2><p>Spieler stellt Unban-Anfrage per Roblox-Name. Team prüft im Dashboard.</p></div>
-    <div class="card" style="animation-delay:.32s"><div class="ic">📞</div><h2>Admin Calls</h2><p>Warteraum-Ping, Übernehmen, Logs und optional Musik.</p></div>
-  </div>
-
-  <p class="foot">STAFFORA BOT</p>
-</div>
+  <footer class="footer">STAFFORA BOT</footer>
+</main>
 
 <div class="corner">
-  <a href="./ingame.html">IC Panel</a>
+  <a href="./ic/">IC Panel</a>
   <a href="./unban.html">Ban Appeal</a>
 </div>
+
 <script>
 (function(){
-  var el=document.getElementById('promo');
-  if(!el) return;
-  if(!('IntersectionObserver' in window)){ el.classList.add('in'); return; }
-  var io=new IntersectionObserver(function(entries){
-    entries.forEach(function(e){ if(e.isIntersecting){ el.classList.add('in'); io.disconnect(); } });
-  },{threshold:0.12});
-  io.observe(el);
+  var c=document.getElementById('stars'),ctx=c.getContext('2d');
+  var stars=[],w,h,dpr;
+  function resize(){
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    w=window.innerWidth;h=window.innerHeight;
+    c.width=w*dpr;c.height=h*dpr;c.style.width=w+'px';c.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    stars=[];
+    var n=Math.min(140,Math.floor(w*h/9000));
+    for(var i=0;i<n;i++){
+      stars.push({
+        x:Math.random()*w,y:Math.random()*h,
+        r:Math.random()*1.4+.2,a:Math.random()*.7+.2,
+        s:Math.random()*.35+.05,p:Math.random()*Math.PI*2
+      });
+    }
+  }
+  function tick(t){
+    ctx.clearRect(0,0,w,h);
+    for(var i=0;i<stars.length;i++){
+      var s=stars[i];
+      var a=s.a*(.55+.45*Math.sin(t*0.001*s.s+s.p));
+      ctx.beginPath();ctx.fillStyle='rgba(200,190,255,'+a+')';
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+      s.y+=s.s*0.15;if(s.y>h){s.y=0;s.x=Math.random()*w}
+    }
+    requestAnimationFrame(tick);
+  }
+  resize();window.addEventListener('resize',resize);
+  requestAnimationFrame(tick);
+
+  var promo=document.getElementById('promo');
+  var cards=document.querySelectorAll('.card');
+  function reveal(){
+    var vh=window.innerHeight;
+    if(promo.getBoundingClientRect().top<vh*0.9) promo.classList.add('in');
+    cards.forEach(function(el){
+      if(el.getBoundingClientRect().top<vh*0.92){
+        var delay=Number(el.getAttribute('data-i')||0)*45;
+        setTimeout(function(){el.classList.add('in')},delay);
+      }
+    });
+  }
+  window.addEventListener('scroll',reveal,{passive:true});
+  reveal();
+
+  // subtle 3D tilt on cards
+  cards.forEach(function(card){
+    card.addEventListener('mousemove',function(e){
+      var r=card.getBoundingClientRect();
+      var x=(e.clientX-r.left)/r.width-.5;
+      var y=(e.clientY-r.top)/r.height-.5;
+      card.style.transform='translateY(-8px) rotateY('+ (x*8) +'deg) rotateX('+ (-y*8) +'deg) scale(1.02)';
+    });
+    card.addEventListener('mouseleave',function(){
+      if(card.classList.contains('in')) card.style.transform='translateY(0) rotateX(0)';
+    });
+  });
 })();
 </script>
 </body>
