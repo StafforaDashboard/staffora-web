@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Staffora Team Panel · FiveM</title>
+<style>
+:root{--bg:#06060e;--card:#12121c;--line:rgba(255,255,255,.08);--text:#f4f4f5;--muted:#a1a1aa;--accent:#8b5cf6;--cyan:#22d3ee;--red:#f87171;--green:#34d399}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+background-image:radial-gradient(ellipse 70% 40% at 10% 0%,rgba(139,92,246,.22),transparent 50%),radial-gradient(ellipse 50% 35% at 100% 100%,rgba(34,211,238,.08),transparent 45%)}
+a{color:var(--cyan);text-decoration:none}
+.top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line);background:rgba(10,10,18,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:20}
+.brand{font-weight:700;display:flex;align-items:center;gap:10px}
+.brand span{font-size:.7rem;padding:3px 8px;border-radius:999px;background:rgba(34,211,238,.15);color:var(--cyan);font-weight:600}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,input,button,.btn{font:inherit;border-radius:10px;border:1px solid var(--line);background:#0c0c14;color:var(--text);padding:8px 12px}
+button,.btn{cursor:pointer;background:rgba(255,255,255,.06)}
+button.primary{background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;font-weight:600}
+.wrap{max-width:1200px;margin:0 auto;padding:20px}
+.grid-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.stat .v{font-size:1.4rem;font-weight:700;margin-top:4px}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:1rem;margin-bottom:12px}
+.muted{color:var(--muted);font-size:.85rem}
+.player{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:.15s}
+.player:hover{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.25)}
+.av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#22d3ee);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:.9rem}
+.meta{flex:1;min-width:0}
+.meta .name{font-weight:650}
+.meta .sub{font-size:.78rem;color:var(--muted);margin-top:2px;word-break:break-all}
+.badge{font-size:.68rem;padding:2px 8px;border-radius:999px;font-weight:600}
+.badge.on{background:rgba(52,211,153,.2);color:#6ee7b7}
+.badge.off{background:rgba(255,255,255,.06);color:#a1a1aa}
+.badge.staff{background:rgba(239,68,68,.2);color:#fca5a5}
+.badge.duty{background:rgba(251,191,36,.2);color:#fcd34d}
+.api-box{font-family:ui-monospace,monospace;font-size:.8rem;background:#0a0a12;border:1px solid var(--line);border-radius:10px;padding:12px;word-break:break-all;margin:8px 0;color:#c4b5fd}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.hidden{display:none!important}
+#login-gate{text-align:center;padding:60px 20px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">Staffora Team Panel <span>FiveM</span></div>
+  <div class="top-actions">
+    <select id="guild-sel" title="Server"></select>
+    <button type="button" id="btn-refresh">Refresh</button>
+    <a class="btn" href="/choose/">Plattform</a>
+    <a class="btn" href="/dashboard/?platform=fivem">FiveM Settings</a>
+    <a class="btn" href="/ic/">IC Panel</a>
+  </div>
+</header>
+<div id="login-gate" class="wrap">
+  <h1>Team Panel</h1>
+  <p class="muted" style="margin:12px auto 20px;max-width:440px">Live Spieler, Staff und API — eigenes Panel, getrennt von Dashboard und IC Panel.</p>
+  <button type="button" class="primary" id="btn-login">Mit Discord anmelden</button>
+  <p class="muted" style="margin-top:16px;font-size:.8rem">API Base (Bot-Hosting URL):</p>
+  <div class="row" style="justify-content:center;margin-top:8px">
+    <input id="api-base" style="min-width:280px" placeholder="https://staffora.apps.bot-hosting.cloud"/>
+    <button type="button" id="btn-save-api">Speichern</button>
+  </div>
+</div>
+<main id="app" class="wrap hidden">
+  <div class="grid-stats">
+    <div class="stat"><div class="l">Status</div><div class="v" id="st-status">—</div></div>
+    <div class="stat"><div class="l">Spieler</div><div class="v" id="st-players">0</div></div>
+    <div class="stat"><div class="l">Staff online</div><div class="v" id="st-staff">0</div></div>
+    <div class="stat"><div class="l">Uptime</div><div class="v" id="st-uptime">—</div></div>
+  </div>
+  <div class="layout">
+    <div>
+      <div class="card"><h2>Spieler online <span class="muted" id="pl-count"></span></h2><div id="player-list"><p class="muted">Lade…</p></div></div>
+      <div class="card"><h2>Alle bekannten Spieler</h2><div id="all-players"><p class="muted">—</p></div></div>
+    </div>
+    <div>
+      <div class="card"><h2>Staff-Team</h2><div id="staff-list"><p class="muted">—</p></div></div>
+      
+      <div class="card">
+        <h2>Staff verwalten</h2>
+        <p class="muted">License + Name + Rank setzen (gleiche Daten wie FiveM Resource).</p>
+        <div class="row">
+          <input id="st-lic" placeholder="license:..." style="flex:1;min-width:120px"/>
+          <input id="st-name" placeholder="Name" style="width:110px"/>
+          <select id="st-rank">
+            <option value="supporter">Supporter</option>
+            <option value="moderator">Moderator</option>
+            <option value="admin">Admin</option>
+            <option value="headadmin">Head Admin</option>
+            <option value="owner">Owner</option>
+          </select>
+          <button type="button" class="primary" id="btn-staff-add">Staff setzen</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Whitelist</h2>
+        <div class="row">
+          <input id="wl-lic" placeholder="license:..." style="flex:1;min-width:120px"/>
+          <input id="wl-name" placeholder="Name" style="width:110px"/>
+          <button type="button" class="primary" id="btn-wl-add">Hinzufügen</button>
+        </div>
+        <div id="wl-list" style="margin-top:10px"><p class="muted">—</p></div>
+      </div>
+      <div class="card">
+        <h2>Queue</h2>
+        <div class="row">
+          <button type="button" id="btn-q-on">Queue AN</button>
+          <button type="button" id="btn-q-off">Queue AUS</button>
+          <button type="button" class="primary" id="btn-q-next">Nächsten einlassen</button>
+        </div>
+        <p class="muted" id="q-status" style="margin-top:8px">—</p>
+      </div>
+<div class="card">
+        <h2>API System</h2>
+        <p class="muted">Key für die FiveM Resource (server.cfg). Admins können Key anzeigen und neu erzeugen.</p>
+        <p class="muted" style="margin-top:8px">API URL</p>
+        <div class="api-box" id="api-url-box">—</div>
+        <p class="muted">API Key</p>
+        <div class="api-box" id="api-key-box">—</div>
+        <div class="row">
+          <button type="button" class="primary" id="btn-copy-cfg">server.cfg kopieren</button>
+          <button type="button" id="btn-reveal">Key laden</button>
+          <button type="button" id="btn-rotate">Key neu generieren</button>
+          <button type="button" id="btn-setup">Server aktivieren</button>
+        </div>
+        <p class="muted" style="margin-top:12px">server.cfg:</p>
+        <pre class="api-box" id="cfg-snippet" style="white-space:pre-wrap">set staffora_api_url "…"
+set staffora_api_key "…"
+ensure staffora</pre>
+      </div>
+
+      <div class="card">
+        <h2>Einfache Installation (ohne API-Key tippen)</h2>
+        <p class="muted">1) Setup-Code erzeugen · 2) In server.cfg nur URL + Code · 3) Resource speichert Key selbst</p>
+        <div class="row">
+          <button type="button" class="primary" id="btn-setup-code">Setup-Code erzeugen</button>
+        </div>
+        <div class="api-box" id="setup-code-box">Noch kein Code</div>
+        <pre class="api-box" id="setup-cfg" style="white-space:pre-wrap">set staffora_api_url "API_URL"
+set staffora_setup_code "CODE"
+ensure staffora</pre>
+      </div>
+      <div class="card">
+        <h2>Announcement</h2>
+        <div class="row">
+          <input id="ann-msg" placeholder="Nachricht an alle Spieler…" style="flex:1;min-width:160px"/>
+          <button type="button" class="primary" id="btn-announce">Senden</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Verify-Code (Discord → In-Game)</h2>
+        <p class="muted">Code erzeugen, Spieler tippt /verify CODE im Spiel → Link + Whitelist</p>
+        <div class="row">
+          <button type="button" class="primary" id="btn-verify-code">Meinen Verify-Code</button>
+        </div>
+        <div class="api-box" id="verify-code-box">—</div>
+      </div>
+      <div class="card">
+        <h2>Server-Logs (Live)</h2>
+        <div id="log-list" style="max-height:320px;overflow:auto"><p class="muted">—</p></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+<script>
+(function(){
+  var API = localStorage.getItem('staffora_api_base') || 'https://staffora.apps.bot-hosting.cloud';
+  var guildId = localStorage.getItem('staffora_team_guild') || '';
+  var token = localStorage.getItem('staffora_token') || sessionStorage.getItem('staffora_token') || '';
+  var lastKey = '';
+  document.getElementById('api-base').value = API;
+  document.getElementById('btn-save-api').onclick = function(){
+    API = document.getElementById('api-base').value.replace(/\/$/,'');
+    localStorage.setItem('staffora_api_base', API);
+    alert('API Base gespeichert');
+  };
+  function headers(json){
+    var h = {};
+    if (json) h['Content-Type'] = 'application/json';
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return h;
+  }
+  async function api(path, opts){
+    opts = opts || {};
+    var r = await fetch(API + path, {
+      method: opts.method || 'GET',
+      headers: headers(!!opts.body),
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+      credentials: 'include'
+    });
+    var data = null;
+    try { data = await r.json(); } catch(e){}
+    if (!r.ok) throw new Error((data && (data.error||data.message)) || ('HTTP '+r.status));
+    return data;
+  }
+  document.getElementById('btn-login').onclick = function(){
+    window.location.href = API + '/api/auth/discord?redirect=' + encodeURIComponent(location.origin + '/team/');
+  };
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];}); }
+  function initials(n){ n=String(n||'?'); var p=n.split(/[\s_]+/); if(p.length>=2) return (p[0][0]+p[1][0]).toUpperCase(); return n.slice(0,2).toUpperCase(); }
+  function fmtUptime(sec){ sec=Number(sec)||0; return Math.floor(sec/3600)+'h '+Math.floor((sec%3600)/60)+'m'; }
+
+  async function fillGuilds(list){
+    var sel = document.getElementById('guild-sel');
+    sel.innerHTML = '';
+    (list||[]).forEach(function(x){
+      var id = x.id || x.guildId;
+      var opt = document.createElement('option');
+      opt.value = id; opt.textContent = x.name || id;
+      if (id === guildId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    if (!guildId && list[0]) guildId = list[0].id || list[0].guildId;
+    if (guildId) localStorage.setItem('staffora_team_guild', guildId);
+    sel.onchange = function(){ guildId = sel.value; localStorage.setItem('staffora_team_guild', guildId); refresh(); };
+  }
+
+  async function boot(){
+    try {
+      var u = new URL(location.href);
+      var t = u.searchParams.get('token');
+      if (t) { token = t; localStorage.setItem('staffora_token', t); history.replaceState({},'',location.pathname); }
+    } catch(e){}
+    try {
+      var me = await api('/api/auth/me');
+      if (me && me.token) { token = me.token; localStorage.setItem('staffora_token', token); }
+    } catch(e){}
+    try {
+      var g = await api('/api/guilds');
+      document.getElementById('login-gate').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      await fillGuilds(g.guilds || g || []);
+      await refresh();
+      setInterval(refresh, 15000);
+    } catch(e) {
+      console.warn(e);
+    }
+  }
+
+  async function refresh(){
+    if (!guildId) return;
+    try {
+      var data = await api('/api/fivem/guilds/' + guildId + '?revealKey=1');
+      var s = data.server || data;
+      var live = data.livePlayers || s.lastPlayers || s.players || [];
+      if (!Array.isArray(live)) live = [];
+      document.getElementById('st-status').textContent = s.status || (s.lastHeartbeat ? 'online' : 'offline');
+      document.getElementById('st-status').style.color = (s.status==='online'||s.lastHeartbeat) ? 'var(--green)' : 'var(--red)';
+      document.getElementById('st-players').textContent = (s.playerCount != null ? s.playerCount : live.length) + (s.maxSlots ? ' / '+s.maxSlots : '');
+      document.getElementById('st-staff').textContent = String(live.filter(function(p){return p.staff||p.duty;}).length);
+      document.getElementById('st-uptime').textContent = s.uptimeSec != null ? fmtUptime(s.uptimeSec) : '—';
+
+      try {
+        var logs = await api('/api/fivem/guilds/'+guildId+'/logs?limit=40');
+        var entries = logs.entries || logs.logs || logs || [];
+        if (!Array.isArray(entries)) entries = [];
+        document.getElementById('log-list').innerHTML = entries.length
+          ? entries.slice(0,40).map(function(e){
+              return '<div class="player" style="cursor:default"><div class="meta"><div class="name">'+esc(e.action||e.type||'event')+
+                (e.category?' <span class="badge staff">'+esc(e.category)+'</span>':'')+
+                '</div><div class="sub">'+esc(e.targetName||e.target||'')+' · '+esc(e.reason||e.message||'')+' · '+
+                (e.at?new Date(e.at).toLocaleString():'')+'</div></div></div>';
+            }).join('')
+          : '<p class="muted">Noch keine Logs — Resource trackt Join/Leave/Chat/Death/Admin.</p>';
+      } catch(e){}
+
+      lastKey = s.apiKey || lastKey || '';
+      document.getElementById('api-url-box').textContent = API;
+      document.getElementById('api-key-box').textContent = lastKey || '(kein Key — Server aktivieren)';
+      document.getElementById('cfg-snippet').textContent = 'set staffora_api_url "'+API+'"\nset staffora_api_key "'+(lastKey||'YOUR_KEY')+'"\nensure staffora';
+      document.getElementById('pl-count').textContent = '('+live.length+')';
+      document.getElementById('player-list').innerHTML = live.length
+        ? live.map(function(p){
+            return '<div class="player"><div class="av">'+esc(initials(p.name))+'</div><div class="meta"><div class="name">'+esc(p.name||'?')+
+              (p.duty?' <span class="badge duty">duty</span>':'')+(p.staff?' <span class="badge staff">staff</span>':'')+
+              ' <span class="badge on">online</span></div><div class="sub">ID '+(p.serverId||p.id||'—')+' · '+esc(p.license||'')+
+              (p.discordId?' · DC '+esc(p.discordId):'')+(p.ping!=null?' · '+p.ping+'ms':'')+(p.rankId?' · '+esc(p.rankId):'')+
+              '</div></div></div>';
+          }).join('')
+        : '<p class="muted">Keine Online-Spieler. Resource + API Key prüfen.</p>';
+      var all = [];
+      try {
+        var pl = await api('/api/fivem/guilds/'+guildId+'/players');
+        all = pl.players || pl || [];
+        if (!Array.isArray(all)) all = Object.values(all);
+      } catch(e){}
+      document.getElementById('all-players').innerHTML = all.length
+        ? all.slice(0,80).map(function(p){
+            return '<div class="player"><div class="av">'+esc(initials(p.name))+'</div><div class="meta"><div class="name">'+esc(p.name||'—')+' '+(p.online?'<span class="badge on">on</span>':'<span class="badge off">off</span>')+'</div><div class="sub">'+esc(p.license||'')+'</div></div></div>';
+          }).join('')
+        : '<p class="muted">Noch keine Registry-Daten.</p>';
+      var st = {};
+      try { st = await api('/api/fivem/guilds/'+guildId+'/staff'); } catch(e){}
+      var members = Object.values(st.members || {});
+      document.getElementById('staff-list').innerHTML = members.length
+        ? members.map(function(m){
+            return '<div class="player"><div class="av">'+esc(initials(m.name))+'</div><div class="meta"><div class="name">'+esc(m.name||'—')+' <span class="badge staff">'+esc(m.rankId||'staff')+'</span></div><div class="sub">'+esc(m.license||'')+(m.discordId?' · '+esc(m.discordId):'')+'</div></div><button type="button" class="st-rm" data-lic="'+esc(m.license)+'">Entfernen</button></div>';
+          }).join('')
+        : '<p class="muted">Kein Staff — oben setzen.</p>';
+      document.querySelectorAll('.st-rm').forEach(function(b){b.onclick=async function(){try{await api('/api/fivem/guilds/'+guildId+'/staff/'+encodeURIComponent(b.getAttribute('data-lic')),{method:'DELETE'});refresh();}catch(e){alert(e.message);}};});
+
+      try {
+        var wl = await api('/api/fivem/guilds/'+guildId+'/whitelist');
+        var entries = wl.whitelist || wl.entries || [];
+        if (!Array.isArray(entries)) entries = [];
+        document.getElementById('wl-list').innerHTML = entries.length
+          ? entries.map(function(e){
+              return '<div class="player"><div class="meta"><div class="name">'+esc(e.name||'—')+'</div><div class="sub">'+esc(e.license||'')+'</div></div>'+
+                '<button type="button" data-lic="'+esc(e.license)+'" class="wl-rm">✕</button></div>';
+            }).join('')
+          : '<p class="muted">Whitelist leer</p>';
+        document.querySelectorAll('.wl-rm').forEach(function(b){
+          b.onclick = async function(){
+            try {
+              await api('/api/fivem/guilds/'+guildId+'/whitelist/'+encodeURIComponent(b.getAttribute('data-lic')),{method:'DELETE'});
+              refresh();
+            } catch(e){ alert(e.message); }
+          };
+        });
+      } catch(e){}
+      try {
+        var q = await api('/api/fivem/guilds/'+guildId+'/queue');
+        document.getElementById('q-status').textContent = 'Enabled: '+(q.enabled?'ja':'nein')+' · Wartend: '+(q.count!=null?q.count:(q.queue&&q.queue.length)||0);
+      } catch(e){}
+
+    } catch(e) {
+      document.getElementById('player-list').innerHTML = '<p class="muted">Fehler: '+esc(e.message)+'</p>';
+    }
+  }
+  document.getElementById('btn-refresh').onclick = refresh;
+  document.getElementById('btn-copy-cfg').onclick = function(){
+    navigator.clipboard.writeText(document.getElementById('cfg-snippet').textContent).then(function(){ alert('Kopiert'); });
+  };
+  document.getElementById('btn-reveal').onclick = refresh;
+  document.getElementById('btn-rotate').onclick = async function(){
+    if (!confirm('API Key neu erzeugen? Alte Keys funktionieren nicht mehr.')) return;
+    try {
+      var r = await api('/api/fivem/guilds/'+guildId+'/rotate-key', { method:'POST', body:{} });
+      lastKey = r.apiKey || (r.server && r.server.apiKey) || '';
+      alert('Neuer Key'); refresh();
+    } catch(e){ alert(e.message); }
+  };
+  document.getElementById('btn-setup').onclick = async function(){
+    try {
+      await api('/api/fivem/guilds/'+guildId+'/setup', { method:'POST', body:{ name:'FiveM Server', enabled:true }});
+      alert('Aktiviert'); refresh();
+    } catch(e){ alert(e.message); }
+  };
+
+  document.getElementById('btn-staff-add').onclick = async function(){
+    try {
+      await api('/api/fivem/guilds/'+guildId+'/staff', { method:'POST', body:{
+        license: document.getElementById('st-lic').value,
+        name: document.getElementById('st-name').value,
+        rankId: document.getElementById('st-rank').value
+      }});
+      alert('Staff gesetzt'); refresh();
+    } catch(e){ alert(e.message); }
+  };
+  document.getElementById('btn-wl-add').onclick = async function(){
+    try {
+      await api('/api/fivem/guilds/'+guildId+'/whitelist', { method:'POST', body:{
+        license: document.getElementById('wl-lic').value,
+        name: document.getElementById('wl-name').value
+      }});
+      alert('Whitelist'); refresh();
+    } catch(e){ alert(e.message); }
+  };
+  document.getElementById('btn-q-on').onclick = async function(){
+    try { await api('/api/fivem/guilds/'+guildId+'/queue/enabled',{method:'POST',body:{enabled:true}}); alert('Queue AN'); refresh(); } catch(e){ alert(e.message); }
+  };
+  document.getElementById('btn-q-off').onclick = async function(){
+    try { await api('/api/fivem/guilds/'+guildId+'/queue/enabled',{method:'POST',body:{enabled:false}}); alert('Queue AUS'); refresh(); } catch(e){ alert(e.message); }
+  };
+  document.getElementById('btn-q-next').onclick = async function(){
+    try { await api('/api/fivem/guilds/'+guildId+'/queue/next',{method:'POST',body:{count:1}}); alert('Next'); refresh(); } catch(e){ alert(e.message); }
+  };
+
+
+  document.getElementById('btn-setup-code').onclick = async function(){
+    try {
+      var r = await api('/api/fivem/guilds/'+guildId+'/setup-code', { method:'POST', body:{} });
+      document.getElementById('setup-code-box').textContent = r.code || JSON.stringify(r);
+      document.getElementById('setup-cfg').textContent =
+        'set staffora_api_url "'+API+'"\nset staffora_setup_code "'+(r.code||'')+'"\nensure staffora';
+    } catch(e){ alert(e.message); }
+  };
+  document.getElementById('btn-announce').onclick = async function(){
+    try {
+      await api('/api/fivem/guilds/'+guildId+'/announce', { method:'POST', body:{ message: document.getElementById('ann-msg').value }});
+      alert('Announcement gesendet');
+      document.getElementById('ann-msg').value = '';
+      refresh();
+    } catch(e){ alert(e.message); }
+  };
+  document.getElementById('btn-verify-code').onclick = async function(){
+    try {
+      var r = await api('/api/fivem/guilds/'+guildId+'/verify-code', { method:'POST', body:{} });
+      document.getElementById('verify-code-box').textContent = 'Code: '+(r.code||'?')+' — im Spiel: /verify '+ (r.code||'');
+    } catch(e){ alert(e.message); }
+  };
+
+  boot();
+})();
+</script>
+</body>
+</html>

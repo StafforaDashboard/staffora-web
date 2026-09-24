@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html style="color-scheme:dark" lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IC Panel · Staffora</title>
+<style>
+:root{
+  --bg:#05070c;--panel:#0a0e16;--card:#0f1420;--border:rgba(139,92,246,.22);--text:#e8eaf0;--muted:#94a3b8;--accent:#8b5cf6;--accent2:#a78bfa;
+  --text:#e8eaf2;--muted:#8b93a8;--accent:#8b5cf6;--accent2:#22d3ee;
+  --ok:#22c55e;--warn:#f59e0b;--err:#ef4444;--radius:14px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:
+  radial-gradient(900px 500px at 10% -10%,#1a1040 0%,transparent 55%),
+  radial-gradient(700px 400px at 100% 0%,#0a2a3a 0%,transparent 50%),
+  var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent2)}
+.login,.guilds{max-width:420px;margin:12vh auto;padding:28px;background:var(--card);border:1px solid var(--border);border-radius:18px;text-align:center}
+.login h1,.guilds h1{margin:0 0 8px;font-size:1.35rem}
+.desc{color:var(--muted);font-size:.9rem;line-height:1.5}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+@media(max-width:860px){.app{grid-template-columns:1fr}.side{position:sticky;top:0;z-index:5}}
+.side{background:rgba(13,16,24,.92);border-right:1px solid var(--border);padding:18px 14px;backdrop-filter:blur(12px)}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 8px 16px;font-weight:700;letter-spacing:.02em}
+.brand span{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#6366f1);display:grid;place-items:center}
+.nav-btn{display:block;width:100%;text-align:left;padding:10px 12px;margin:3px 0;border:none;border-radius:10px;background:transparent;color:var(--muted);font-size:.9rem;cursor:pointer;transition:.15s}
+.nav-btn:hover{background:rgba(139,92,246,.1);color:var(--text)}
+.nav-btn.active{background:rgba(139,92,246,.2);color:#fff;box-shadow:inset 0 0 0 1px rgba(139,92,246,.35)}
+.side-foot{margin-top:18px;padding-top:12px;border-top:1px solid var(--border)}
+.main{padding:22px 24px 40px;max-width:1100px}
+h1{margin:0 0 6px;font-size:1.4rem}
+h2{margin:0 0 10px;font-size:1.05rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin:12px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:14px 0}
+.stat{background:linear-gradient(160deg,rgba(139,92,246,.12),rgba(18,24,38,.9));border:1px solid var(--border);border-radius:12px;padding:14px}
+.stat b{display:block;font-size:1.35rem;margin-top:4px}
+.stat span{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input,select,textarea{background:#0a0d14;border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 12px;font-size:.92rem}
+input{min-width:180px;flex:1}
+.btn{border:none;border-radius:10px;padding:9px 14px;font-weight:600;font-size:.88rem;cursor:pointer;background:var(--accent);color:#fff}
+.btn:hover{filter:brightness(1.08)}
+.btn-sm{padding:6px 10px;font-size:.8rem}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text)}
+.btn-ok{background:var(--ok)}.btn-warn{background:var(--warn);color:#111}.btn-err{background:var(--err)}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
+th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase}
+.empty{color:var(--muted);padding:20px;text-align:center}
+.player{display:flex;gap:14px;align-items:flex-start}
+.player img{width:72px;height:72px;border-radius:14px;border:1px solid var(--border);background:#0a0d14}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:.72rem;font-weight:600}
+.badge.ok{background:rgba(34,197,94,.15);color:#4ade80}
+.badge.warn{background:rgba(245,158,11,.15);color:#fbbf24}
+.badge.err{background:rgba(239,68,68,.15);color:#f87171}
+.toast{position:fixed;right:16px;bottom:16px;padding:12px 16px;border-radius:10px;background:#1a1f2e;border:1px solid var(--border);opacity:0;pointer-events:none;transition:.2s;z-index:50}
+.toast.show{opacity:1}
+.hidden{display:none!important}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.timeline{list-style:none;padding:0;margin:0}
+.timeline li{padding:10px 0 10px 14px;border-left:2px solid rgba(139,92,246,.35);margin-left:6px;position:relative}
+.timeline li:before{content:'';position:absolute;left:-5px;top:14px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+</style>
+<script>
+(function(){
+  var cloud='https://staffora.apps.bot-hosting.cloud';
+  try{
+    var host=location.hostname||'';
+    if(host.indexOf('bot-hosting')>=0||host==='localhost'||host==='127.0.0.1'){ window.STAFFORA_API=''; }
+    else { window.STAFFORA_API=localStorage.getItem('staffora_api')||cloud; }
+    var path=(location.pathname||'/').split('?')[0];
+    if(/ingame(\.html)?$/i.test(path)){ window.STAFFORA_RETURN=location.origin+path; }
+    else {
+      var base=location.origin+(path.replace(/[^/]+$/,'')||'/');
+      window.STAFFORA_RETURN=base+(base.slice(-1)==='/'?'':'/')+'ingame.html';
+    }
+  }catch(e){ window.STAFFORA_API=cloud; window.STAFFORA_RETURN=location.href.split('?')[0]; }
+})();
+</script>
+</head>
+<body>
+<div id="view-login" class="login hidden">
+  <h1>IC Panel</h1>
+  <p class="desc">Ingame-Moderation · Staffora</p>
+  <button type="button" class="btn" id="btn-login" style="margin-top:16px">Mit Discord anmelden</button>
+  <p class="desc" style="margin-top:14px;font-size:.8rem">Nur konfigurierte IC-Rollen</p>
+</div>
+<div id="view-guilds" class="guilds hidden">
+  <h1>Server wählen</h1>
+  <div id="guild-list" style="margin-top:16px"></div>
+</div>
+<div id="view-app" class="app hidden">
+  <aside class="side">
+    <div class="brand"><span>S</span> IC Panel</div>
+    <button type="button" class="nav-btn active" data-p="overview">Übersicht</button>
+    <button type="button" class="nav-btn" data-p="lookup">Spieler Lookup</button>
+    <button type="button" class="nav-btn" data-p="duty">On Duty</button>
+    <button type="button" class="nav-btn" data-p="bans">Bans</button>
+    <button type="button" class="nav-btn" data-p="links">Dizzy Links</button>
+    <button type="button" class="nav-btn" data-p="archive">Archiv</button>
+    <button type="button" class="nav-btn" data-p="support">Support Cases</button>
+    <button type="button" class="nav-btn" data-p="unban">Unban-Anfragen</button>
+    <button type="button" class="nav-btn" data-p="reasons">Verstoßgründe</button>
+    <div class="side-foot">
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-server" style="width:100%;margin-bottom:6px">Server wechseln</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-out" style="width:100%">Abmelden</button>
+    </div>
+  </aside>
+  <main class="main" id="panel"><div class="empty"><span class="spinner"></span></div></main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var API=(typeof window.STAFFORA_API==='string')?window.STAFFORA_API:'https://staffora.apps.bot-hosting.cloud';
+  API=String(API).replace(/\/$/,'');
+  var token='';
+  try{ var m=location.search.match(/[?&]token=([^&#]+)/); if(m) token=decodeURIComponent(m[1]); }catch(e){}
+  if(!token){ try{ token=localStorage.getItem('staffora_token')||''; }catch(e){} }
+  if(token){ try{ localStorage.setItem('staffora_token', token); }catch(e){} }
+  var guildId=localStorage.getItem('staffora_ingame_guild')||'';
+  var page='overview';
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+  function toast(t,ty){ var el=$('toast'); el.textContent=t; el.className='toast show '+(ty||''); setTimeout(function(){ el.classList.remove('show'); },2800); }
+  function show(id){ ['view-login','view-guilds','view-app'].forEach(function(v){ $(v).classList.toggle('hidden', v!==id); }); }
+  function fmtTime(ts){ if(!ts) return '—'; try{ return new Date(ts).toLocaleString('de-DE'); }catch(e){ return '—'; } }
+  async function api(path, opts){
+    opts=opts||{};
+    var headers={ 'Authorization':'Bearer '+token, 'Content-Type':'application/json' };
+    var res=await fetch(API+path, { method:opts.method||'GET', headers:headers, body:opts.body?JSON.stringify(opts.body):undefined });
+    var data=null; try{ data=await res.json(); }catch(e){}
+    if(!res.ok) throw new Error((data&&data.error)||res.statusText||'Fehler');
+    return data;
+  }
+
+  $('btn-login').onclick=function(){
+    var apiBase=API||'https://staffora.apps.bot-hosting.cloud';
+    var ret=window.STAFFORA_RETURN||(location.origin+location.pathname);
+    location.href=apiBase+'/auth/login?return='+encodeURIComponent(ret);
+  };
+  $('btn-out').onclick=function(){
+    token=''; localStorage.removeItem('staffora_token'); localStorage.removeItem('staffora_ingame_guild'); show('view-login');
+  };
+  $('btn-server').onclick=function(){ guildId=''; localStorage.removeItem('staffora_ingame_guild'); pickGuild(); };
+
+  document.querySelectorAll('.nav-btn').forEach(function(btn){
+    btn.onclick=function(){
+      document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      page=btn.getAttribute('data-p');
+      render();
+    };
+  });
+
+  async function boot(){
+    try{
+      var m=location.search.match(/[?&]token=([^&#]+)/);
+      if(m){ token=decodeURIComponent(m[1].replace(/\+/g,' ')); try{ localStorage.setItem('staffora_token', token); }catch(e){} }
+    }catch(e){}
+    if(!token){ try{ token=localStorage.getItem('staffora_token')||''; }catch(e){} }
+    if(!token){ show('view-login'); return; }
+    try{
+      await api('/api/me');
+      try{ history.replaceState({},'', location.pathname); }catch(e){}
+    }catch(e){
+      token=''; try{ localStorage.removeItem('staffora_token'); }catch(x){}
+      show('view-login'); return;
+    }
+    if(!guildId){ await pickGuild(); return; }
+    show('view-app'); render();
+  }
+
+  async function pickGuild(){
+    show('view-guilds');
+    var list=$('guild-list'); list.innerHTML='<span class="spinner"></span>';
+    try{
+      var data=await api('/api/ingame/guilds');
+      var gs=data.guilds||data||[];
+      if(!gs.length){ list.innerHTML='<div class="empty">Kein Server</div>'; return; }
+      list.innerHTML=gs.map(function(g){
+        return '<button type="button" class="btn" style="width:100%;margin:6px 0;justify-content:flex-start" data-gid="'+esc(g.id)+'">'+esc(g.name||g.id)+'</button>';
+      }).join('');
+      list.querySelectorAll('[data-gid]').forEach(function(b){
+        b.onclick=function(){
+          guildId=b.getAttribute('data-gid');
+          localStorage.setItem('staffora_ingame_guild', guildId);
+          show('view-app'); render();
+        };
+      });
+    }catch(e){ list.innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+  }
+
+  async function render(){
+    var p=$('panel');
+    p.innerHTML='<div class="empty"><span class="spinner"></span></div>';
+    try{
+      if(page==='overview') await pageOverview(p);
+      else if(page==='lookup') await pageLookup(p);
+      else if(page==='duty') await pageDuty(p);
+      else if(page==='bans') await pageBans(p);
+      else if(page==='links') await pageLinks(p);
+      else if(page==='archive') await pageArchive(p);
+      else if(page==='support') await pageSupport(p);
+      else if(page==='unban') await pageUnban(p);
+      else if(page==='reasons') await pageReasons(p);
+      else p.innerHTML='<div class="empty">Unbekannt</div>';
+    }catch(e){ p.innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+  }
+
+  async function pageOverview(p){
+    var d={}; try{ d=await api('/api/guilds/'+guildId+'/ingame/overview'); }catch(e){ d={}; }
+    p.innerHTML='<h1>Übersicht</h1><p class="desc">Moderation · Links · Archiv (30 Tage)</p>'+
+      '<div class="stats">'+
+      st('Perm-Bans', d.permaBans)+st('Temp-Bans', d.tempBans)+st('Aktive Bans', d.activeBans)+
+      st('Aktive Warns', d.activeWarns)+st('Abgelaufene Warns', d.expiredWarns)+
+      st('Kicks (30d)', d.kicks30d)+st('Unbans', d.unbans)+st('Dizzy Links', d.links)+
+      st('Archiv-Events', d.archive30d)+
+      '</div>'+
+      '<div class="card"><h2>Letzte Aktionen</h2><ul class="timeline" id="ov-recent"></ul></div>';
+    var recent=d.recent||[];
+    var box=$('ov-recent');
+    if(!recent.length) box.innerHTML='<li class="empty">Keine Einträge</li>';
+    else box.innerHTML=recent.map(function(r){
+      return '<li><strong>'+esc(r.action||'event')+'</strong> · '+esc(r.roblox||'—')+
+        '<div class="desc">'+esc(r.reason||'')+' · '+esc(fmtTime(r.at))+'</div></li>';
+    }).join('');
+  }
+  function st(label, n){ return '<div class="stat"><span>'+esc(label)+'</span><b>'+esc(n==null?'0':n)+'</b></div>'; }
+
+  async function pageLookup(p){
+    p.innerHTML='<h1>Spieler Lookup</h1><p class="desc">Roblox-Name · Dizzy-Link, Profil, Bans, Warns &amp; Playtime</p>'+
+      '<div class="row"><input id="lk-q" placeholder="Roblox Username"/><button type="button" class="btn" id="lk-go">Suchen</button></div>'+
+      '<div id="lk-res"></div>';
+    $('lk-go').onclick=async function(){
+      var q=($('lk-q').value||'').trim(); if(!q){ toast('Name eingeben','err'); return; }
+      $('lk-res').innerHTML='<span class="spinner"></span>';
+      try{
+        var d=await api('/api/guilds/'+guildId+'/ingame/search?username='+encodeURIComponent(q));
+        var pl=d.player||{};
+        var link=d.link||pl;
+        var avatar=pl.avatar_url||(pl.roblox_user_id?('https://www.roblox.com/headshot-thumbnail/image?userId='+pl.roblox_user_id+'&width=150&height=150&format=png'):'');
+        var profile=pl.profile_url||(pl.roblox_user_id?('https://www.roblox.com/users/'+pl.roblox_user_id+'/profile'):'');
+        var html='<div class="card player">'+(avatar?'<img src="'+esc(avatar)+'" alt=""/>':'')+
+          '<div><h2 style="margin:0">'+esc(pl.roblox_username||q)+'</h2>'+
+          (pl.roblox_user_id?'<div class="desc">ID <code>'+esc(pl.roblox_user_id)+'</code></div>':'')+
+          (profile?'<div style="margin:6px 0"><a href="'+esc(profile)+'" target="_blank" rel="noopener">Roblox-Profil öffnen</a></div>':'')+
+          (pl.linked||pl.discord_id
+            ? '<span class="badge ok">Dizzy verknüpft</span> <span class="desc">Discord: '+(pl.discord_id?('<@'+esc(pl.discord_id)+'>').replace('<@','') :'')+
+              (pl.discord_id?' <code>'+esc(pl.discord_id)+'</code>':'')+'</span>'
+            : '<span class="badge warn">Kein Dizzy-Link</span>')+
+          '</div></div>';
+        var warns=d.activeWarnings||d.warnings||[];
+        var bans=d.activeBans||d.bans||[];
+        html+='<div class="card"><h2>Aktive Warns ('+warns.length+')</h2>';
+        html+=warns.length?('<table><tr><th>Grund</th><th>Wann</th></tr>'+warns.map(function(w){
+          return '<tr><td>'+esc(w.reason||'—')+'</td><td>'+esc(fmtTime(w.created_at))+'</td></tr>';
+        }).join('')+'</table>'):'<div class="empty">Keine aktiven Warns</div>';
+        html+='</div><div class="card"><h2>Bans</h2>';
+        html+=bans.length?('<table><tr><th>Art</th><th>Grund</th><th>Wann</th></tr>'+bans.map(function(b){
+          return '<tr><td>'+(b.is_perma?'Perm':'Temp')+'</td><td>'+esc(b.reason||'—')+'</td><td>'+esc(fmtTime(b.created_at))+'</td></tr>';
+        }).join('')+'</table>'):'<div class="empty">Keine aktiven Bans</div>';
+        var pt=d.playtime||{};
+        html+='</div><div class="card"><h2>⏱ Playtime</h2>';
+        if(pt.neverPlayed){
+          html+='<div class="empty">'+esc(pt.text||'User has never played on this server.')+'</div>';
+        }else if(pt.minimal){
+          html+='<div class="badge warn">'+esc(pt.text||'Too little play time to monitor.')+'</div>';
+        }else{
+          html+='<div class="stat"><span>Lifetime</span><b>'+esc(pt.totalSeconds!=null?Math.floor(pt.totalSeconds/60)+' min':(pt.text||'—'))+'</b></div>';
+          if(pt.text) html+='<p class="desc" style="margin-top:8px">'+esc(pt.text.replace(/\*\*/g,''))+'</p>';
+          if(pt.currentlyOnline) html+='<span class="badge ok">Currently online</span>';
+        }
+        html+='</div><div class="card"><h2>Aktionen</h2><div class="row">'+
+          '<button type="button" class="btn btn-warn" id="lk-warn">Warn</button>'+
+          '<button type="button" class="btn btn-err" id="lk-ban">Ban</button></div></div>';
+        $('lk-res').innerHTML=html;
+        var uname=pl.roblox_username||q;
+        $('lk-warn').onclick=async function(){
+          var reason=prompt('Warn-Grund'); if(!reason) return;
+          try{ await api('/api/guilds/'+guildId+'/ingame/warn',{method:'POST',body:{robloxUsername:uname,reason:reason}}); toast('Warn gesetzt','ok'); $('lk-go').click(); }catch(e){ toast(e.message,'err'); }
+        };
+        $('lk-ban').onclick=async function(){
+          var reason=prompt('Ban-Grund'); if(!reason) return;
+          try{ await api('/api/guilds/'+guildId+'/ingame/bans',{method:'POST',body:{robloxUsername:uname,reason:reason,isPerma:true}}); toast('Ban angelegt','ok'); $('lk-go').click(); }catch(e){ toast(e.message,'err'); }
+        };
+      }catch(e){ $('lk-res').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+    };
+  }
+
+  async function pageDuty(p){
+    p.innerHTML='<h1>On Duty</h1><p class="desc">Clock In / Out · Live-Status</p><div class="row">'+
+      '<button type="button" class="btn btn-ok" id="d-in">Clock In</button>'+
+      '<button type="button" class="btn btn-ghost" id="d-out">Clock Out</button></div><div id="d-box" class="card">…</div>';
+    async function refresh(){
+      try{
+        var d=await api('/api/guilds/'+guildId+'/schicht');
+        var open=d.open||[];
+        $('d-box').innerHTML=open.length
+          ? ('<table><tr><th>User</th><th>Seit</th></tr>'+open.map(function(s){
+              return '<tr><td>'+esc(s.discord_id||s.user_id||'')+'</td><td>'+esc(fmtTime(s.started_at||s.created_at))+'</td></tr>';
+            }).join('')+'</table>')
+          : '<div class="empty">Niemand on duty</div>';
+      }catch(e){ $('d-box').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+    }
+    $('d-in').onclick=async function(){ try{ await api('/api/guilds/'+guildId+'/schicht/in',{method:'POST',body:{}}); toast('Clock In','ok'); refresh(); }catch(e){ toast(e.message,'err'); } };
+    $('d-out').onclick=async function(){ try{ await api('/api/guilds/'+guildId+'/schicht/out',{method:'POST',body:{}}); toast('Clock Out','ok'); refresh(); }catch(e){ toast(e.message,'err'); } };
+    refresh();
+  }
+
+  async function pageBans(p){
+    p.innerHTML='<h1>Bans</h1><div id="b-box"><span class="spinner"></span></div>';
+    try{
+      var d=await api('/api/guilds/'+guildId+'/ingame/bans');
+      var bans=d.bans||d||[];
+      $('b-box').innerHTML=bans.length
+        ? ('<table><tr><th>User</th><th>Art</th><th>Grund</th><th>Wann</th><th></th></tr>'+bans.map(function(b){
+            return '<tr><td>'+esc(b.roblox_username||'')+'</td><td>'+(b.is_perma?'Perm':'Temp')+'</td><td>'+esc(b.reason||'')+'</td><td>'+esc(fmtTime(b.created_at))+'</td>'+
+              '<td><button type="button" class="btn btn-sm" data-id="'+esc(b.id)+'">Unban</button></td></tr>';
+          }).join('')+'</table>')
+        : '<div class="empty">Keine aktiven Bans</div>';
+      $('b-box').querySelectorAll('[data-id]').forEach(function(btn){
+        btn.onclick=async function(){
+          try{ await api('/api/guilds/'+guildId+'/ingame/bans/'+btn.getAttribute('data-id')+'/unban',{method:'POST',body:{}}); toast('Unban','ok'); pageBans(p); }catch(e){ toast(e.message,'err'); }
+        };
+      });
+    }catch(e){ $('b-box').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+  }
+
+  async function pageLinks(p){
+    p.innerHTML='<h1>Dizzy Links</h1><p class="desc">Discord ↔ Roblox Verknüpfungen</p><div id="l-box"><span class="spinner"></span></div>';
+    try{
+      var d=await api('/api/guilds/'+guildId+'/ingame/links');
+      var links=d.links||[];
+      $('l-box').innerHTML=links.length
+        ? ('<table><tr><th>Discord</th><th>Roblox</th><th>ID</th><th>Status</th></tr>'+links.map(function(l){
+            var url=l.roblox_user_id?('https://www.roblox.com/users/'+l.roblox_user_id+'/profile'):'';
+            return '<tr><td><code>'+esc(l.discord_id||'')+'</code></td><td>'+(url?'<a href="'+esc(url)+'" target="_blank">'+esc(l.roblox_username||'')+'</a>':esc(l.roblox_username||''))+'</td><td>'+esc(l.roblox_user_id||'—')+'</td><td><span class="badge ok">'+esc(l.status||'ok')+'</span></td></tr>';
+          }).join('')+'</table>')
+        : '<div class="empty">Keine Links</div>';
+    }catch(e){ $('l-box').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+  }
+
+  async function pageArchive(p){
+    p.innerHTML='<h1>Archiv</h1><p class="desc">Kicks, Bans, Warns und weitere Events (kein Webhook-Log-Text)</p><div id="a-box"><span class="spinner"></span></div>';
+    try{
+      var d=await api('/api/guilds/'+guildId+'/ingame/webhook-logs?days=30');
+      var logs=d.logs||[];
+      $('a-box').innerHTML=logs.length
+        ? ('<table><tr><th>Zeit</th><th>Aktion</th><th>User</th><th>Grund</th></tr>'+logs.slice(0,80).map(function(l){
+            return '<tr><td>'+esc(fmtTime(l.created_at||l.ts))+'</td><td>'+esc(l.action||'')+'</td><td>'+esc(l.roblox_username||'')+'</td><td>'+esc(l.reason||'')+'</td></tr>';
+          }).join('')+'</table>')
+        : '<div class="empty">Archiv leer</div>';
+    }catch(e){ $('a-box').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+  }
+
+  async function pageSupport(p){
+    p.innerHTML='<h1>Support Cases</h1><p class="desc">Warteraum · Admin Calls · Tickets</p>'+
+      '<div class="row"><input id="sc-q" placeholder="Suche User / Case / Supporter"/><button type="button" class="btn" id="sc-go">Suchen</button></div>'+
+      '<div id="sc-box"><span class="spinner"></span></div>';
+    async function load(){
+      var q=($('sc-q').value||'').trim();
+      try{
+        var d=await api('/api/guilds/'+guildId+'/support-cases'+(q?('?q='+encodeURIComponent(q)):''));
+        var wr=d.warteraum||[];
+        var ac=d.adminCalls||[];
+        var html='<div class="card"><h2>🎧 Warteraum ('+wr.length+')</h2>';
+        html+=wr.length?('<table><tr><th>Case</th><th>User</th><th>Staff</th><th>Status</th><th>Wann</th></tr>'+wr.slice(0,40).map(function(c){
+          return '<tr><td><code>'+esc(c.id)+'</code></td><td>'+esc(c.user_id)+'</td><td>'+esc(c.supporter_id||'—')+'</td><td>'+esc(c.status)+'</td><td>'+esc(fmtTime(c.created_at))+'</td></tr>';
+        }).join('')+'</table>'):'<div class="empty">Keine</div>';
+        html+='</div><div class="card"><h2>📞 Admin Calls ('+ac.length+')</h2>';
+        html+=ac.length?('<table><tr><th>User</th><th>Status</th><th>Wann</th></tr>'+ac.slice(0,40).map(function(c){
+          return '<tr><td>'+esc(c.user_id||c.discord_id||'')+'</td><td>'+esc(c.status||'')+'</td><td>'+esc(fmtTime(c.created_at))+'</td></tr>';
+        }).join('')+'</table>'):'<div class="empty">Keine</div>';
+        html+='</div>';
+        $('sc-box').innerHTML=html;
+      }catch(e){ $('sc-box').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+    }
+    $('sc-go').onclick=load; load();
+  }
+
+  async function pageUnban(p){
+    p.innerHTML='<h1>Unban-Anfragen</h1><div id="u-box"><span class="spinner"></span></div>';
+    try{
+      var d=await api('/api/guilds/'+guildId+'/unban-requests');
+      var list=d.requests||d||[];
+      if(!Array.isArray(list)) list=[];
+      $('u-box').innerHTML=list.length
+        ? ('<table><tr><th>Roblox</th><th>Status</th><th>Wann</th></tr>'+list.map(function(r){
+            return '<tr><td>'+esc(r.roblox_username||r.robloxUsername||'')+'</td><td>'+esc(r.status||'open')+'</td><td>'+esc(fmtTime(r.created_at))+'</td></tr>';
+          }).join('')+'</table>')
+        : '<div class="empty">Keine Anfragen</div>';
+    }catch(e){ $('u-box').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+  }
+
+  async function pageReasons(p){
+    p.innerHTML='<h1>Verstoßgründe</h1><input id="mr-q" placeholder="Suchen…" style="width:100%;margin-bottom:12px"/><div id="mr-box"><span class="spinner"></span></div>';
+    var reasons=[];
+    try{ var d=await api('/api/guilds/'+guildId+'/ingame/mod-reasons'); reasons=d.reasons||[]; }catch(e){ $('mr-box').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; return; }
+    function draw(q){
+      q=(q||'').toLowerCase();
+      var list=reasons.filter(function(r){ return !q||(r.name+' '+(r.description||'')).toLowerCase().indexOf(q)>=0; });
+      $('mr-box').innerHTML=list.length?list.map(function(r){
+        return '<div class="card"><strong>'+esc(r.name)+'</strong><div class="desc">'+esc(r.description||'')+'</div></div>';
+      }).join(''):'<div class="empty">Keine Treffer</div>';
+    }
+    $('mr-q').oninput=function(){ draw($('mr-q').value); };
+    draw('');
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

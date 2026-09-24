@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/><title>Staffora</title>
+<script>
+var p = location.pathname.replace(/\/+$/,'');
+var map = {
+  '/team': '/team/',
+  '/choose': '/choose/',
+  '/dashboard': '/dashboard/',
+  '/ic': '/ic/',
+  '/unban-request': '/unban-request/'
+};
+if (map[p]) location.replace(map[p] + location.search + location.hash);
+else location.replace('/choose/');
+</script>
+</head><body></body></html>
