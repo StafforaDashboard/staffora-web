@@ -2102,6 +2102,235 @@ body::before{
   body::before{animation:none}
   .card, .btn, .nav-btn{transition:none!important;transform:none!important}
 }
+
+
+/* ===== Official Team Dashboard · 3D Platform + FiveM Shell ===== */
+#platform-gate{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;padding:28px;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,.35), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 80%, rgba(56,189,248,.12), transparent 50%),
+    linear-gradient(165deg, #07070f 0%, #0f0a1a 45%, #0a0a12 100%);
+  perspective:1200px;
+  overflow:hidden;
+}
+#platform-gate::before{
+  content:'';position:absolute;inset:-20%;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;opacity:.5;
+}
+#platform-gate.hidden{display:none!important}
+.plat-box{max-width:820px;width:100%;position:relative;z-index:1;transform-style:preserve-3d;animation:platIn .7s cubic-bezier(.22,1,.36,1) both}
+@keyframes platIn{from{opacity:0;transform:translateY(28px) scale(.96)}to{opacity:1;transform:none}}
+.plat-box .brand{
+  text-align:center;margin-bottom:8px;
+  font-size:.75rem;letter-spacing:.22em;text-transform:uppercase;color:#a78bfa;font-weight:600;
+}
+.plat-box h1{
+  margin:0 0 10px;font-size:clamp(1.6rem,4vw,2.2rem);color:#fff;text-align:center;
+  font-weight:700;letter-spacing:-.02em;
+  text-shadow:0 0 40px rgba(124,58,237,.45);
+}
+.plat-box p.lead{text-align:center;color:#a1a1aa;margin:0 0 32px;font-size:1rem;line-height:1.5}
+.plat-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;transform-style:preserve-3d}
+@media(max-width:700px){.plat-grid{grid-template-columns:1fr}}
+.plat-card{
+  position:relative;
+  background:linear-gradient(145deg, rgba(28,28,42,.95), rgba(16,14,28,.98));
+  border:1px solid rgba(167,139,250,.28);
+  border-radius:20px;padding:28px 24px;
+  cursor:pointer;
+  transform-style:preserve-3d;
+  transition:transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s, border-color .25s;
+  box-shadow:0 10px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  overflow:hidden;
+}
+.plat-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg, rgba(124,58,237,.12), transparent 50%, rgba(56,189,248,.06));
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.plat-card:hover::before{opacity:1}
+.plat-card:hover{
+  border-color:rgba(167,139,250,.65);
+  box-shadow:0 20px 50px rgba(124,58,237,.28), 0 0 0 1px rgba(167,139,250,.2);
+  transform:translateY(-8px) rotateX(4deg) scale(1.02);
+}
+.plat-card:active{transform:translateY(-2px) scale(.99)}
+.plat-card .plat-icon{
+  width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;margin-bottom:16px;
+  background:linear-gradient(135deg, rgba(124,58,237,.35), rgba(56,189,248,.15));
+  border:1px solid rgba(167,139,250,.3);
+  box-shadow:0 8px 24px rgba(124,58,237,.2);
+}
+.plat-card h2{margin:0 0 10px;font-size:1.25rem;color:#f4f4f5;font-weight:650}
+.plat-card p{margin:0;font-size:.92rem;color:#a1a1aa;line-height:1.55}
+.plat-card .tag{
+  display:inline-flex;align-items:center;gap:6px;margin-top:16px;
+  font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  padding:6px 12px;border-radius:999px;
+  background:rgba(124,58,237,.22);color:#ddd6fe;
+  border:1px solid rgba(167,139,250,.25);
+}
+
+/* FiveM shell — official control center */
+#fivem-shell{
+  display:none;min-height:100vh;
+  background:
+    radial-gradient(ellipse 90% 50% at 10% -10%, rgba(124,58,237,.22), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 100% 50%, rgba(56,189,248,.08), transparent 45%),
+    #08080f;
+  perspective:1400px;
+}
+body.platform-fivem #fivem-shell{display:block;animation:fmShellIn .55s cubic-bezier(.22,1,.36,1) both}
+@keyframes fmShellIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+body.platform-fivem #app-root,
+body.platform-fivem .layout,
+body.platform-fivem .settings-layout{display:none!important}
+
+.fm-wrap{max-width:1120px;margin:0 auto;padding:24px 20px 48px}
+.fm-top{
+  display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:space-between;
+  margin-bottom:22px;padding:20px 22px;
+  background:linear-gradient(135deg, rgba(30,27,46,.9), rgba(18,16,32,.95));
+  border:1px solid rgba(167,139,250,.22);
+  border-radius:18px;
+  box-shadow:0 12px 40px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+  transform-style:preserve-3d;
+}
+.fm-top h2{
+  margin:0;color:#fff;font-size:1.35rem;font-weight:700;letter-spacing:-.02em;
+  display:flex;align-items:center;gap:10px;
+}
+.fm-top h2 .fm-live{
+  width:8px;height:8px;border-radius:50%;background:#34d399;
+  box-shadow:0 0 0 0 rgba(52,211,153,.6);
+  animation:fmPulse 2s ease infinite;
+}
+@keyframes fmPulse{
+  0%{box-shadow:0 0 0 0 rgba(52,211,153,.5)}
+  70%{box-shadow:0 0 0 10px rgba(52,211,153,0)}
+  100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}
+}
+.fm-top p{margin:6px 0 0;color:#a1a1aa;font-size:.9rem}
+.fm-top .btn{
+  border-radius:10px!important;transition:transform .15s,box-shadow .15s!important;
+}
+.fm-top .btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(124,58,237,.25)}
+
+.fm-tabs{
+  display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;padding:6px;
+  background:rgba(255,255,255,.03);border-radius:14px;border:1px solid rgba(255,255,255,.06);
+}
+.fm-tab{
+  padding:10px 16px;border-radius:10px;border:1px solid transparent;
+  background:transparent;color:#a1a1aa;cursor:pointer;font:inherit;font-size:.88rem;font-weight:500;
+  transition:all .2s cubic-bezier(.22,1,.36,1);
+}
+.fm-tab:hover{color:#e4e4e7;background:rgba(255,255,255,.05)}
+.fm-tab.active{
+  color:#fff;background:linear-gradient(135deg, rgba(124,58,237,.45), rgba(99,102,241,.3));
+  border-color:rgba(167,139,250,.35);
+  box-shadow:0 4px 16px rgba(124,58,237,.25);
+}
+
+.fm-card{
+  background:linear-gradient(160deg, rgba(28,26,42,.92), rgba(16,14,26,.96));
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;padding:20px 18px;margin-bottom:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);
+  transform-style:preserve-3d;
+  transition:transform .2s, box-shadow .2s, border-color .2s;
+  animation:fmCardIn .45s cubic-bezier(.22,1,.36,1) both;
+}
+.fm-card:hover{
+  border-color:rgba(167,139,250,.2);
+  box-shadow:0 14px 40px rgba(0,0,0,.28);
+  transform:translateY(-2px);
+}
+@keyframes fmCardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.fm-stat{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px}
+.fm-stat > div{
+  background:linear-gradient(145deg, rgba(0,0,0,.35), rgba(30,27,46,.4));
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;padding:14px 12px;
+  transition:transform .2s, border-color .2s;
+}
+.fm-stat > div:hover{transform:translateY(-3px) scale(1.02);border-color:rgba(167,139,250,.3)}
+.fm-stat span{display:block;font-size:.72rem;color:#a1a1aa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.fm-stat strong{font-size:1.25rem;color:#fff;font-weight:650}
+
+.fm-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.fm-table th,.fm-table td{text-align:left;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.05)}
+.fm-table th{color:#71717a;font-weight:500;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
+.fm-table tr{transition:background .15s}
+.fm-table tbody tr:hover{background:rgba(124,58,237,.08)}
+
+.fm-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:600}
+.fm-badge.on{background:rgba(52,211,153,.18);color:#6ee7b7;border:1px solid rgba(52,211,153,.25)}
+.fm-badge.off{background:rgba(248,113,113,.15);color:#fca5a5;border:1px solid rgba(248,113,113,.2)}
+.fm-code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;
+  background:rgba(0,0,0,.4);padding:12px 14px;border-radius:10px;word-break:break-all;
+  border:1px solid rgba(255,255,255,.06);color:#e4e4e7;line-height:1.5;
+}
+
+/* Staff cards + detail */
+.fm-staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px}
+.fm-staff-card{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;
+  background:linear-gradient(145deg,rgba(0,0,0,.35),rgba(30,27,46,.45));
+  border:1px solid rgba(255,255,255,.08);border-radius:14px;cursor:pointer;
+  transition:transform .18s,border-color .18s,box-shadow .18s;
+}
+.fm-staff-card:hover{
+  transform:translateY(-3px);border-color:rgba(167,139,250,.4);
+  box-shadow:0 10px 28px rgba(124,58,237,.2);
+}
+.fm-staff-av{
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#7c3aed,#6366f1);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:#fff;font-size:1rem;
+  border:2px solid rgba(167,139,250,.35);
+  overflow:hidden;
+}
+.fm-staff-av img{width:100%;height:100%;object-fit:cover}
+.fm-staff-meta{flex:1;min-width:0}
+.fm-staff-meta .nm{font-weight:650;color:#f4f4f5;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-staff-meta .rk{font-size:.8rem;color:#a78bfa;margin-top:2px}
+.fm-staff-meta .sub{font-size:.72rem;color:#71717a;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-staff-badge{font-size:.7rem;padding:3px 8px;border-radius:999px;font-weight:600}
+.fm-staff-badge.duty{background:rgba(52,211,153,.2);color:#6ee7b7}
+.fm-detail-backdrop{
+  position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  animation:fmCardIn .2s ease both;
+}
+.fm-detail{
+  width:min(520px,100%);max-height:90vh;overflow:auto;
+  background:linear-gradient(165deg,#16122a,#0c0a14);
+  border:1px solid rgba(167,139,250,.3);border-radius:18px;
+  padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.5);
+}
+.fm-detail-head{display:flex;gap:16px;align-items:center;margin-bottom:18px}
+.fm-detail-head .fm-staff-av{width:64px;height:64px;font-size:1.25rem}
+.fm-detail h3{margin:0;color:#fff;font-size:1.2rem}
+.fm-detail .muted{color:#a1a1aa;font-size:.85rem;margin-top:4px}
+.fm-detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.fm-detail-section{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)}
+.fm-detail-section h4{margin:0 0 8px;color:#e4e4e7;font-size:.9rem}
+.fm-detail label{display:block;font-size:.75rem;color:#a1a1aa;margin:8px 0 4px}
+.fm-detail select,.fm-detail input,.fm-detail textarea{
+  width:100%;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);
+  background:#0c0c14;color:#fff;font:inherit;box-sizing:border-box;
+}
+
+#fm-panel{min-height:200px}
+
 </style>
 <script id="staffora-3d-js">
 (function(){
@@ -2203,6 +2432,60 @@ body::before{
     <main class="content" id="panel"></main>
   </div>
 </div>
+
+<div id="platform-gate" class="hidden">
+  <div class="plat-box">
+    <div class="brand">Staffora Control Center</div>
+    <h1>Team Dashboard</h1>
+    <p class="lead">Wähle die Plattform. Module und Daten bleiben getrennt — klar, schnell, offiziell.</p>
+    <div class="plat-grid">
+      <div class="plat-card" id="plat-roblox" role="button" tabindex="0">
+        <div class="plat-icon">🎮</div>
+        <h2>Roblox / EH</h2>
+        <p>Tickets, Warteraum, Ausweis, Fraktionen, IC-Panel, Security und alle bestehenden EH-Module.</p>
+        <span class="tag">● Production</span>
+      </div>
+      <div class="plat-card" id="plat-fivem" role="button" tabindex="0">
+        <div class="plat-icon">🚔</div>
+        <h2>FiveM</h2>
+        <p>Server-Status, Spieler, Staff, Support, Whitelist, Cases, Linking und In-Game Admin.</p>
+        <span class="tag">● FiveM Live</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="fivem-shell">
+  <div class="fm-wrap">
+    <div class="fm-top">
+      <div>
+        <h2><span class="fm-live" aria-hidden="true"></span> FiveM Control Center</h2>
+        <p id="fm-guild-label">—</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn btn-sm" id="fm-switch-plat">Plattform wechseln</button>
+        <button type="button" class="btn btn-sm" id="fm-refresh">Aktualisieren</button>
+      </div>
+    </div>
+    <div class="fm-tabs" id="fm-tabs">
+      <button type="button" class="fm-tab active" data-fm="overview">Server</button>
+      <button type="button" class="fm-tab" data-fm="players">Players</button>
+      <button type="button" class="fm-tab" data-fm="staff">Staff</button>
+      <button type="button" class="fm-tab" data-fm="support">Support</button>
+      <button type="button" class="fm-tab" data-fm="queue">Queue</button>
+      <button type="button" class="fm-tab" data-fm="apps">Applications</button>
+      <button type="button" class="fm-tab" data-fm="whitelist">Whitelist</button>
+      <button type="button" class="fm-tab" data-fm="cases">Cases</button>
+      <button type="button" class="fm-tab" data-fm="economy">Economy</button>
+      <button type="button" class="fm-tab" data-fm="modmail">Modmail</button>
+      <button type="button" class="fm-tab" data-fm="analytics">Analytics</button>
+      <button type="button" class="fm-tab" data-fm="logs">Logs</button>
+      <button type="button" class="fm-tab" data-fm="presets">Presets</button>
+      <button type="button" class="fm-tab" data-fm="setup">Setup</button>
+    </div>
+    <div id="fm-panel"></div>
+  </div>
+</div>
+
 <div id="toasts"></div>
 <div id="modal-root"></div>
 
@@ -2234,6 +2517,461 @@ body::before{
     try{ sessionStorage.setItem('staffora_token', token); }catch(e){}
   }
   var me=null, guilds=[], guildId=null, page='settings';
+
+  // ——— Platform: Roblox vs FiveM ———
+  var platform = null;
+  try { platform = sessionStorage.getItem('staffora_platform') || localStorage.getItem('staffora_platform'); } catch(e){}
+  function setPlatform(p){
+    platform = p;
+    try { sessionStorage.setItem('staffora_platform', p); localStorage.setItem('staffora_platform', p); } catch(e){}
+    document.body.classList.toggle('platform-fivem', p === 'fivem');
+    document.body.classList.toggle('platform-roblox', p === 'roblox');
+    var gate = document.getElementById('platform-gate');
+    if (gate) gate.classList.add('hidden');
+    // Persist per-server: only this platform's Discord commands stay active
+    if (guildId && typeof api === 'function') {
+      api('/api/guilds/'+guildId+'/settings', {
+        method: 'PATCH',
+        body: { activePlatform: p }
+      }).then(function(){
+        try { toast(p==='fivem' ? 'FiveM aktiv — Roblox-Commands ausgeblendet' : 'Roblox/EH aktiv — FiveM-Commands ausgeblendet', 'ok'); } catch(e){}
+      }).catch(function(e){
+        try { toast((e&&e.message)||'Plattform gespeichert lokal', 'err'); } catch(e2){}
+      });
+    }
+    if (p === 'fivem') {
+      try { document.getElementById('fm-guild-label').textContent = (guilds.find(function(g){return g.id===guildId})||{}).name || guildId || '—'; } catch(e){}
+      if (typeof fmLoad === 'function') fmLoad('overview');
+    }
+  }
+  function showPlatformGate(){
+    var gate = document.getElementById('platform-gate');
+    if (gate) gate.classList.remove('hidden');
+  }
+  function ensurePlatform(){
+    if (platform === 'fivem' || platform === 'roblox') {
+      setPlatform(platform);
+      return;
+    }
+    showPlatformGate();
+  }
+  (function wirePlatform(){
+    var r = document.getElementById('plat-roblox');
+    var f = document.getElementById('plat-fivem');
+    if (r) r.onclick = function(){ setPlatform('roblox'); };
+    if (f) f.onclick = function(){ setPlatform('fivem'); };
+    var sw = document.getElementById('fm-switch-plat');
+    if (sw) sw.onclick = function(){ platform = null; try{sessionStorage.removeItem('staffora_platform');localStorage.removeItem('staffora_platform');}catch(e){} showPlatformGate(); document.body.classList.remove('platform-fivem'); };
+    var rf = document.getElementById('fm-refresh');
+    if (rf) rf.onclick = function(){ if (typeof fmLoad==='function') fmLoad(window.__fmTab||'overview'); };
+    var tabs = document.getElementById('fm-tabs');
+    if (tabs) tabs.onclick = function(e){
+      var b = e.target.closest('.fm-tab'); if(!b) return;
+      tabs.querySelectorAll('.fm-tab').forEach(function(x){x.classList.remove('active')});
+      b.classList.add('active');
+      fmLoad(b.getAttribute('data-fm'));
+    };
+  })();
+
+  async function fmApi(path, opts){
+    opts = opts || {};
+    return api('/api/fivem' + path, opts);
+  }
+
+
+  function closeStaffDetail(){
+    var b=document.querySelector('.fm-detail-backdrop');
+    if(b) b.remove();
+  }
+  async function openStaffDetail(idx){
+    var members = window.__fmStaffMembers||[];
+    var ranks = window.__fmStaffRanks||[];
+    var m = members[idx];
+    if(!m) return;
+    closeStaffDetail();
+    function initials(n){
+      n=String(n||'?').trim();
+      var p=n.split(/[\s_]+/).filter(Boolean);
+      if(p.length>=2) return (p[0][0]+p[1][0]).toUpperCase();
+      return n.slice(0,2).toUpperCase();
+    }
+    var av = m.discordId ? 'https://cdn.discordapp.com/embed/avatars/'+(Number(String(m.discordId).slice(-1))%6)+'.png' : '';
+    var casesHtml = '<p style="color:#a1a1aa;font-size:.85rem">Lade…</p>';
+    var bd = document.createElement('div');
+    bd.className = 'fm-detail-backdrop';
+    bd.innerHTML = '<div class="fm-detail" onclick="event.stopPropagation()">'+
+      '<div class="fm-detail-head">'+
+        '<div class="fm-staff-av">'+(av?'<img src="'+esc(av)+'" alt="">':esc(initials(m.name)))+'</div>'+
+        '<div><h3>'+esc(m.name||'Staff')+'</h3>'+
+        '<div class="muted">'+esc(m.rankId||'')+(m.duty?' · On duty':'')+'</div>'+
+        '<div class="muted" style="font-family:monospace;font-size:.75rem;margin-top:4px">'+esc(m.license||'')+'</div></div></div>'+
+      '<div class="fm-detail-section"><h4>Profil</h4>'+
+        '<p style="color:#e4e4e7;margin:0;font-size:.9rem">Discord: '+(m.discordId?'<code>'+esc(m.discordId)+'</code>':'—')+'</p>'+
+        '<p style="color:#a1a1aa;margin:6px 0 0;font-size:.85rem">Note: '+esc(m.note||'—')+'</p></div>'+
+      '<div class="fm-detail-section"><h4>Rank ändern</h4>'+
+        '<select id="fm-det-rank">'+ranks.map(function(r){return '<option value="'+esc(r.id)+'"'+(r.id===m.rankId?' selected':'')+'>'+esc(r.name||r.id)+'</option>';}).join('')+'</select>'+
+        '<label>Notiz</label><input id="fm-det-note" value="'+esc(m.note||'')+'" placeholder="Interne Notiz">'+
+        '<label>Discord ID</label><input id="fm-det-dc" value="'+esc(m.discordId||'')+'" placeholder="Discord snowflake"></div>'+
+      '<div class="fm-detail-section"><h4>Moderation (Case)</h4>'+
+        '<label>Grund</label><input id="fm-det-reason" placeholder="Grund">'+
+        '<div class="fm-detail-actions" style="margin-top:10px">'+
+        '<button type="button" class="btn btn-sm" id="fm-det-warn">Warn</button>'+
+        '<button type="button" class="btn btn-sm" id="fm-det-kick">Kick</button>'+
+        '<button type="button" class="btn btn-sm" id="fm-det-ban">Ban</button></div></div>'+
+      '<div class="fm-detail-section"><h4>Cases</h4><div id="fm-det-cases">'+casesHtml+'</div></div>'+
+      '<div class="fm-detail-actions">'+
+        '<button type="button" class="btn btn-p btn-sm" id="fm-det-save">Speichern</button>'+
+        '<button type="button" class="btn btn-sm" id="fm-det-remove" style="color:#fca5a5">Staff entfernen</button>'+
+        '<button type="button" class="btn btn-sm" id="fm-det-close">Schließen</button></div></div>';
+    bd.onclick=function(e){ if(e.target===bd) closeStaffDetail(); };
+    document.body.appendChild(bd);
+    document.getElementById('fm-det-close').onclick=closeStaffDetail;
+    document.getElementById('fm-det-save').onclick=async function(){
+      try{
+        await fmApi('/guilds/'+guildId+'/staff',{method:'POST',body:{
+          license:m.license,
+          name:m.name,
+          rankId:(document.getElementById('fm-det-rank')||{}).value,
+          note:(document.getElementById('fm-det-note')||{}).value,
+          discordId:(document.getElementById('fm-det-dc')||{}).value||undefined
+        }});
+        toast('Gespeichert','ok'); closeStaffDetail(); fmLoad('staff');
+      }catch(e){toast(e.message||'Fehler','err');}
+    };
+    document.getElementById('fm-det-remove').onclick=async function(){
+      if(!confirm('Staff wirklich entfernen?')) return;
+      try{
+        await fmApi('/guilds/'+guildId+'/staff/'+encodeURIComponent(m.license),{method:'DELETE'});
+        toast('Entfernt','ok'); closeStaffDetail(); fmLoad('staff');
+      }catch(e){toast(e.message||'Fehler','err');}
+    };
+    async function makeCase(type){
+      var reason=(document.getElementById('fm-det-reason')||{}).value||'Staffora';
+      try{
+        await fmApi('/guilds/'+guildId+'/cases',{method:'POST',body:{
+          type:type, targetLicense:m.license, targetName:m.name, targetDiscord:m.discordId, reason:reason
+        }});
+        toast(type+' erstellt','ok');
+        loadCases();
+      }catch(e){toast(e.message||'Fehler','err');}
+    }
+    document.getElementById('fm-det-warn').onclick=function(){makeCase('warn');};
+    document.getElementById('fm-det-kick').onclick=function(){makeCase('kick');};
+    document.getElementById('fm-det-ban').onclick=function(){makeCase('ban');};
+    async function loadCases(){
+      var el=document.getElementById('fm-det-cases');
+      if(!el) return;
+      try{
+        var data=await fmApi('/guilds/'+guildId+'/players/'+encodeURIComponent(m.license));
+        var cases=(data.cases||[]).slice(0,8);
+        el.innerHTML = cases.length
+          ? '<table class="fm-table"><tr><th>ID</th><th>Typ</th><th>Grund</th></tr>'+
+            cases.map(function(c){return '<tr><td>'+esc(c.caseId)+'</td><td>'+esc(c.type)+'</td><td>'+esc(c.reason)+'</td></tr>';}).join('')+
+            '</table>'
+          : '<p style="color:#a1a1aa;margin:0;font-size:.85rem">Keine Cases.</p>';
+      }catch(e){
+        el.innerHTML='<p style="color:#a1a1aa;margin:0;font-size:.85rem">—</p>';
+      }
+    }
+    loadCases();
+  }
+
+  async function fmLoad(tab){
+    window.__fmTab = tab || 'overview';
+    var panel = document.getElementById('fm-panel');
+    if (!panel) return;
+    if (!guildId) {
+      panel.innerHTML = '<div class="fm-card"><p>Bitte zuerst einen Discord-Server wählen (Roblox-Dashboard kurz öffnen oder Server in der Session speichern).</p></div>';
+      return;
+    }
+    panel.innerHTML = '<div class="fm-card">Lade…</div>';
+    try {
+      if (tab === 'overview' || tab === 'setup') {
+        var data = await fmApi('/guilds/' + guildId + (tab==='setup'?'?revealKey=1':''));
+        var s = data.server || {};
+        var online = data.onlinePlayers || [];
+        if (tab === 'setup') {
+          panel.innerHTML =
+            '<div class="fm-card"><h3 style="margin-top:0;color:#fff">FiveM verbinden</h3>'+
+            '<p style="color:#a1a1aa">1. Resource <code>staffora</code> auf den FiveM-Server legen<br>2. API-URL + Key in server.cfg setzen<br>3. <code>ensure staffora</code></p>'+
+            '<p><strong style="color:#e4e4e7">API URL</strong></p><div class="fm-code">'+esc(API)+'</div>'+
+            '<p style="margin-top:12px"><strong style="color:#e4e4e7">API Key</strong></p><div class="fm-code" id="fm-key">'+esc(s.apiKey||'—')+'</div>'+
+            '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">'+
+            '<button type="button" class="btn btn-p btn-sm" id="fm-setup-save">Server registrieren</button>'+
+            '<button type="button" class="btn btn-sm" id="fm-rotate">Key neu erzeugen</button>'+'<button type="button" class="btn btn-sm" id="fm-link-code">Mein Link-Code</button></div>'+
+            '<p style="margin-top:14px;color:#a1a1aa;font-size:.85rem">server.cfg Beispiel:</p>'+
+            '<div class="fm-code">set staffora_api_url "'+esc(API)+'"\nset staffora_api_key "DEIN_KEY"\nensure staffora</div></div>';
+          var btn = document.getElementById('fm-setup-save');
+          if (btn) btn.onclick = async function(){
+            try {
+              await fmApi('/guilds/'+guildId+'/setup',{method:'POST',body:{name:'FiveM',enabled:true}});
+              toast('FiveM Server registriert','ok');
+              fmLoad('setup');
+            } catch(e){ toast(e.message||'Fehler','err'); }
+          };
+          var rot = document.getElementById('fm-rotate');
+          var lc=document.getElementById('fm-link-code');
+          if(lc) lc.onclick=async function(){
+            try{
+              var r=await fmApi('/guilds/'+guildId+'/link-code',{method:'POST',body:{}});
+              toast('Code: '+r.code+' — Ingame /stafforalink '+r.code,'ok');
+            }catch(e){toast(e.message||'Fehler','err');}
+          };
+          if (rot) rot.onclick = async function(){
+            if(!confirm('API Key wirklich neu erzeugen? Resource Config anpassen!')) return;
+            try {
+              await fmApi('/guilds/'+guildId+'/rotate-key',{method:'POST',body:{}});
+              toast('Neuer Key','ok');
+              fmLoad('setup');
+            } catch(e){ toast(e.message||'Fehler','err'); }
+          };
+          return;
+        }
+        var st = s.status || 'offline';
+        panel.innerHTML =
+          '<div class="fm-card"><h3 style="margin:0 0 14px;color:#fff;font-size:1rem;font-weight:600">Server Overview</h3><div class="fm-stat">'+
+          '<div><span>Status</span><strong><span class="fm-badge '+(st==='online'?'on':'off')+'">'+(st==='online'?'● Online':'○ Offline')+'</span></strong></div>'+
+          '<div><span>Players</span><strong>'+esc(String(s.playerCount||0))+' <span style="color:#71717a;font-size:.9rem">/ '+esc(String(s.maxSlots||'?'))+'</span></strong></div>'+
+          '<div><span>Queue</span><strong>'+esc(String(s.queueCount||0))+'</strong></div>'+
+          '<div><span>Uptime</span><strong>'+esc(String(Math.floor((s.uptimeSec||0)/60)))+' <span style="color:#71717a;font-size:.85rem">min</span></strong></div>'+
+          '<div><span>Heartbeat</span><strong style="font-size:1rem">'+(s.lastHeartbeat?esc(fmtTime(s.lastHeartbeat)):'—')+'</strong></div>'+
+          '<div><span>Build</span><strong style="font-size:1rem">'+esc(s.version||'—')+'</strong></div></div></div>'+
+          '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Online jetzt ('+online.length+')</h3>'+
+          (online.length?('<table class="fm-table"><tr><th>ID</th><th>Name</th><th>License</th><th>Ping</th></tr>'+
+            online.map(function(p){return '<tr><td>'+esc(p.serverId)+'</td><td>'+esc(p.name)+'</td><td>'+esc(String(p.license||'').slice(0,24))+'</td><td>'+esc(p.ping)+'</td></tr>';}).join('')+
+            '</table>'):'<p style="color:#a1a1aa;margin:0">Keine Spieler / noch kein Heartbeat.</p>')+
+          '</div>';
+        return;
+      }
+      if (tab === 'players') {
+        var pl = await fmApi('/guilds/'+guildId+'/players');
+        var players = pl.players || [];
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Spieler ('+players.length+')</h3>'+
+          (players.length?('<table class="fm-table"><tr><th>Name</th><th>Online</th><th>License</th><th>Zuletzt</th></tr>'+
+          players.map(function(p){return '<tr><td>'+esc(p.name)+'</td><td>'+(p.online?'<span class="fm-badge on">online</span>':'<span class="fm-badge off">offline</span>')+'</td><td>'+esc(String(p.license||'').slice(0,28))+'</td><td>'+esc(fmtTime(p.lastSeen))+'</td></tr>';}).join('')+
+          '</table>'):'<p style="color:#a1a1aa">Noch keine Spielerdaten.</p>')+'</div>';
+        return;
+      }
+      if (tab === 'whitelist') {
+        var wl = await fmApi('/guilds/'+guildId+'/whitelist');
+        var entries = wl.whitelist || [];
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Whitelist</h3>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'+
+          '<input id="fm-wl-lic" placeholder="license:..." style="flex:1;min-width:180px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<input id="fm-wl-name" placeholder="Name" style="width:140px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<button type="button" class="btn btn-p btn-sm" id="fm-wl-add">Hinzufügen</button></div>'+
+          (entries.length?('<table class="fm-table"><tr><th>License</th><th>Name</th><th></th></tr>'+
+          entries.map(function(e){return '<tr><td>'+esc(e.license)+'</td><td>'+esc(e.name||'—')+'</td><td><button type="button" class="btn btn-sm fm-wl-rm" data-lic="'+esc(e.license)+'">Entfernen</button></td></tr>';}).join('')+
+          '</table>'):'<p style="color:#a1a1aa">Whitelist leer.</p>')+'</div>';
+        var add = document.getElementById('fm-wl-add');
+        if (add) add.onclick = async function(){
+          var lic = (document.getElementById('fm-wl-lic')||{}).value;
+          var name = (document.getElementById('fm-wl-name')||{}).value;
+          if(!lic) return toast('License nötig','err');
+          try {
+            await fmApi('/guilds/'+guildId+'/whitelist',{method:'POST',body:{license:lic,name:name}});
+            toast('Hinzugefügt','ok'); fmLoad('whitelist');
+          } catch(e){ toast(e.message||'Fehler','err'); }
+        };
+        panel.querySelectorAll('.fm-wl-rm').forEach(function(btn){
+          btn.onclick = async function(){
+            try {
+              await fmApi('/guilds/'+guildId+'/whitelist/'+encodeURIComponent(btn.getAttribute('data-lic')),{method:'DELETE'});
+              toast('Entfernt','ok'); fmLoad('whitelist');
+            } catch(e){ toast(e.message||'Fehler','err'); }
+          };
+        });
+        return;
+      }
+
+
+
+      if (tab === 'presets') {
+        var pr = await fmApi('/guilds/'+guildId+'/presets');
+        var presets = pr.presets||[];
+        var uniforms = pr.uniforms||[];
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Permission Presets</h3>'+
+          (presets.map(function(x){return '<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)"><strong style="color:#fff">'+esc(x.name)+'</strong> <span style="color:#a1a1aa">('+esc(x.id)+')</span><p style="color:#a1a1aa;margin:6px 0;font-size:.85rem">'+(x.permissions||[]).map(esc).join(', ')+'</p></div>';}).join('')||'<p style="color:#a1a1aa">No presets</p>')+
+          '</div><div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Uniforms / NameTags</h3>'+
+          (uniforms.map(function(u){return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0"><span style="width:12px;height:12px;border-radius:50%;background:'+esc(u.color||'#a78bfa')+'"></span><span style="color:#fff">'+esc(u.label)+'</span> <span style="color:#71717a">'+esc(u.rankId)+'</span></div>';}).join('')||'')+
+          '<p style="color:#a1a1aa;font-size:.85rem;margin-top:12px">Ranks & outfits sync with Staff tab. In-game duty uses rankId.</p></div>';
+        return;
+      }
+
+      if (tab === 'queue') {
+        var q = await fmApi('/guilds/'+guildId+'/queue');
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Queue</h3>'+
+          '<p style="color:#a1a1aa">Enabled: <strong style="color:#fff">'+(q.enabled?'Yes':'No')+'</strong> · Waiting: <strong style="color:#fff">'+(q.waiting||[]).length+'</strong></p>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">'+
+          '<button type="button" class="btn btn-p btn-sm" id="fm-q-on">Enable</button>'+
+          '<button type="button" class="btn btn-sm" id="fm-q-off">Disable</button>'+
+          '<button type="button" class="btn btn-sm" id="fm-q-next">Admit next 1</button></div>'+
+          ((q.waiting||[]).length?('<table class="fm-table"><tr><th>#</th><th>Name</th><th>License</th></tr>'+
+          q.waiting.map(function(w,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(w.name||'—')+'</td><td>'+esc(String(w.license||'').slice(0,28))+'</td></tr>';}).join('')+
+          '</table>'):'<p style="color:#a1a1aa">Queue empty. In-game: /stafforaqueue join</p>')+'</div>';
+        document.getElementById('fm-q-on').onclick=async function(){await fmApi('/guilds/'+guildId+'/queue/enabled',{method:'POST',body:{enabled:true}});toast('Queue on','ok');fmLoad('queue');};
+        document.getElementById('fm-q-off').onclick=async function(){await fmApi('/guilds/'+guildId+'/queue/enabled',{method:'POST',body:{enabled:false}});toast('Queue off','ok');fmLoad('queue');};
+        document.getElementById('fm-q-next').onclick=async function(){await fmApi('/guilds/'+guildId+'/queue/next',{method:'POST',body:{count:1}});toast('Admitted','ok');fmLoad('queue');};
+        return;
+      }
+      if (tab === 'apps') {
+        var apps = await fmApi('/guilds/'+guildId+'/applications?status=pending');
+        var list = apps.submissions||[];
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Pending Applications ('+list.length+')</h3>'+
+          (list.length?('<table class="fm-table"><tr><th>ID</th><th>Type</th><th>Name</th><th></th></tr>'+
+          list.map(function(a){return '<tr><td>'+esc(a.appId)+'</td><td>'+esc(a.typeName)+'</td><td>'+esc(a.name||a.license)+'</td><td>'+
+            '<button type="button" class="btn btn-sm fm-app-ok" data-id="'+esc(a.id)+'">Accept</button> '+
+            '<button type="button" class="btn btn-sm fm-app-no" data-id="'+esc(a.id)+'">Deny</button></td></tr>';}).join('')+
+          '</table>'):'<p style="color:#a1a1aa">No pending apps.</p>')+'</div>';
+        panel.querySelectorAll('.fm-app-ok').forEach(function(b){b.onclick=async function(){await fmApi('/guilds/'+guildId+'/applications/'+b.getAttribute('data-id')+'/review',{method:'POST',body:{status:'accepted'}});toast('Accepted','ok');fmLoad('apps');};});
+        panel.querySelectorAll('.fm-app-no').forEach(function(b){b.onclick=async function(){await fmApi('/guilds/'+guildId+'/applications/'+b.getAttribute('data-id')+'/review',{method:'POST',body:{status:'denied'}});toast('Denied','ok');fmLoad('apps');};});
+        return;
+      }
+      if (tab === 'economy') {
+        var eco = await fmApi('/guilds/'+guildId+'/economy');
+        var txs = eco.transactions||[];
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Donations / Economy</h3>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'+
+          '<input id="fm-eco-prod" placeholder="Product" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<input id="fm-eco-amt" placeholder="Amount" style="width:90px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<input id="fm-eco-lic" placeholder="license optional" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<button type="button" class="btn btn-p btn-sm" id="fm-eco-add">Log TX</button></div>'+
+          (txs.length?('<table class="fm-table"><tr><th>Product</th><th>Amount</th><th>Reward</th><th></th></tr>'+
+          txs.map(function(x){return '<tr><td>'+esc(x.product)+'</td><td>'+esc(x.amount)+' '+esc(x.currency)+'</td><td>'+esc(x.rewardStatus)+'</td><td><button type="button" class="btn btn-sm fm-eco-deliv" data-id="'+esc(x.id)+'">Mark delivered</button></td></tr>';}).join('')+
+          '</table>'):'<p style="color:#a1a1aa">No transactions. Webhook: POST /api/fivem/webhooks/tebex/<guildId></p>')+'</div>';
+        document.getElementById('fm-eco-add').onclick=async function(){
+          await fmApi('/guilds/'+guildId+'/economy',{method:'POST',body:{product:(document.getElementById('fm-eco-prod')||{}).value,amount:Number((document.getElementById('fm-eco-amt')||{}).value)||0,license:(document.getElementById('fm-eco-lic')||{}).value}});
+          toast('Logged','ok');fmLoad('economy');
+        };
+        panel.querySelectorAll('.fm-eco-deliv').forEach(function(b){b.onclick=async function(){await fmApi('/guilds/'+guildId+'/economy/'+b.getAttribute('data-id')+'/reward',{method:'POST',body:{status:'delivered'}});toast('Delivered','ok');fmLoad('economy');};});
+        return;
+      }
+      if (tab === 'modmail') {
+        var mm = await fmApi('/guilds/'+guildId+'/modmail');
+        var threads = (mm.threads||[]).filter(function(x){return x.status==='open'});
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Open Modmail ('+threads.length+')</h3>'+
+          (threads.length?threads.map(function(th){
+            var last=(th.messages||[]).slice(-1)[0];
+            return '<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)"><strong style="color:#fff">'+esc(th.username||th.discordId)+'</strong> · '+esc(th.threadId)+
+              '<p style="color:#a1a1aa;margin:6px 0">'+esc(last?last.text:'')+'</p>'+
+              '<button type="button" class="btn btn-sm fm-mm-close" data-id="'+esc(th.id)+'">Close</button></div>';
+          }).join(''):'<p style="color:#a1a1aa">No open threads.</p>')+'</div>';
+        panel.querySelectorAll('.fm-mm-close').forEach(function(b){b.onclick=async function(){await fmApi('/guilds/'+guildId+'/modmail/'+b.getAttribute('data-id')+'/close',{method:'POST',body:{}});toast('Closed','ok');fmLoad('modmail');};});
+        return;
+      }
+      if (tab === 'analytics') {
+        var an = await fmApi('/guilds/'+guildId+'/analytics');
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 14px;color:#fff">Analytics</h3><div class="fm-stat">'+
+          '<div><span>Players total</span><strong>'+esc(an.playersTotal)+'</strong></div>'+
+          '<div><span>Online</span><strong>'+esc(an.playersOnline)+'</strong></div>'+
+          '<div><span>Cases</span><strong>'+esc(an.casesTotal)+'</strong></div>'+
+          '<div><span>Cases 7d</span><strong>'+esc(an.casesWeek)+'</strong></div>'+
+          '<div><span>Support open</span><strong>'+esc(an.supportOpen)+'</strong></div>'+
+          '<div><span>Apps pending</span><strong>'+esc(an.appsPending)+'</strong></div>'+
+          '<div><span>Donations 7d</span><strong>'+esc(an.donationsWeek)+'</strong></div>'+
+          '<div><span>Queue</span><strong>'+esc((an.queue&&an.queue.waiting||[]).length)+'</strong></div></div></div>';
+        return;
+      }
+
+
+      if (tab === 'staff') {
+        var st = await fmApi('/guilds/'+guildId+'/staff');
+        var members = Object.values(st.members||{});
+        var ranks = st.ranks||[];
+        function initials(n){
+          n=String(n||'?').trim();
+          var p=n.split(/[\s_]+/).filter(Boolean);
+          if(p.length>=2) return (p[0][0]+p[1][0]).toUpperCase();
+          return n.slice(0,2).toUpperCase();
+        }
+        function avatarUrl(m){
+          if(m.discordId) return 'https://cdn.discordapp.com/embed/avatars/'+(Number(String(m.discordId).slice(-1))%6)+'.png';
+          return '';
+        }
+        window.__fmStaffMembers = members;
+        window.__fmStaffRanks = ranks;
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 6px;color:#fff">Staff ('+members.length+')</h3>'+
+          '<p style="color:#a1a1aa;font-size:.85rem;margin:0 0 12px">Profil + Name — tippe für Details & Aktionen</p>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">'+
+          '<input id="fm-st-lic" placeholder="license:..." style="flex:1;min-width:140px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<input id="fm-st-name" placeholder="Name" style="width:120px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<input id="fm-st-dc" placeholder="Discord ID (optional)" style="width:140px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<select id="fm-st-rank" style="padding:8px;border-radius:8px;background:#0c0c14;color:#fff;border:1px solid rgba(255,255,255,.12)">'+
+          ranks.map(function(r){return '<option value="'+esc(r.id)+'">'+esc(r.name||r.id)+'</option>';}).join('')+
+          '</select>'+
+          '<button type="button" class="btn btn-p btn-sm" id="fm-st-add">Staff setzen</button></div>'+
+          (members.length
+            ? '<div class="fm-staff-grid">'+members.map(function(m,idx){
+                var av=avatarUrl(m);
+                return '<div class="fm-staff-card" data-idx="'+idx+'" role="button" tabindex="0">'+
+                  '<div class="fm-staff-av">'+(av?'<img src="'+esc(av)+'" alt="">':esc(initials(m.name)))+'</div>'+
+                  '<div class="fm-staff-meta"><div class="nm">'+esc(m.name||'—')+'</div>'+
+                  '<div class="rk">'+esc(m.rankId||'—')+(m.duty?' <span class="fm-staff-badge duty">On duty</span>':'')+'</div>'+
+                  '<div class="sub">'+esc(String(m.license||'').slice(0,28))+(m.discordId?' · DC':'')+'</div></div></div>';
+              }).join('')+'</div>'
+            : '<p style="color:#a1a1aa">Noch keine Staff-Mitglieder.</p>')+
+          '<p style="color:#a1a1aa;font-size:.85rem;margin-top:12px">In-game: /aduty · Menü F9</p></div>';
+        var add=document.getElementById('fm-st-add');
+        if(add) add.onclick=async function(){
+          try{
+            await fmApi('/guilds/'+guildId+'/staff',{method:'POST',body:{
+              license:(document.getElementById('fm-st-lic')||{}).value,
+              name:(document.getElementById('fm-st-name')||{}).value,
+              discordId:(document.getElementById('fm-st-dc')||{}).value||undefined,
+              rankId:(document.getElementById('fm-st-rank')||{}).value
+            }});
+            toast('Staff gesetzt','ok'); fmLoad('staff');
+          }catch(e){toast(e.message||'Fehler','err');}
+        };
+        panel.querySelectorAll('.fm-staff-card').forEach(function(card){
+          card.onclick=function(){ openStaffDetail(Number(card.getAttribute('data-idx'))); };
+        });
+        return;
+      }
+      if (tab === 'support') {
+        var sup = await fmApi('/guilds/'+guildId+'/support');
+        var active = sup.active||[];
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Offene Support-Anfragen ('+active.length+')</h3>'+
+          (active.length?('<table class="fm-table"><tr><th>ID</th><th>Spieler</th><th>Nachricht</th><th>Status</th><th></th></tr>'+
+          active.map(function(r){return '<tr><td>'+esc(r.requestId)+'</td><td>'+esc(r.name||r.license)+'</td><td>'+esc(r.message)+'</td><td>'+esc(r.status)+'</td><td>'+
+            '<button type="button" class="btn btn-sm fm-sup-close" data-id="'+esc(r.id)+'">Schließen</button></td></tr>';}).join('')+
+          '</table>'):'<p style="color:#a1a1aa">Keine offenen Anfragen. Spieler: /support</p>')+'</div>';
+        panel.querySelectorAll('.fm-sup-close').forEach(function(btn){
+          btn.onclick=async function(){
+            try{ await fmApi('/guilds/'+guildId+'/support/'+btn.getAttribute('data-id')+'/close',{method:'POST',body:{}}); toast('Geschlossen','ok'); fmLoad('support'); }
+            catch(e){toast(e.message||'Fehler','err');}
+          };
+        });
+        return;
+      }
+      if (tab === 'logs') {
+        var lg = await fmApi('/guilds/'+guildId+'/logs?limit=80');
+        var logs = lg.logs||[];
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Audit Logs</h3>'+
+          (logs.length?('<table class="fm-table"><tr><th>Zeit</th><th>Kat.</th><th>Aktion</th><th>Ziel</th></tr>'+
+          logs.map(function(l){return '<tr><td>'+esc(fmtTime(l.at))+'</td><td>'+esc(l.category)+'</td><td>'+esc(l.action)+'</td><td>'+esc(l.targetName||l.target||'—')+'</td></tr>';}).join('')+
+          '</table>'):'<p style="color:#a1a1aa">Noch keine Logs.</p>')+'</div>';
+        return;
+      }
+
+      if (tab === 'cases') {
+        var cs = await fmApi('/guilds/'+guildId+'/cases');
+        var cases = cs.cases || [];
+        panel.innerHTML = '<div class="fm-card"><h3 style="margin:0 0 10px;color:#fff">Cases / Strafen</h3>'+
+          '<p style="color:#a1a1aa;font-size:.9rem">Phase 1: Anzeige + manuell anlegen. Kick/Ban an die Resource folgt in Phase 4.</p>'+
+          (cases.length?('<table class="fm-table"><tr><th>ID</th><th>Typ</th><th>Ziel</th><th>Grund</th><th>Staff</th></tr>'+
+          cases.map(function(c){return '<tr><td>'+esc(c.caseId)+'</td><td>'+esc(c.type)+'</td><td>'+esc(c.targetName||c.targetLicense)+'</td><td>'+esc(c.reason)+'</td><td>'+esc(c.staffName||'—')+'</td></tr>';}).join('')+
+          '</table>'):'<p style="color:#a1a1aa">Keine Cases.</p>')+'</div>';
+        return;
+      }
+    } catch(e) {
+      panel.innerHTML = '<div class="fm-card"><p style="color:#fca5a5">'+esc(e.message||String(e))+'</p><p style="color:#a1a1aa">Unter Setup den Server registrieren. API muss erreichbar sein.</p></div>';
+    }
+  }
+
+  // After guild is chosen, show platform gate if needed
+  var _origSelectGuild = typeof selectGuild === 'function' ? selectGuild : null;
+
   try{
     var _sp=sessionStorage.getItem('staffora_page');
     if(!_sp || _sp==='overview' || _sp==='online' || _sp==='activity'){
@@ -2548,7 +3286,8 @@ async function api(path,opts){
   async function enterGuild(id){
     if(!id) return;
     guildId=String(id);
-    try{ sessionStorage.setItem('staffora_guild', guildId); }catch(e){}
+    try{ sessionStorage.setItem('staffora_guild', guildId);
+    try{ ensurePlatform(); }catch(e){} }catch(e){}
     var sel=$('guild-sel');
     if(sel){
       if(!sel.querySelector('option[value="'+guildId.replace(/"/g,'')+'"]') && guilds.length){
@@ -8787,6 +9526,7 @@ async function api(path,opts){
 
 
   boot();
+  try { if (token) ensurePlatform(); } catch(e){}
 })();
 </script>
 </body>
