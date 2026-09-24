@@ -196,22 +196,23 @@ button{font:inherit}
   <header class="top">
     <div class="brand"><span class="logo">S</span> STAFFORA</div>
     <nav class="nav">
+      <a href="#platforms">Plattform</a>
       <a href="#features">Module</a>
-      <a href="./dashboard.html">Dashboard</a>
-      <a href="./ingame.html">IC Panel</a>
-      <a href="./unban.html">Ban Appeal</a>
+      <a href="#fivem-plugin">FiveM Plugin</a>
+      <a href="./ic/">IC Panel</a>
+      <a href="./unban-request/">Ban Appeal</a>
     </nav>
-    <a class="btn btn-p" id="login" href="#">Mit Discord anmelden</a>
+    <a class="btn btn-p" href="./choose/">Dashboard wählen</a>
   </header>
 
   <section class="hero">
     <div class="hero-copy">
-      <div class="hero-badge"><i></i> Live · Discord + Roblox</div>
+      <div class="hero-badge"><i></i> Live · Roblox / EH + FiveM</div>
       <h1>Moderation &amp; RP — <b>ein System</b></h1>
-      <p>Tickets, Team, Warteraum, Ausweis, Duty, Fraktionen und IC Panel — sauber verbunden über Dashboard und Bot.</p>
+      <p>Wähle deine Plattform: <b>Roblox / EH</b> oder <b>FiveM</b>. Getrennte Dashboards, ein Bot. FiveM-Plugin einmal auf den Server legen.</p>
       <div class="hero-actions">
-        <a class="btn btn-p" href="./dashboard.html">Dashboard öffnen</a>
-        <a class="btn btn-g" href="#features">Module ansehen</a>
+        <a class="btn btn-p" href="./choose/">Roblox oder FiveM wählen</a>
+        <a class="btn btn-g" href="#fivem-plugin">FiveM Plugin Download</a>
       </div>
     </div>
     <div class="card-3d" id="card3d">
@@ -226,6 +227,45 @@ button{font:inherit}
         <div class="mini-row"><span>🛡️ Security</span><span class="chip g">aktiv</span></div>
       </div>
     </div>
+  </section>
+
+  
+  <section class="sec" id="platforms" style="padding-top:8px">
+    <h2>Plattform wählen</h2>
+    <p class="sub">Zwei getrennte Dashboards — Roblox/EH und FiveM. Du wählst, bevor du reingehst.</p>
+    <div class="feat-grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
+      <a class="feat" href="./dashboard/?platform=roblox" style="text-decoration:none;color:inherit;display:block;border:1px solid rgba(167,139,250,.35)">
+        <div class="ic">🎮</div>
+        <strong>Roblox / EH Dashboard</strong>
+        <span>Tickets, Warteraum, Ausweis, Fraktionen, Team, Security, IC Panel.</span>
+      </a>
+      <a class="feat" href="./dashboard/?platform=fivem" style="text-decoration:none;color:inherit;display:block;border:1px solid rgba(34,211,238,.35)">
+        <div class="ic">🚔</div>
+        <strong>FiveM Dashboard</strong>
+        <span>Settings: Queue, Cases, Whitelist, Presets, Linking.</span>
+      </a>
+      <a class="feat" href="./team/" style="text-decoration:none;color:inherit;display:block;border:1px solid rgba(52,211,153,.3)">
+        <div class="ic">📋</div>
+        <strong>FiveM Team Panel</strong>
+        <span>Live Spieler, Staff, Logs, Setup-Code, Announcements — Ops-Panel.</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="sec" id="fivem-plugin">
+    <h2>Staffora FiveM Plugin</h2>
+    <p class="sub">Download → in resources legen → Setup-Code aus dem Team Panel → fertig. Kein API-Key tippen.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+      <a class="btn btn-p" href="./staffora-fivem-plugin.zip" download="staffora-fivem-plugin.zip">↓ Plugin herunterladen (.zip)</a>
+      <a class="btn btn-g" href="./team/">Setup-Code im Team Panel</a>
+      <a class="btn btn-g" href="./choose/">Plattform-Auswahl</a>
+    </div>
+    <p class="sub" style="margin-top:14px;font-size:.85rem">
+      Entpacken → Ordner <b>staffora</b> nach <b>resources/</b> · in server.cfg:
+      <br/><code style="color:#c4b5fd">set staffora_api_url "https://staffora.apps.bot-hosting.cloud"</code>
+      <br/><code style="color:#c4b5fd">set staffora_setup_code "DEIN_CODE"</code>
+      <br/><code style="color:#c4b5fd">ensure staffora</code>
+    </p>
   </section>
 
   <section class="sec" id="features">
@@ -253,9 +293,12 @@ button{font:inherit}
 </div>
 
 <div class="corner">
-  <a href="./dashboard.html">Dashboard</a>
-  <a href="./ingame.html">IC Panel</a>
-  <a href="./unban.html">Ban Appeal</a>
+  <a href="./choose/">Plattform</a>
+  <a href="./dashboard/?platform=roblox">Roblox Dashboard</a>
+  <a href="./dashboard/?platform=fivem">FiveM Dashboard</a>
+  <a href="./team/">Team Panel</a>
+  <a href="./staffora-fivem-plugin.zip" download>FiveM Plugin ↓</a>
+  <a href="./ic/">IC Panel</a>
 </div>
 
 <script>
@@ -263,7 +306,7 @@ button{font:inherit}
   var cloud='https://staffora.apps.bot-hosting.cloud';
   var host=location.hostname||'';
   var API=(host.indexOf('bot-hosting')>=0||host==='localhost'||host==='127.0.0.1')?'':cloud;
-  var ret=location.origin+location.pathname.replace(/[^/]*$/,'')+'dashboard.html';
+  var ret=location.origin+'/choose/';
   var login=document.getElementById('login');
   if(login) login.href=API+'/auth/login?return='+encodeURIComponent(ret);
 
@@ -333,28 +376,6 @@ button{font:inherit}
 
 
 
-
-<section id="fivem-plugin" class="section" style="padding:48px 20px;max-width:900px;margin:0 auto;text-align:center">
-  <p style="font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:#a78bfa;font-weight:600;margin-bottom:8px">FiveM</p>
-  <h2 style="font-size:clamp(1.4rem,3vw,1.9rem);margin-bottom:10px">Staffora FiveM Plugin</h2>
-  <p style="color:#94a3b8;line-height:1.55;margin-bottom:22px;max-width:560px;margin-left:auto;margin-right:auto">
-    Einmal auf den Server legen — Setup-Code aus dem Team Panel, fertig.
-    Kein API-Key von Hand. Tracking, Staff-Menü, Verify, Announcements.
-  </p>
-  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-    <a href="/staffora-fivem-plugin.zip" download="staffora-fivem-plugin.zip"
-       style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;font-weight:600;text-decoration:none">
-      ↓ Staffora FiveM Plugin herunterladen
-    </a>
-    <a href="/team/" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:12px;border:1px solid rgba(255,255,255,.12);color:#e2e8f0;text-decoration:none;background:rgba(255,255,255,.04)">
-      Team Panel / Setup-Code
-    </a>
-  </div>
-  <p style="color:#64748b;font-size:.8rem;margin-top:16px">
-    Zip entpacken → Ordner <code style="color:#c4b5fd">staffora</code> nach <code style="color:#c4b5fd">resources/</code> ·
-    <code style="color:#c4b5fd">ensure staffora</code>
-  </p>
-</section>
 
 </body>
 </html>
