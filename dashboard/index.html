@@ -2292,6 +2292,11 @@ body.platform-roblox #roblox-bar{display:flex}
 #roblox-bar .btn{border-radius:10px!important}
 body.platform-fivem #roblox-bar{display:none!important}
 
+body.platform-fivem #server-picker,
+body.platform-fivem .server-picker,
+body.platform-fivem #guild-picker{display:block!important;z-index:40}
+
+
 
 /* Staff cards + detail */
 .fm-staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px}
@@ -2485,14 +2490,18 @@ body.platform-fivem #roblox-bar{display:none!important}
         <p id="fm-guild-label">—</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="btn btn-sm" id="fm-switch-plat">Plattform wechseln</button>
-        <button type="button" class="btn btn-sm" id="fm-refresh">Aktualisieren</button>
+        <a class="btn btn-sm" href="/team/" style="text-decoration:none">Team Panel</a>
+        <a class="btn btn-sm" href="/staffora-fivem-plugin.zip" download style="text-decoration:none">↓ Plugin</a>
+        <button type="button" class="btn btn-sm" id="fm-switch-plat">Plattform</button>
+        <button type="button" class="btn btn-sm" id="fm-refresh">Refresh</button>
       </div>
     </div>
     <div class="fm-tabs" id="fm-tabs">
       <button type="button" class="fm-tab active" data-fm="overview">Server</button>
       <button type="button" class="fm-tab" data-fm="players">Players</button>
       <button type="button" class="fm-tab" data-fm="staff">Staff</button>
+      <button type="button" class="fm-tab" data-fm="roles">Rollen</button>
+      <button type="button" class="fm-tab" data-fm="linking">Discord</button>
       <button type="button" class="fm-tab" data-fm="support">Support</button>
       <button type="button" class="fm-tab" data-fm="queue">Queue</button>
       <button type="button" class="fm-tab" data-fm="apps">Applications</button>
@@ -2505,6 +2514,7 @@ body.platform-fivem #roblox-bar{display:none!important}
       <button type="button" class="fm-tab" data-fm="presets">Presets</button>
       <button type="button" class="fm-tab" data-fm="setup">Setup</button>
     </div>
+    <p id="fm-role-hint" style="color:#71717a;font-size:.78rem;margin:0 0 10px">Alle Settings hier. Staff live verwalten → <a href="/team/" style="color:#a78bfa">Team Panel</a></p>
     <div id="fm-panel"></div>
   </div>
 </div>
@@ -2582,6 +2592,10 @@ body.platform-fivem #roblox-bar{display:none!important}
     if (gate) gate.classList.remove('hidden');
   }
   function ensurePlatform(){
+    try {
+      var _up = new URLSearchParams(location.search).get('platform');
+      if (_up === 'fivem' || _up === 'roblox') platform = _up;
+    } catch(e){}
     if (platform === 'fivem' || platform === 'roblox') {
       setPlatform(platform);
       return;
@@ -2727,6 +2741,157 @@ body.platform-fivem #roblox-bar{display:none!important}
     }
     panel.innerHTML = '<div class="fm-card">Lade…</div>';
     try {
+
+
+      if (tab === 'linking') {
+        var links = [];
+        var myLink = null;
+        try {
+          var lr = await fmApi('/guilds/'+guildId+'/links');
+          links = lr.links || [];
+        } catch(e){ links = []; }
+        try {
+          var mr = await fmApi('/guilds/'+guildId+'/link/me');
+          myLink = mr.link;
+        } catch(e){}
+        panel.innerHTML =
+          '<div class="fm-card"><h3 style="margin:0 0 6px;color:#fff">Discord verbinden</h3>'+
+          '<p style="color:#a1a1aa;font-size:.85rem;margin:0 0 12px">Code erzeugen → ingame <b>/stafforalink CODE</b> eingeben. Verknüpft Discord mit FiveM-License (Staff, Lookup, Logs).</p>'+
+          '<div style="padding:12px;border-radius:12px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);margin-bottom:12px">'+
+          '<div style="font-size:.75rem;color:#a1a1aa;text-transform:uppercase;letter-spacing:.04em">Dein Account</div>'+
+          '<div id="lk-me" style="margin-top:6px;color:#fff;font-weight:600">'+(myLink && myLink.license
+            ? ('Verknüpft · '+esc(myLink.name||'')+' · <code style="color:#c4b5fd">'+esc(myLink.license)+'</code>')
+            : 'Noch nicht verknüpft')+'</div>'+
+          '<button type="button" class="btn btn-sm" id="lk-code" style="margin-top:10px;background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;color:#fff">Link-Code für mich erzeugen</button>'+
+          '<div id="lk-code-box" style="margin-top:8px;font-family:ui-monospace,monospace;font-size:.85rem;color:#c4b5fd"></div></div>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'+
+          '<input id="lk-dc" placeholder="Discord User ID" style="flex:1;min-width:140px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<input id="lk-lic" placeholder="license:…" style="flex:1;min-width:140px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<input id="lk-name" placeholder="Name" style="width:120px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<button type="button" class="btn btn-sm" id="lk-manual" style="background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;color:#fff">Manuell linken</button></div>'+
+          '<h4 style="margin:0 0 8px;color:#e4e4e7;font-size:.9rem">Alle Verknüpfungen ('+links.length+')</h4>'+
+          (links.length
+            ? '<table class="fm-table"><thead><tr><th>Discord</th><th>License</th><th>Name</th><th>Seit</th><th></th></tr></thead><tbody>'+
+              links.map(function(L){
+                return '<tr><td><code>'+esc(L.discordId)+'</code></td><td><code style="font-size:.75rem">'+esc(L.license)+'</code></td><td>'+esc(L.name||'—')+
+                  '</td><td style="font-size:.75rem;color:#71717a">'+(L.linkedAt?new Date(L.linkedAt).toLocaleString():'—')+
+                  '</td><td><button type="button" class="btn btn-sm lk-un" data-dc="'+esc(L.discordId)+'">Unlink</button></td></tr>';
+              }).join('')+'</tbody></table>'
+            : '<p style="color:#71717a;font-size:.85rem">Noch keine Links.</p>')+
+          '</div>';
+
+        document.getElementById('lk-code').onclick = async function(){
+          try {
+            var r = await fmApi('/guilds/'+guildId+'/link-code', { method:'POST', body:{} });
+            document.getElementById('lk-code-box').textContent =
+              'Code: '+(r.code||'?')+'  →  Ingame: /stafforalink '+(r.code||'')+'  (15 Min gültig)';
+            toast('Code erzeugt','ok');
+          } catch(e){ toast(e.message||'Fehler','err'); }
+        };
+        document.getElementById('lk-manual').onclick = async function(){
+          try {
+            await fmApi('/guilds/'+guildId+'/link', { method:'POST', body:{
+              discordId: document.getElementById('lk-dc').value,
+              license: document.getElementById('lk-lic').value,
+              name: document.getElementById('lk-name').value
+            }});
+            toast('Verknüpft','ok'); fmLoad('linking');
+          } catch(e){ toast(e.message||'Fehler','err'); }
+        };
+        document.querySelectorAll('.lk-un').forEach(function(b){
+          b.onclick = async function(){
+            try {
+              await fmApi('/guilds/'+guildId+'/link/discord/'+encodeURIComponent(b.getAttribute('data-dc')), { method:'DELETE' });
+              toast('Unlink','ok'); fmLoad('linking');
+            } catch(e){ toast(e.message||'Fehler','err'); }
+          };
+        });
+        return;
+      }
+
+
+      if (tab === 'roles') {
+        var st = await fmApi('/guilds/'+guildId+'/staff');
+        var ranks = (st.ranks||[]).slice().sort(function(a,b){return (a.position||0)-(b.position||0)});
+        var ALL = ['support','warn','kick','ban','unban','mute','goto','bring','teleport','freeze','spectate','noclip','fly','revive','heal','vehicle','player_manage','give_item','remove_item','server_manage','staff_manage','whitelist','inventory_restore','*'];
+        window.__fmRanks = ranks;
+        function rankCard(r, idx){
+          var perms = r.permissions||[];
+          var chips = perms.slice(0,8).map(function(p){return '<span style="font-size:.65rem;padding:2px 6px;border-radius:999px;background:rgba(139,92,246,.15);color:#c4b5fd;margin:2px">'+esc(p)+'</span>';}).join('');
+          if(perms.length>8) chips += '<span style="font-size:.65rem;color:#71717a">+'+ (perms.length-8)+'</span>';
+          return '<div class="fm-card" style="margin-bottom:10px" data-rank="'+esc(r.id)+'">'+
+            '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+            '<div><strong style="color:#fff">'+esc(r.name||r.id)+'</strong> <span style="color:#71717a;font-size:.75rem">#'+esc(r.id)+' · pos '+esc(r.position)+'</span></div>'+
+            '<div style="display:flex;gap:6px"><button type="button" class="btn btn-sm rk-edit" data-i="'+idx+'">Bearbeiten</button>'+
+            '<button type="button" class="btn btn-sm rk-del" data-id="'+esc(r.id)+'">Löschen</button></div></div>'+
+            '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">'+chips+'</div></div>';
+        }
+        panel.innerHTML =
+          '<div class="fm-card"><h3 style="margin:0 0 6px;color:#fff">Staff-Rollen</h3>'+
+          '<p style="color:#a1a1aa;font-size:.85rem;margin:0 0 12px">Rollen definieren Rechte ingame (Kick, Ban, Noclip, …). Staff-Mitglieder bekommen eine Rolle im Staff-Tab oder Team Panel.</p>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'+
+          '<input id="rk-id" placeholder="id (z.B. senior_mod)" style="width:140px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<input id="rk-name" placeholder="Anzeigename" style="width:140px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<input id="rk-pos" type="number" placeholder="Position" value="25" style="width:90px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0c0c14;color:#fff">'+
+          '<button type="button" class="btn btn-sm" id="rk-add" style="background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;color:#fff">+ Rolle</button></div>'+
+          '<div id="rk-list">'+ranks.map(rankCard).join('')+'</div></div>'+
+          '<div class="fm-card" id="rk-editor" style="display:none"><h3 style="margin:0 0 8px;color:#fff">Rechte bearbeiten</h3>'+
+          '<p id="rk-edit-label" style="color:#a1a1aa;font-size:.85rem"></p>'+
+          '<div id="rk-perms" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin:12px 0"></div>'+
+          '<button type="button" class="btn btn-sm" id="rk-save" style="background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;color:#fff">Speichern</button> '+
+          '<button type="button" class="btn btn-sm" id="rk-cancel">Abbrechen</button></div>';
+
+        document.getElementById('rk-add').onclick = async function(){
+          try {
+            await fmApi('/guilds/'+guildId+'/ranks', { method:'POST', body:{
+              id: document.getElementById('rk-id').value,
+              name: document.getElementById('rk-name').value,
+              position: Number(document.getElementById('rk-pos').value)||10,
+              permissions: ['support']
+            }});
+            toast('Rolle erstellt','ok'); fmLoad('roles');
+          } catch(e){ toast(e.message||'Fehler','err'); }
+        };
+        document.querySelectorAll('.rk-del').forEach(function(b){
+          b.onclick = async function(){
+            if(!confirm('Rolle löschen? Mitglieder werden umgestuft.')) return;
+            try {
+              await fmApi('/guilds/'+guildId+'/ranks/'+encodeURIComponent(b.getAttribute('data-id')), { method:'DELETE' });
+              toast('Gelöscht','ok'); fmLoad('roles');
+            } catch(e){ toast(e.message||'Fehler','err'); }
+          };
+        });
+        var editing = null;
+        document.querySelectorAll('.rk-edit').forEach(function(b){
+          b.onclick = function(){
+            editing = ranks[Number(b.getAttribute('data-i'))];
+            if(!editing) return;
+            document.getElementById('rk-editor').style.display = 'block';
+            document.getElementById('rk-edit-label').textContent = (editing.name||editing.id)+' · Rechte an/aus';
+            var set = {};
+            (editing.permissions||[]).forEach(function(p){ set[p]=true; });
+            document.getElementById('rk-perms').innerHTML = ALL.map(function(p){
+              return '<label style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:#e4e4e7;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.03);cursor:pointer">'+
+                '<input type="checkbox" class="rk-perm" value="'+p+'" '+(set[p]?'checked':'')+'> '+p+'</label>';
+            }).join('');
+          };
+        });
+        document.getElementById('rk-cancel').onclick = function(){ document.getElementById('rk-editor').style.display='none'; editing=null; };
+        document.getElementById('rk-save').onclick = async function(){
+          if(!editing) return;
+          var perms = [];
+          document.querySelectorAll('.rk-perm:checked').forEach(function(c){ perms.push(c.value); });
+          try {
+            await fmApi('/guilds/'+guildId+'/ranks', { method:'POST', body:{
+              id: editing.id, name: editing.name, position: editing.position, permissions: perms, color: editing.color
+            }});
+            toast('Rechte gespeichert','ok'); fmLoad('roles');
+          } catch(e){ toast(e.message||'Fehler','err'); }
+        };
+        return;
+      }
+
+
       if (tab === 'overview' || tab === 'setup') {
         var data = await fmApi('/guilds/' + guildId + (tab==='setup'?'?revealKey=1':''));
         var s = data.server || {};
