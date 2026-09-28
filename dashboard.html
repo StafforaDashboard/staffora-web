@@ -2,10 +2,29 @@
 <html lang="de">
 <head>
 <meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Dashboard · Staffora</title>
+<meta name="description" content="Staffora Admin-Dashboard: Module, Tickets, Team, Security und Server-Einstellungen verwalten."/>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="canonical" href="https://staffora.info/dashboard.html"/>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="/assets/favicon.svg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Staffora"/>
+<meta property="og:title" content="Dashboard · Staffora"/>
+<meta property="og:description" content="Staffora Admin-Dashboard: Module, Tickets, Team, Security und Server-Einstellungen verwalten."/>
+<meta property="og:url" content="https://staffora.info/dashboard.html"/>
+<meta property="og:image" content="https://staffora.info/assets/og.svg"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Dashboard · Staffora"/>
+<meta name="twitter:description" content="Staffora Admin-Dashboard: Module, Tickets, Team, Security und Server-Einstellungen verwalten."/>
+<meta name="twitter:image" content="https://staffora.info/assets/og.svg"/>
+<meta name="theme-color" content="#8b5cf6"/>
+
+
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="staffora-dash" content="settings-galaxy-v2"/>
 <meta http-equiv="Cache-Control" content="no-cache"/>
-<title>STAFFORA</title>
 <script>
 (function(){
   var host=(location.hostname||'').toLowerCase();
@@ -21,6 +40,53 @@
 })();
 </script>
 <style>
+
+/* Settings UX v2 */
+.settings-grid,.settings-cards,.module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.settings-card,.setting-card,.cfg-card{
+  background:rgba(18,18,26,.92)!important;border:1px solid rgba(255,255,255,.08)!important;
+  border-radius:14px!important;padding:16px 18px!important;transition:border-color .15s,transform .15s
+}
+.settings-card:hover,.setting-card:hover{border-color:rgba(161,161,170,.35)!important}
+.settings-card h3,.setting-card h3,.cfg-card h3{font-size:.95rem;margin:0 0 8px;font-weight:650}
+.settings-card p,.setting-card .hint,.cfg-card .hint{color:#94a3b8;font-size:.78rem;line-height:1.35;margin:0 0 10px}
+.settings-section{margin-bottom:22px}
+.settings-section>h2{font-size:1.05rem;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sticky-save{
+  position:sticky;bottom:12px;z-index:30;display:flex;gap:10px;justify-content:flex-end;
+  padding:12px;background:rgba(6,6,14,.85);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.08);border-radius:12px;margin-top:16px
+}
+label.setting-label{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#a1a1aa;margin:8px 0 4px}
+select,input[type=text],input[type=number],textarea{
+  width:100%;max-width:100%;box-sizing:border-box
+}
+.setting-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.setting-row.inline{flex-direction:row;align-items:center;justify-content:space-between;gap:12px}
+.toggle-pill{
+  width:44px;height:24px;border-radius:999px;background:#3f3f46;position:relative;cursor:pointer;border:none
+}
+.toggle-pill.on{background:#52525b}
+.toggle-pill::after{
+  content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#f4f4f5;transition:.15s
+}
+.toggle-pill.on::after{left:23px}
+
+
+/* Staffora UI refresh — grey buttons, cleaner cards */
+:root{--btn:#3f3f46;--btn-h:#52525b;--accent:#a1a1aa;--card:#12121a;--line:rgba(255,255,255,.08)}
+button,.btn,a.btn,.toggle-btn,.action-btn,input[type=button],input[type=submit],
+.primary,.btn-primary,.btn-success,.btn-danger,.btn-p{
+  background:var(--btn)!important;border:1px solid var(--line)!important;color:#f4f4f5!important;
+  border-radius:10px!important;box-shadow:none!important;
+}
+button:hover,.btn:hover,a.btn:hover,.primary:hover,.btn-primary:hover{
+  background:var(--btn-h)!important;
+}
+.card,section.card,.panel-card{border-radius:14px;border:1px solid var(--line);background:rgba(18,18,26,.9)}
+.sidebar a.active,.nav-item.active{background:rgba(255,255,255,.08)!important;color:#fff!important}
+input,select,textarea{border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:#f4f4f5}
+
 :root{
   --bg:#07070a;--panel:#0f0f14;--card:#14141a;--card2:#1a1a22;
   --border:#26262f;--border2:#32323e;--text:#f4f4f5;--muted:#8b8b9a;--faint:#5c5c6e;
@@ -6567,7 +6633,7 @@ async function api(path,opts){
       if(cat==='aufgaben'){
         await ensureDisc();
         main.innerHTML=backBtn()+
-          '<h1>📋 Aufgaben</h1><p class="sdesc">Aufgaben erstellen & Panel senden nur hier. Discord: /aufgabe → Person wählen → Aufgabe aus Liste (ohne ID).</p>'+
+          '<h1>📋 Aufgaben</h1><p class="sdesc">Aufgaben erstellen & Panel senden nur hier. Alles hier im Dashboard: erstellen, Panel senden, Status ändern.</p>'+
           '<div class="set-card">'+
           '<div class="toggle-row"><div class="lbl">Modul aktiv</div><div id="auf-mod" class="toggle-sw"></div></div>'+
           fieldRow('Log- / Erinnerungs-Kanal','auf-log','Kanal für neue Aufgaben und Deadline-Erinnerungen.')+
@@ -6815,13 +6881,13 @@ async function api(path,opts){
               '<div class="toggle-row"><div class="lbl">Rollen pingen</div><div id="ac-ping" class="toggle-sw"></div></div>'+
               '</div><div class="set-card" style="margin-top:12px"><h3 style="margin:0 0 8px">Zeitplan</h3>'+
               '<div class="toggle-row"><div class="lbl">Täglich automatisch posten</div><div id="ac-sch" class="toggle-sw"></div></div>'+
-              '<div class="field"><label>Uhrzeit (HH:MM)</label><p class="field-desc">Wann der Check jeden Tag gestartet wird.</p><input id="ac-time" placeholder="18:00"/></div>'+
+              '<div class="field"><label>Uhrzeit (HH:MM)</label><p class="field-desc">Wann der Check jeden Tag gestartet wird.</p><input id="ac-time" placeholder="HH:MM z.B. 18:00" placeholder="18:00"/></div>'+
               '<div class="field"><label>UTC-Offset (Minuten)</label><p class="field-desc">z.B. 120 für CEST (UTC+2).</p><input id="ac-off" type="number" placeholder="120"/></div>'+
               '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+
               saveBtn('ac-save')+
               '<button type="button" class="btn btn-p" id="ac-start">Jetzt starten</button>'+
               '<button type="button" class="btn" id="ac-end">Jetzt beenden</button></div>'+
-              '<p class="hint" style="margin-top:10px">Discord: <code>/activity-check start</code> · <code>/activity-check end</code></p></div>');
+              '<p class="hint" style="margin-top:10px">Steuerung nur über dieses Dashboard (Start / Beenden / Zeitplan).</p></div>');
             bindToggle($('ac-on'), s.activityCheckEnabled!==false);
             bindToggle($('ac-ping'), s.activityCheckPingRoles!==false);
             bindToggle($('ac-sch'), s.activityCheckScheduleEnabled===true);
@@ -6852,13 +6918,13 @@ async function api(path,opts){
             $('ac-start').onclick=async function(){
               try{
                 await patchSettings(acPayload(),'Activity Check');
-                await api('/api/guilds/'+guildId+'/activity-check/start',{method:'POST',body:{}});
+                await api('/api/guilds/'+guildId+'Dashboard Activity Check/start',{method:'POST',body:{}});
                 toast('Activity-Check gestartet','ok');
               }catch(e){ toast(e.message||'Start fehlgeschlagen','err'); }
             };
             $('ac-end').onclick=async function(){
               try{
-                await api('/api/guilds/'+guildId+'/activity-check/end',{method:'POST',body:{}});
+                await api('/api/guilds/'+guildId+'Dashboard Activity Check/end',{method:'POST',body:{}});
                 toast('Check beendet · Ergebnis gepostet','ok');
               }catch(e){ toast(e.message||'Beenden fehlgeschlagen','err'); }
             };
@@ -8018,5 +8084,46 @@ if(sub==='list'){
   boot();
 })();
 </script>
+
+<script>
+(function(){
+  // Settings UX helpers
+  function enhanceSettings(){
+    document.querySelectorAll('.settings-panel label, .tab-panel label, [data-settings] label').forEach(function(lab){
+      if(!lab.classList.contains('setting-label') && lab.querySelector('input,select,textarea')===null){
+        lab.classList.add('setting-label');
+      }
+    });
+    // group consecutive setting fields into cards if not already
+    document.querySelectorAll('.settings-section, .tab-content .panel, #settings .content').forEach(function(sec){
+      if(sec.dataset.enhanced) return;
+      sec.dataset.enhanced='1';
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', enhanceSettings);
+  else enhanceSettings();
+  // debounce save feedback
+  var t;
+  document.addEventListener('change', function(e){
+    var el=e.target;
+    if(!el || !el.closest) return;
+    if(!el.closest('[data-settings], .settings-panel, .tab-panel, form')) return;
+    clearTimeout(t);
+    t=setTimeout(function(){
+      var toast=document.getElementById('save-toast');
+      if(!toast){
+        toast=document.createElement('div');
+        toast.id='save-toast';
+        toast.style.cssText='position:fixed;bottom:24px;right:24px;background:#3f3f46;color:#fff;padding:10px 16px;border-radius:10px;z-index:99;font-size:.85rem;opacity:0;transition:.2s';
+        document.body.appendChild(toast);
+      }
+      toast.textContent='Änderung erkannt – speichern nicht vergessen';
+      toast.style.opacity='1';
+      setTimeout(function(){ toast.style.opacity='0'; }, 2000);
+    }, 400);
+  });
+})();
+</script>
+
 </body>
 </html>

@@ -1,15 +1,31 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"/><title>Staffora</title>
-<script>
-var p = location.pathname.replace(/\/+$/,'');
-var map = {
-  '/team': '/team/',
-  '/choose': '/choose/',
-  '/dashboard': '/dashboard/',
-  '/ic': '/ic/',
-  '/unban-request': '/unban-request/'
-};
-if (map[p]) location.replace(map[p] + location.search + location.hash);
-else location.replace('/choose/');
-</script>
-</head><body></body></html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Seite nicht gefunden · Staffora</title>
+<meta name="description" content="Diese Seite gibt es nicht. Zurück zur Staffora Startseite."/>
+<meta name="robots" content="noindex"/>
+<link rel="canonical" href="https://staffora.info/"/>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,sans-serif;
+background:#050508;color:#f4f4f8;
+background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(91,33,182,.35),transparent 55%)}
+.box{text-align:center;padding:32px 24px;max-width:420px}
+h1{font-size:4rem;margin:0;background:linear-gradient(135deg,#a78bfa,#8b5cf6);-webkit-background-clip:text;color:transparent}
+p{color:#9b9bb0;margin:12px 0 24px;line-height:1.5}
+a{display:inline-block;padding:12px 22px;border-radius:999px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);
+color:#fff;text-decoration:none;font-weight:600}
+a:hover{filter:brightness(1.08)}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>404</h1>
+  <p>Diese Seite wurde nicht gefunden.<br/>Vielleicht wurde sie verschoben oder gelöscht.</p>
+  <a href="/">Zur Startseite</a>
+  <p style="margin-top:18px;font-size:13px"><a href="/dashboard.html" style="background:transparent;border:1px solid rgba(139,92,246,.4);padding:10px 18px">Dashboard</a></p>
+</div>
+</body>
+</html>

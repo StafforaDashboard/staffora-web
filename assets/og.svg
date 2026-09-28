@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b0b12"/><stop offset="100%" stop-color="#1a1030"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="900" cy="120" r="280" fill="#8b5cf6" opacity="0.25"/>
+  <circle cx="200" cy="500" r="200" fill="#22d3ee" opacity="0.12"/>
+  <text x="80" y="300" font-family="system-ui,sans-serif" font-weight="800" font-size="72" fill="#fff">Staffora</text>
+  <text x="80" y="370" font-family="system-ui,sans-serif" font-weight="500" font-size="32" fill="#c4b5fd">Discord &amp; Roblox Moderation</text>
+</svg>

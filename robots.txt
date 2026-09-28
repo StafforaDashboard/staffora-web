@@ -1,3 +1,5 @@
 User-agent: *
-Disallow: /staffora-hq.html
-Disallow: /staffora-hq
+Allow: /
+Disallow: /staff.html
+Disallow: /staff
+Sitemap: https://staffora.info/sitemap.xml

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Staff Panel · Staffora</title>
+<meta name="description" content="Internes Staffora Staff Panel."/>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="canonical" href="https://staffora.info/staff.html"/>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="/assets/favicon.svg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Staffora"/>
+<meta property="og:title" content="Staff Panel · Staffora"/>
+<meta property="og:description" content="Internes Staffora Staff Panel."/>
+<meta property="og:url" content="https://staffora.info/staff.html"/>
+<meta property="og:image" content="https://staffora.info/assets/og.svg"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Staff Panel · Staffora"/>
+<meta name="twitter:description" content="Internes Staffora Staff Panel."/>
+<meta name="twitter:image" content="https://staffora.info/assets/og.svg"/>
+<meta name="theme-color" content="#8b5cf6"/>
+
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+:root{
+  --bg:#050508;--card:rgba(18,16,28,.85);--line:rgba(139,92,246,.2);
+  --text:#f4f4f8;--muted:#9b9bb0;--purple:#8b5cf6;--red:#ef4444;--green:#22c55e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,sans-serif}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(91,33,182,.4),transparent 55%),#050508}
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:1.4rem;font-weight:700;margin-bottom:6px}
+.sub{color:var(--muted);font-size:.85rem;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.stat{text-align:center;padding:14px;border-radius:12px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.06)}
+.stat b{display:block;font-size:1.5rem;color:var(--purple)}
+.stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.tabs button{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  color:var(--muted);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:.8rem;font-weight:600
+}
+.tabs button.on{background:rgba(139,92,246,.2);border-color:rgba(139,92,246,.4);color:#fff}
+.tab{display:none}.tab.on{display:block}
+input,select,textarea,button.btn{
+  width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.35);color:var(--text);font-size:.9rem;margin:4px 0 10px
+}
+button.btn{cursor:pointer;background:#3f3f46;border-color:#52525b;font-weight:600}
+button.btn:hover{filter:brightness(1.1)}
+button.btn.primary{background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none}
+label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:640px){.row{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th,td{padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+th{color:var(--muted);font-weight:600}
+.err{color:#fca5a5;font-family:ui-monospace,monospace;font-size:.75rem;white-space:pre-wrap;word-break:break-word}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;background:rgba(139,92,246,.25)}
+.stars{color:#fbbf24;letter-spacing:1px}
+.staff-card{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:rgba(0,0,0,.25);margin-bottom:8px;border:1px solid rgba(255,255,255,.05)}
+.staff-card img{width:44px;height:44px;border-radius:50%;background:#222}
+.login-box{max-width:360px;margin:80px auto;text-align:center}
+.msg{font-size:.85rem;color:var(--muted);min-height:1.2em;margin-top:8px}
+.msg.ok{color:var(--green)}.msg.bad{color:var(--red)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div class="wrap">
+
+  <div id="loginView" class="login-box card">
+    <h1>Staffora Staff</h1>
+    <p class="sub">Nur für offizielles Staffora-Team</p>
+    <label>Passwort</label>
+    <input type="password" id="pw" placeholder="Staff-Passwort" autocomplete="current-password"/>
+    <button class="btn primary" id="loginBtn">Anmelden</button>
+    <p class="msg" id="loginMsg"></p>
+    <p class="sub" style="margin-top:16px">Öffentliche Staff-Bewertung ohne Login ↓</p>
+    <button class="btn" id="showPublicBtn" type="button">Staff ansehen & bewerten</button>
+  </div>
+
+  <div id="publicView" class="hidden">
+    <h1>Staffora Team</h1>
+    <p class="sub">Offizielle Mitarbeiter · Bewertungen von der Community</p>
+    <div id="publicStaff"></div>
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin-bottom:10px;font-size:1rem">Bewerten</h3>
+      <label>Staff</label>
+      <select id="rateStaff"></select>
+      <label>Deine Discord User-ID</label>
+      <input id="rateRater" placeholder="Discord User ID"/>
+      <label>Sterne (1–5)</label>
+      <select id="rateStars"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+      <label>Kommentar (optional)</label>
+      <input id="rateReason" placeholder="Kurz…"/>
+      <button class="btn primary" id="rateBtn">Bewertung senden</button>
+      <p class="msg" id="rateMsg"></p>
+    </div>
+    <button class="btn" id="backLogin" type="button">Zurück zum Login</button>
+  </div>
+
+  <div id="appView" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <h1>Staffora Staff Panel</h1>
+        <p class="sub" style="margin:0">Intern · nicht verlinkt auf der Startseite</p>
+      </div>
+      <button class="btn" id="logoutBtn" style="width:auto">Logout</button>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button type="button" data-tab="overview" class="on">Overview</button>
+      <button type="button" data-tab="stats">Stats</button>
+      <button type="button" data-tab="tools">Tools</button>
+      <button type="button" data-tab="access">Dashboard Access</button>
+      <button type="button" data-tab="errors">Errors</button>
+      <button type="button" data-tab="team">Team</button>
+    </div>
+
+    <div id="tab-overview" class="tab on">
+      <div class="grid" id="overviewStats"></div>
+    </div>
+
+    <div id="tab-stats" class="tab">
+      <div class="card">
+        <h3 style="margin-bottom:10px;font-size:1rem">Top Server (Bot-Nutzung)</h3>
+        <div style="overflow-x:auto"><table><thead><tr><th>Server</th><th>Mitglieder</th><th>ID</th></tr></thead><tbody id="topServers"></tbody></table></div>
+      </div>
+    </div>
+
+    <div id="tab-tools" class="tab">
+      <div class="card">
+        <h3 style="margin-bottom:8px;font-size:1rem">Server-Liste</h3>
+        <button class="btn" id="refreshGuilds" type="button">Aktualisieren</button>
+        <div style="overflow-x:auto;max-height:220px;overflow-y:auto;margin-top:8px">
+          <table><thead><tr><th>Name</th><th>Members</th><th>BL</th><th>ID</th></tr></thead><tbody id="guildRows"></tbody></table>
+        </div>
+      </div>
+      <div class="row">
+        <div class="card">
+          <h3 style="font-size:.95rem;margin-bottom:8px">Blacklist</h3>
+          <label>Server ID</label><input id="blGuild"/>
+          <label>Grund</label><input id="blReason"/>
+          <button class="btn" id="blAdd">Blacklist</button>
+          <button class="btn" id="blRem">Unblacklist</button>
+        </div>
+        <div class="card">
+          <h3 style="font-size:.95rem;margin-bottom:8px">Premium</h3>
+          <label>User ID</label><input id="premUser"/>
+          <label>Dauer (perm / 30d / 7d)</label><input id="premDur" value="perm"/>
+          <button class="btn" id="premCheck">Check</button>
+          <button class="btn" id="premGrant">Give</button>
+          <button class="btn" id="premRevoke">Remove</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="card">
+          <h3 style="font-size:.95rem;margin-bottom:8px">Ban / Unban / Kick</h3>
+          <label>Server ID</label><input id="modGuild"/>
+          <label>User ID</label><input id="modUser"/>
+          <label>Grund</label><input id="modReason"/>
+          <button class="btn" id="modBan">Ban</button>
+          <button class="btn" id="modUnban">Unban</button>
+          <button class="btn" id="modKick">Kick</button>
+        </div>
+        <div class="card">
+          <h3 style="font-size:.95rem;margin-bottom:8px">Invite / Rolle</h3>
+          <label>Server ID</label><input id="invGuild"/>
+          <button class="btn" id="invBtn">Invite erstellen</button>
+          <label>User ID</label><input id="roleUser"/>
+          <label>Role ID</label><input id="roleId"/>
+          <button class="btn" id="roleAdd">Rolle geben</button>
+          <button class="btn" id="roleRem">Rolle entfernen</button>
+        </div>
+      </div>
+      <p class="msg" id="toolMsg"></p>
+    </div>
+
+    <div id="tab-access" class="tab">
+      <div class="card">
+        <h3 style="font-size:1rem;margin-bottom:8px">Dashboard-Zugriff anfragen</h3>
+        <p class="sub">Anfrage, Einstellungen für einen Kunden-Server zu ändern</p>
+        <label>Server ID</label><input id="accGuild"/>
+        <label>Server Name</label><input id="accName"/>
+        <label>Grund</label><input id="accReason"/>
+        <button class="btn primary" id="accSubmit">Anfrage senden</button>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem;margin-bottom:8px">Offene Anfragen</h3>
+        <div id="accList"></div>
+      </div>
+      <p class="msg" id="accMsg"></p>
+    </div>
+
+    <div id="tab-errors" class="tab">
+      <div class="card">
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="btn" id="errRefresh" type="button" style="width:auto">Refresh</button>
+          <button class="btn" id="errClear" type="button" style="width:auto">Clear</button>
+        </div>
+        <div id="errList"></div>
+      </div>
+    </div>
+
+    <div id="tab-team" class="tab">
+      <div class="card">
+        <h3 style="font-size:1rem;margin-bottom:8px">Offizielle Staff</h3>
+        <div id="teamList"></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem;margin-bottom:8px">Staff hinzufügen / updaten</h3>
+        <label>Discord ID</label><input id="stId"/>
+        <label>Name</label><input id="stName"/>
+        <label>Rolle</label>
+        <select id="stRole">
+          <option>Owner</option><option>Dev</option><option>Administrator</option>
+          <option>Moderator</option><option>Supporter</option>
+        </select>
+        <button class="btn primary" id="stSave">Speichern</button>
+        <p class="msg" id="stMsg"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const API = (localStorage.getItem('staffora_api') || 'https://staffora.apps.bot-hosting.cloud').replace(/\/$/,'');
+  let token = sessionStorage.getItem('staff_pw') || '';
+
+  function headers(json){
+    const h = {};
+    if(json) h['Content-Type']='application/json';
+    if(token) h['x-staff-password']=token;
+    return h;
+  }
+  async function api(path, opts){
+    const r = await fetch(API + path, opts||{});
+    const j = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(j.error || r.statusText || 'error');
+    return j;
+  }
+  function msg(el, text, ok){
+    const n = document.getElementById(el);
+    if(!n) return;
+    n.textContent = text||'';
+    n.className = 'msg ' + (ok===true?'ok':ok===false?'bad':'');
+  }
+  function stars(n){
+    n = Math.round(n||0);
+    return '★'.repeat(n) + '☆'.repeat(5-n);
+  }
+
+  // tabs
+  document.getElementById('tabs')?.addEventListener('click', (e)=>{
+    const b = e.target.closest('button[data-tab]');
+    if(!b) return;
+    document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    document.getElementById('tab-'+b.dataset.tab)?.classList.add('on');
+  });
+
+  document.getElementById('loginBtn').onclick = async ()=>{
+    const pw = document.getElementById('pw').value;
+    try{
+      await api('/api/staff-portal/login',{method:'POST',headers:headers(true),body:JSON.stringify({password:pw})});
+      token = pw;
+      sessionStorage.setItem('staff_pw', pw);
+      showApp();
+    }catch(e){ msg('loginMsg', e.message, false); }
+  };
+  document.getElementById('logoutBtn').onclick = ()=>{
+    token=''; sessionStorage.removeItem('staff_pw');
+    document.getElementById('appView').classList.add('hidden');
+    document.getElementById('loginView').classList.remove('hidden');
+  };
+  document.getElementById('showPublicBtn').onclick = ()=>{
+    document.getElementById('loginView').classList.add('hidden');
+    document.getElementById('publicView').classList.remove('hidden');
+    loadPublic();
+  };
+  document.getElementById('backLogin').onclick = ()=>{
+    document.getElementById('publicView').classList.add('hidden');
+    document.getElementById('loginView').classList.remove('hidden');
+  };
+
+  async function showApp(){
+    document.getElementById('loginView').classList.add('hidden');
+    document.getElementById('publicView').classList.add('hidden');
+    document.getElementById('appView').classList.remove('hidden');
+    await Promise.all([loadOverview(), loadGuilds(), loadErrors(), loadTeam(), loadAccess()]);
+  }
+
+  async function loadOverview(){
+    const o = await api('/api/staff-portal/overview',{headers:headers()});
+    document.getElementById('overviewStats').innerHTML = [
+      ['Server', o.servers],
+      ['Mitglieder', o.members],
+      ['Premium', o.premiumUsers],
+      ['Blacklist', o.blacklisted],
+      ['Staff', o.staffCount],
+      ['Errors', o.errorCount],
+      ['Access pending', o.pendingAccess]
+    ].map(([l,v])=>`<div class="stat"><b>${v??0}</b><span>${l}</span></div>`).join('');
+    document.getElementById('topServers').innerHTML = (o.topServers||[]).map(s=>
+      `<tr><td>${esc(s.name)}</td><td>${s.members}</td><td><code>${s.id}</code></td></tr>`
+    ).join('') || '<tr><td colspan="3">—</td></tr>';
+  }
+
+  async function loadGuilds(){
+    const j = await api('/api/staff-portal/guilds',{headers:headers()});
+    document.getElementById('guildRows').innerHTML = (j.guilds||[]).map(g=>
+      `<tr><td>${esc(g.name)}</td><td>${g.members}</td><td>${g.blacklisted?'yes':''}</td><td><code>${g.id}</code></td></tr>`
+    ).join('') || '<tr><td colspan="4">—</td></tr>';
+  }
+  document.getElementById('refreshGuilds').onclick = ()=>loadGuilds().catch(e=>msg('toolMsg',e.message,false));
+
+  function tool(fn){
+    return async ()=>{
+      try{ await fn(); msg('toolMsg','OK',true); }
+      catch(e){ msg('toolMsg', e.message, false); }
+    };
+  }
+  document.getElementById('blAdd').onclick = tool(async()=>{
+    await api('/api/staff-portal/blacklist/add',{method:'POST',headers:headers(true),body:JSON.stringify({guildId:blGuild.value,reason:blReason.value})});
+    loadGuilds(); loadOverview();
+  });
+  document.getElementById('blRem').onclick = tool(async()=>{
+    await api('/api/staff-portal/blacklist/remove',{method:'POST',headers:headers(true),body:JSON.stringify({guildId:blGuild.value})});
+    loadGuilds();
+  });
+  document.getElementById('premCheck').onclick = tool(async()=>{
+    const j = await api('/api/staff-portal/premium/'+encodeURIComponent(premUser.value),{headers:headers()});
+    msg('toolMsg', j.premium ? ('Premium: '+JSON.stringify(j)) : 'Kein Premium', true);
+  });
+  document.getElementById('premGrant').onclick = tool(async()=>{
+    await api('/api/staff-portal/premium/grant',{method:'POST',headers:headers(true),body:JSON.stringify({userId:premUser.value,duration:premDur.value})});
+  });
+  document.getElementById('premRevoke').onclick = tool(async()=>{
+    await api('/api/staff-portal/premium/revoke',{method:'POST',headers:headers(true),body:JSON.stringify({userId:premUser.value})});
+  });
+  document.getElementById('modBan').onclick = tool(async()=>{
+    await api('/api/staff-portal/moderation',{method:'POST',headers:headers(true),body:JSON.stringify({guildId:modGuild.value,userId:modUser.value,action:'ban',reason:modReason.value})});
+  });
+  document.getElementById('modUnban').onclick = tool(async()=>{
+    await api('/api/staff-portal/moderation',{method:'POST',headers:headers(true),body:JSON.stringify({guildId:modGuild.value,userId:modUser.value,action:'unban',reason:modReason.value})});
+  });
+  document.getElementById('modKick').onclick = tool(async()=>{
+    await api('/api/staff-portal/moderation',{method:'POST',headers:headers(true),body:JSON.stringify({guildId:modGuild.value,userId:modUser.value,action:'kick',reason:modReason.value})});
+  });
+  document.getElementById('invBtn').onclick = tool(async()=>{
+    const j = await api('/api/staff-portal/invite',{method:'POST',headers:headers(true),body:JSON.stringify({guildId:invGuild.value})});
+    msg('toolMsg', j.url || 'OK', true);
+  });
+  document.getElementById('roleAdd').onclick = tool(async()=>{
+    await api('/api/staff-portal/role',{method:'POST',headers:headers(true),body:JSON.stringify({guildId:invGuild.value,userId:roleUser.value,roleId:roleId.value,action:'add'})});
+  });
+  document.getElementById('roleRem').onclick = tool(async()=>{
+    await api('/api/staff-portal/role',{method:'POST',headers:headers(true),body:JSON.stringify({guildId:invGuild.value,userId:roleUser.value,roleId:roleId.value,action:'remove'})});
+  });
+
+  async function loadErrors(){
+    const j = await api('/api/staff-portal/errors?limit=80',{headers:headers()});
+    document.getElementById('errList').innerHTML = (j.errors||[]).map(e=>
+      `<div style="margin-bottom:12px"><span class="badge">${esc(e.level)}</span> <span class="sub">${new Date(e.at).toLocaleString()}</span><div class="err">${esc(e.message)}</div></div>`
+    ).join('') || '<p class="sub">Keine Errors</p>';
+  }
+  document.getElementById('errRefresh').onclick = ()=>loadErrors().catch(e=>msg('toolMsg',e.message,false));
+  document.getElementById('errClear').onclick = async ()=>{
+    await api('/api/staff-portal/errors',{method:'DELETE',headers:headers()});
+    loadErrors();
+  };
+
+  async function loadAccess(){
+    const j = await api('/api/staff-portal/access-requests',{headers:headers()});
+    const list = (j.requests||[]).slice().reverse().slice(0,40);
+    document.getElementById('accList').innerHTML = list.map(r=>
+      `<div class="staff-card" style="flex-wrap:wrap">
+        <div style="flex:1"><b>#${r.id}</b> · ${esc(r.guildName||'')} <code>${esc(r.guildId)}</code><br/>
+        <span class="sub">${esc(r.reason||'')} · ${r.status}</span></div>
+        ${r.status==='pending'?`<button class="btn" style="width:auto" data-acc="${r.id}" data-st="approved">OK</button>
+        <button class="btn" style="width:auto" data-acc="${r.id}" data-st="denied">Deny</button>`:''}
+      </div>`
+    ).join('') || '<p class="sub">Keine Anfragen</p>';
+  }
+  document.getElementById('accList').onclick = async (e)=>{
+    const b = e.target.closest('[data-acc]');
+    if(!b) return;
+    await api('/api/staff-portal/access-requests/'+b.dataset.acc+'/resolve',{method:'POST',headers:headers(true),body:JSON.stringify({status:b.dataset.st})});
+    loadAccess();
+  };
+  document.getElementById('accSubmit').onclick = async ()=>{
+    try{
+      await api('/api/staff-portal/access-requests',{method:'POST',headers:headers(true),body:JSON.stringify({
+        guildId:accGuild.value, guildName:accName.value, reason:accReason.value, requesterId:'staff-portal'
+      })});
+      msg('accMsg','Gesendet',true); loadAccess();
+    }catch(e){ msg('accMsg',e.message,false); }
+  };
+
+  async function loadTeam(){
+    const j = await api('/api/staff-portal/roster',{headers:headers()});
+    document.getElementById('teamList').innerHTML = (j.staff||[]).map(m=>
+      `<div class="staff-card">
+        <div style="width:44px;height:44px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-weight:700">${esc((m.name||'?')[0])}</div>
+        <div style="flex:1"><b>${esc(m.name)}</b> <span class="badge">${esc(m.role)}</span><br/>
+        <span class="stars">${stars(m.rating?.avg||0)}</span> <span class="sub">(${m.rating?.count||0}) · ${m.id}</span></div>
+        <button class="btn" style="width:auto" data-del="${m.id}">Entfernen</button>
+      </div>`
+    ).join('') || '<p class="sub">Noch keine Staff eingetragen</p>';
+  }
+  document.getElementById('teamList').onclick = async (e)=>{
+    const b = e.target.closest('[data-del]');
+    if(!b) return;
+    await api('/api/staff-portal/roster/'+b.dataset.del,{method:'DELETE',headers:headers()});
+    loadTeam();
+  };
+  document.getElementById('stSave').onclick = async ()=>{
+    try{
+      await api('/api/staff-portal/roster',{method:'POST',headers:headers(true),body:JSON.stringify({
+        id:stId.value, name:stName.value, role:stRole.value
+      })});
+      msg('stMsg','Gespeichert',true); loadTeam();
+    }catch(e){ msg('stMsg',e.message,false); }
+  };
+
+  async function loadPublic(){
+    const j = await api('/api/staff-portal/public/staff');
+    const sel = document.getElementById('rateStaff');
+    sel.innerHTML = (j.staff||[]).map(m=>`<option value="${m.id}">${esc(m.name)} (${m.role})</option>`).join('');
+    document.getElementById('publicStaff').innerHTML = (j.staff||[]).map(m=>
+      `<div class="staff-card"><div style="flex:1"><b>${esc(m.name)}</b> <span class="badge">${esc(m.role)}</span><br/>
+      <span class="stars">${stars(m.rating?.avg||0)}</span> <span class="sub">${m.rating?.count||0} Bewertungen</span>
+      ${m.bio?`<div class="sub">${esc(m.bio)}</div>`:''}</div></div>`
+    ).join('') || '<p class="sub">Noch kein Staff veröffentlicht</p>';
+  }
+  document.getElementById('rateBtn').onclick = async ()=>{
+    try{
+      await api('/api/staff-portal/public/rate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        staffId:rateStaff.value, raterId:rateRater.value, stars:rateStars.value, reason:rateReason.value
+      })});
+      msg('rateMsg','Danke!',true); loadPublic();
+    }catch(e){ msg('rateMsg',e.message,false); }
+  };
+
+  function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+  if(token){
+    api('/api/staff-portal/overview',{headers:headers()}).then(showApp).catch(()=>{ token=''; sessionStorage.removeItem('staff_pw'); });
+  }
+})();
+</script>
+</body>
+</html>
