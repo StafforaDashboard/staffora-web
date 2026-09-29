@@ -3,69 +3,114 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Staffora — Discord Bot</title>
-<link rel="stylesheet" href="styles.css">
-<script>window.STAFFORA_API=window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud';</script>
+<link rel="stylesheet" href="/assets/styles.css">
+<script>window.STAFFORA_API=window.STAFFORA_API||"https://staffora.apps.bot-hosting.cloud";</script>
 </head>
 <body class="site">
 <canvas id="bg"></canvas>
 <nav class="nav">
-  <a class="brand" href="index.html"><span class="brand-mark">S</span><span>Staffora</span></a>
+  <a class="brand" href="/"><span class="brand-mark">S</span><span>Staffora</span></a>
   <div class="nav-links">
     <a href="#features">Features</a><a href="#dashboard">Dashboard</a><a href="#appeal">Ban Appeal</a><a href="#ic">IC Panel</a>
   </div>
-  <a class="btn btn-primary" href="dashboard.html">Dashboard öffnen <span>↗</span></a>
+  <a class="btn btn-primary" href="/dashboard/">Dashboard öffnen <span>↗</span></a>
 </nav>
 
-<main>
-<section class="hero section">
-  <div class="hero-copy reveal">
-    <div class="eyebrow"><span class="pulse"></span> Discord Management • RP • Staff</div>
-    <h1>Dein Server.<br><span class="gradient">Ein System.</span></h1>
-    <p class="hero-text">Staffora bündelt Tickets, Teamverwaltung, Moderation, Bewerbungen, Security, RP und Statistiken in einer modernen Control Suite.</p>
-    <div class="hero-actions">
-      <a class="btn btn-primary btn-lg" href="dashboard.html">Mit Discord anmelden <span>→</span></a>
-      <a class="btn btn-ghost btn-lg" href="#features">Features entdecken</a>
-    </div>
-    <div class="hero-meta"><span>● 24/7 verfügbar</span><span>● DE / EN</span><span>● Discord-first</span></div>
-  </div>
-  <div class="orb-wrap reveal">
-    <div class="orb">
-      <div class="orb-core">S</div>
-      <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
-      <div class="float-card fc1"><b>12.482</b><small>XP gesammelt</small></div>
-      <div class="float-card fc2"><b>98.7%</b><small>Server uptime</small></div>
-      <div class="float-card fc3"><b>24</b><small>aktive Staff</small></div>
-    </div>
-  </div>
-</section>
 
-<section id="features" class="section">
-  <div class="section-head reveal"><div><div class="eyebrow">Alles zentral</div><h2>Ein Dashboard für deinen gesamten Server.</h2></div><p>Von kleinen Communities bis zu komplexen RP-Servern.</p></div>
-  <div class="feature-grid">
-    <article class="glass feature reveal"><div class="icon">◈</div><h3>Tickets & Support</h3><p>Kategorien, Staff-Rollen, Warteräume, Büros, Admin Calls und Ticket-AI.</p></article>
-    <article class="glass feature reveal"><div class="icon">⌘</div><h3>Team & Duty</h3><p>Teamliste, Duty, Clock-In/Out, Invite/Kick, Auto-Nick und Activity Checks.</p></article>
-    <article class="glass feature reveal"><div class="icon">✦</div><h3>Moderation</h3><p>Kick, Ban, Warn, Timeout, Strafregister, AutoMod und granulare Rechte.</p></article>
-    <article class="glass feature reveal"><div class="icon">⬡</div><h3>Security</h3><p>Anti-Nuke, Anti-Raid, Limits, Backups und sichere Owner/Whitelist-Zugriffe.</p></article>
-    <article class="glass feature reveal"><div class="icon">◉</div><h3>RP & Stats</h3><p>RP-Start/Stop, Zeitpläne, Server-Code, Spielerzahlen und Stats-Panels.</p></article>
-    <article class="glass feature reveal"><div class="icon">⚡</div><h3>XP & Community</h3><p>XP für Tickets, VC, Feedback und Aufgaben sowie Leaderboards, Giveaways und Partner.</p></article>
-  </div>
-</section>
+<main class="home-page">
+  <div class="home-orb orb-a"></div>
+  <div class="home-orb orb-b"></div>
+  <div class="home-grid"></div>
 
-<section id="dashboard" class="section split">
-  <div class="mockup glass reveal">
-    <div class="window-top"><i></i><i></i><i></i><span>staffora.info / dashboard</span></div>
-    <div class="mock-body">
-      <aside><b>Staffora</b><small>SERVER CONTROL</small><div class="side-active">◈ Allgemein</div><div>◌ Module</div><div>♙ Rollen & Rechte</div><div>□ Tickets & Support</div><div>✦ Team</div><div>◉ Security</div><div>⌁ Logs & Stats</div></aside>
-      <div class="mock-main"><div class="mini-title">Server Overview <span>● Online</span></div><div class="stat-row"><div><small>Mitglieder</small><b>4,892</b></div><div><small>Tickets</small><b>37</b></div><div><small>Staff online</small><b>24</b></div></div><div class="bars"><i style="height:45%"></i><i style="height:72%"></i><i style="height:58%"></i><i style="height:84%"></i><i style="height:66%"></i><i style="height:92%"></i><i style="height:78%"></i></div></div>
+  <section class="hero-3d reveal">
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="status-dot"></span> Staffora · Discord Management Suite</div>
+      <h1>Dein Server.<br><span>Deine Kontrolle.</span></h1>
+      <p class="hero-lead">Staffora verbindet Moderation, Support, Teamverwaltung, RP-Tools und Server-Sicherheit in einer modernen Oberfläche.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary magnetic" href="/dashboard/">Dashboard öffnen <span>↗</span></a>
+        <a class="btn btn-ghost magnetic" href="#features">Features entdecken <span>↓</span></a>
+      </div>
+      <div class="hero-meta">
+        <span>● Discord OAuth2</span><span>● Server-spezifisch</span><span>● Dark 3D UI</span>
+      </div>
     </div>
-  </div>
-  <div class="split-copy reveal"><div class="eyebrow">Dashboard</div><h2>Links Kategorien.<br><span class="gradient">Rechts Kontrolle.</span></h2><p>Discord-Login → Server wählen → Modul öffnen → speichern → Panel senden. Rollen und Kanäle werden über Such-Dropdowns ausgewählt, nicht per roher ID.</p><a class="btn btn-primary" href="dashboard.html">Dashboard ansehen →</a></div>
-</section>
 
-<section id="appeal" class="cta section glass reveal"><div><div class="eyebrow">Ban Appeal</div><h2>Fairer Appeal-Prozess.</h2><p>Ein eigenes Formular für Unban-Anfragen — mit konfigurierbaren Fragen und optionaler Prüfung eines aktiven Bans.</p></div><a class="btn btn-primary" href="ban-appeal.html">Ban Appeal öffnen</a></section>
-<section id="ic" class="cta section glass reveal"><div><div class="eyebrow">IC Panel</div><h2>Ingame-Verwaltung im Browser.</h2><p>IC-Panel-Zugriff wird über Discord-Rollen gesteuert. Ohne freigegebene Rolle kein Panel.</p></div><a class="btn btn-primary" href="ic-panel.html">IC Panel öffnen</a></section>
+    <div class="hero-visual tilt-card" data-tilt>
+      <div class="dashboard-glow"></div>
+      <div class="floating-panel panel-top"><span>SECURITY</span><strong>Protected</strong><i>✓</i></div>
+      <div class="mock-window">
+        <div class="mock-bar"><span></span><span></span><span></span><b>staffora / dashboard</b></div>
+        <div class="mock-body">
+          <aside><div class="mock-logo">S</div><div class="mock-line active"></div><div class="mock-line"></div><div class="mock-line"></div><div class="mock-line"></div><div class="mock-line short"></div></aside>
+          <div class="mock-content">
+            <div class="mock-kicker">SERVER CONTROL</div><h3>Übersicht</h3>
+            <div class="mock-stats"><div><small>Members</small><strong>2,481</strong></div><div><small>Tickets</small><strong>24</strong></div><div><small>Security</small><strong>99%</strong></div></div>
+            <div class="mock-chart"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="floating-panel panel-bottom"><span>LIVE</span><strong>Bot connected</strong><i class="pulse"></i></div>
+    </div>
+  </section>
+
+  <section class="feature-intro reveal" id="features">
+    <div><span class="section-label">01 · FEATURES</span><h2>Alles, was dein Team<br><em>braucht.</em></h2></div>
+    <p>Eine zentrale Steuerung für deine Discord-Community — mit den Modulen aus dem Staffora-Konzept und einer Oberfläche, die sich wie ein echtes Produkt anfühlt.</p>
+  </section>
+
+  <section class="feature-grid">
+    <article class="feature-card reveal"><div class="feature-icon">◈</div><span>01</span><h3>Moderation</h3><p>Kick, Ban, Softban, Warn, Timeout, Notes und Strafregister zentral verwalten.</p><div class="card-line"></div></article>
+    <article class="feature-card reveal"><div class="feature-icon">⌁</div><span>02</span><h3>Tickets & Support</h3><p>Kategorien, Staff-Rollen, Panels, KI je Kategorie, Limits und Support-Flows.</p><div class="card-line"></div></article>
+    <article class="feature-card reveal"><div class="feature-icon">✦</div><span>03</span><h3>Team & Schicht</h3><p>Teamrollen, Dienststatus, Clock, Tracking, Aufgaben und Abmeldungen.</p><div class="card-line"></div></article>
+    <article class="feature-card reveal"><div class="feature-icon">⌂</div><span>04</span><h3>RP & Fraktionen</h3><p>Häuser, Fraktionen, RP-Ankündigungen, Server-Stats und IC-Workflows.</p><div class="card-line"></div></article>
+    <article class="feature-card reveal"><div class="feature-icon">⬡</div><span>05</span><h3>Security & AutoMod</h3><p>Anti-Nuke, Anti-Raid, Limits, AutoMod, Logs und Schutzmechanismen.</p><div class="card-line"></div></article>
+    <article class="feature-card reveal"><div class="feature-icon">◎</div><span>06</span><h3>Database & IC Panel</h3><p>Spieler suchen, Einträge verwalten, Bans prüfen und IC-Aktionen ausführen.</p><div class="card-line"></div></article>
+  </section>
+
+  <section class="module-strip reveal">
+    <div class="strip-copy"><span class="section-label">02 · CONTROL CENTER</span><h2>Ein System.<br><em>Viele Module.</em></h2></div>
+    <div class="module-cloud">
+      <span>Allgemein</span><span>Design</span><span>Tickets</span><span>Bewerbungen</span><span>Team</span><span>Schicht & Clock</span><span>Aufgaben</span><span>Database</span><span>Moderation</span><span>AutoMod</span><span>Security</span><span>Welcome</span><span>Verify</span><span>XP</span><span>Logs & Stats</span>
+    </div>
+  </section>
+
+  <section class="cta-3d reveal">
+    <div class="cta-ring"></div>
+    <span class="section-label">03 · READY</span>
+    <h2>Dein Server verdient<br><em>mehr Kontrolle.</em></h2>
+    <p>Starte mit Staffora und verwalte deine Community aus einem einzigen, klaren Control Center.</p>
+    <a class="btn btn-primary magnetic" href="/dashboard/">Zu Staffora <span>→</span></a>
+  </section>
 </main>
+<script>
+(() => {
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  }), {threshold:.12});
+  reveals.forEach(el => io.observe(el));
 
-<footer><span>© 2026 Staffora</span><span>Discord Management Suite</span><span><a href="dashboard.html">Dashboard</a> · <a href="ban-appeal.html">Appeal</a> · <a href="ic-panel.html">IC</a></span></footer>
-<script src="app.js"></script>
+  document.querySelectorAll('[data-tilt]').forEach(card => {
+    card.addEventListener('pointermove', e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX-r.left)/r.width-.5, y = (e.clientY-r.top)/r.height-.5;
+      card.style.transform = `perspective(1100px) rotateY(${x*7}deg) rotateX(${y*-7}deg) translateY(-6px)`;
+    });
+    card.addEventListener('pointerleave', () => card.style.transform = '');
+  });
+
+  document.querySelectorAll('.magnetic').forEach(btn => {
+    btn.addEventListener('pointermove', e => {
+      const r=btn.getBoundingClientRect();
+      btn.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.08}px, ${(e.clientY-r.top-r.height/2)*.08}px)`;
+    });
+    btn.addEventListener('pointerleave',()=>btn.style.transform='');
+  });
+})();
+</script>
+
+
+<footer><span>© 2026 Staffora</span><span>Discord Management Suite</span><span><a href="/dashboard/">Dashboard</a> · <a href="/appeal/">Appeal</a> · <a href="/ic/">IC</a></span></footer>
+<script src="/assets/app.js"></script>
 </body></html>
