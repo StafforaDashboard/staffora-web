@@ -1,16 +1,23 @@
-# Staffora – GitHub Pages
+# Staffora Blueprint UI (mit API)
 
-1. Create a **public** GitHub repo (e.g. `staffora-pages`).
-2. Upload **these files at the root** (not inside a subfolder):
-   - index.html
-   - dashboard.html
-   - ingame.html
-   - unban.html
-   - .nojekyll
-3. Settings → Pages → Deploy from **main** branch → **/ (root)**.
-4. Bot API: `https://staffora.apps.bot-hosting.cloud`
-5. In Discord Developer Portal → OAuth2 redirects add:
-   `https://YOURUSER.github.io/REPONAME/dashboard.html`
-   (and your bot callback URL as already configured)
+## Dateien
+- `index.html` — Landing
+- `dashboard.html` — Admin-Dashboard (Login → Server → Settings / Panels / Stats)
+- `ic-panel.html` — IC Panel (Login + Access-Rolle)
+- `ban-appeal.html` — Öffentlicher Ban Appeal (Roblox-Name → Check → Formular)
+- `styles.css` — Design
+- `app.js` — **Echte** Anbindung an Staffora Bot-API
 
-Login uses the bot host for Discord OAuth, then returns to this GitHub Pages site.
+## API
+Standard: `https://staffora.apps.bot-hosting.cloud`  
+Ändern: `localStorage.setItem('staffora_api','https://dein-host')` oder `window.STAFFORA_API` im HTML.
+
+## Ablauf Dashboard
+1. Discord OAuth (`/auth/login`)
+2. Server wählen
+3. Config + Rollen/Kanäle laden
+4. Kanäle/Rollen an Settings übernehmen (Dropdown + Übernehmen)
+5. Panel senden / Activity starten / Team-Stats laden
+
+## Bot muss laufen
+`GET /api/health` muss erreichbar sein. OAuth Redirect & PUBLIC_URL müssen zur API passen.

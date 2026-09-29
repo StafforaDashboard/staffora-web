@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staffora — Ban Appeal</title>
+<link rel="stylesheet" href="styles.css">
+<script>window.STAFFORA_API=window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud';</script>
+</head>
+<body data-page="public">
+<div class="appeal-wrap">
+  <section class="appeal glass">
+    <a class="back" href="index.html">← Zurück zu Staffora</a>
+    <div class="eyebrow">Unban / Ban Appeal</div>
+    <h1>Ban Appeal</h1>
+    <p>Gib deinen <b>Roblox-Namen</b> ein. Das System prüft, ob ein Ban hinterlegt ist. Nur dann kannst du den Antrag ausfüllen.</p>
+    <div class="notice" id="step-hint">Schritt 1: Roblox-Namen prüfen</div>
+
+    <div id="step-check" class="form" style="margin-top:22px">
+      <div class="field">
+        <label class="label">Roblox-Name</label>
+        <input class="input" id="roblox-name" placeholder="Dein Roblox Username" required>
+      </div>
+      <div class="field">
+        <label class="label">Server (optional, Discord Server-ID)</label>
+        <input class="input" id="guild-id" placeholder="Wenn bekannt — sonst Standard-Server">
+      </div>
+      <button class="btn btn-primary" type="button" id="btn-check">Ban prüfen →</button>
+    </div>
+
+    <form id="step-form" class="form" style="margin-top:22px" hidden>
+      <div class="field"><label class="label">Roblox-Name</label><input class="input" id="f-roblox" readonly></div>
+      <div class="field"><label class="label">Warum sollte der Ban aufgehoben werden?</label><textarea class="textarea" id="f-why" required placeholder="Beschreibe deinen Fall…"></textarea></div>
+      <div class="field"><label class="label">Was hast du gelernt?</label><textarea class="textarea" id="f-learn" required placeholder="Deine Antwort…"></textarea></div>
+      <div class="field"><label class="label">Zusätzliche Informationen</label><textarea class="textarea" id="f-extra" placeholder="Optional"></textarea></div>
+      <button class="btn btn-primary" type="submit">Appeal absenden →</button>
+    </form>
+
+    <div id="sent" class="notice" style="margin-top:15px" hidden></div>
+  </section>
+</div>
+<script>
+(function(){
+  var API=(window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud').replace(/\/$/,'');
+  var roblox='';
+  var guildId=new URLSearchParams(location.search).get('guild')||'';
+  if(guildId) document.getElementById('guild-id').value=guildId;
+
+  function toast(m,ok){
+    var s=document.getElementById('sent');
+    s.hidden=false; s.textContent=m;
+    s.style.borderColor=ok===false?'rgba(248,113,113,.5)':'';
+  }
+
+  document.getElementById('btn-check').onclick=async function(){
+    roblox=(document.getElementById('roblox-name').value||'').trim();
+    guildId=(document.getElementById('guild-id').value||'').trim()||guildId;
+    if(!roblox){ toast('Roblox-Name fehlt', false); return; }
+    try{
+      var r=await fetch(API+'/api/public/unban-check',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({roblox:roblox, username:roblox, guildId:guildId||undefined})
+      });
+      var j=await r.json().catch(function(){return {};});
+      if(!r.ok && r.status!==404){
+        // fallback: try request endpoint behavior
+        if(j.noBan || (j.message&&/keine/i.test(j.message))){
+          toast(j.message||'Es sind keine Bans auf deinem Konto registriert.', true);
+          return;
+        }
+      }
+      if(j.noBan || j.hasBan===false){
+        toast(j.message||'Es sind keine Bans auf deinem Konto registriert.', true);
+        document.getElementById('step-form').hidden=true;
+        return;
+      }
+      if(j.appealsDisabled){
+        toast(j.message||'Für diesen Ban ist derzeit kein Appeal möglich.', false);
+        return;
+      }
+      // show form
+      document.getElementById('f-roblox').value=roblox;
+      document.getElementById('step-form').hidden=false;
+      document.getElementById('step-hint').textContent='Schritt 2: Antrag ausfüllen';
+      toast('Ban gefunden — bitte Formular ausfüllen.', true);
+    }catch(e){
+      // if check route missing, still allow form
+      document.getElementById('f-roblox').value=roblox;
+      document.getElementById('step-form').hidden=false;
+      toast('Prüfung übersprungen (API). Du kannst den Antrag senden.', true);
+    }
+  };
+
+  document.getElementById('step-form').onsubmit=async function(ev){
+    ev.preventDefault();
+    var body={
+      roblox: document.getElementById('f-roblox').value,
+      username: document.getElementById('f-roblox').value,
+      guildId: guildId||undefined,
+      answers:[
+        {question:'Warum sollte der Ban aufgehoben werden?', answer:document.getElementById('f-why').value},
+        {question:'Was hast du gelernt?', answer:document.getElementById('f-learn').value},
+        {question:'Zusätzliche Informationen', answer:document.getElementById('f-extra').value}
+      ]
+    };
+    try{
+      var r=await fetch(API+'/api/public/unban-request',{
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+      });
+      var j=await r.json().catch(function(){return {};});
+      if(!r.ok) throw new Error(j.error||j.message||'Senden fehlgeschlagen');
+      toast(j.message||'Antrag wurde übermittelt. Das Team meldet sich.', true);
+      document.getElementById('step-form').hidden=true;
+    }catch(e){
+      toast(e.message, false);
+    }
+  };
+})();
+</script>
+</body>
+</html>

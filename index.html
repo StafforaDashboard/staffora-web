@@ -1,177 +1,71 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>Staffora – Discord &amp; Roblox Moderation</title>
-<meta name="description" content="Staffora: Discord-Moderation, Team-Tools und IC-Panel für Roblox EH. Tickets, Duty, Security und mehr."/>
-<meta name="robots" content="index,follow"/>
-<link rel="canonical" href="https://staffora.info/"/>
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
-<meta property="og:type" content="website"/>
-<meta property="og:site_name" content="Staffora"/>
-<meta property="og:title" content="Staffora – Discord &amp; Roblox Moderation"/>
-<meta property="og:description" content="Moderation, Team und IC an einem Ort für Roblox EH."/>
-<meta property="og:url" content="https://staffora.info/"/>
-<meta property="og:image" content="https://staffora.info/assets/og.svg"/>
-<meta name="theme-color" content="#8b5cf6"/>
-
-<style>
-:root{--bg:#07070a;--card:#121218;--line:#26262f;--text:#f4f4f5;--muted:#9ca3af;--accent:#8b5cf6}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
-  background-image:radial-gradient(ellipse 80% 50% at 50% -15%,rgba(139,92,246,.22),transparent 55%),
-  radial-gradient(ellipse 40% 30% at 90% 80%,rgba(59,130,246,.08),transparent)}
-.wrap{max-width:1000px;margin:0 auto;padding:48px 20px 100px}
-.hero{text-align:center;margin-bottom:36px;animation:up .55s ease both}
-@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-@keyframes glow{0%,100%{box-shadow:0 16px 40px rgba(139,92,246,.3)}50%{box-shadow:0 16px 48px rgba(139,92,246,.5)}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-@keyframes lineIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
-@keyframes shimmer{0%{background-position:0% 50%}100%{background-position:100% 50%}}
-@keyframes bounceY{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
-.logo{width:64px;height:64px;border-radius:18px;margin:0 auto 18px;background:linear-gradient(145deg,#a78bfa,#5b21b6);
-  display:grid;place-items:center;font-weight:800;font-size:24px;animation:up .55s ease both,glow 3s ease-in-out infinite}
-h1{font-size:2.2rem;letter-spacing:-.03em;margin-bottom:10px}
-.sub{color:var(--muted);font-size:1.05rem;max-width:480px;margin:0 auto 28px;line-height:1.5}
-.actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
-.btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 22px;border-radius:12px;
-  font-weight:600;text-decoration:none;transition:transform .15s,box-shadow .15s;border:none;cursor:pointer;font-size:15px}
-.btn:hover{transform:translateY(-2px)}
-.btn-p{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 8px 24px rgba(139,92,246,.35)}
-.btn-g{background:var(--card);color:var(--text);border:1px solid var(--line)}
-.sec{margin:8px 0 14px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;font-weight:700;text-align:center}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-.card{background:rgba(18,18,24,.9);border:1px solid var(--line);border-radius:16px;padding:20px;
-  transition:transform .2s,border-color .2s,box-shadow .2s;opacity:0;animation:up .55s ease both}
-.card:hover{transform:translateY(-4px);border-color:#4c1d95;box-shadow:0 12px 28px rgba(139,92,246,.12)}
-.card .ic{font-size:1.35rem;margin-bottom:8px;display:inline-block;transition:transform .2s}
-.card:hover .ic{transform:scale(1.12)}
-.card h2{font-size:1.05rem;margin-bottom:6px}
-.card p{color:var(--muted);font-size:13.5px;line-height:1.45;margin:0}
-.corner{position:fixed;right:16px;bottom:16px;z-index:50;display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:11px}
-.corner a{color:#6b7280;text-decoration:none;padding:2px 0;transition:color .15s}
-.corner a:hover{color:#a1a1aa}
-
-.promo{
-  margin:8px 0 8px;padding:32px 26px 28px;border-radius:20px;
-  background:linear-gradient(160deg,rgba(24,24,32,.95),rgba(15,15,20,.98));
-  border:1px solid var(--line);position:relative;overflow:hidden;
-  opacity:0;transform:translateY(20px);transition:opacity .65s ease,transform .65s ease;
-}
-.promo.in{opacity:1;transform:none}
-.promo::before{
-  content:'';position:absolute;inset:-40% -20% auto auto;width:260px;height:260px;border-radius:50%;
-  background:radial-gradient(circle,rgba(139,92,246,.22),transparent 70%);pointer-events:none;
-  animation:float 6s ease-in-out infinite;
-}
-.promo::after{
-  content:'';position:absolute;left:0;top:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,#8b5cf6,transparent);
-  transform-origin:left;animation:lineIn .8s ease .2s both;
-}
-.promo-head{text-align:center;margin-bottom:18px;position:relative;z-index:1}
-.promo-head .bot{font-size:1.75rem;margin-bottom:8px;display:inline-block;animation:float 3.5s ease-in-out infinite}
-.promo-head h2{
-  font-size:1.3rem;margin-bottom:10px;letter-spacing:-.02em;
-  background:linear-gradient(90deg,#e9d5ff,#a78bfa,#c4b5fd,#e9d5ff);
-  background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
-  animation:shimmer 4s linear infinite;
-}
-.promo-head p{color:var(--muted);font-size:14.5px;max-width:540px;margin:0 auto;line-height:1.55}
-.promo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:18px 0 6px;position:relative;z-index:1}
-.promo-item{
-  padding:12px 14px;border-radius:12px;background:rgba(10,10,14,.55);border:1px solid #22222a;
-  transition:transform .2s,border-color .2s;
-  opacity:0;transform:translateY(10px);
-}
-.promo.in .promo-item{animation:up .45s ease both}
-.promo.in .promo-item:nth-child(1){animation-delay:.06s}
-.promo.in .promo-item:nth-child(2){animation-delay:.1s}
-.promo.in .promo-item:nth-child(3){animation-delay:.14s}
-.promo.in .promo-item:nth-child(4){animation-delay:.18s}
-.promo.in .promo-item:nth-child(5){animation-delay:.22s}
-.promo.in .promo-item:nth-child(6){animation-delay:.26s}
-.promo-item:hover{transform:translateY(-2px);border-color:#5b21b6}
-.promo-item strong{display:block;font-size:13.5px;margin-bottom:3px}
-.promo-item span{color:var(--muted);font-size:12px;line-height:1.35}
-
-.more-arrow{
-  text-align:center;margin:22px 0 10px;color:#a78bfa;font-size:13px;font-weight:600;
-  letter-spacing:.04em;opacity:0;animation:up .5s ease .3s both;
-}
-.more-arrow .arr{
-  display:block;font-size:18px;margin-top:4px;color:#8b5cf6;
-  animation:bounceY 1.4s ease-in-out infinite;
-}
-.foot{text-align:center;margin-top:40px;color:#6b7280;font-size:13px}
-</style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staffora — Discord Bot</title>
+<link rel="stylesheet" href="styles.css">
+<script>window.STAFFORA_API=window.STAFFORA_API||'https://staffora.apps.bot-hosting.cloud';</script>
 </head>
-<body>
-<div class="wrap">
-  <div class="hero">
-    <div class="logo">S</div>
-    <h1>Staffora</h1>
-    <p class="sub">Discord-Moderation und Server-Verwaltung.</p>
-    <div class="actions">
-      <a class="btn btn-p" href="./dashboard.html">Dashboard</a>
-      <a class="btn btn-g" href="https://staffora.apps.bot-hosting.cloud/auth/login?return=https%3A%2F%2Fstafforadashboard.github.io%2Fstaffora-web%2Fdashboard.html">Mit Discord anmelden</a>
+<body class="site">
+<canvas id="bg"></canvas>
+<nav class="nav">
+  <a class="brand" href="index.html"><span class="brand-mark">S</span><span>Staffora</span></a>
+  <div class="nav-links">
+    <a href="#features">Features</a><a href="#dashboard">Dashboard</a><a href="#appeal">Ban Appeal</a><a href="#ic">IC Panel</a>
+  </div>
+  <a class="btn btn-primary" href="dashboard.html">Dashboard öffnen <span>↗</span></a>
+</nav>
+
+<main>
+<section class="hero section">
+  <div class="hero-copy reveal">
+    <div class="eyebrow"><span class="pulse"></span> Discord Management • RP • Staff</div>
+    <h1>Dein Server.<br><span class="gradient">Ein System.</span></h1>
+    <p class="hero-text">Staffora bündelt Tickets, Teamverwaltung, Moderation, Bewerbungen, Security, RP und Statistiken in einer modernen Control Suite.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary btn-lg" href="dashboard.html">Mit Discord anmelden <span>→</span></a>
+      <a class="btn btn-ghost btn-lg" href="#features">Features entdecken</a>
+    </div>
+    <div class="hero-meta"><span>● 24/7 verfügbar</span><span>● DE / EN</span><span>● Discord-first</span></div>
+  </div>
+  <div class="orb-wrap reveal">
+    <div class="orb">
+      <div class="orb-core">S</div>
+      <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+      <div class="float-card fc1"><b>12.482</b><small>XP gesammelt</small></div>
+      <div class="float-card fc2"><b>98.7%</b><small>Server uptime</small></div>
+      <div class="float-card fc3"><b>24</b><small>aktive Staff</small></div>
     </div>
   </div>
+</section>
 
-  <section class="promo" id="promo">
-    <div class="promo-head">
-      <div class="bot">🤖</div>
-      <h2>Der All-in-One Discord Bot für deinen Server</h2>
-      <p>Moderation, Team und IC an einem Ort – über Dashboard und Discord steuerbar.</p>
-    </div>
-    <div class="promo-grid">
-      <div class="promo-item"><strong>🛡️ Moderation</strong><span>Warns, Bans, Logs, Ban Appeals</span></div>
-      <div class="promo-item"><strong>👥 Team</strong><span>Rollen, Bewerbungen, Teamlist, Duty</span></div>
-      <div class="promo-item"><strong>🎫 Tickets</strong><span>Support, Übernehmen, Transcript</span></div>
-      <div class="promo-item"><strong>⭐ XP &amp; Ränge</strong><span>XP, Feedback-Sterne, Auto-Nick</span></div>
-      <div class="promo-item"><strong>🪪 Ausweis</strong><span>Anträge und Personalausweis-Karte</span></div>
-      <div class="promo-item"><strong>🎮 IC Panel</strong><span>Lookup, Duty, Online Admin</span></div>
-    </div>
-  </section>
-
-  <div class="more-arrow">
-    Mehr Features
-    <span class="arr">↓</span>
+<section id="features" class="section">
+  <div class="section-head reveal"><div><div class="eyebrow">Alles zentral</div><h2>Ein Dashboard für deinen gesamten Server.</h2></div><p>Von kleinen Communities bis zu komplexen RP-Servern.</p></div>
+  <div class="feature-grid">
+    <article class="glass feature reveal"><div class="icon">◈</div><h3>Tickets & Support</h3><p>Kategorien, Staff-Rollen, Warteräume, Büros, Admin Calls und Ticket-AI.</p></article>
+    <article class="glass feature reveal"><div class="icon">⌘</div><h3>Team & Duty</h3><p>Teamliste, Duty, Clock-In/Out, Invite/Kick, Auto-Nick und Activity Checks.</p></article>
+    <article class="glass feature reveal"><div class="icon">✦</div><h3>Moderation</h3><p>Kick, Ban, Warn, Timeout, Strafregister, AutoMod und granulare Rechte.</p></article>
+    <article class="glass feature reveal"><div class="icon">⬡</div><h3>Security</h3><p>Anti-Nuke, Anti-Raid, Limits, Backups und sichere Owner/Whitelist-Zugriffe.</p></article>
+    <article class="glass feature reveal"><div class="icon">◉</div><h3>RP & Stats</h3><p>RP-Start/Stop, Zeitpläne, Server-Code, Spielerzahlen und Stats-Panels.</p></article>
+    <article class="glass feature reveal"><div class="icon">⚡</div><h3>XP & Community</h3><p>XP für Tickets, VC, Feedback und Aufgaben sowie Leaderboards, Giveaways und Partner.</p></article>
   </div>
+</section>
 
-  <div class="sec">Module &amp; Features</div>
-  <div class="grid">
-    <div class="card" style="animation-delay:.05s"><div class="ic">⭐</div><h2>XP-System</h2><p>XP für Chat, Voice, Dienst, Tickets und Admin Calls. Am Periodenende Uprank für die höchste XP (abschaltbar).</p></div>
-    <div class="card" style="animation-delay:.08s"><div class="ic">💜</div><h2>Feedback</h2><p>Teammitglied bewerten (1–5 Sterne + Text). Eintrag im Log-Kanal. Gute Sterne mehr XP, 1–2 Sterne Abzug.</p></div>
-    <div class="card" style="animation-delay:.11s"><div class="ic">👮</div><h2>Online Admin</h2><p>On/Off Duty. Liste mit Admin-Rolle und ohne. Gleicher Status wie im IC Panel.</p></div>
-    <div class="card" style="animation-delay:.14s"><div class="ic">🎫</div><h2>Tickets</h2><p>Support öffnen, übernehmen, schließen mit Transcript.</p></div>
-    <div class="card" style="animation-delay:.17s"><div class="ic">🪪</div><h2>Ausweis</h2><p>Anträge für Ausweis, Führerschein, Waffenschein. Genehmigung und Karte als Embed.</p></div>
-    <div class="card" style="animation-delay:.2s"><div class="ic">🎵</div><h2>Warteraum-Musik</h2><p>Musik im Support-Warteraum. URL oder Datei im Dashboard.</p></div>
-    <div class="card" style="animation-delay:.23s"><div class="ic">🏷️</div><h2>Auto-Nick &amp; Ränge</h2><p>Nickname nach Rang. Befördern und Degradieren über die Rang-Laufbahn.</p></div>
-    <div class="card" style="animation-delay:.26s"><div class="ic">🤝</div><h2>Partner &amp; Team</h2><p>Partner-Stufen, Bewerbungen, Teamlist, Abmelden, Fraktionen.</p></div>
-    <div class="card" style="animation-delay:.29s"><div class="ic">🔓</div><h2>Ban Appeal</h2><p>Spieler stellt Unban-Anfrage per Roblox-Name. Team prüft im Dashboard.</p></div>
-    <div class="card" style="animation-delay:.32s"><div class="ic">📞</div><h2>Admin Calls</h2><p>Warteraum-Ping, Übernehmen, Logs und optional Musik.</p></div>
+<section id="dashboard" class="section split">
+  <div class="mockup glass reveal">
+    <div class="window-top"><i></i><i></i><i></i><span>staffora.info / dashboard</span></div>
+    <div class="mock-body">
+      <aside><b>Staffora</b><small>SERVER CONTROL</small><div class="side-active">◈ Allgemein</div><div>◌ Module</div><div>♙ Rollen & Rechte</div><div>□ Tickets & Support</div><div>✦ Team</div><div>◉ Security</div><div>⌁ Logs & Stats</div></aside>
+      <div class="mock-main"><div class="mini-title">Server Overview <span>● Online</span></div><div class="stat-row"><div><small>Mitglieder</small><b>4,892</b></div><div><small>Tickets</small><b>37</b></div><div><small>Staff online</small><b>24</b></div></div><div class="bars"><i style="height:45%"></i><i style="height:72%"></i><i style="height:58%"></i><i style="height:84%"></i><i style="height:66%"></i><i style="height:92%"></i><i style="height:78%"></i></div></div>
+    </div>
   </div>
+  <div class="split-copy reveal"><div class="eyebrow">Dashboard</div><h2>Links Kategorien.<br><span class="gradient">Rechts Kontrolle.</span></h2><p>Discord-Login → Server wählen → Modul öffnen → speichern → Panel senden. Rollen und Kanäle werden über Such-Dropdowns ausgewählt, nicht per roher ID.</p><a class="btn btn-primary" href="dashboard.html">Dashboard ansehen →</a></div>
+</section>
 
-  <p class="foot">STAFFORA BOT</p>
-</div>
+<section id="appeal" class="cta section glass reveal"><div><div class="eyebrow">Ban Appeal</div><h2>Fairer Appeal-Prozess.</h2><p>Ein eigenes Formular für Unban-Anfragen — mit konfigurierbaren Fragen und optionaler Prüfung eines aktiven Bans.</p></div><a class="btn btn-primary" href="ban-appeal.html">Ban Appeal öffnen</a></section>
+<section id="ic" class="cta section glass reveal"><div><div class="eyebrow">IC Panel</div><h2>Ingame-Verwaltung im Browser.</h2><p>IC-Panel-Zugriff wird über Discord-Rollen gesteuert. Ohne freigegebene Rolle kein Panel.</p></div><a class="btn btn-primary" href="ic-panel.html">IC Panel öffnen</a></section>
+</main>
 
-<div class="corner">
-  <a href="./ingame.html">IC Panel</a>
-  <a href="./unban.html">Ban Appeal</a>
-</div>
-<script>
-(function(){
-  var el=document.getElementById('promo');
-  if(!el) return;
-  if(!('IntersectionObserver' in window)){ el.classList.add('in'); return; }
-  var io=new IntersectionObserver(function(entries){
-    entries.forEach(function(e){ if(e.isIntersecting){ el.classList.add('in'); io.disconnect(); } });
-  },{threshold:0.12});
-  io.observe(el);
-})();
-</script>
-</body>
-</html>
+<footer><span>© 2026 Staffora</span><span>Discord Management Suite</span><span><a href="dashboard.html">Dashboard</a> · <a href="ban-appeal.html">Appeal</a> · <a href="ic-panel.html">IC</a></span></footer>
+<script src="app.js"></script>
+</body></html>
