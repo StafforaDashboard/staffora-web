@@ -190,6 +190,7 @@
     showApp(true);
     view = 'hub';
     activeCat = null;
+    try { sessionStorage.setItem('staffora_view', 'hub'); sessionStorage.removeItem('staffora_cat'); } catch (e0) {}
     Promise.all([loadConfig(), loadDiscordMeta()]).then(function () {
       render();
       toast('Server geladen', true);
@@ -197,8 +198,14 @@
   }
 
   function renderHub() {
-    $('top-title').textContent = 'Kategorien';
-    var html = '<p style="color:#9298a8;margin:0 0 18px">Wähle eine Kategorie, um die Einstellungen zu öffnen.</p>';
+    $('top-title').textContent = 'Kategorie wählen';
+    $('top-eye').textContent = 'Schritt 2 von 3 · Settings erst nach Auswahl';
+    var html = '';
+    html += '<div class="glass" style="padding:22px 24px;margin-bottom:22px">';
+    html += '<div class="eyebrow">Übersicht</div>';
+    html += '<h2 style="margin:0 0 8px;font:700 22px Space Grotesk,sans-serif">Wähle eine Kategorie</h2>';
+    html += '<p style="color:#9298a8;margin:0;line-height:1.55;font-size:14px">Die Einstellungen öffnen sich auf der <b style="color:#e2e8f0">nächsten Seite</b>. Ohne Kategorie siehst du keine Settings.</p>';
+    html += '</div>';
     html += '<div class="hub-grid">';
     CATS.forEach(function (c) {
       html += '<button type="button" class="hub-card" data-cat="' + c.id + '">' +
@@ -210,7 +217,9 @@
       b.onclick = function () {
         activeCat = b.getAttribute('data-cat');
         view = 'cat';
+        try { sessionStorage.setItem('staffora_view', 'cat'); sessionStorage.setItem('staffora_cat', activeCat); } catch (e) {}
         render();
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e2) { window.scrollTo(0, 0); }
       };
     });
   }
@@ -382,7 +391,7 @@
 
   function wireCatButtons() {
     var b = $('btn-back');
-    if (b) b.onclick = function () { view = 'hub'; activeCat = null; render(); };
+    if (b) b.onclick = function () { view = 'hub'; activeCat = null; try { sessionStorage.setItem('staffora_view','hub'); sessionStorage.removeItem('staffora_cat'); } catch(e){} render(); try { window.scrollTo(0,0); } catch(e2){} };
 
     document.querySelectorAll('.toggle').forEach(function (tg) {
       tg.onclick = function () { tg.classList.toggle('on'); };
@@ -508,8 +517,14 @@
   }
 
   function render() {
-    if (view === 'hub' || !activeCat) renderHub();
-    else renderCat();
+    document.body.classList.remove('page-hub', 'page-cat', 'page-pick');
+    if (view === 'hub' || !activeCat) {
+      document.body.classList.add('page-hub');
+      renderHub();
+    } else {
+      document.body.classList.add('page-cat');
+      renderCat();
+    }
   }
 
   function particles() {

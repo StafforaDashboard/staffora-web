@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Staffora — Dashboard</title>
-<link rel="stylesheet" href="/assets/styles.css">
-<link rel="stylesheet" href="/assets/dash.css">
+<link rel="stylesheet" href="/assets/styles.css?v=3d2">
+<link rel="stylesheet" href="/assets/dash.css?v=3d3">
 <script>
 window.STAFFORA_API = window.STAFFORA_API || "https://staffora.apps.bot-hosting.cloud";
 window.STAFFORA_RETURN = location.origin + "/dashboard/";
@@ -28,9 +28,9 @@ window.STAFFORA_RETURN = location.origin + "/dashboard/";
 <!-- Server picker -->
 <div id="picker" class="picker hidden">
   <div class="picker-box glass">
-    <div class="eyebrow" style="margin-bottom:8px">Server</div>
+    <div class="eyebrow" style="margin-bottom:8px">Schritt 1 von 3</div>
     <h1 style="margin:0 0 8px;font:700 1.5rem Space Grotesk,sans-serif">Server wählen</h1>
-    <p style="color:#9298a8;font-size:13px;margin:0 0 10px">Nur Server, auf denen der Bot ist und du Rechte hast.</p>
+    <p style="color:#9298a8;font-size:13px;margin:0 0 10px">Zuerst Server — danach Kategorie — erst dann Settings.</p>
     <input type="search" id="srv-search" placeholder="Server suchen…" style="width:100%;padding:10px 12px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:#0e1016;color:#fff">
     <div class="picker-list" id="srv-list"></div>
   </div>
@@ -64,6 +64,6 @@ window.STAFFORA_RETURN = location.origin + "/dashboard/";
 </div>
 
 <div id="toast"></div>
-<script src="/assets/dash-app.js"></script>
+<script src="/assets/dash-app.js?v=3d3"></script>
 </body>
 </html>
