@@ -1,7 +1,5 @@
 /**
  * Staffora website client
- * Uses Discord OAuth via our bot API. Prefer same-origin /api and /auth
- * (Cloudflare Worker proxy) so antivirus URL-blacklists on free hosts don't block login.
  */
 (function () {
   'use strict';
@@ -19,7 +17,7 @@
       var ls = localStorage.getItem('staffora_api');
       if (ls) return String(ls).replace(/\/$/, '');
     } catch (e) {}
-    // Only use same-origin if proxy flag is set (Cloudflare Worker live)
+    // Optional same-origin API if enabled
     try {
       if (localStorage.getItem('staffora_api_proxy') === '1') return '';
     } catch (e) {}
@@ -147,8 +145,7 @@
       '<p style="color:#9298a8;margin:0 0 16px;line-height:1.5;font-size:14px">Mit Discord anmelden, danach Server wählen.</p>' +
       '<button type="button" id="btn-login" style="width:100%;padding:12px 16px;border:0;border-radius:12px;background:#8b5cf6;color:#fff;font-weight:600;cursor:pointer">Mit Discord anmelden</button>' +
       '<p id="auth-err" style="color:#f87171;font-size:12px;margin-top:12px;line-height:1.4"></p>' +
-      '<p style="color:#6b7280;font-size:11px;margin-top:14px;line-height:1.4">Bei Antivirus-Block: Cloudflare-Proxy auf staffora.info nutzen (siehe /assets/cloudflare-worker.js) oder Domain in Avast erlauben.</p>' +
-      '</div></div>';
+            '</div></div>';
     document.body.appendChild(gate);
     $('btn-login').onclick = goLogin;
 
@@ -409,7 +406,7 @@
         showGate(true);
         var err = $('auth-err');
         if (err) {
-          err.textContent = (e && e.message) || 'Login fehlgeschlagen. Wenn Antivirus blockiert: Proxy (cloudflare-worker.js) oder Ausnahme setzen.';
+          err.textContent = (e && e.message) || 'Login fehlgeschlagen. Bitte erneut versuchen.';
         }
       });
 
