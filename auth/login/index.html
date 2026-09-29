@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Staffora Login…</title>
+<meta name="robots" content="noindex">
+<script>
+(function () {
+  var BOT = 'https://staffora.apps.bot-hosting.cloud';
+  var q = location.search || '';
+  // Always send OAuth to the real bot API (GitHub Pages cannot run Discord OAuth)
+  location.replace(BOT + '/auth/login' + q);
+})();
+</script>
+</head>
+<body style="background:#050508;color:#c4b5fd;font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0">
+<p>Weiterleitung zum Login…</p>
+<p style="font-size:13px;color:#6b7280">Falls nichts passiert: <a id="a" href="#" style="color:#a78bfa">hier klicken</a></p>
+<script>
+document.getElementById('a').href = 'https://staffora.apps.bot-hosting.cloud/auth/login' + (location.search || '');
+</script>
+</body>
+</html>

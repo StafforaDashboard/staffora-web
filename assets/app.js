@@ -118,21 +118,20 @@
     });
   }
 
-  /** Login: go straight to Discord via our /auth/login (same-origin proxy preferred) */
+  /** Login always hits the bot API host (not GitHub Pages). */
   function goLogin() {
-    var retUrl = window.STAFFORA_RETURN || (location.origin + location.pathname.replace(/index\.html$/i, ''));
-    if (retUrl.slice(-1) !== '/' && retUrl.indexOf('?') < 0) {
-      try {
-        var u = new URL(retUrl);
-        var last = (u.pathname.split('/').pop() || '');
-        if (!/\.[a-z0-9]+$/i.test(last) && u.pathname.slice(-1) !== '/') u.pathname += '/';
-        retUrl = u.toString();
-      } catch (e) {}
+    var BOT = FALLBACK_API; // https://staffora.apps.bot-hosting.cloud
+    var retUrl = window.STAFFORA_RETURN || (location.origin + '/dashboard/');
+    try {
+      var u = new URL(retUrl, location.origin);
+      if (u.pathname.indexOf('/ic') >= 0) retUrl = location.origin + '/ic/';
+      else retUrl = location.origin + '/dashboard/';
+    } catch (e) {
+      retUrl = location.origin + '/dashboard/';
     }
-    var loginPath = apiUrl('/auth/login?return=' + encodeURIComponent(retUrl));
+    var loginPath = BOT + '/auth/login?return=' + encodeURIComponent(retUrl);
     var err = $('auth-err');
     if (err) err.textContent = 'Weiterleitung zu Discord…';
-    // No pre-flight to blocked host — open login immediately
     location.href = loginPath;
   }
 
