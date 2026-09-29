@@ -2082,7 +2082,7 @@ body.gp-full .settings-main{
     </header>
     <main class="content" id="panel"></main>
   </div>
-</div>
+<p id="login-err" style="color:#f87171;font-size:13px;margin-top:12px;max-width:360px;text-align:center"></p></div>
 <div id="toasts"></div>
 <div id="modal-root"></div>
 
@@ -2096,6 +2096,26 @@ body.gp-full .settings-main{
   API=String(API||CLOUD_API).replace(/\/$/,'');
   /* LOCAL_MODE only if user explicitly set staffora_api to empty and wants offline */
   var LOCAL_MODE = (localStorage.getItem('staffora_local')==='1') && !localStorage.getItem('staffora_api');
+  function apiHealth(){
+    return fetch(API+'/api/health',{method:'GET',credentials:'omit',cache:'no-store',signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined})
+      .then(function(r){return r.ok;})
+      .catch(function(){return false;});
+  }
+  function goLogin(){
+    var ret=encodeURIComponent(window.STAFFORA_RETURN||location.href.split('#')[0]);
+    var url=API+'/auth/login?return='+ret;
+    if($('login-err')){ $('login-err').textContent='Verbinde…'; }
+    apiHealth().then(function(ok){
+      if(!ok){
+        var msg='API nicht erreichbar ('+API+'). Bot-Hosting offline oder falsch konfiguriert. Starte den Bot neu und prüfe PUBLIC_URL.';
+        if($('login-err')) $('login-err').textContent=msg;
+        else alert(msg);
+        return;
+      }
+      location.href=url;
+    });
+  }
+
   var token='';
   // URL token ALWAYS wins (fresh OAuth) — never let stale localStorage block login
   try{
@@ -2150,7 +2170,7 @@ body.gp-full .settings-main{
       loginBtn.addEventListener('click', function(ev){
         if(!loginBtn.href || loginBtn.href.slice(-1)==='#'){
           ev.preventDefault();
-          location.href=API+'/auth/login?return='+encodeURIComponent(window.STAFFORA_RETURN||location.href.split('#')[0]);
+          goLogin();
         }
       });
     }
@@ -5852,6 +5872,7 @@ async function api(path,opts){
       {id:'team',ic:'👥',l:'Team'},
       {id:'schicht',ic:'⏱️',l:'Schicht & Clock'},
       {id:'aufgaben',ic:'📋',l:'Aufgaben'},
+      {id:'database',ic:'🗄️',l:'Database'},
       {id:'haus',ic:'🏠',l:'Haus & Fraktionen'},
       {id:'mod',ic:'🛡️',l:'Moderation'},
       {id:'automod',ic:'🤖',l:'AutoMod'},
@@ -5869,7 +5890,7 @@ async function api(path,opts){
     ]
     try{
       if((s.language||window.__stafforaLang)==='en'){
-        var ENMAP={allgemein:'General',design:'Design',modules:'Modules',nav:'Navigation',perms:'Roles & Permissions',tickets:'Tickets & Support',apps:'Applications',team:'Team',schicht:'Shifts & Clock',aufgaben:'Tasks',haus:'Houses & Factions',mod:'Moderation',automod:'AutoMod',cases:'Case Register',stats:'Team Stats',security:'Security',welcome:'Welcome / Leave',verify:'Verify',community:'Community',xp:'XP',rp:'RP',logs:'Logs & Stats',notify:'Notifications',system:'System'};
+        var ENMAP={allgemein:'General',design:'Design',modules:'Modules',nav:'Navigation',perms:'Roles & Permissions',tickets:'Tickets & Support',apps:'Applications',team:'Team',schicht:'Shifts & Clock',aufgaben:'Tasks',database:'Database',haus:'Houses & Factions',mod:'Moderation',automod:'AutoMod',cases:'Case Register',stats:'Team Stats',security:'Security',welcome:'Welcome / Leave',verify:'Verify',community:'Community',xp:'XP',rp:'RP',logs:'Logs & Stats',notify:'Notifications',system:'System'};
         CATS.forEach(function(c){ if(ENMAP[c.id]) c.l=ENMAP[c.id]; });
       }
     }catch(e){}
@@ -7012,6 +7033,60 @@ if(sub==='list'){
         });
         return;
       }
+
+      if(cat==='database'){
+        await ensureDisc();
+        main.innerHTML=backBtn()+
+          '<h1>🗄️ Database</h1><p class="sdesc">Teamsperren, Perm-Bans, Notizen und sticky Rollen. <b>Nur über das Panel</b> – keine Discord-Commands. Suchen, Hinzufügen und Entfernen laufen über die Buttons im Panel.</p>'+
+          '<div class="set-card">'+
+          '<div class="toggle-row"><div class="lbl">Modul aktiv</div><div id="db-mod" class="toggle-sw"></div></div>'+
+          fieldRow('Manager-Rollen','db-mgr','Rollen, die das Database-Panel nutzen dürfen (zusätzlich zu Admin).')+
+          fieldRow('Panel-Kanal','db-ch','Kanal, in den das Database-Panel gesendet wird.')+
+          '<div class="field"><label>Panel-Titel</label><input id="db-title" placeholder="Database"/></div>'+
+          '<div class="field"><label>Panel-Text</label><textarea id="db-text" rows="3" placeholder="Optional…"></textarea></div>'+
+          saveBtn('db-save')+
+          '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">'+
+          '<button type="button" class="btn btn-p" id="db-send">Panel senden</button>'+
+          '</div>'+
+          '<p class="hint" style="margin-top:10px">Im Panel: <b>Suchen</b> · <b>Hinzufügen</b> · <b>Entfernen</b> · <b>Liste</b>. Sticky Rollen greifen bei Rejoin automatisch.</p>'+
+          '</div>';
+        bindToggle($('db-mod'), s.databaseEnabled!==false && mods.database!==false);
+        var dbMgr=ss($('db-mgr'),{items:roles,multi:true,values:s.databaseManagerRoleIds||[],placeholder:'Manager…'});
+        var dbCh=ss($('db-ch'),{items:ch,multi:false,value:s.databasePanelChannelId||'',placeholder:'Kanal…'});
+        $('db-title').value=s.databasePanelTitle||'Database';
+        $('db-text').value=s.databasePanelText||'';
+        $('db-save').onclick=async function(){
+          await patchSettings({
+            databaseEnabled:$('db-mod').isOn(),
+            databaseManagerRoleIds:dbMgr.getValue(),
+            databasePanelChannelId:dbCh.getValue()||null,
+            databasePanelTitle:($('db-title').value||'').trim()||null,
+            databasePanelText:($('db-text').value||'').trim()||null
+          },'Database');
+          try{ await api('/api/guilds/'+guildId+'/modules',{method:'PATCH',body:{database:$('db-mod').isOn()}}); }catch(e){}
+        };
+        $('db-send').onclick=async function(){
+          try{
+            var cid=dbCh.getValue();
+            if(!cid){ toast('Panel-Kanal wählen','err'); return; }
+            await patchSettings({
+              databasePanelChannelId:cid,
+              databasePanelTitle:($('db-title').value||'').trim()||null,
+              databasePanelText:($('db-text').value||'').trim()||null,
+              databaseManagerRoleIds:dbMgr.getValue()
+            },'Database');
+            await api('/api/guilds/'+guildId+'/panels/send',{method:'POST',body:{type:'database',channelId:cid}});
+            toast('Database-Panel gesendet','ok');
+          }catch(e){
+            try{
+              await api('/api/guilds/'+guildId+'/database/panel',{method:'POST',body:{channelId:dbCh.getValue()}});
+              toast('Database-Panel gesendet','ok');
+            }catch(e2){ toast(e2.message||e.message,'err'); }
+          }
+        };
+        return;
+      }
+
 
       if(cat==='haus'){
         pickCards('🏠 Haus & Fraktionen','Bereich wählen',[
