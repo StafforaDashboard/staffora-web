@@ -11,6 +11,7 @@
   var onStaffora = host === 'staffora.info' || host.endsWith('.staffora.info') || host === 'localhost' || host === '127.0.0.1';
 
   function resolveApi() {
+    // Explicit override (proxy URL or custom API)
     if (window.STAFFORA_API != null && String(window.STAFFORA_API).length) {
       return String(window.STAFFORA_API).replace(/\/$/, '');
     }
@@ -18,8 +19,12 @@
       var ls = localStorage.getItem('staffora_api');
       if (ls) return String(ls).replace(/\/$/, '');
     } catch (e) {}
-    // Same-origin first (Cloudflare Worker on staffora.info proxies to bot)
-    if (onStaffora) return '';
+    // Only use same-origin if proxy flag is set (Cloudflare Worker live)
+    try {
+      if (localStorage.getItem('staffora_api_proxy') === '1') return '';
+    } catch (e) {}
+    if (window.STAFFORA_USE_PROXY === true) return '';
+    // Default: real bot API host (GitHub Pages has no /auth or /api)
     return FALLBACK_API;
   }
 
