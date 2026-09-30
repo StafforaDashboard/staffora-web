@@ -1,7 +1,9 @@
 window.STAFFORA_API = window.STAFFORA_API || "https://staffora.apps.bot-hosting.cloud";
 
-/** EARLY ACCESS — set to false later to open fully (no other changes needed) */
+/** Early access gate — set false later to open fully */
 window.STAFFORA_EARLY_ACCESS = true;
+/** If true: valid 32-char key accepted even when bot validate is unreachable */
+window.STAFFORA_EARLY_ACCESS_SOFT = true;
 
 window.StafforaAPI = (function () {
   var API = window.STAFFORA_API;
@@ -27,7 +29,7 @@ window.StafforaAPI = (function () {
     } catch (e) {}
   }
   function headers(json) {
-    var h = {};
+    var h = { Accept: "application/json" };
     if (json) h["Content-Type"] = "application/json";
     var t = token();
     if (t) h["Authorization"] = "Bearer " + t;
@@ -35,56 +37,77 @@ window.StafforaAPI = (function () {
     if (ak) h["X-Staffora-Access-Key"] = ak;
     return h;
   }
+  function netErr(e) {
+    var m = (e && e.message) || String(e || "");
+    if (/load failed|failed to fetch|networkerror|network error|cors/i.test(m)) {
+      return "Keine Verbindung zum Bot (Firewall, Antivirus oder Bot offline). URL: " + API;
+    }
+    return m || "Unbekannter Fehler";
+  }
   async function req(path, opts) {
     opts = opts || {};
     var url = API.replace(/\/$/, "") + path;
-    var res = await fetch(url, {
-      method: opts.method || "GET",
-      headers: headers(!!opts.body),
-      body: opts.body ? JSON.stringify(opts.body) : undefined,
-      credentials: "omit"
-    });
+    var res;
+    try {
+      res = await fetch(url, {
+        method: opts.method || "GET",
+        headers: headers(!!opts.body),
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+        credentials: "omit",
+        mode: "cors"
+      });
+    } catch (e) {
+      throw new Error(netErr(e));
+    }
     var text = await res.text();
     var data = null;
     try { data = text ? JSON.parse(text) : null; } catch (e) { data = { raw: text }; }
     if (!res.ok) {
       var msg = (data && (data.error || data.message)) || ("HTTP " + res.status);
+      if (res.status === 404) msg = "API nicht gefunden (Bot evtl. nicht aktualisiert): " + path;
       throw new Error(msg);
     }
     return data;
   }
   function login(returnUrl) {
     var ru = encodeURIComponent(returnUrl || (location.origin + "/dashboard/"));
-    var q = "/auth/discord?return_url=" + ru;
-    var ak = getAccessKey();
-    if (ak) q += "&access_key=" + encodeURIComponent(ak);
-    location.href = API.replace(/\/$/, "") + q;
+    location.href = API.replace(/\/$/, "") + "/auth/login?return=" + ru;
   }
   function readTokenFromUrl() {
     var q = new URLSearchParams(location.search);
     var t = q.get("token") || q.get("access_token");
     if (t) {
       setToken(t);
-      q.delete("token"); q.delete("access_token");
+      q.delete("token");
+      q.delete("access_token");
       var clean = location.pathname + (q.toString() ? "?" + q : "") + location.hash;
       history.replaceState({}, "", clean);
     }
   }
-  /** Validate 32-char key against bot; stores locally if ok */
   async function validateAccessKey(key) {
     key = String(key || "").replace(/\s+/g, "").trim();
     if (!/^[A-Za-z0-9]{32}$/.test(key)) {
-      throw new Error("Key muss genau 32 Zeichen sein (Buchstaben und Zahlen).");
+      throw new Error("Key muss genau 32 Zeichen sein (A–Z, a–z, 0–9).");
     }
-    var data = await req("/api/early-access/validate", {
-      method: "POST",
-      body: { key: key }
-    });
-    if (!data || data.valid === false) {
-      throw new Error((data && data.message) || "Key ungültig.");
+    try {
+      var data = await req("/api/early-access/validate", {
+        method: "POST",
+        body: { key: key }
+      });
+      if (!data || data.valid === false) {
+        throw new Error((data && data.message) || "Key ungültig.");
+      }
+      setAccessKey(key);
+      return data;
+    } catch (e) {
+      var msg = e.message || "";
+      // Soft mode: allow key locally if bot unreachable (format already checked)
+      if (window.STAFFORA_EARLY_ACCESS_SOFT && /Keine Verbindung|nicht gefunden|HTTP 502|HTTP 503|HTTP 504/i.test(msg)) {
+        setAccessKey(key);
+        return { valid: true, soft: true };
+      }
+      throw e;
     }
-    setAccessKey(key);
-    return data;
   }
   function hasEarlyAccess() {
     if (!window.STAFFORA_EARLY_ACCESS) return true;
@@ -109,7 +132,10 @@ window.StafforaAPI = (function () {
       return req("/api/guilds/" + gid + "/config", { method: "PATCH", body: { settings: partial } });
     },
     sendPanel: function (gid, panel, channelId) {
-      return req("/api/guilds/" + gid + "/panels/" + panel, { method: "POST", body: { channelId: channelId } });
+      return req("/api/guilds/" + gid + "/panels/" + panel, {
+        method: "POST",
+        body: { channelId: channelId }
+      });
     },
     teamStats: function (gid, days) {
       return req("/api/guilds/" + gid + "/stats?days=" + (days || 7));
