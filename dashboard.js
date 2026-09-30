@@ -1,13 +1,11 @@
-/**
- * Staffora Dashboard — sidebar categories only, full settings, bot sync
- */
 (function () {
   var S = window.StafforaAPI;
-  if (!S) { console.error('StafforaAPI missing'); return; }
+  if (!S) return;
 
   var C = [
     ['allgemein', '⌂', 'Allgemein'],
     ['modules', '▦', 'Module'],
+    ['dizzy', '◉', 'Dizzy Control'],
     ['rights', '♙', 'Rollen & Rechte'],
     ['tickets', '▣', 'Tickets & Support'],
     ['applications', '✦', 'Bewerbungen'],
@@ -49,6 +47,7 @@
       { id: 'module_dutyPanel', label: 'Duty', type: 'toggle' },
       { id: 'module_bewerbungen', label: 'Bewerbungen', type: 'toggle' },
       { id: 'module_teamverwaltung', label: 'Teamverwaltung', type: 'toggle' },
+      { id: 'module_dizzy', label: 'Dizzy Control', type: 'toggle' },
       { id: 'module_security', label: 'Security', type: 'toggle' },
       { id: 'module_automod', label: 'AutoMod', type: 'toggle' },
       { id: 'module_xp', label: 'XP', type: 'toggle' },
@@ -64,6 +63,13 @@
       { id: 'module_giveaway', label: 'Giveaway', type: 'toggle' },
       { id: 'module_suggest', label: 'Suggest', type: 'toggle' }
     ],
+    dizzy: [
+      { id: 'dizzyEnabled', label: 'Modul aktiv', type: 'toggle' },
+      { id: 'dizzyChannelId', label: 'Dizzy-Control-Kanal', type: 'channel' },
+      { id: 'dizzyLogChannelId', label: 'Dizzy-Log-Kanal', type: 'channel' },
+      { id: 'dizzyStaffRoleIds', label: 'Staff-Rolle (Bestätigen)', type: 'role' },
+      { id: '_panel_dizzy', label: 'Sticky senden', type: 'panel', panel: 'dizzy', channelKey: 'dizzyChannelId' }
+    ],
     rights: [
       { id: 'adminRoleIds', label: 'Admin-Rolle', type: 'role' },
       { id: 'staffRoleIds', label: 'Staff-Rolle', type: 'role' },
@@ -77,7 +83,7 @@
     tickets: [
       { id: 'ticketPanelChannelId', label: 'Ticket-Panel-Kanal', type: 'channel' },
       { id: 'ticketLogChannelId', label: 'Ticket-Log', type: 'channel' },
-      { id: 'ticketCategoryId', label: 'Ticket-Kategorie (Discord)', type: 'channel' },
+      { id: 'ticketCategoryId', label: 'Ticket-Kategorie', type: 'channel' },
       { id: 'ticketSupportRoleIds', label: 'Support-Rolle', type: 'role' },
       { id: 'ticketBlacklistRoleIds', label: 'Ticket-Blacklist-Rolle', type: 'role' },
       { id: 'warteraumChannelId', label: 'Warteraum Voice', type: 'channel' },
@@ -229,9 +235,7 @@
     ]
   };
 
-  var state = {
-    me: null, guilds: [], guildId: '', settings: {}, modules: {}, roles: [], channels: [], activeCat: null
-  };
+  var state = { me: null, guilds: [], guildId: '', settings: {}, modules: {}, roles: [], channels: [], activeCat: null };
 
   function $(id) { return document.getElementById(id); }
   function esc(s) {
@@ -244,10 +248,9 @@
     if (!t) return;
     t.textContent = msg;
     t.classList.add('show');
-    clearTimeout(window.__toast);
-    window.__toast = setTimeout(function () { t.classList.remove('show'); }, 2200);
+    clearTimeout(window.__t);
+    window.__t = setTimeout(function () { t.classList.remove('show'); }, 2200);
   }
-  window.toast = toast;
 
   function getVal(key) {
     var s = state.settings || {};
@@ -261,7 +264,7 @@
   }
 
   function channelSelect(id, selected) {
-    var html = '<select class="control" data-key="' + esc(id) + '"><option value="">— Kanal —</option>';
+    var html = '<select class="control" data-key="' + esc(id) + '"><option value="">—</option>';
     (state.channels || []).forEach(function (c) {
       var cid = String(c.id);
       var label = c.type === 4 ? ('▸ ' + (c.name || cid)) : ('#' + (c.name || cid));
@@ -271,7 +274,7 @@
   }
   function roleSelect(id, selected) {
     var sel = Array.isArray(selected) ? selected[0] : selected;
-    var html = '<select class="control" data-key="' + esc(id) + '"><option value="">— Rolle —</option>';
+    var html = '<select class="control" data-key="' + esc(id) + '"><option value="">—</option>';
     (state.roles || []).forEach(function (r) {
       var rid = String(r.id);
       html += '<option value="' + esc(rid) + '"' + (String(sel || '') === rid ? ' selected' : '') + '>' + esc(r.name || rid) + '</option>';
@@ -317,7 +320,7 @@
       } else {
         var v = el.value;
         if (/RoleIds$/i.test(key)) out[key] = v ? [v] : [];
-        else if (/ChannelId$|CategoryId$/i.test(key) || key.slice(-2) === 'Id') out[key] = v || null;
+        else if (/ChannelId$|CategoryId$/i.test(key) || /Id$/.test(key)) out[key] = v || null;
         else out[key] = v;
       }
     });
@@ -389,12 +392,14 @@
 
   function buildCats() {
     var nav = $('categories');
-    if (!nav) return;
     nav.innerHTML = C.map(function (c) {
       return '<button type="button" class="nav-link" data-cat="' + c[0] + '"><span>' + c[1] + '</span><span>' + c[2] + '</span><span class="arrow">›</span></button>';
     }).join('');
     nav.querySelectorAll('[data-cat]').forEach(function (btn) {
-      btn.addEventListener('click', function () { renderCat(btn.getAttribute('data-cat')); });
+      btn.addEventListener('click', function () {
+        if (!state.guildId) { toast('Zuerst Server wählen'); return; }
+        renderCat(btn.getAttribute('data-cat'));
+      });
     });
   }
 
@@ -407,7 +412,7 @@
     box.innerHTML = items.map(function (g) {
       return '<button type="button" class="server-row" data-id="' + esc(g.id) + '">' +
         '<span class="server-icon">S</span><span class="grow"><b>' + esc(g.name) + '</b></span></button>';
-    }).join('') || '<p style="padding:12px;color:#8994b2">Keine Server</p>';
+    }).join('') || '<p style="padding:12px;color:var(--muted)">Keine Server</p>';
     box.querySelectorAll('[data-id]').forEach(function (btn) {
       btn.onclick = function () { selectGuild(btn.getAttribute('data-id')); };
     });
@@ -420,9 +425,6 @@
     $('serverName').textContent = g ? g.name : id;
     $('serverMeta').textContent = 'Server';
     $('serverHint').textContent = (g ? g.name : id) + ' · Kategorie links wählen';
-    if ($('modCount')) $('modCount').textContent = '';
-    var heroStat = document.querySelector('.hero-stat');
-    if (heroStat) heroStat.style.display = 'none';
     $('serverPicker').classList.remove('open');
     $('dashMain').style.display = '';
     Promise.all([
@@ -439,12 +441,39 @@
       $('settingsPanel').classList.add('hidden');
       $('settingsPanel').innerHTML = '';
       $('empty').classList.remove('hidden');
+      document.querySelectorAll('#categories [data-cat]').forEach(function (x) { x.classList.remove('active'); });
     }).catch(function (e) { toast(e.message || 'Fehler'); });
   }
 
   function boot() {
     buildCats();
     S.readToken();
+
+    var accessGate = $('accessGate');
+    var btnAk = $('btnAccessKey');
+    if (window.STAFFORA_EARLY_ACCESS && accessGate) {
+      if (!S.hasEarlyAccess()) {
+        accessGate.style.display = 'flex';
+        $('loginGate').style.display = 'none';
+        $('appShell').style.display = 'none';
+      } else {
+        accessGate.style.display = 'none';
+      }
+      if (btnAk) {
+        btnAk.onclick = function () {
+          var key = ($('accessKeyInput') || {}).value || '';
+          btnAk.disabled = true;
+          $('accessErr').textContent = '';
+          S.validateAccessKey(key).then(function () {
+            accessGate.style.display = 'none';
+            continueAuth();
+          }).catch(function (e) {
+            $('accessErr').textContent = e.message || 'Invalid key';
+          }).then(function () { btnAk.disabled = false; });
+        };
+      }
+    }
+
     $('btnLogin').onclick = function () { S.login(location.origin + '/dashboard/'); };
     $('serverButton').onclick = function () {
       $('serverPicker').classList.add('open');
@@ -460,8 +489,16 @@
       });
     };
 
+    if (window.STAFFORA_EARLY_ACCESS && !S.hasEarlyAccess()) {
+      return;
+    }
+    continueAuth();
+  }
+
+  function continueAuth() {
     if (!S.getToken()) {
-      $('loginGate').style.display = '';
+      $('loginGate').style.display = 'flex';
+      $('appShell').style.display = 'none';
       return;
     }
     $('loginGate').style.display = 'none';
@@ -471,6 +508,7 @@
       state.me = u.user || u;
       var name = state.me.username || state.me.global_name || 'User';
       $('userName').textContent = name;
+      $('userRole').textContent = 'Admin';
       var av = (name.charAt(0) || '?').toUpperCase();
       if ($('userAv')) $('userAv').textContent = av;
       if ($('userAv2')) $('userAv2').textContent = av;
@@ -489,7 +527,7 @@
       }
     }).catch(function (e) {
       S.logout();
-      $('loginGate').style.display = '';
+      $('loginGate').style.display = 'flex';
       $('appShell').style.display = 'none';
       $('loginErr').textContent = e.message || 'Session abgelaufen';
     });

@@ -1,47 +1,11 @@
 <!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Staffora — Ban Appeal</title>
-<link rel="stylesheet" href="/styles.css">
-<script>window.STAFFORA_API=window.STAFFORA_API||"https://staffora.apps.bot-hosting.cloud";</script>
-</head>
-<body class="scene">
-<div class="orb orb-a"></div><div class="orb orb-b"></div>
-<div style="max-width:520px;margin:60px auto;padding:0 20px">
-  <div class="panel glass" style="padding:28px">
-    <span class="eyebrow">BAN APPEAL</span>
-    <h1 style="margin:8px 0">Unban Request</h1>
-    <p style="color:#9298a8">Roblox-Namen eingeben. Das System prüft Ban-Logs.</p>
-    <div class="field"><label>Server-ID (optional)</label><input class="control" id="gid" placeholder="Discord Server ID"></div>
-    <div class="field"><label>Roblox Username</label><input class="control" id="rb" placeholder="Username"></div>
-    <button class="btn btn-primary" id="go" type="button" style="width:100%">Prüfen</button>
-    <div id="msg" style="margin-top:16px;color:#aeb3c2"></div>
-  </div>
-  <p style="text-align:center;margin-top:16px"><a href="/" style="color:#a78bfa">← Start</a></p>
-</div>
-<script src="/api.js"></script>
-<script>
-(function(){
-  var S=window.StafforaAPI;
-  document.getElementById('go').onclick=function(){
-    var rb=document.getElementById('rb').value.trim();
-    var gid=document.getElementById('gid').value.trim();
-    var msg=document.getElementById('msg');
-    if(!rb){msg.textContent='Username eingeben';return}
-    var path='/api/unban/check?username='+encodeURIComponent(rb)+(gid?'&guildId='+encodeURIComponent(gid):'');
-    S.api(path).then(function(j){
-      if(j.banned||j.hasBan){
-        msg.innerHTML='<b style="color:#fbbf24">Ban gefunden.</b> Appeal möglich: '+(j.appealable!==false?'Ja':'Nein');
-      }else{
-        msg.innerHTML='Es sind keine Bans auf deinem Konto registriert.';
-      }
-    }).catch(function(e){
-      msg.textContent=e.message||'Prüfung fehlgeschlagen — Username prüfen.';
-    });
-  };
-})();
-</script>
-</body>
-</html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staffora — Ban Appeal</title><link rel="stylesheet" href="/styles.css">
+<script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";</script></head>
+<body class="scene"><div class="orb orb-a"></div><div class="orb orb-b"></div>
+<main style="max-width:720px;margin:80px auto;padding:24px" class="glass">
+<a href="/" class="btn btn-ghost">← Home</a>
+<h1 style="margin-top:16px">Ban Appeal</h1>
+<p style="color:var(--muted)">Über das Dashboard konfigurieren.</p>
+<a class="btn btn-primary" href="/dashboard/">Zum Dashboard</a>
+</main><script src="/api.js"></script></body></html>

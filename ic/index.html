@@ -1,50 +1,11 @@
 <!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Staffora — IC Panel</title>
-<link rel="stylesheet" href="/styles.css">
-<script>window.STAFFORA_API=window.STAFFORA_API||"https://staffora.apps.bot-hosting.cloud";window.STAFFORA_RETURN=location.origin+"/ic/";</script>
-</head>
-<body class="scene">
-<div class="orb orb-a"></div><div class="orb orb-b"></div>
-<div class="app-shell" style="grid-template-columns:1fr;max-width:900px;margin:0 auto;padding:28px">
-  <header class="workspace-top glass" style="margin-bottom:18px;display:flex;justify-content:space-between;align-items:center">
-    <div><span class="eyebrow">IC PANEL</span><h1 style="margin:0">Ingame Control</h1></div>
-    <div style="display:flex;gap:8px">
-      <a class="btn btn-ghost" href="/dashboard/">Dashboard</a>
-      <button class="btn btn-primary" id="btnLogin" type="button">Login</button>
-    </div>
-  </header>
-  <div class="panel glass" style="padding:20px;margin-bottom:14px">
-    <div class="field"><label>Server</label><select class="control" id="guildSel"></select></div>
-    <div class="field"><label>Roblox Name / ID</label><input class="control" id="rbq" placeholder="Username"></div>
-    <button class="btn btn-primary" id="btnLookup" type="button">Lookup</button>
-  </div>
-  <div class="panel glass" id="out" style="padding:20px;min-height:120px;color:#aeb3c2">Login → Server → Lookup</div>
-</div>
-<div class="toast" id="toast"></div>
-<script src="/api.js"></script>
-<script>
-(function(){
-  var S=window.StafforaAPI; S.readToken();
-  function $(id){return document.getElementById(id)}
-  function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2200)}
-  $('btnLogin').onclick=function(){S.login(location.origin+'/ic/')}
-  if(!S.getToken()){return}
-  S.guilds().then(function(g){
-    var list=g.guilds||g||[];
-    $('guildSel').innerHTML=list.map(function(x){return '<option value="'+x.id+'">'+(x.name||x.id)+'</option>'}).join('');
-  }).catch(function(e){toast(e.message)});
-  $('btnLookup').onclick=function(){
-    var gid=$('guildSel').value, q=$('rbq').value.trim();
-    if(!gid||!q){toast('Server und Name');return}
-    S.api('/api/guilds/'+gid+'/roblox/lookup?q='+encodeURIComponent(q))
-      .then(function(j){$('out').innerHTML='<pre style="white-space:pre-wrap;color:#e2e8f0">'+JSON.stringify(j,null,2)+'</pre>'})
-      .catch(function(e){toast(e.message)});
-  };
-})();
-</script>
-</body>
-</html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staffora — IC Panel</title><link rel="stylesheet" href="/styles.css">
+<script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";</script></head>
+<body class="scene"><div class="orb orb-a"></div><div class="orb orb-b"></div>
+<main style="max-width:720px;margin:80px auto;padding:24px" class="glass">
+<a href="/" class="btn btn-ghost">← Home</a>
+<h1 style="margin-top:16px">IC Panel</h1>
+<p style="color:var(--muted)">Über das Dashboard konfigurieren.</p>
+<a class="btn btn-primary" href="/dashboard/">Zum Dashboard</a>
+</main><script src="/api.js"></script></body></html>
