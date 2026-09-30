@@ -1,11 +1,8 @@
-<!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Staffora — Ban Appeal</title><link rel="stylesheet" href="/styles.css">
-<script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";</script></head>
-<body class="scene"><div class="orb orb-a"></div><div class="orb orb-b"></div>
-<main style="max-width:720px;margin:80px auto;padding:24px" class="glass">
-<a href="/" class="btn btn-ghost">← Home</a>
-<h1 style="margin-top:16px">Ban Appeal</h1>
-<p style="color:var(--muted)">Über das Dashboard konfigurieren.</p>
-<a class="btn btn-primary" href="/dashboard/">Zum Dashboard</a>
-</main><script src="/api.js"></script></body></html>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Staffora — Ban Appeal</title><link rel="stylesheet" href="/styles.css"></head><body><div class="appeal-wrap"><section class="appeal glass"><a class="back" href="/">← Zurück zu Staffora</a><div class="eyebrow">Unban / Ban Appeal</div><h1>Ban Appeal</h1><p>Fülle das Formular vollständig und ehrlich aus. Das Staff-Team prüft deine Anfrage anhand der Serverregeln und der hinterlegten Moderationsdaten.</p><div class="notice">Hinweis: In der echten Integration wird hier geprüft, ob für deine Discord-ID ein aktiver Ban vorhanden ist.</div>
+<form class="form" style="margin-top:22px" onsubmit="event.preventDefault();document.getElementById('sent').hidden=false">
+<div class="field"><label class="label">Discord ID</label><input class="input" placeholder="z. B. 123456789012345678" required></div>
+<div class="field"><label class="label">Ban-Grund</label><input class="input" placeholder="Falls bekannt"></div>
+<div class="field"><label class="label">Warum sollte der Ban aufgehoben werden?</label><textarea class="textarea" required placeholder="Beschreibe deinen Fall..."></textarea></div>
+<div class="field"><label class="label">Was hast du aus dem Vorfall gelernt?</label><textarea class="textarea" required placeholder="Deine Antwort..."></textarea></div>
+<div class="field"><label class="label">Zusätzliche Informationen</label><textarea class="textarea" placeholder="Optional"></textarea></div>
+<button class="btn btn-primary" type="submit">Appeal absenden →</button></form><div id="sent" class="notice" style="margin-top:15px" hidden>✓ Demo-Übermittlung erfolgreich. Im Backend würde der Antrag jetzt gespeichert und an das Staff-Team weitergeleitet.</div></section></div><script src="/api.js"></script></body></html>

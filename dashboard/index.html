@@ -1,96 +1,12 @@
-<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Staffora — Dashboard</title>
-<link rel="stylesheet" href="/styles.css">
-<script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";</script>
-</head>
-<body class="scene">
-<div class="orb orb-a"></div>
-<div class="orb orb-b"></div>
-
-<!-- Early access key gate -->
-<div id="accessGate" class="server-picker glass open" style="position:fixed;inset:0;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:110;border-radius:0;background:rgba(2,5,13,.94)">
-  <div style="max-width:420px;width:92%;text-align:center;padding:28px">
-    <span class="eyebrow">EARLY ACCESS</span>
-    <h2 style="margin:8px 0 6px">Access Key</h2>
-    <p style="color:var(--muted);margin:0 0 16px;font-size:14px;line-height:1.5">
-      Staffora will be temporarily unavailable due to new updates, bug fixes and a lot of new features.
-      You can request early access on the Discord.
-    </p>
-    <input id="accessKeyInput" class="control" placeholder="32-digit key" maxlength="40" autocomplete="off"
-      style="width:100%;text-align:center;letter-spacing:.08em;margin-bottom:12px">
-    <button type="button" class="btn btn-primary" id="btnAccessKey" style="width:100%">Continue</button>
-    <p id="accessErr" style="color:#ff5e78;margin-top:12px;font-size:13px"></p>
-    <p style="margin-top:16px"><a class="btn btn-ghost" href="https://discord.gg/zkgzrPXWwT" target="_blank" rel="noopener">Discord</a></p>
-  </div>
-</div>
-
-<div id="loginGate" class="server-picker glass open" style="position:fixed;inset:0;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:100;border-radius:0;background:rgba(2,5,13,.92)">
-  <div style="max-width:380px;width:90%;text-align:center;padding:28px">
-    <span class="eyebrow">STAFFORA</span>
-    <h2 style="margin:8px 0 6px">Dashboard</h2>
-    <p style="color:var(--muted);margin:0 0 18px">Mit Discord anmelden. Danach Server wählen.</p>
-    <button type="button" class="btn btn-primary" id="btnLogin" style="width:100%">Mit Discord anmelden</button>
-    <p id="loginErr" style="color:#ff5e78;margin-top:12px;font-size:13px"></p>
-  </div>
-</div>
-
-<div class="app-shell" id="appShell" style="display:none">
-  <aside class="sidebar glass">
-    <a class="brand" href="/"><span class="brand-mark">S</span><span><b>STAFFORA</b><small>CONTROL CENTER</small></span></a>
-    <button type="button" class="server-mini" id="serverButton">
-      <span class="server-icon">S</span>
-      <span><b id="serverName">Server wählen</b><small id="serverMeta">—</small></span>
-      <span>⌄</span>
-    </button>
-    <nav id="categories"></nav>
-    <div class="side-user">
-      <span class="avatar" id="userAv">?</span>
-      <span class="grow"><b id="userName">—</b><small id="userRole">—</small></span>
-      <button type="button" class="icon-btn" id="logoutBtn" title="Logout">⏻</button>
-    </div>
-  </aside>
-  <section class="workspace">
-    <header class="workspace-top glass">
-      <div class="search"><span>⌕</span><input id="globalSearch" placeholder="Kategorie suchen …" autocomplete="off"></div>
-      <div class="top-actions">
-        <button type="button" class="lang-btn" id="langBtn">Deutsch</button>
-        <span class="avatar" id="userAv2">?</span>
-      </div>
-    </header>
-    <div class="server-picker glass" id="serverPicker">
-      <div>
-        <span class="eyebrow">SERVER</span>
-        <h2>Server auswählen</h2>
-        <p>Wähle den Server für die Einstellungen.</p>
-      </div>
-      <input class="server-search" id="serverSearch" placeholder="Server suchen …" autocomplete="off">
-      <div class="server-list" id="serverList"></div>
-    </div>
-    <main class="dashboard-main" id="dashMain" style="display:none">
-      <div class="dash-hero glass">
-        <div>
-          <span class="eyebrow">SERVER CONTROL</span>
-          <h1>Dashboard</h1>
-          <p id="serverHint">Kategorie links wählen.</p>
-        </div>
-      </div>
-      <section class="settings-stage" style="max-width:920px;width:100%">
-        <div class="empty-state glass" id="empty">
-          <div class="empty-orb">S</div>
-          <h2>Kategorie auswählen</h2>
-          <p>Wähle links eine Kategorie.</p>
-        </div>
-        <div class="settings-panel hidden" id="settingsPanel"></div>
-      </section>
-    </main>
-  </section>
-</div>
-<div class="toast" id="toast"></div>
-<script src="/api.js"></script>
-<script src="/dashboard.js?v=catfix1"></script>
-</body>
-</html>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Staffora — Dashboard</title><link rel="stylesheet" href="/styles.css"></head>
+<body class="scene"><div class="orb orb-a"></div><div class="orb orb-b"></div><div class="app-shell">
+<aside class="sidebar glass"><a class="brand" href="index.html"><span class="brand-mark">S</span><span><b>STAFFORA</b><small>CONTROL CENTER</small></span></a>
+<button class="server-mini" id="serverButton"><span class="server-icon">S</span><span><b id="serverName">Staffora Community</b><small>1.248 Mitglieder · Online</small></span><span>⌄</span></button>
+<nav id="categories"></nav><div class="side-user"><span class="avatar">M</span><span class="grow"><b>MaxPower</b><small>Server Admin</small></span><button class="icon-btn" id="settingsBtn">⚙</button></div></aside>
+<section class="workspace"><header class="workspace-top glass"><div class="search"><span>⌕</span><input id="globalSearch" placeholder="Kategorie oder Einstellung suchen …"><kbd>Ctrl K</kbd></div><div class="top-actions"><button class="lang-btn" data-lang>🇩🇪 Deutsch⌄</button><button class="icon-btn">🔔</button><span class="avatar">M</span></div></header>
+<div class="server-picker glass" id="serverPicker"><div><span class="eyebrow">SERVER AUSWÄHLEN</span><h2>Server auswählen</h2><p>Wähle zuerst den Server. Danach werden die Einstellungen freigeschaltet.</p></div><input class="server-search" id="serverSearch" placeholder="Server suchen …"><div class="server-list" id="serverList"></div></div>
+<main class="dashboard-main"><div class="dash-hero glass"><div><span class="eyebrow">SERVER CONTROL</span><h1>Dashboard</h1><p id="serverHint">Staffora Community · Alle Einstellungen gelten nur für diesen Server.</p></div><div class="hero-stat"><b>18 / 27</b><span>Module aktiv</span></div></div>
+<div class="category-layout"><section class="settings-stage"><div class="empty-state glass" id="empty"><div class="empty-orb">S</div><h2>Kategorie auswählen</h2><p>Die Einstellungen bleiben bewusst verborgen, bis du einen Bereich auswählst.</p></div><div class="settings-panel hidden" id="settingsPanel"></div></section></div></main></section></div><div class="drawer" id="drawer"><div class="drawer-card"><div class="drawer-head"><div><span class="eyebrow">AKTION</span><h2 id="drawerTitle">Auswählen</h2></div><button class="icon-btn" id="drawerClose">×</button></div><div class="action-list" id="drawerBody"></div></div></div><div class="toast" id="toast"></div><script src="/api.js"></script>
+<script src="/dashboard.js"></script>
+<script src="/app.js"></script>
+</body></html>

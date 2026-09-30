@@ -1,546 +1,481 @@
-(function () {
-  var S = window.StafforaAPI;
-  if (!S) return;
+/* Staffora dashboard — UI from clean blueprint, API wired */
+const C=[
+['allgemein','⌂','Allgemein','Grunddaten für den Server'],
+['module','▦','Module','Alle Module einzeln an/aus'],
+['dizzy','◉','Dizzy Control','Roblox-Verknüpfungen und Staff-Bestätigung'],
+['rights','♙','Rollen & Rechte','Wer darf was'],
+['tickets','▣','Tickets & Support','Tickets, Warteraum, Admin Call, Büros'],
+['applications','✦','Bewerbungen','Bewerbungs-Panels und Annahmen'],
+['team','♟','Team','Teamliste, Duty, Invite/Kick, Abmeldung, Feedback'],
+['clock','◷','Schicht & Clock','Clock und Zeittracking'],
+['tasks','✓','Aufgaben','Aufgaben-Board und XP'],
+['database','▤','Database','Interne Einträge und Manager'],
+['factions','⌂','Haus & Fraktionen','Fraktionen, Warns und Häuser'],
+['moderation','⚔','Moderation','Moderations-Logs'],
+['automod','◉','AutoMod','Links, Invites, Caps, Spam'],
+['records','▥','Strafregister','Cases und Maßnahmen'],
+['stats','◉','Team-Stats','Support- und Team-Auswertung'],
+['security','⬡','Security','Anti-Nuke, Anti-Raid, Backups'],
+['welcome','⌁','Welcome / Leave','Join/Leave und Auto-Rolle'],
+['verify','✓','Verify','Verify-Gate und Rollen'],
+['community','♢','Community','Partner, Boost, Suggest, Giveaway'],
+['xp','✦','XP','XP und Uprank'],
+['rp','⌖','RP','RP Announce und Server-Stats'],
+['logs','▤','Logs','Zentrale Log-Kanäle'],
+['system','⚙','System','System-Name und Sprache'],
+['partner','✧','Partner','Partner-Kanal und interne Logs'],
+['ausweis','▣','Ausweis','ID-Kanal, Logs, Zusatz-Ausweise'],
+['unban','↗','Unban','Website Appeals und Appeal-Log'],
+['ic','⌘','IC Panel','Zugriff und IC-Logs']
+];
+const F=(title,desc,items)=>[title,desc,'fields',items];
+const R=(title,desc,items)=>[title,desc,'roles',items];
+const S=(title,desc,items)=>[title,desc,'switches',items];
+const B=(title,desc,items)=>[title,desc,'buttons',items];
+const A=(title,desc,items)=>[title,desc,'actions',items];
+const templates={
+allgemein:[F('Grunddaten','Grunddaten für den Server.',['Sprache|Deutsch|select','System-Name|Staffora Community','Log-Kanal|system-logs|select','Zeitzone|Europe/Berlin'])],
+module:[S('Module','Jedes Modul einzeln an/aus. Aus = Feature läuft nicht, auch wenn Kanäle gesetzt sind.',['Tickets','Warteraum','Admin Call','Büros','Duty','Bewerbungen','Teamverwaltung','Security','AutoMod','XP','Verify','Welcome/Leave','Partner','Fraktionen','Ausweis','Feedback','Aufgaben','Database','Abmeldung','Giveaway','Suggest'])],
+rights:[R('Zugriffsrollen','Wer darf was. Ohne passende Rollen greifen Commands/Panels nicht.',['Admin-Rolle','Staff-Rolle','Mod-Rolle','IC Panel Zugriff','Database Manager','Frak-Verwaltung','Partner Manager','HighTeam'])],
+tickets:[F('Tickets & Support','Tickets, Warteraum, Admin Call und Büros.',['Ticket-Panel-Kanal|tickets|select','Ticket-Log|ticket-logs|select','Ticket-Kategorie|Support|select','Support-Rolle|Support|select','Ticket-Blacklist-Rolle|Ticket-Blacklist|select','Warteraum Voice|Warteraum|select','Support-Textkanal|support-alerts|select','Warteraum-Musik|Aus|select','Musik-Preset|DE|select','Join-to-Create Support-VCs|An|select','Support-VC Kategorie|Support VC|select','Admin-Call-Panel|admin-call|select','Admin-Call-Log|admin-call-logs|select','Büro-Warteraum|Büro Warteraum|select','Büro-Bereitschafts-Rolle|Büro Bereitschaft|select']),B('Panels','Panels in die gewählten Kanäle posten.',['Ticket-Panel senden','Admin-Call-Panel senden'])],
+applications:[F('Bewerbungen','Bewerbungs-Panels und Annahmen.',['Bewerbungs-Panel|bewerbungen|select','Bewerbungs-Log|bewerbungs-logs|select','Rolle bei Annahme|Trial Staff|select']),B('Panel','Bewerbungs-Panel posten.',['Panel senden'])],
+team:[F('Teamliste & Duty','Teamliste, Duty, Invite/Kick, Abmeldung, Feedback und Activity Check.',['Teamliste-Kanal|team|select','Rollen in Teamliste|Teamleitung, Admin, Moderator, Support','Duty-Panel|dienst|select','Duty-Rolle|Im Dienst|select','Rollen bei Invite|Trial Staff, Support|select','Rollen bei Kick entfernen|Trial Staff, Support|select','Team Invite/Kick Log|team-logs|select','Team-Warns bis Kick|3','Abmelde-Panel|abmeldung|select','Abmelde-Log|abmeldung-logs|select','Abmeldung muss bestätigt werden|An|select','Feedback-Log|feedback|select','Feedback als Sticky|An|select','Activity-Check Kanal|activity-check|select','Activity-Check Rollen|Team','Activity-Check Dauer|14 Tage','Activity-Check Text|Bitte Aktivität bestätigen.','Activity-Check Zeit|18:00']),B('Panels','Teamliste, Duty, Abmelde und Feedback.',['Teamliste Panel senden','Duty Panel senden','Abmelde Panel senden','Feedback Panel senden'])],
+clock:[S('Schicht & Clock','Zeittracking und Schichtsystem.',['Clock aktiv']),F('Clock Log','Optionaler Log-Kanal.',['Clock-Log|clock-logs|select'])],
+tasks:[F('Aufgaben','Aufgaben-Board.',['Aufgaben-Panel|tasks|select','XP für Aufgaben|25']),B('Panel','Aufgaben-Panel posten.',['Panel senden'])],
+database:[F('Database','Interne Einträge, z.B. Teamsperre und permanente Flags.',['Database-Panel|database|select','Manager-Rolle|Database Manager|select']),B('Panel','Nur Panel-Funktionen.',['Panel senden'])],
+factions:[F('Haus & Fraktionen','Fraktionen selbst konfigurieren — keine Memberverwaltung.',['Frak-Announce|fraktion-announce|select','Warns bis Remove|3','Hausliste-Kanal|hausliste|select','Haus-Ticket Kategorie|Haus-Käufe|select']),B('Hausliste','Hausliste posten.',['Hausliste senden'])],
+moderation:[F('Moderation','Zentrale Moderations-Logs.',['Mod-Log|mod-logs|select','Warn-Log|warn-logs|select','Ban-Log|ban-logs|select'])],
+automod:[S('AutoMod','Automatische Filter.',['Links blocken','Invites blocken','Caps-Filter','Spam-Filter']),F('AutoMod-Log','Log-Kanal für Filteraktionen.',['AutoMod-Log|automod-logs|select'])],
+records:[F('Strafregister','Case- und Stufen-Logik.',['Strafregister-Log|record-logs|select','Beispiel Stufe 1|1 Warn','Beispiel Stufe 2|2 Kick','Beispiel Stufe 3|3 Ban'])],
+stats:[['Support-Statistik','Übersicht über Aktionen, offene Tickets und aktive Staff.','stats','842|Support-Anfragen|317|Tickets|89|Admin Calls|24|Aktive Supporter'],['Supporter-Ranking','Wer die meisten Support-Anfragen bearbeitet hat.','table',''],['Alle Support-Anfragen','Durchsuchbare Support-Anfragen mit Supporter, Kategorie, Status und Zeit.','actions','Anfragen öffnen|Exportieren'],['Support-Verlauf','Tickets, Warteraum und Admin Calls nach Zeitraum.','chart','']],
+security:[S('Security','Schutz vor Nuke und Raids.',['Anti-Nuke','Anti-Raid']),S('Externe Apps','Externe Apps deaktivieren.',['Externe Apps deaktivieren']),F('Security Logs & Backup','Security-Logs und Backup-Zugriff.',['Security-Log|security-logs|select','Main-Log|system-logs|select','Backup Whitelist-Rolle|Security Whitelist|select'])],
+welcome:[F('Welcome / Leave','Join-/Leave-Nachrichten und Auto-Rolle.',['Welcome-Kanal|welcome|select','Welcome-Text|Willkommen {user} auf {server}!','Leave-Kanal|leave|select','Leave-Text|{user} hat den Server verlassen.','Auto-Rolle|Verified|select'])],
+verify:[F('Verify','Verify-Gate und Rollen.',['Verify-Kanal|verify|select','Verified-Rolle|Verified|select','Unverified-Rolle|Unverified|select']),B('Panel','Verify-Panel posten.',['Panel senden'])],
+community:[F('Community','Partner, Boost, Suggest und Giveaway.',['Partner-Kanal|partner|select','Boost-Kanal|boost-danke|select','Suggest-Kanal|suggest|select','Giveaway-Kanal|giveaway|select'])],
+xp:[S('XP','XP-Master-Schalter und Aktionen.',['XP aktiv','XP Ticket übernehmen','XP Voice / Support','XP Feedback gut']),F('Uprank','Rank-Ups und Zeitraum.',['Uprank-Announce|xp-uprank|select','Uprank Zeitraum|7 Tage|select'])],
+rp:[F('RP','Start/Stop und Ingame-Stats.',['RP Announce|rp-announce|select','Server-Stats Kanal|server-stats|select']),B('Stats Panel','Server-Stats Panel posten.',['Stats-Panel senden'])],
+logs:[F('Zentrale Logs','Zentrale Log-Kanäle, die mit anderen Tabs überschneiden können.',['System-Log|system-logs|select','Mod-Log|mod-logs|select','Ticket-Log|ticket-logs|select','Security-Log|security-logs|select'])],
+system:[F('System','System-Name und Sprache.',['System-Name|Staffora Community','Sprache|Deutsch|select'])],
+partner:[F('Partner','Partner-Anzeige und interne Logs.',['Partner-Kanal|partner|select','Partner-Log|partner-logs|select'])],
+ausweis:[F('Ausweis','Ausweis-System.',['Ausweis-Kanal|ausweis|select','Ausweis-Log|ausweis-logs|select','Max. Zusatz-Ausweise|3']),B('Panel','Ausweis-Panel posten.',['Panel senden'])],
+unban:[F('Unban','Website Ban Appeal.',['Appeals aktiv|An|select','Nur bei aktivem Ban|An|select','Appeal-Log|appeal-logs|select'])],
+dizzy:[S('Dizzy Control','User schreiben ihren Roblox-Namen in den Control-Kanal; Staff bestätigt die erkannte Verknüpfung.', ['Modul aktiv']),F('Dizzy Control','Kanal und Rechte für Roblox-Verknüpfungen.',['Dizzy-Control-Kanal|dizzy-control|select','Dizzy-Log-Kanal|dizzy-logs|select']),R('Bestätigung','Nur diese Rolle darf eine Verknüpfung mit „Complete“ bestätigen.',['Staff-Rolle']),B('Sticky','Sticky-Nachricht im Control-Kanal setzen bzw. neu setzen.',['Sticky senden']),F('Ablauf','Nach dem Namen prüft der Bot die Verknüpfung und zeigt das Roblox-Profil. Staff bestätigt; danach wird das Control-Embed nach kurzer Zeit entfernt, während das Sticky bleibt bzw. neu gesetzt wird. User-Nachrichten bleiben mit Reaktion erhalten.',['Control-Embed Bereinigung|Nach Bestätigung|select','User-Nachrichten|Bleiben mit Reaktion|select'])],
+ic:[R('IC Panel Zugriff','Wer die IC-Seite nutzen darf.',['IC Access Rolle']),F('IC Logs & Moderation','Logs und Rechte für IC-Aktionen.',['IC Log|ic-logs|select','IC Mod-Rolle|IC Moderator|select'])]
+};
+const KEY_MAP={"Sprache": "language", "System-Name": "systemName", "Log-Kanal": "systemLogChannelId", "Zeitzone": "timezone", "Admin-Rolle": "adminRoleIds", "Staff-Rolle": "staffRoleIds", "Mod-Rolle": "modRoleIds", "IC Panel Zugriff": "icAccessRoleIds", "Database Manager": "databaseManagerRoleIds", "Frak-Verwaltung": "factionManageRoleIds", "Partner Manager": "partnerManagerRoleIds", "HighTeam": "highTeamRoleIds", "Ticket-Panel-Kanal": "ticketPanelChannelId", "Ticket-Log": "ticketLogChannelId", "Ticket-Kategorie": "ticketCategoryId", "Support-Rolle": "supportRoleIds", "Ticket-Blacklist-Rolle": "ticketBlacklistRoleIds", "Warteraum Voice": "warteraumVoiceChannelId", "Support-Textkanal": "supportTextChannelId", "Warteraum-Musik": "warteraumMusicEnabled", "Musik-Preset": "warteraumMusicPreset", "Join-to-Create Support-VCs": "supportJoinToCreate", "Support-VC Kategorie": "supportVcCategoryId", "Admin-Call-Panel": "adminCallPanelChannelId", "Admin-Call-Log": "adminCallLogChannelId", "Büro-Warteraum": "officeWaitingVoiceId", "Büro-Bereitschafts-Rolle": "officeReadyRoleIds", "Bewerbungs-Panel": "applicationPanelChannelId", "Bewerbungs-Log": "applicationLogChannelId", "Rolle bei Annahme": "applicationAcceptRoleIds", "Teamliste-Kanal": "teamlistChannelId", "Rollen in Teamliste": "teamlistRoleIds", "Duty-Panel": "dutyPanelChannelId", "Duty-Rolle": "dutyRoleIds", "Rollen bei Invite": "teamInviteRoleIds", "Rollen bei Kick entfernen": "teamKickRoleIds", "Team Invite/Kick Log": "teamLogChannelId", "Team-Warns bis Kick": "teamWarnsUntilKick", "Abmelde-Panel": "abmeldungPanelChannelId", "Abmelde-Log": "abmeldungLogChannelId", "Abmeldung muss bestätigt werden": "abmeldungRequireApproval", "Feedback-Kanal": "feedbackChannelId", "Feedback-Log": "feedbackLogChannelId", "Activity-Check-Kanal": "activityCheckChannelId", "Aufgaben-Panel": "tasksPanelChannelId", "Aufgaben-Log": "tasksLogChannelId", "Database-Panel": "databasePanelChannelId", "Fraktions-Announce": "factionAnnounceChannelId", "Fraktions-Log": "factionLogChannelId", "Hausliste-Kanal": "hauslisteChannelId", "Mod-Log": "modLogChannelId", "AutoMod-Log": "automodLogChannelId", "Strafregister-Log": "recordsLogChannelId", "Security-Log": "securityLogChannelId", "Welcome-Kanal": "welcomeChannelId", "Leave-Kanal": "leaveChannelId", "Auto-Rolle": "autoRoleIds", "Verify-Kanal": "verifyChannelId", "Verify-Rolle": "verifiedRoleIds", "Unverified-Rolle": "unverifiedRoleIds", "Partner-Kanal": "partnerChannelId", "Boost-Kanal": "boostChannelId", "Suggest-Kanal": "suggestChannelId", "Giveaway-Kanal": "giveawayChannelId", "Uprank-Announce": "xpUprankChannelId", "Uprank Zeitraum": "xpUprankDays", "RP Announce": "rpAnnounceChannelId", "Server-Stats Kanal": "serverStatsChannelId", "System-Log": "systemLogChannelId", "Partner-Log": "partnerLogChannelId", "Ausweis-Kanal": "ausweisChannelId", "Ausweis-Log": "ausweisLogChannelId", "Max. Zusatz-Ausweise": "ausweisMaxExtra", "Appeals aktiv": "unbanAppealsEnabled", "Nur bei aktivem Ban": "unbanRequireActiveBan", "Appeal-Log": "appealLogChannelId", "Dizzy-Control-Kanal": "dizzyControlChannelId", "Dizzy-Log-Kanal": "dizzyLogChannelId", "IC Log": "icLogChannelId", "IC Mod-Rolle": "icModRoleIds", "IC Access Rolle": "icAccessRoleIds"};
+const MODULE_MAP={"Tickets": "tickets", "Warteraum": "warteraum", "Admin Call": "adminCall", "Büros": "offices", "Duty": "duty", "Bewerbungen": "applications", "Teamverwaltung": "team", "Security": "security", "AutoMod": "automod", "XP": "xp", "Verify": "verify", "Welcome/Leave": "welcomeLeave", "Partner": "partner", "Fraktionen": "factions", "Ausweis": "ausweis", "Feedback": "feedback", "Aufgaben": "tasks", "Database": "database", "Abmeldung": "abmeldung", "Giveaway": "giveaway", "Suggest": "suggest", "Modul aktiv": "dizzy", "XP aktiv": "xp", "XP Ticket übernehmen": "xpTicketClaim", "XP Voice / Support": "xpVoice", "XP Feedback gut": "xpFeedback"};
+const PANEL_MAP={"Ticket-Panel senden": "tickets", "Admin-Call-Panel senden": "adminCall", "Sticky senden": "dizzySticky", "Stats-Panel senden": "serverStats", "Duty-Panel senden": "duty", "Feedback-Panel senden": "feedback", "Aufgaben-Panel senden": "tasks", "Database-Panel senden": "database", "Teamliste senden": "teamlist", "Abmelde-Panel senden": "abmeldung", "Verify-Panel senden": "verify", "Hausliste senden": "hausliste"};
 
-  var C = [
-    ['allgemein', '⌂', 'Allgemein'],
-    ['modules', '▦', 'Module'],
-    ['dizzy', '◉', 'Dizzy Control'],
-    ['rights', '♙', 'Rollen & Rechte'],
-    ['tickets', '▣', 'Tickets & Support'],
-    ['applications', '✦', 'Bewerbungen'],
-    ['team', '♟', 'Team'],
-    ['clock', '◷', 'Schicht & Clock'],
-    ['tasks', '✓', 'Aufgaben'],
-    ['database', '▤', 'Database'],
-    ['factions', '⌂', 'Haus & Fraktionen'],
-    ['moderation', '⚔', 'Moderation'],
-    ['automod', '◉', 'AutoMod'],
-    ['records', '▥', 'Strafregister'],
-    ['stats', '◉', 'Team-Stats'],
-    ['security', '⬡', 'Security'],
-    ['welcome', '⌁', 'Welcome / Leave'],
-    ['verify', '✓', 'Verify'],
-    ['community', '♢', 'Community'],
-    ['xp', '✦', 'XP'],
-    ['rp', '⌖', 'RP'],
-    ['logs', '▤', 'Logs'],
-    ['system', '⚙', 'System'],
-    ['partner', '✧', 'Partner'],
-    ['ausweis', '▣', 'Ausweis'],
-    ['unban', '↗', 'Unban'],
-    ['ic', '⌘', 'IC Panel']
-  ];
+const API = window.StafforaAPI;
+let state = {
+  guildId: null,
+  guilds: [],
+  config: {},
+  settings: {},
+  channels: [],
+  roles: [],
+  categories: [],
+  user: null,
+  currentCat: null,
+  currentRoleKey: null
+};
 
-  var KEYS = {
-    allgemein: [
-      { id: 'language', label: 'Sprache', type: 'select', opts: [['de', 'Deutsch'], ['en', 'English']] },
-      { id: 'systemName', label: 'System-Name', type: 'text' },
-      { id: 'logChannelId', label: 'Log-Kanal', type: 'channel' },
-      { id: 'timezone', label: 'Zeitzone', type: 'text' }
-    ],
-    modules: [
-      { id: 'module_tickets', label: 'Tickets', type: 'toggle' },
-      { id: 'module_warteraumSupport', label: 'Warteraum', type: 'toggle' },
-      { id: 'module_adminCalls', label: 'Admin Call', type: 'toggle' },
-      { id: 'module_offices', label: 'Büros', type: 'toggle' },
-      { id: 'module_dutyPanel', label: 'Duty', type: 'toggle' },
-      { id: 'module_bewerbungen', label: 'Bewerbungen', type: 'toggle' },
-      { id: 'module_teamverwaltung', label: 'Teamverwaltung', type: 'toggle' },
-      { id: 'module_dizzy', label: 'Dizzy Control', type: 'toggle' },
-      { id: 'module_security', label: 'Security', type: 'toggle' },
-      { id: 'module_automod', label: 'AutoMod', type: 'toggle' },
-      { id: 'module_xp', label: 'XP', type: 'toggle' },
-      { id: 'module_verify', label: 'Verify', type: 'toggle' },
-      { id: 'module_welcome', label: 'Welcome/Leave', type: 'toggle' },
-      { id: 'module_partner', label: 'Partner', type: 'toggle' },
-      { id: 'module_fraktionen', label: 'Fraktionen', type: 'toggle' },
-      { id: 'module_ausweis', label: 'Ausweis', type: 'toggle' },
-      { id: 'module_feedback', label: 'Feedback', type: 'toggle' },
-      { id: 'module_aufgaben', label: 'Aufgaben', type: 'toggle' },
-      { id: 'module_database', label: 'Database', type: 'toggle' },
-      { id: 'module_abmelden', label: 'Abmeldung', type: 'toggle' },
-      { id: 'module_giveaway', label: 'Giveaway', type: 'toggle' },
-      { id: 'module_suggest', label: 'Suggest', type: 'toggle' }
-    ],
-    dizzy: [
-      { id: 'dizzyEnabled', label: 'Modul aktiv', type: 'toggle' },
-      { id: 'dizzyChannelId', label: 'Dizzy-Control-Kanal', type: 'channel' },
-      { id: 'dizzyLogChannelId', label: 'Dizzy-Log-Kanal', type: 'channel' },
-      { id: 'dizzyStaffRoleIds', label: 'Staff-Rolle (Bestätigen)', type: 'role' },
-      { id: '_panel_dizzy', label: 'Sticky senden', type: 'panel', panel: 'dizzy', channelKey: 'dizzyChannelId' }
-    ],
-    rights: [
-      { id: 'adminRoleIds', label: 'Admin-Rolle', type: 'role' },
-      { id: 'staffRoleIds', label: 'Staff-Rolle', type: 'role' },
-      { id: 'modRoleIds', label: 'Mod-Rolle', type: 'role' },
-      { id: 'ingamePanelAccessRoleIds', label: 'IC Panel Zugriff', type: 'role' },
-      { id: 'databaseManagerRoleIds', label: 'Database Manager', type: 'role' },
-      { id: 'factionManagerRoleIds', label: 'Frak-Verwaltung', type: 'role' },
-      { id: 'partnerManagerRoleIds', label: 'Partner Manager', type: 'role' },
-      { id: 'highteamRoleIds', label: 'HighTeam', type: 'role' }
-    ],
-    tickets: [
-      { id: 'ticketPanelChannelId', label: 'Ticket-Panel-Kanal', type: 'channel' },
-      { id: 'ticketLogChannelId', label: 'Ticket-Log', type: 'channel' },
-      { id: 'ticketCategoryId', label: 'Ticket-Kategorie', type: 'channel' },
-      { id: 'ticketSupportRoleIds', label: 'Support-Rolle', type: 'role' },
-      { id: 'ticketBlacklistRoleIds', label: 'Ticket-Blacklist-Rolle', type: 'role' },
-      { id: 'warteraumChannelId', label: 'Warteraum Voice', type: 'channel' },
-      { id: 'warteraumTextChannelId', label: 'Support-Textkanal', type: 'channel' },
-      { id: 'warteraumMusicEnabled', label: 'Warteraum-Musik', type: 'toggle' },
-      { id: 'warteraumMusicPreset', label: 'Musik-Preset', type: 'select', opts: [['de', 'Deutsch'], ['en', 'English']] },
-      { id: 'supportJoinToCreate', label: 'Join-to-Create Support-VCs', type: 'toggle' },
-      { id: 'supportVoiceCategoryId', label: 'Support-VC Kategorie', type: 'channel' },
-      { id: 'adminCallPanelChannelId', label: 'Admin-Call-Panel', type: 'channel' },
-      { id: 'adminCallLogChannelId', label: 'Admin-Call-Log', type: 'channel' },
-      { id: 'officeWaitingChannelId', label: 'Büro-Warteraum', type: 'channel' },
-      { id: 'officeReadyRoleIds', label: 'Büro-Bereitschafts-Rolle', type: 'role' },
-      { id: '_panel_ticket', label: 'Ticket-Panel senden', type: 'panel', panel: 'ticket', channelKey: 'ticketPanelChannelId' },
-      { id: '_panel_admincall', label: 'Admin-Call-Panel senden', type: 'panel', panel: 'admincall', channelKey: 'adminCallPanelChannelId' }
-    ],
-    applications: [
-      { id: 'applicationPanelChannelId', label: 'Bewerbungs-Panel', type: 'channel' },
-      { id: 'applicationLogChannelId', label: 'Bewerbungs-Log', type: 'channel' },
-      { id: 'applicationAcceptRoleIds', label: 'Rolle bei Annahme', type: 'role' },
-      { id: '_panel_app', label: 'Panel senden', type: 'panel', panel: 'bewerbung', channelKey: 'applicationPanelChannelId' }
-    ],
-    team: [
-      { id: 'teamlistChannelId', label: 'Teamliste-Kanal', type: 'channel' },
-      { id: 'teamlistRoleIds', label: 'Rollen in Teamliste', type: 'role' },
-      { id: 'dutyPanelChannelId', label: 'Duty-Panel', type: 'channel' },
-      { id: 'dutyRoleIds', label: 'Duty-Rolle', type: 'role' },
-      { id: 'teamInviteRoleIds', label: 'Rollen bei Invite', type: 'role' },
-      { id: 'teamKickRoleIds', label: 'Rollen bei Kick entfernen', type: 'role' },
-      { id: 'teamLogChannelId', label: 'Team Invite/Kick Log', type: 'channel' },
-      { id: 'teamWarnKickAt', label: 'Team-Warns bis Kick', type: 'text' },
-      { id: 'abmeldenPanelChannelId', label: 'Abmelde-Panel', type: 'channel' },
-      { id: 'abmeldenLogChannelId', label: 'Abmelde-Log', type: 'channel' },
-      { id: 'abmeldenRequireApproval', label: 'Abmeldung muss bestätigt werden', type: 'toggle' },
-      { id: 'feedbackLogChannelId', label: 'Feedback-Log', type: 'channel' },
-      { id: 'feedbackSticky', label: 'Feedback als Sticky', type: 'toggle' },
-      { id: 'activityCheckChannelId', label: 'Activity-Check Kanal', type: 'channel' },
-      { id: '_panel_team', label: 'Teamliste senden', type: 'panel', panel: 'teamlist', channelKey: 'teamlistChannelId' },
-      { id: '_panel_duty', label: 'Duty-Panel senden', type: 'panel', panel: 'duty', channelKey: 'dutyPanelChannelId' },
-      { id: '_panel_ab', label: 'Abmelde-Panel senden', type: 'panel', panel: 'abmelden', channelKey: 'abmeldenPanelChannelId' },
-      { id: '_panel_fb', label: 'Feedback-Panel senden', type: 'panel', panel: 'feedback', channelKey: 'feedbackLogChannelId' }
-    ],
-    clock: [
-      { id: 'clockEnabled', label: 'Clock aktiv', type: 'toggle' },
-      { id: 'clockLogChannelId', label: 'Clock-Log', type: 'channel' }
-    ],
-    tasks: [
-      { id: 'aufgabenPanelChannelId', label: 'Aufgaben-Panel', type: 'channel' },
-      { id: 'aufgabenXp', label: 'XP für Aufgaben', type: 'text' },
-      { id: '_panel_task', label: 'Panel senden', type: 'panel', panel: 'tasks', channelKey: 'aufgabenPanelChannelId' }
-    ],
-    database: [
-      { id: 'databasePanelChannelId', label: 'Database-Panel', type: 'channel' },
-      { id: 'databaseManagerRoleIds', label: 'Manager-Rolle', type: 'role' },
-      { id: '_panel_db', label: 'Panel senden', type: 'panel', panel: 'database', channelKey: 'databasePanelChannelId' }
-    ],
-    factions: [
-      { id: 'factionAnnounceChannelId', label: 'Frak-Announce', type: 'channel' },
-      { id: 'factionWarnKickAt', label: 'Warns bis Remove', type: 'text' },
-      { id: 'hauslisteChannelId', label: 'Hausliste-Kanal', type: 'channel' },
-      { id: 'hausTicketCategoryId', label: 'Haus-Ticket Kategorie', type: 'channel' },
-      { id: '_panel_haus', label: 'Hausliste senden', type: 'panel', panel: 'hausliste', channelKey: 'hauslisteChannelId' }
-    ],
-    moderation: [
-      { id: 'modLogChannelId', label: 'Mod-Log', type: 'channel' },
-      { id: 'warnLogChannelId', label: 'Warn-Log', type: 'channel' },
-      { id: 'banLogChannelId', label: 'Ban-Log', type: 'channel' }
-    ],
-    automod: [
-      { id: 'automodBlockLinks', label: 'Links blocken', type: 'toggle' },
-      { id: 'automodBlockInvites', label: 'Invites blocken', type: 'toggle' },
-      { id: 'automodCaps', label: 'Caps-Filter', type: 'toggle' },
-      { id: 'automodSpam', label: 'Spam-Filter', type: 'toggle' },
-      { id: 'automodLogChannelId', label: 'AutoMod-Log', type: 'channel' }
-    ],
-    records: [
-      { id: 'caseLogChannelId', label: 'Strafregister-Log', type: 'channel' }
-    ],
-    stats: [
-      { id: '_stats', label: 'Stats', type: 'stats' }
-    ],
-    security: [
-      { id: 'securityAntiNuke', label: 'Anti-Nuke', type: 'toggle' },
-      { id: 'securityAntiRaid', label: 'Anti-Raid', type: 'toggle' },
-      { id: 'securityDisableExternalApps', label: 'Externe Apps deaktivieren', type: 'toggle' },
-      { id: 'securityLogChannelId', label: 'Security-Log', type: 'channel' },
-      { id: 'securityMainLogChannelId', label: 'Main-Log', type: 'channel' },
-      { id: 'backupWhitelistRoleIds', label: 'Backup Whitelist-Rolle', type: 'role' }
-    ],
-    welcome: [
-      { id: 'welcomeChannelId', label: 'Welcome-Kanal', type: 'channel' },
-      { id: 'welcomeMessage', label: 'Welcome-Text', type: 'text' },
-      { id: 'leaveChannelId', label: 'Leave-Kanal', type: 'channel' },
-      { id: 'leaveMessage', label: 'Leave-Text', type: 'text' },
-      { id: 'autoRoleIds', label: 'Auto-Rolle', type: 'role' }
-    ],
-    verify: [
-      { id: 'verifyChannelId', label: 'Verify-Kanal', type: 'channel' },
-      { id: 'verifyRoleIds', label: 'Verified-Rolle', type: 'role' },
-      { id: 'unverifiedRoleIds', label: 'Unverified-Rolle', type: 'role' },
-      { id: '_panel_ver', label: 'Panel senden', type: 'panel', panel: 'verify', channelKey: 'verifyChannelId' }
-    ],
-    community: [
-      { id: 'partnerChannelId', label: 'Partner-Kanal', type: 'channel' },
-      { id: 'boostChannelId', label: 'Boost-Kanal', type: 'channel' },
-      { id: 'suggestChannelId', label: 'Suggest-Kanal', type: 'channel' },
-      { id: 'giveawayChannelId', label: 'Giveaway-Kanal', type: 'channel' }
-    ],
-    xp: [
-      { id: 'xpEnabled', label: 'XP aktiv', type: 'toggle' },
-      { id: 'xpTicket', label: 'XP Ticket übernehmen', type: 'text' },
-      { id: 'xpVoice', label: 'XP Voice / Support', type: 'text' },
-      { id: 'xpFeedbackGood', label: 'XP Feedback gut', type: 'text' },
-      { id: 'xpAnnounceChannelId', label: 'Uprank-Announce', type: 'channel' }
-    ],
-    rp: [
-      { id: 'rpAnnounceChannelId', label: 'RP Announce', type: 'channel' },
-      { id: 'serverStatsChannelId', label: 'Server-Stats Kanal', type: 'channel' },
-      { id: '_panel_stats', label: 'Stats-Panel senden', type: 'panel', panel: 'serverstats', channelKey: 'serverStatsChannelId' }
-    ],
-    logs: [
-      { id: 'logChannelId', label: 'System-Log', type: 'channel' },
-      { id: 'modLogChannelId', label: 'Mod-Log', type: 'channel' },
-      { id: 'ticketLogChannelId', label: 'Ticket-Log', type: 'channel' },
-      { id: 'securityLogChannelId', label: 'Security-Log', type: 'channel' }
-    ],
-    system: [
-      { id: 'systemName', label: 'System-Name', type: 'text' },
-      { id: 'language', label: 'Sprache', type: 'select', opts: [['de', 'Deutsch'], ['en', 'English']] }
-    ],
-    partner: [
-      { id: 'partnerChannelId', label: 'Partner-Kanal', type: 'channel' },
-      { id: 'partnerLogChannelId', label: 'Partner-Log', type: 'channel' }
-    ],
-    ausweis: [
-      { id: 'ausweisChannelId', label: 'Ausweis-Kanal', type: 'channel' },
-      { id: 'ausweisLogChannelId', label: 'Ausweis-Log', type: 'channel' },
-      { id: 'ausweisMaxExtra', label: 'Max. Zusatz-Ausweise', type: 'text' },
-      { id: '_panel_aus', label: 'Panel senden', type: 'panel', panel: 'ausweis', channelKey: 'ausweisChannelId' }
-    ],
-    unban: [
-      { id: 'unbanEnabled', label: 'Appeals aktiv', type: 'toggle' },
-      { id: 'unbanRequireActiveBan', label: 'Nur bei aktivem Ban', type: 'toggle' },
-      { id: 'unbanLogChannelId', label: 'Appeal-Log', type: 'channel' }
-    ],
-    ic: [
-      { id: 'ingamePanelAccessRoleIds', label: 'IC Access Rolle', type: 'role' },
-      { id: 'ingameLogChannelId', label: 'IC Log', type: 'channel' },
-      { id: 'ingameModRoleIds', label: 'IC Mod-Rolle', type: 'role' }
-    ]
-  };
+function toast(msg){
+  const t=document.getElementById('toast');
+  if(!t){ console.log(msg); return; }
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
 
-  var state = { me: null, guilds: [], guildId: '', settings: {}, modules: {}, roles: [], channels: [], activeCat: null };
+function $(id){ return document.getElementById(id); }
 
-  function $(id) { return document.getElementById(id); }
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
-    });
+function getSetting(key, fallback){
+  const s = state.settings || {};
+  if (s[key] !== undefined && s[key] !== null && s[key] !== '') return s[key];
+  return fallback;
+}
+
+function channelOptions(selected){
+  const opts = ['<option value="">—</option>'];
+  (state.channels||[]).forEach(c=>{
+    const sel = String(c.id)===String(selected) ? ' selected' : '';
+    opts.push(`<option value="${c.id}"${sel}># ${escapeHtml(c.name||c.id)}</option>`);
+  });
+  return opts.join('');
+}
+function roleOptions(selected){
+  const opts = ['<option value="">—</option>'];
+  const selSet = new Set(Array.isArray(selected)?selected.map(String): selected?[String(selected)]:[]);
+  (state.roles||[]).forEach(r=>{
+    if(r.managed) return;
+    const sel = selSet.has(String(r.id)) ? ' selected' : '';
+    opts.push(`<option value="${r.id}"${sel}>@ ${escapeHtml(r.name||r.id)}</option>`);
+  });
+  return opts.join('');
+}
+function categoryOptions(selected){
+  const opts = ['<option value="">—</option>'];
+  (state.categories||[]).forEach(c=>{
+    const sel = String(c.id)===String(selected) ? ' selected' : '';
+    opts.push(`<option value="${c.id}"${sel}>${escapeHtml(c.name||c.id)}</option>`);
+  });
+  return opts.join('');
+}
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
+
+function detectFieldKind(label, typeHint){
+  const l = label.toLowerCase();
+  if (typeHint === 'select') {
+    if (/rolle|role|zugriff|manager|highteam|bereitschaft|blacklist|staff|mod|admin|ic access|ic mod/.test(l)) return 'role';
+    if (/kategorie|category|vc kategorie|ticket-kategorie/.test(l) && !/kanal/.test(l)) return 'category';
+    if (/kanal|channel|voice|panel|log|warteraum|announce|stats|sticky|control/.test(l)) return 'channel';
   }
-  function toast(msg) {
-    var t = $('toast');
-    if (!t) return;
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(window.__t);
-    window.__t = setTimeout(function () { t.classList.remove('show'); }, 2200);
-  }
+  return typeHint || 'text';
+}
 
-  function getVal(key) {
-    var s = state.settings || {};
-    var v = s[key];
-    if (v == null && key.indexOf('module_') === 0) {
-      var mk = key.slice(7);
-      if (state.modules && state.modules[mk] != null) return state.modules[mk];
-      return true;
-    }
-    return v;
-  }
+function fieldValueForLabel(label){
+  const key = KEY_MAP[label];
+  if (!key) return '';
+  return getSetting(key, '');
+}
 
-  function channelSelect(id, selected) {
-    var html = '<select class="control" data-key="' + esc(id) + '"><option value="">—</option>';
-    (state.channels || []).forEach(function (c) {
-      var cid = String(c.id);
-      var label = c.type === 4 ? ('▸ ' + (c.name || cid)) : ('#' + (c.name || cid));
-      html += '<option value="' + esc(cid) + '"' + (String(selected || '') === cid ? ' selected' : '') + '>' + esc(label) + '</option>';
-    });
-    return html + '</select>';
+function isOnLabel(label){
+  // module switches
+  if (MODULE_MAP[label]) {
+    const k = MODULE_MAP[label];
+    const mods = state.settings.modules || state.settings.enabledModules || {};
+    if (typeof mods === 'object' && mods[k] !== undefined) return !!mods[k];
+    // default on
+    return getSetting(k+'Enabled', true) !== false && getSetting(k, true) !== false;
   }
-  function roleSelect(id, selected) {
-    var sel = Array.isArray(selected) ? selected[0] : selected;
-    var html = '<select class="control" data-key="' + esc(id) + '"><option value="">—</option>';
-    (state.roles || []).forEach(function (r) {
-      var rid = String(r.id);
-      html += '<option value="' + esc(rid) + '"' + (String(sel || '') === rid ? ' selected' : '') + '>' + esc(r.name || rid) + '</option>';
-    });
-    return html + '</select>';
+  const key = KEY_MAP[label];
+  if (key) {
+    const v = getSetting(key, null);
+    if (v === true || v === 'An' || v === 'on' || v === '1') return true;
+    if (v === false || v === 'Aus' || v === 'off' || v === '0') return false;
   }
+  return /An|aktiv/i.test(label) ? true : false;
+}
 
-  function renderField(f) {
-    var val = getVal(f.id);
-    if (f.type === 'toggle') {
-      var on = val !== false && val !== 0 && val !== '0';
-      return '<div class="switch"><span>' + esc(f.label) + '</span><span class="toggle' + (on ? ' on' : '') + '" data-toggle data-key="' + esc(f.id) + '"><i></i></span></div>';
-    }
-    if (f.type === 'channel') {
-      return '<div class="field"><label>' + esc(f.label) + '</label>' + channelSelect(f.id, val) + '</div>';
-    }
-    if (f.type === 'role') {
-      return '<div class="field"><label>' + esc(f.label) + '</label>' + roleSelect(f.id, val) + '</div>';
-    }
-    if (f.type === 'select') {
-      var html = '<div class="field"><label>' + esc(f.label) + '</label><select class="control" data-key="' + esc(f.id) + '">';
-      (f.opts || []).forEach(function (o) {
-        html += '<option value="' + esc(o[0]) + '"' + (String(val || 'de') === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
-      });
-      return html + '</select></div>';
-    }
-    if (f.type === 'panel') {
-      return '<div class="settings-actions" style="margin-top:10px"><button type="button" class="btn btn-primary" data-panel="' + esc(f.panel) + '" data-chkey="' + esc(f.channelKey) + '">' + esc(f.label) + '</button></div>';
-    }
-    if (f.type === 'stats') {
-      return '<div class="settings-actions"><button type="button" class="btn btn-primary" id="btnLoadStats">Laden</button></div><div id="statsOut" style="margin-top:12px"></div>';
-    }
-    return '<div class="field"><label>' + esc(f.label) + '</label><input class="control" data-key="' + esc(f.id) + '" value="' + esc(val == null ? '' : val) + '"></div>';
-  }
-
-  function collectSettings(panel) {
-    var out = {};
-    panel.querySelectorAll('[data-key]').forEach(function (el) {
-      var key = el.getAttribute('data-key');
-      if (!key || key.charAt(0) === '_') return;
-      if (el.classList.contains('toggle')) {
-        out[key] = el.classList.contains('on');
+function renderCard([title,desc,type,items]){
+  let body='';
+  if(type==='fields'){
+    body = items.map(raw=>{
+      const parts = String(raw).split('|');
+      const label = parts[0];
+      const def = parts[1]||'';
+      const hint = parts[2]||'text';
+      const key = KEY_MAP[label] || '';
+      const kind = detectFieldKind(label, hint);
+      let val = fieldValueForLabel(label);
+      if (val === '' || val === null || val === undefined) val = def;
+      let control = '';
+      if (kind === 'channel') {
+        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${channelOptions(val && /^\d+$/.test(String(val)) ? val : '')}</select>`;
+      } else if (kind === 'role') {
+        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}" data-multi="0">${roleOptions(val)}</select>`;
+      } else if (kind === 'category') {
+        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${categoryOptions(val && /^\d+$/.test(String(val)) ? val : '')}</select>`;
+      } else if (hint === 'select') {
+        // generic select with placeholder options from def
+        const opts = String(def).split(',').map(o=>o.trim()).filter(Boolean);
+        if (!opts.length) opts.push(def||'—');
+        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}"><option value="">—</option>${opts.map(o=>`<option value="${escapeHtml(o)}"${String(val)===o?' selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
       } else {
-        var v = el.value;
-        if (/RoleIds$/i.test(key)) out[key] = v ? [v] : [];
-        else if (/ChannelId$|CategoryId$/i.test(key) || /Id$/.test(key)) out[key] = v || null;
-        else out[key] = v;
+        control = `<input data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}" value="${escapeHtml(val)}" placeholder="${escapeHtml(def)}">`;
       }
-    });
-    return out;
-  }
-
-  function renderCat(key) {
-    var cat = C.find(function (x) { return x[0] === key; });
-    if (!cat) return;
-    state.activeCat = key;
-    document.querySelectorAll('#categories [data-cat]').forEach(function (x) {
-      x.classList.toggle('active', x.getAttribute('data-cat') === key);
-    });
-    var empty = $('empty');
-    if (empty) {
-      empty.classList.add('hidden');
-      empty.style.display = 'none';
-    }
-    var p = $('settingsPanel');
-    p.classList.remove('hidden');
-    p.style.display = 'block';
-    var fields = KEYS[key] || [];
-    p.innerHTML =
-      '<div class="settings-header"><div><span class="eyebrow">KATEGORIE</span><h2>' + esc(cat[2]) + '</h2></div>' +
-      '<div class="settings-actions">' +
-      '<button type="button" class="btn btn-ghost" id="btnBackCat">Zurück</button>' +
-      '<button type="button" class="btn btn-primary" id="btnSave">Speichern</button></div></div>' +
-      '<article class="settings-card glass"><h3>Einstellungen</h3>' + fields.map(renderField).join('') + '</article>';
-
-    p.querySelectorAll('[data-toggle]').forEach(function (t) {
-      t.addEventListener('click', function () { t.classList.toggle('on'); });
-    });
-    $('btnBackCat').onclick = function () {
-      state.activeCat = null;
-      p.classList.add('hidden');
-      p.style.display = 'none';
-      p.innerHTML = '';
-      var empty = $('empty');
-      if (empty) {
-        empty.classList.remove('hidden');
-        empty.style.display = '';
-      }
-      document.querySelectorAll('#categories [data-cat]').forEach(function (x) { x.classList.remove('active'); });
-    };
-    $('btnSave').onclick = function () {
-      var partial = collectSettings(p);
-      var btn = $('btnSave');
-      btn.disabled = true;
-      S.patchSettings(state.guildId, partial).then(function () {
-        Object.assign(state.settings, partial);
-        toast('Gespeichert');
-      }).catch(function (e) {
-        toast(e.message || 'Fehler');
-      }).then(function () { btn.disabled = false; });
-    };
-    p.querySelectorAll('[data-panel]').forEach(function (btn) {
-      btn.onclick = function () {
-        var chKey = btn.getAttribute('data-chkey');
-        var sel = p.querySelector('[data-key="' + chKey + '"]');
-        var ch = sel ? sel.value : '';
-        if (!ch) { toast('Kanal wählen'); return; }
-        S.sendPanel(state.guildId, btn.getAttribute('data-panel'), ch)
-          .then(function () { toast('Panel gesendet'); })
-          .catch(function (e) { toast(e.message || 'Fehler'); });
-      };
-    });
-    var st = $('btnLoadStats');
-    if (st) st.onclick = function () {
-      S.teamStats(state.guildId, 7).then(function (data) {
-        var s = data.summary || data || {};
-        $('statsOut').innerHTML =
-          '<div class="grid mini-stats">' +
-          '<div class="card glass"><small>Aktionen</small><strong>' + esc(s.totalActions != null ? s.totalActions : '—') + '</strong></div>' +
-          '<div class="card glass"><small>Tickets offen</small><strong>' + esc(s.openTickets != null ? s.openTickets : '—') + '</strong></div>' +
-          '<div class="card glass"><small>Staff aktiv</small><strong>' + esc(s.staffActive != null ? s.staffActive : '—') + '</strong></div></div>';
-      }).catch(function (e) { toast(e.message); });
-    };
-  }
-
-  function buildCats() {
-    var nav = $('categories');
-    nav.innerHTML = C.map(function (c) {
-      return '<button type="button" class="nav-link" data-cat="' + c[0] + '"><span>' + c[1] + '</span><span>' + c[2] + '</span><span class="arrow">›</span></button>';
+      return `<label class="setting-row"><span>${escapeHtml(label)}</span>${control}</label>`;
     }).join('');
-    nav.querySelectorAll('[data-cat]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        if (!state.guildId) { toast('Zuerst Server wählen'); return; }
-        renderCat(btn.getAttribute('data-cat'));
-      });
-    });
   }
-
-  function paintServers(filter) {
-    var q = (filter || '').toLowerCase();
-    var box = $('serverList');
-    var items = state.guilds.filter(function (g) {
-      return !q || String(g.name || '').toLowerCase().indexOf(q) >= 0;
-    });
-    box.innerHTML = items.map(function (g) {
-      return '<button type="button" class="server-row" data-id="' + esc(g.id) + '">' +
-        '<span class="server-icon">S</span><span class="grow"><b>' + esc(g.name) + '</b></span></button>';
-    }).join('') || '<p style="padding:12px;color:var(--muted)">Keine Server</p>';
-    box.querySelectorAll('[data-id]').forEach(function (btn) {
-      btn.onclick = function () { selectGuild(btn.getAttribute('data-id')); };
-    });
+  if(type==='switches'){
+    body = items.map(label=>{
+      const modKey = MODULE_MAP[label] || KEY_MAP[label] || '';
+      const on = isOnLabel(label);
+      return `<div class="setting-row"><span>${escapeHtml(label)}</span><button type="button" class="toggle${on?' on':''}" data-switch="${escapeHtml(modKey||label)}" data-label="${escapeHtml(label)}"><i></i></button></div>`;
+    }).join('');
   }
-
-  function selectGuild(id) {
-    state.guildId = id;
-    try { localStorage.setItem('staffora_guild', id); } catch (e) {}
-    var g = state.guilds.find(function (x) { return String(x.id) === String(id); });
-    $('serverName').textContent = g ? g.name : id;
-    $('serverMeta').textContent = 'Server';
-    $('serverHint').textContent = (g ? g.name : id) + ' · Kategorie links wählen';
-    $('serverPicker').classList.remove('open');
-    $('dashMain').style.display = '';
-    Promise.all([
-      S.config(id).catch(function () { return {}; }),
-      S.discord(id).catch(function () { return {}; })
-    ]).then(function (pair) {
-      var cfg = pair[0] || {};
-      state.settings = cfg.settings || cfg.config || cfg || {};
-      state.modules = cfg.modules || state.settings.modules || {};
-      var d = pair[1] || {};
-      state.roles = d.roles || [];
-      state.channels = d.channels || [];
-      state.activeCat = null;
-      $('settingsPanel').classList.add('hidden');$('settingsPanel').style.display='none';$('settingsPanel').innerHTML='';var __e=$('empty');if(__e){__e.classList.remove('hidden');__e.style.display='';}
-      document.querySelectorAll('#categories [data-cat]').forEach(function (x) { x.classList.remove('active'); });
-    }).catch(function (e) { toast(e.message || 'Fehler'); });
+  if(type==='roles'){
+    body = items.map(label=>{
+      const key = KEY_MAP[label] || '';
+      return `<button type="button" class="role-btn" data-role="${escapeHtml(label)}" data-key="${escapeHtml(key)}"><b>${escapeHtml(label)}</b><span>Rollen wählen ›</span></button>`;
+    }).join('');
   }
+  if(type==='buttons'||type==='actions'){
+    body = `<div class="action-row">${items.map(label=>`<button type="button" class="btn action-btn" data-action="${escapeHtml(label)}">${escapeHtml(label)}</button>`).join('')}</div>`;
+  }
+  if(type==='list'){
+    body = `<div class="list-box">${items.map(x=>`<div class="list-item">${x}</div>`).join('')}</div>`;
+  }
+  if(type==='table'){
+    body=`<div class="table-wrap"><table><thead><tr><th>Member</th><th>XP</th><th>Tickets</th><th>Duty</th></tr></thead><tbody id="statsBody"><tr><td colspan="4">Laden…</td></tr></tbody></table></div>`;
+  }
+  if(type==='chart'){
+    body=`<div class="chart-bars" id="chartBars">${[42,68,51,79,63,88,71,94,77,83,69,98].map(v=>`<i style="height:${v}%"></i>`).join('')}</div>`;
+  }
+  return `<article class="settings-card glass"><div class="card-head"><div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(desc)}</p></div></div><div class="card-body">${body}</div></article>`;
+}
 
-  function boot() {
-    buildCats();
-    S.readToken();
+function openCategory(id){
+  const c=C.find(x=>x[0]===id);
+  if(!c) return;
+  if(!state.guildId){
+    toast('Bitte zuerst einen Server wählen.');
+    $('serverPicker') && $('serverPicker').classList.add('open');
+    return;
+  }
+  state.currentCat = id;
+  document.querySelectorAll('[data-cat]').forEach(x=>x.classList.toggle('active',x.dataset.cat===id));
+  const empty = $('empty');
+  if(empty){ empty.classList.add('hidden'); empty.style.display='none'; }
+  const panel=$('settingsPanel');
+  panel.classList.remove('hidden');
+  panel.style.display='block';
+  panel.innerHTML=`<div class="settings-heading"><div><span class="eyebrow">SERVER SETTINGS</span><h2>${escapeHtml(c[2])}</h2><p>${escapeHtml(c[3])}</p></div><button class="btn btn-primary" id="saveAll" type="button">Speichern</button></div><div class="settings-grid">${(templates[id]||[]).map(renderCard).join('')}</div>`;
+  $('saveAll').onclick = () => saveCurrent();
+  panel.querySelectorAll('.toggle').forEach(t=>{
+    t.onclick = () => t.classList.toggle('on');
+  });
+  panel.querySelectorAll('.action-btn').forEach(b=>{
+    b.onclick = () => handleAction(b.dataset.action, id);
+  });
+  panel.querySelectorAll('.role-btn').forEach(b=>{
+    b.onclick = () => openRoleDrawer(b);
+  });
+}
 
-    var accessGate = $('accessGate');
-    var btnAk = $('btnAccessKey');
-    if (window.STAFFORA_EARLY_ACCESS && accessGate) {
-      if (!S.hasEarlyAccess()) {
-        accessGate.style.display = 'flex';
-        $('loginGate').style.display = 'none';
-        $('appShell').style.display = 'none';
-      } else {
-        accessGate.style.display = 'none';
-      }
-      if (btnAk) {
-        btnAk.onclick = function () {
-          var key = ($('accessKeyInput') || {}).value || '';
-          btnAk.disabled = true;
-          $('accessErr').textContent = '';
-          S.validateAccessKey(key).then(function () {
-            accessGate.style.display = 'none';
-            continueAuth();
-          }).catch(function (e) {
-            $('accessErr').textContent = e.message || 'Invalid key';
-          }).then(function () { btnAk.disabled = false; });
-        };
-      }
-    }
-
-    $('btnLogin').onclick = function () { S.login(location.origin + '/dashboard/'); };
-    $('serverButton').onclick = function () {
-      $('serverPicker').classList.add('open');
-      paintServers($('serverSearch').value);
+async function handleAction(label, catId){
+  if(!state.guildId){ toast('Kein Server'); return; }
+  let panel = PANEL_MAP[label];
+  if(!panel){
+    // context defaults
+    const mapCat = {
+      tickets:'tickets', applications:'applications', team:'duty', ausweis:'ausweis',
+      tasks:'tasks', database:'database', rp:'serverStats', dizzy:'dizzySticky', verify:'verify',
+      factions:'hausliste', feedback:'feedback'
     };
-    $('serverSearch').oninput = function () { paintServers($('serverSearch').value); };
-    $('logoutBtn').onclick = function () { S.logout(); location.href = '/dashboard/'; };
-    var gs = $('globalSearch');
-    if (gs) gs.oninput = function () {
-      var q = gs.value.toLowerCase();
-      document.querySelectorAll('#categories [data-cat]').forEach(function (x) {
-        x.style.display = x.textContent.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
-      });
-    };
-
-    if (window.STAFFORA_EARLY_ACCESS && !S.hasEarlyAccess()) {
-      return;
-    }
-    continueAuth();
+    if (label.includes('Ticket')) panel = 'tickets';
+    else if (label.includes('Admin')) panel = 'adminCall';
+    else if (label.includes('Sticky')) panel = 'dizzySticky';
+    else if (label.includes('Stats')) panel = 'serverStats';
+    else if (label.includes('Duty')) panel = 'duty';
+    else if (label.includes('Feedback')) panel = 'feedback';
+    else if (label.includes('Aufgabe')) panel = 'tasks';
+    else if (label.includes('Database')) panel = 'database';
+    else if (label.includes('Teamlist') || label.includes('Teamliste')) panel = 'teamlist';
+    else if (label.includes('Abmeld')) panel = 'abmeldung';
+    else if (label.includes('Verify')) panel = 'verify';
+    else if (label.includes('Haus')) panel = 'hausliste';
+    else panel = mapCat[catId] || 'tickets';
   }
+  try {
+    toast('Sende…');
+    await API.sendPanel(state.guildId, panel, null);
+    toast('Gesendet');
+  } catch (e) {
+    toast(e.message || 'Senden fehlgeschlagen');
+  }
+}
 
-  function continueAuth() {
-    if (!S.getToken()) {
-      $('loginGate').style.display = 'flex';
-      $('appShell').style.display = 'none';
-      return;
+function openRoleDrawer(btn){
+  const d=$('drawer');
+  const key = btn.dataset.key || KEY_MAP[btn.dataset.role] || '';
+  state.currentRoleKey = key;
+  $('drawerTitle').textContent = btn.dataset.role || 'Rollen';
+  const current = getSetting(key, []);
+  const selSet = new Set((Array.isArray(current)?current:[current]).filter(Boolean).map(String));
+  const body = (state.roles||[]).filter(r=>!r.managed).map(r=>{
+    const on = selSet.has(String(r.id));
+    return `<button type="button" class="setting-row role-pick" data-id="${r.id}" style="width:100%;text-align:left;${on?'border-color:#805dff;':''}"><b>@ ${escapeHtml(r.name)}</b>${on?' <span>✓</span>':''}</button>`;
+  }).join('') || '<p>Keine Rollen geladen.</p>';
+  $('drawerBody').innerHTML = body;
+  d.classList.add('open');
+  $('drawerBody').querySelectorAll('.role-pick').forEach(btn2=>{
+    btn2.onclick = () => {
+      const id = btn2.dataset.id;
+      let arr = getSetting(state.currentRoleKey, []);
+      if (!Array.isArray(arr)) arr = arr ? [arr] : [];
+      arr = arr.map(String);
+      if (arr.includes(id)) arr = arr.filter(x=>x!==id);
+      else arr.push(id);
+      state.settings[state.currentRoleKey] = arr;
+      openRoleDrawer(btn); // refresh
+    };
+  });
+}
+
+async function saveCurrent(){
+  if(!state.guildId){ toast('Kein Server'); return; }
+  const panel = $('settingsPanel');
+  const partial = {};
+  panel.querySelectorAll('[data-key]').forEach(el=>{
+    const key = el.getAttribute('data-key');
+    if(!key) return;
+    if (el.tagName === 'SELECT' || el.tagName === 'INPUT') {
+      partial[key] = el.value;
     }
-    $('loginGate').style.display = 'none';
-    $('appShell').style.display = '';
+  });
+  // modules object
+  const modules = Object.assign({}, state.settings.modules || {});
+  panel.querySelectorAll('[data-switch]').forEach(el=>{
+    const k = el.getAttribute('data-switch');
+    if(!k) return;
+    const on = el.classList.contains('on');
+    if (MODULE_MAP[el.getAttribute('data-label')] || Object.values(MODULE_MAP).includes(k)) {
+      modules[k] = on;
+    } else {
+      partial[k] = on;
+    }
+  });
+  if (Object.keys(modules).length) partial.modules = modules;
+  // role keys from state
+  Object.keys(KEY_MAP).forEach(label=>{
+    const k = KEY_MAP[label];
+    if (Array.isArray(state.settings[k])) partial[k] = state.settings[k];
+  });
+  try {
+    toast('Speichern…');
+    const res = await API.patchSettings(state.guildId, partial);
+    state.settings = Object.assign({}, state.settings, (res && res.settings) || partial);
+    toast('Gespeichert');
+  } catch (e) {
+    toast(e.message || 'Speichern fehlgeschlagen');
+  }
+}
 
-    S.me().then(function (u) {
-      state.me = u.user || u;
-      var name = state.me.username || state.me.global_name || 'User';
-      $('userName').textContent = name;
-      $('userRole').textContent = 'Admin';
-      var av = (name.charAt(0) || '?').toUpperCase();
-      if ($('userAv')) $('userAv').textContent = av;
-      if ($('userAv2')) $('userAv2').textContent = av;
-      return S.guilds();
-    }).then(function (g) {
-      state.guilds = g.guilds || g || [];
-      if (!Array.isArray(state.guilds)) state.guilds = [];
-      var last = '';
-      try { last = localStorage.getItem('staffora_guild') || ''; } catch (e) {}
-      if (last && state.guilds.some(function (x) { return String(x.id) === String(last); })) {
-        selectGuild(last);
-      } else {
-        $('serverPicker').classList.add('open');
-        $('dashMain').style.display = 'none';
-        paintServers('');
-      }
-    }).catch(function (e) {
-      S.logout();
-      $('loginGate').style.display = 'flex';
-      $('appShell').style.display = 'none';
-      $('loginErr').textContent = e.message || 'Session abgelaufen';
+async function loadGuild(gid){
+  state.guildId = gid;
+  try {
+    const [cfg, disc] = await Promise.all([
+      API.config(gid).catch(()=>({})),
+      API.discord(gid).catch(()=>({}))
+    ]);
+    state.config = cfg || {};
+    state.settings = (cfg && (cfg.settings || cfg.config || cfg)) || {};
+    if (state.settings.settings) state.settings = state.settings.settings;
+    state.channels = (disc && disc.channels) || (cfg && cfg.channels) || [];
+    state.roles = (disc && disc.roles) || (cfg && cfg.roles) || [];
+    state.categories = (disc && disc.categories) || state.channels.filter(c=>c.type===4) || [];
+    // if channels include categories
+    if (!state.categories.length && state.channels.length) {
+      state.categories = state.channels.filter(c => c.type === 4 || c.type === 'GUILD_CATEGORY');
+      state.channels = state.channels.filter(c => c.type !== 4 && c.type !== 'GUILD_CATEGORY');
+    }
+    if (state.currentCat) openCategory(state.currentCat);
+  } catch (e) {
+    toast(e.message || 'Laden fehlgeschlagen');
+  }
+}
+
+function renderServerList(){
+  const list = $('serverList');
+  if(!list) return;
+  const guilds = state.guilds || [];
+  if(!guilds.length){
+    list.innerHTML = '<p style="padding:12px;color:#9aa">Keine Server. Bot auf dem Server? Mit Manage Server einloggen.</p>';
+    return;
+  }
+  list.innerHTML = guilds.map((g,i)=>{
+    const name = g.name || g.id;
+    const icon = (name||'S').charAt(0).toUpperCase();
+    const sel = state.guildId === g.id ? ' selected' : (i===0 && !state.guildId ? ' selected' : '');
+    return `<button type="button" class="server-row${sel}" data-id="${g.id}" data-server="${escapeHtml(name)}"><span class="server-icon">${escapeHtml(icon)}</span><span class="grow"><b>${escapeHtml(name)}</b><small>${g.memberCount?g.memberCount+' Mitglieder':''}</small></span><span class="check">✓</span></button>`;
+  }).join('');
+  list.querySelectorAll('.server-row').forEach(x=>{
+    x.onclick = async ()=>{
+      list.querySelectorAll('.server-row').forEach(y=>y.classList.remove('selected'));
+      x.classList.add('selected');
+      const id = x.dataset.id;
+      const name = x.dataset.server;
+      $('serverName').textContent = name;
+      const hint = $('serverHint');
+      if(hint) hint.textContent = name + ' · Einstellungen für diesen Server';
+      $('serverPicker').classList.remove('open');
+      await loadGuild(id);
+      toast('Server: ' + name);
+    };
+  });
+}
+
+function bindUi(){
+  const nav = $('categories');
+  if(nav){
+    nav.innerHTML = C.map(c=>`<button type="button" class="nav-link" data-cat="${c[0]}"><span class="nav-label">${c[2]}</span><span class="arrow">›</span></button>`).join('');
+    nav.querySelectorAll('[data-cat]').forEach(x=>{
+      x.onclick = ()=> openCategory(x.dataset.cat);
     });
   }
+  const picker = $('serverPicker');
+  const btn = $('serverButton');
+  if(btn && picker){
+    btn.onclick = ()=> picker.classList.toggle('open');
+  }
+  const search = $('serverSearch');
+  if(search){
+    search.oninput = e=>{
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('.server-row').forEach(x=>{
+        x.style.display = (x.dataset.server||'').toLowerCase().includes(q) ? 'flex' : 'none';
+      });
+    };
+  }
+  const gs = $('globalSearch');
+  if(gs){
+    gs.oninput = e=>{
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('.nav-link').forEach(x=>{
+        x.style.display = x.textContent.toLowerCase().includes(q) ? 'flex' : 'none';
+      });
+    };
+  }
+  const dc = $('drawerClose');
+  if(dc) dc.onclick = ()=> $('drawer').classList.remove('open');
+}
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-})();
+async function boot(){
+  bindUi();
+  if(!API){ toast('API fehlt'); return; }
+  API.readToken();
+  if(!API.getToken()){
+    // stay on page but prompt login via toast + replace side user
+    const su = document.querySelector('.side-user');
+    if(su){
+      su.innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Mit Discord anmelden</button>`;
+      $('loginBtn').onclick = ()=> API.login(location.origin + '/dashboard/');
+    }
+    toast('Bitte anmelden');
+    $('serverPicker') && $('serverPicker').classList.add('open');
+    return;
+  }
+  try {
+    const me = await API.me();
+    state.user = me;
+    const av = document.querySelectorAll('.avatar, .side-user .avatar');
+    const name = me.username || me.global_name || 'User';
+    document.querySelectorAll('.side-user b, .side-user .grow b').forEach(el=>{ el.textContent = name; });
+    document.querySelectorAll('.side-user small').forEach(el=>{ el.textContent = me.id || ''; });
+  } catch(e){
+    toast(e.message || 'Session ungültig');
+    API.logout();
+    API.login(location.origin + '/dashboard/');
+    return;
+  }
+  try {
+    const g = await API.guilds();
+    state.guilds = Array.isArray(g) ? g : (g.guilds || g.servers || []);
+    renderServerList();
+    $('serverPicker') && $('serverPicker').classList.add('open');
+    if(state.guilds.length === 1){
+      const g0 = state.guilds[0];
+      $('serverName').textContent = g0.name || g0.id;
+      await loadGuild(g0.id);
+      $('serverPicker').classList.remove('open');
+    }
+  } catch(e){
+    toast(e.message || 'Serverliste fehlgeschlagen');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', boot);
