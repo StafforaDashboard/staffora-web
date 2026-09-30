@@ -66,21 +66,14 @@
       </div>
       <div class="hero-stat"><b id="modCount">—</b><span>Sync aktiv</span></div>
     </div>
-    <div class="category-layout">
-      <aside class="category-panel glass">
-        <div class="panel-title"><b>Kategorien</b><span id="catCount">0</span></div>
-        <p class="hint">Klicke eine Kategorie, um Settings zu öffnen.</p>
-        <div id="categoryList"></div>
-      </aside>
-      <section class="settings-stage">
-        <div class="empty-state glass" id="empty">
-          <div class="empty-orb">S</div>
-          <h2>Kategorie auswählen</h2>
-          <p>Keine Settings sichtbar, bis du einen Bereich wählst.</p>
-        </div>
-        <div class="settings-panel hidden" id="settingsPanel"></div>
-      </section>
-    </div>
+    <section class="settings-stage" style="max-width:920px">
+      <div class="empty-state glass" id="empty">
+        <div class="empty-orb">S</div>
+        <h2>Kategorie auswählen</h2>
+        <p>Wähle links eine Kategorie — danach erscheinen die Einstellungen.</p>
+      </div>
+      <div class="settings-panel hidden" id="settingsPanel"></div>
+    </section>
   </main>
 </section>
 </div>
@@ -98,6 +91,6 @@
 
 <script src="/api.js"></script>
 <script src="/app.js"></script>
-<script src="/dashboard.js"></script>
+<script src="/dashboard.js?v=clean1"></script>
 </body>
 </html>
