@@ -1,69 +1,103 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Staffora — Dashboard</title>
-<link rel="stylesheet" href="/assets/styles.css?v=3d2">
-<link rel="stylesheet" href="/assets/dash.css?v=3d3">
-<script>
-window.STAFFORA_API = window.STAFFORA_API || "https://staffora.apps.bot-hosting.cloud";
-window.STAFFORA_RETURN = location.origin + "/dashboard/";
-</script>
+<link rel="stylesheet" href="/styles.css">
+<script>window.STAFFORA_API=window.STAFFORA_API||"https://staffora.apps.bot-hosting.cloud";window.STAFFORA_RETURN=location.origin+"/dashboard/";</script>
 </head>
-<body class="dash-body">
-<canvas id="bg"></canvas>
+<body class="scene">
+<div class="orb orb-a"></div><div class="orb orb-b"></div>
 
 <!-- Login -->
-<div id="gate" class="gate">
-  <div class="gate-box glass">
-    <div class="eyebrow" style="margin-bottom:8px">Staffora</div>
-    <h1 style="margin:0 0 10px;font:700 1.6rem Space Grotesk,sans-serif">Dashboard Login</h1>
-    <p style="color:#9298a8;line-height:1.5;margin:0 0 18px">Mit Discord anmelden, danach Server und Kategorie wählen.</p>
-    <button type="button" class="btn btn-p" id="btn-login" style="width:100%;justify-content:center">Mit Discord anmelden</button>
-    <p id="login-err" style="color:#fb7185;font-size:12px;margin-top:12px"></p>
+<div id="loginGate" class="server-picker glass open" style="z-index:50">
+  <div style="max-width:400px;margin:0 auto;text-align:center">
+    <span class="eyebrow">STAFFORA</span>
+    <h2>Dashboard Login</h2>
+    <p>Mit Discord anmelden. Danach Server wählen, dann Kategorie, dann Settings.</p>
+    <button class="btn btn-primary" id="btnLogin" style="width:100%;margin-top:12px">Mit Discord anmelden</button>
+    <p id="loginErr" style="color:#fb7185;font-size:13px;margin-top:12px"></p>
   </div>
 </div>
 
-<!-- Server picker -->
-<div id="picker" class="picker hidden">
-  <div class="picker-box glass">
-    <div class="eyebrow" style="margin-bottom:8px">Schritt 1 von 3</div>
-    <h1 style="margin:0 0 8px;font:700 1.5rem Space Grotesk,sans-serif">Server wählen</h1>
-    <p style="color:#9298a8;font-size:13px;margin:0 0 10px">Zuerst Server — danach Kategorie — erst dann Settings.</p>
-    <input type="search" id="srv-search" placeholder="Server suchen…" style="width:100%;padding:10px 12px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:#0e1016;color:#fff">
-    <div class="picker-list" id="srv-list"></div>
+<div class="app-shell" id="appShell" style="display:none">
+<aside class="sidebar glass">
+  <a class="brand" href="/"><span class="brand-mark">S</span><span><b>STAFFORA</b><small>CONTROL CENTER</small></span></a>
+  <button class="server-mini" id="serverButton" type="button">
+    <span class="server-icon">S</span>
+    <span><b id="serverName">—</b><small id="serverMeta">Server wählen</small></span>
+    <span>⌄</span>
+  </button>
+  <nav id="categories"></nav>
+  <div class="side-user">
+    <span class="avatar" id="userAv">?</span>
+    <span class="grow"><b id="userName">—</b><small id="userRole">Admin</small></span>
+    <button class="icon-btn" id="logoutBtn" title="Logout" type="button">⎋</button>
   </div>
-</div>
+</aside>
 
-<div id="app" class="dash-shell hidden">
-  <aside class="dash-side">
-    <a class="dash-brand" href="/"><i>S</i> Staffora</a>
-    <div class="srv-card" id="srv-card" title="Server wechseln">
-      <small>Server</small>
-      <b id="srv-name">—</b>
+<section class="workspace">
+  <header class="workspace-top glass">
+    <div class="search"><span>⌕</span><input id="globalSearch" placeholder="Kategorie suchen …"><kbd>Ctrl K</kbd></div>
+    <div class="top-actions">
+      <button class="lang-btn" data-lang type="button">🇩🇪 Deutsch⌄</button>
+      <a class="icon-btn" href="/ic/" title="IC Panel">⌘</a>
+      <span class="avatar" id="userAv2">?</span>
     </div>
-    <nav class="side-nav" id="side-nav">
-      <button type="button" data-view="hub" class="on">◈ Übersicht</button>
-    </nav>
-    <div style="margin-top:auto;padding-top:20px">
-      <a class="btn" href="/ic/" style="width:100%;justify-content:center;margin-bottom:8px">IC Panel</a>
-      <a class="btn" href="/appeal/" style="width:100%;justify-content:center">Ban Appeal</a>
+  </header>
+
+  <div class="server-picker glass open" id="serverPicker">
+    <div>
+      <span class="eyebrow">SCHRITT 1 · SERVER</span>
+      <h2>Server auswählen</h2>
+      <p>Einstellungen werden erst nach Serverwahl geladen und gespeichert.</p>
     </div>
-  </aside>
-  <main class="dash-main">
-    <div class="topbar">
+    <input class="server-search" id="serverSearch" placeholder="Server suchen …">
+    <div class="server-list" id="serverList"></div>
+  </div>
+
+  <main class="dashboard-main" id="dashMain" style="display:none">
+    <div class="dash-hero glass">
       <div>
-        <div class="eyebrow" id="top-eye">Server Control</div>
-        <h1 id="top-title">Dashboard</h1>
+        <span class="eyebrow">SERVER CONTROL</span>
+        <h1>Dashboard</h1>
+        <p id="serverHint">Wähle eine Kategorie — Settings erscheinen danach.</p>
       </div>
-      <div class="user-pill"><span id="user-name">User</span></div>
+      <div class="hero-stat"><b id="modCount">—</b><span>Sync aktiv</span></div>
     </div>
-    <div id="view"></div>
+    <div class="category-layout">
+      <aside class="category-panel glass">
+        <div class="panel-title"><b>Kategorien</b><span id="catCount">0</span></div>
+        <p class="hint">Klicke eine Kategorie, um Settings zu öffnen.</p>
+        <div id="categoryList"></div>
+      </aside>
+      <section class="settings-stage">
+        <div class="empty-state glass" id="empty">
+          <div class="empty-orb">S</div>
+          <h2>Kategorie auswählen</h2>
+          <p>Keine Settings sichtbar, bis du einen Bereich wählst.</p>
+        </div>
+        <div class="settings-panel hidden" id="settingsPanel"></div>
+      </section>
+    </div>
   </main>
+</section>
 </div>
 
-<div id="toast"></div>
-<script src="/assets/dash-app.js?v=3d3"></script>
+<div class="drawer" id="drawer">
+  <div class="drawer-card">
+    <div class="drawer-head">
+      <div><span class="eyebrow">AKTION</span><h2 id="drawerTitle">Auswählen</h2></div>
+      <button class="icon-btn" id="drawerClose" type="button">×</button>
+    </div>
+    <div class="action-list" id="drawerBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="/api.js"></script>
+<script src="/app.js"></script>
+<script src="/dashboard.js"></script>
 </body>
 </html>

@@ -3,16 +3,14 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Staffora — Discord Bot</title>
-<link rel="stylesheet" href="/assets/styles.css">
-<script>window.STAFFORA_API=window.STAFFORA_API||"https://staffora.apps.bot-hosting.cloud";
-</script>
-</head>
+<link rel="stylesheet" href="/styles.css">
+<script>window.STAFFORA_API="https://staffora.apps.bot-hosting.cloud";</script></head>
 <body class="site">
 <canvas id="bg"></canvas>
 <nav class="nav">
-  <a class="brand" href="/"><span class="brand-mark">S</span><span>Staffora</span></a>
+  <a class="brand" href="index.html"><span class="brand-mark">S</span><span>Staffora</span></a>
   <div class="nav-links">
-    <a href="#features">Features</a><a href="/dashboard/">Dashboard</a><a href="/appeal/">Ban Appeal</a><a href="/ic/">IC Panel</a>
+    <a href="#features">Features</a><a href="#dashboard">Dashboard</a><a href="#appeal">Ban Appeal</a><a href="#ic">IC Panel</a>
   </div>
   <a class="btn btn-primary" href="/dashboard/">Dashboard öffnen <span>↗</span></a>
 </nav>
@@ -29,7 +27,7 @@
       <h1>Dein Server.<br><span>Deine Kontrolle.</span></h1>
       <p class="hero-lead">Staffora verbindet Moderation, Support, Teamverwaltung, RP-Tools und Server-Sicherheit in einer modernen Oberfläche.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary magnetic" href="/dashboard/">Dashboard öffnen <span>↗</span></a>
+        <a class="btn btn-primary magnetic" href="/dashboard">Dashboard öffnen <span>↗</span></a>
         <a class="btn btn-ghost magnetic" href="#features">Features entdecken <span>↓</span></a>
       </div>
       <div class="hero-meta">
@@ -81,7 +79,7 @@
     <span class="section-label">03 · READY</span>
     <h2>Dein Server verdient<br><em>mehr Kontrolle.</em></h2>
     <p>Starte mit Staffora und verwalte deine Community aus einem einzigen, klaren Control Center.</p>
-    <a class="btn btn-primary magnetic" href="/dashboard/">Zu Staffora <span>→</span></a>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><a class="btn btn-primary magnetic" href="/dashboard/">Zu Staffora <span>→</span></a><a class="btn btn-ghost" href="/staff/">Staff Center <span>→</span></a></div>
   </section>
 </main>
 <script>
@@ -112,6 +110,6 @@
 </script>
 
 
-<footer><span>© 2026 Staffora</span><span>Discord Management Suite</span><span><a href="/dashboard/">Dashboard</a> · <a href="/appeal/">Appeal</a> · <a href="/ic/">IC</a></span></footer>
-<script src="/assets/app.js"></script>
+<footer><span>© 2026 Staffora</span><span>Discord Management Suite</span><span><a href="/dashboard/">Dashboard</a> · <a href="/ic/">IC</a> · <a href="/staff/">Staff</a> · <a href="/appeal/">Appeal</a></span></footer>
+<script src="/app.js"></script>
 </body></html>

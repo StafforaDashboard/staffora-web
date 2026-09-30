@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staffora — Staff Center</title>
+<link rel="stylesheet" href="/styles.css">
+<script>window.STAFFORA_API=window.STAFFORA_API||"https://staffora.apps.bot-hosting.cloud";</script>
+<style>
+.staff-gate{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(5,6,10,.8);backdrop-filter:blur(16px);padding:20px}
+.staff-gate .box{width:min(400px,100%);padding:28px;text-align:center}
+.staff-gate input{width:100%;margin:12px 0;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#0e1016;color:#fff}
+.hidden{display:none!important}
+</style>
+</head>
+<body class="app">
+<div class="staff-gate" id="staffGate">
+  <div class="box glass">
+    <span class="eyebrow">STAFF ONLY</span>
+    <h2>Staff Center</h2>
+    <p style="color:#9298a8">Passwort eingeben (Staff-Portal / HQ).</p>
+    <input type="password" id="staffPw" placeholder="Passwort" autocomplete="current-password">
+    <button class="btn btn-primary" id="staffLoginBtn" style="width:100%">Anmelden</button>
+    <p id="staffErr" style="color:#fb7185;font-size:13px;margin-top:10px"></p>
+  </div>
+</div>
+
+<div class="app-shell hidden" id="staffApp">
+<aside class="sidebar">
+  <a class="brand" href="/"><span class="brand-mark">S</span>Staffora</a>
+  <div class="server-card"><small>STAFF CENTER</small><b>Staffora Internal</b><span style="color:#6ee7b7;font-size:10px">● Live</span></div>
+  <div class="nav-group"><label>STAFF</label>
+    <a class="dash-link active" href="#overview">◉ Overview</a>
+    <a class="dash-link" href="#servers">◈ Bot Servers</a>
+    <a class="dash-link" href="#blacklist">⊘ Blacklist</a>
+    <a class="dash-link" href="#premium">✦ Premium</a>
+    <a class="dash-link" href="#errors">⚠ Errors</a>
+  </div>
+  <div class="nav-group"><label>APP</label>
+    <a class="dash-link" href="/dashboard/">▦ Server Dashboard</a>
+    <a class="dash-link" href="/ic/">⌘ IC Panel</a>
+    <a class="dash-link" href="/appeal/">◇ Ban Appeal</a>
+  </div>
+</aside>
+<main class="app-main">
+  <header class="topbar">
+    <div><small>STAFFORA INTERNAL</small><h1>Staff Center</h1><p>Zentrale Werkzeuge — Live-Sync mit dem Bot.</p></div>
+    <button class="btn btn-ghost" id="staffLogout" type="button">Logout</button>
+  </header>
+
+  <section id="overview" class="grid">
+    <div class="card glass"><small>Bot-Server</small><strong id="st-servers">—</strong><span class="tag">Live</span></div>
+    <div class="card glass"><small>Blacklist</small><strong id="st-bl">—</strong></div>
+    <div class="card glass"><small>Status</small><strong id="st-ok">—</strong></div>
+    <div class="card glass"><small>Errors</small><strong id="st-err">—</strong></div>
+  </section>
+
+  <section id="servers" class="panel glass dash-section">
+    <div class="section-title">
+      <div><h2>Server</h2><small>Verbundene Discord-Server</small></div>
+      <button class="btn btn-ghost" id="btnSyncGuilds" type="button">Synchronisieren</button>
+    </div>
+    <div class="table-wrap"><table class="table"><thead><tr><th>Server</th><th>ID</th><th></th></tr></thead><tbody id="guildBody"></tbody></table></div>
+  </section>
+
+  <section id="blacklist" class="panel glass dash-section">
+    <div class="section-title"><div><h2>Blacklist</h2><small>Server sperren / entsperren</small></div></div>
+    <div class="setting-row">
+      <div style="flex:1"><input class="control" id="blGuild" placeholder="Server-ID"><input class="control" id="blReason" placeholder="Grund" style="margin-top:8px"></div>
+      <button class="btn btn-primary" id="blAdd" type="button">Hinzufügen</button>
+    </div>
+    <div id="blList" style="margin-top:12px"></div>
+  </section>
+
+  <section id="premium" class="panel glass dash-section">
+    <div class="section-title"><div><h2>Premium</h2><small>Give / Check / Revoke</small></div></div>
+    <div class="setting-row">
+      <input class="control" id="premUser" placeholder="Discord User ID">
+      <input class="control" id="premDays" placeholder="Tage" style="max-width:100px" value="30">
+      <button class="btn btn-primary" id="premGrant" type="button">Give</button>
+      <button class="btn btn-ghost" id="premCheck" type="button">Check</button>
+      <button class="btn btn-ghost" id="premRevoke" type="button">Revoke</button>
+    </div>
+    <p id="premOut" style="color:#aeb3c2;margin-top:10px"></p>
+  </section>
+
+  <section id="errors" class="panel glass dash-section">
+    <div class="section-title"><div><h2>Errors</h2><small>Bot-Fehlerlog</small></div>
+      <button class="btn btn-ghost" id="errRefresh" type="button">Refresh</button>
+    </div>
+    <pre id="errBox" style="white-space:pre-wrap;color:#aeb3c2;font-size:12px;max-height:320px;overflow:auto"></pre>
+  </section>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script src="/api.js"></script>
+<script src="/staff.js"></script>
+</body>
+</html>
