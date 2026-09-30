@@ -334,9 +334,14 @@
     document.querySelectorAll('#categories [data-cat]').forEach(function (x) {
       x.classList.toggle('active', x.getAttribute('data-cat') === key);
     });
-    $('empty').classList.add('hidden');
+    var empty = $('empty');
+    if (empty) {
+      empty.classList.add('hidden');
+      empty.style.display = 'none';
+    }
     var p = $('settingsPanel');
     p.classList.remove('hidden');
+    p.style.display = 'block';
     var fields = KEYS[key] || [];
     p.innerHTML =
       '<div class="settings-header"><div><span class="eyebrow">KATEGORIE</span><h2>' + esc(cat[2]) + '</h2></div>' +
@@ -351,8 +356,13 @@
     $('btnBackCat').onclick = function () {
       state.activeCat = null;
       p.classList.add('hidden');
+      p.style.display = 'none';
       p.innerHTML = '';
-      $('empty').classList.remove('hidden');
+      var empty = $('empty');
+      if (empty) {
+        empty.classList.remove('hidden');
+        empty.style.display = '';
+      }
       document.querySelectorAll('#categories [data-cat]').forEach(function (x) { x.classList.remove('active'); });
     };
     $('btnSave').onclick = function () {
@@ -438,9 +448,7 @@
       state.roles = d.roles || [];
       state.channels = d.channels || [];
       state.activeCat = null;
-      $('settingsPanel').classList.add('hidden');
-      $('settingsPanel').innerHTML = '';
-      $('empty').classList.remove('hidden');
+      $('settingsPanel').classList.add('hidden');$('settingsPanel').style.display='none';$('settingsPanel').innerHTML='';var __e=$('empty');if(__e){__e.classList.remove('hidden');__e.style.display='';}
       document.querySelectorAll('#categories [data-cat]').forEach(function (x) { x.classList.remove('active'); });
     }).catch(function (e) { toast(e.message || 'Fehler'); });
   }
