@@ -1,5 +1,4 @@
 window.STAFFORA_API = window.STAFFORA_API || "https://staffora.apps.bot-hosting.cloud";
-window.STAFFORA_EARLY_ACCESS = false;
 window.StafforaAPI = (function () {
   var API = window.STAFFORA_API;
   var tokenKey = "staffora_token";
@@ -16,9 +15,7 @@ window.StafforaAPI = (function () {
   }
   function netErr(e) {
     var m = (e && e.message) || String(e || "");
-    if (/load failed|failed to fetch|networkerror|network error/i.test(m)) {
-      return "Keine Verbindung zum Bot.";
-    }
+    if (/load failed|failed to fetch|networkerror|network error/i.test(m)) return "Keine Verbindung zum Bot.";
     return m || "Fehler";
   }
   async function req(path, opts) {
@@ -40,8 +37,7 @@ window.StafforaAPI = (function () {
     var data = null;
     try { data = text ? JSON.parse(text) : null; } catch (e) { data = { raw: text }; }
     if (!res.ok) {
-      var msg = (data && (data.error || data.message)) || ("HTTP " + res.status);
-      throw new Error(msg);
+      throw new Error((data && (data.error || data.message)) || ("HTTP " + res.status));
     }
     return data;
   }
@@ -59,9 +55,7 @@ window.StafforaAPI = (function () {
     }
   }
   return {
-    getToken: token,
-    setToken: setToken,
-    readToken: readTokenFromUrl,
+    getToken: token, setToken: setToken, readToken: readTokenFromUrl,
     logout: function () { setToken(""); },
     login: login,
     me: function () { return req("/api/me"); },
@@ -73,8 +67,7 @@ window.StafforaAPI = (function () {
     },
     sendPanel: function (gid, panel, channelId) {
       return req("/api/guilds/" + gid + "/panels/" + encodeURIComponent(panel), {
-        method: "POST",
-        body: { channelId: channelId || null }
+        method: "POST", body: { channelId: channelId || null }
       });
     }
   };

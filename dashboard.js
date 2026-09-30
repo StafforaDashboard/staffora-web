@@ -1,38 +1,40 @@
-/* Staffora dashboard — UI from clean blueprint, API wired */
 const C=[
-['allgemein','⌂','Allgemein','Grunddaten für den Server'],
-['module','▦','Module','Alle Module einzeln an/aus'],
-['dizzy','◉','Dizzy Control','Roblox-Verknüpfungen und Staff-Bestätigung'],
-['rights','♙','Rollen & Rechte','Wer darf was'],
-['tickets','▣','Tickets & Support','Tickets, Warteraum, Admin Call, Büros'],
-['applications','✦','Bewerbungen','Bewerbungs-Panels und Annahmen'],
-['team','♟','Team','Teamliste, Duty, Invite/Kick, Abmeldung, Feedback'],
-['clock','◷','Schicht & Clock','Clock und Zeittracking'],
-['tasks','✓','Aufgaben','Aufgaben-Board und XP'],
-['database','▤','Database','Interne Einträge und Manager'],
-['factions','⌂','Haus & Fraktionen','Fraktionen, Warns und Häuser'],
-['moderation','⚔','Moderation','Moderations-Logs'],
-['automod','◉','AutoMod','Links, Invites, Caps, Spam'],
-['records','▥','Strafregister','Cases und Maßnahmen'],
-['stats','◉','Team-Stats','Support- und Team-Auswertung'],
-['security','⬡','Security','Anti-Nuke, Anti-Raid, Backups'],
-['welcome','⌁','Welcome / Leave','Join/Leave und Auto-Rolle'],
-['verify','✓','Verify','Verify-Gate und Rollen'],
-['community','♢','Community','Partner, Boost, Suggest, Giveaway'],
-['xp','✦','XP','XP und Uprank'],
-['rp','⌖','RP','RP Announce und Server-Stats'],
-['logs','▤','Logs','Zentrale Log-Kanäle'],
-['system','⚙','System','System-Name und Sprache'],
-['partner','✧','Partner','Partner-Kanal und interne Logs'],
-['ausweis','▣','Ausweis','ID-Kanal, Logs, Zusatz-Ausweise'],
-['unban','↗','Unban','Website Appeals und Appeal-Log'],
-['ic','⌘','IC Panel','Zugriff und IC-Logs']
+['allgemein','Allgemein','Grunddaten für den Server'],
+['module','Module','Alle Module einzeln an/aus'],
+['dizzy','Dizzy Control','Roblox-Verknüpfungen und Staff-Bestätigung'],
+['rights','Rollen & Rechte','Wer darf was'],
+['tickets','Tickets & Support','Tickets, Warteraum, Admin Call, Büros'],
+['applications','Bewerbungen','Bewerbungs-Panels und Annahmen'],
+['team','Team','Teamliste, Duty, Invite/Kick, Abmeldung, Feedback'],
+['clock','Schicht & Clock','Clock und Zeittracking'],
+['tasks','Aufgaben','Aufgaben-Board und XP'],
+['database','Database','Interne Einträge und Manager'],
+['factions','Haus & Fraktionen','Fraktionen, Warns und Häuser'],
+['moderation','Moderation','Moderations-Logs'],
+['automod','AutoMod','Links, Invites, Caps, Spam'],
+['records','Strafregister','Cases und Maßnahmen'],
+['stats','Team-Stats','Support- und Team-Auswertung'],
+['security','Security','Anti-Nuke, Anti-Raid, Backups'],
+['welcome','Welcome / Leave','Join/Leave und Auto-Rolle'],
+['verify','Verify','Verify-Gate und Rollen'],
+['community','Community','Partner, Boost, Suggest, Giveaway'],
+['xp','XP','XP und Uprank'],
+['rp','RP','RP Announce und Server-Stats'],
+['logs','Logs','Zentrale Log-Kanäle'],
+['system','System','System-Name und Sprache'],
+['partner','Partner','Partner-Kanal und interne Logs'],
+['ausweis','Ausweis','ID-Kanal, Logs, Zusatz-Ausweise'],
+['unban','Unban','Website Appeals und Appeal-Log'],
+['ic','IC Panel','Zugriff und IC-Logs']
 ];
-const F=(title,desc,items)=>[title,desc,'fields',items];
-const R=(title,desc,items)=>[title,desc,'roles',items];
-const S=(title,desc,items)=>[title,desc,'switches',items];
-const B=(title,desc,items)=>[title,desc,'buttons',items];
-const A=(title,desc,items)=>[title,desc,'actions',items];
+const GROUPS=[
+['Server', ['allgemein','module','dizzy','rights']],
+['Support & Team', ['tickets','applications','team','clock','tasks','database']],
+['RP & Community', ['factions','moderation','automod','records','stats','welcome','verify','community','xp','rp']],
+['System & Sicherheit', ['logs','security','system','partner']],
+['Identität & IC', ['ausweis','unban','ic']]
+];
+const F=(title,desc,items)=>[title,desc,'fields',items]; const R=(title,desc,items)=>[title,desc,'roles',items]; const S=(title,desc,items)=>[title,desc,'switches',items]; const B=(title,desc,items)=>[title,desc,'buttons',items]; const A=(title,desc,items)=>[title,desc,'actions',items];
 const templates={
 allgemein:[F('Grunddaten','Grunddaten für den Server.',['Sprache|Deutsch|select','System-Name|Staffora Community','Log-Kanal|system-logs|select','Zeitzone|Europe/Berlin'])],
 module:[S('Module','Jedes Modul einzeln an/aus. Aus = Feature läuft nicht, auch wenn Kanäle gesetzt sind.',['Tickets','Warteraum','Admin Call','Büros','Duty','Bewerbungen','Teamverwaltung','Security','AutoMod','XP','Verify','Welcome/Leave','Partner','Fraktionen','Ausweis','Feedback','Aufgaben','Database','Abmeldung','Giveaway','Suggest'])],
@@ -62,40 +64,32 @@ unban:[F('Unban','Website Ban Appeal.',['Appeals aktiv|An|select','Nur bei aktiv
 dizzy:[S('Dizzy Control','User schreiben ihren Roblox-Namen in den Control-Kanal; Staff bestätigt die erkannte Verknüpfung.', ['Modul aktiv']),F('Dizzy Control','Kanal und Rechte für Roblox-Verknüpfungen.',['Dizzy-Control-Kanal|dizzy-control|select','Dizzy-Log-Kanal|dizzy-logs|select']),R('Bestätigung','Nur diese Rolle darf eine Verknüpfung mit „Complete“ bestätigen.',['Staff-Rolle']),B('Sticky','Sticky-Nachricht im Control-Kanal setzen bzw. neu setzen.',['Sticky senden']),F('Ablauf','Nach dem Namen prüft der Bot die Verknüpfung und zeigt das Roblox-Profil. Staff bestätigt; danach wird das Control-Embed nach kurzer Zeit entfernt, während das Sticky bleibt bzw. neu gesetzt wird. User-Nachrichten bleiben mit Reaktion erhalten.',['Control-Embed Bereinigung|Nach Bestätigung|select','User-Nachrichten|Bleiben mit Reaktion|select'])],
 ic:[R('IC Panel Zugriff','Wer die IC-Seite nutzen darf.',['IC Access Rolle']),F('IC Logs & Moderation','Logs und Rechte für IC-Aktionen.',['IC Log|ic-logs|select','IC Mod-Rolle|IC Moderator|select'])]
 };
-const KEY_MAP={"Sprache": "language", "System-Name": "systemName", "Log-Kanal": "systemLogChannelId", "Zeitzone": "timezone", "Admin-Rolle": "adminRoleIds", "Staff-Rolle": "staffRoleIds", "Mod-Rolle": "modRoleIds", "IC Panel Zugriff": "icAccessRoleIds", "Database Manager": "databaseManagerRoleIds", "Frak-Verwaltung": "factionManageRoleIds", "Partner Manager": "partnerManagerRoleIds", "HighTeam": "highTeamRoleIds", "Ticket-Panel-Kanal": "ticketPanelChannelId", "Ticket-Log": "ticketLogChannelId", "Ticket-Kategorie": "ticketCategoryId", "Support-Rolle": "supportRoleIds", "Ticket-Blacklist-Rolle": "ticketBlacklistRoleIds", "Warteraum Voice": "warteraumVoiceChannelId", "Support-Textkanal": "supportTextChannelId", "Warteraum-Musik": "warteraumMusicEnabled", "Musik-Preset": "warteraumMusicPreset", "Join-to-Create Support-VCs": "supportJoinToCreate", "Support-VC Kategorie": "supportVcCategoryId", "Admin-Call-Panel": "adminCallPanelChannelId", "Admin-Call-Log": "adminCallLogChannelId", "Büro-Warteraum": "officeWaitingVoiceId", "Büro-Bereitschafts-Rolle": "officeReadyRoleIds", "Bewerbungs-Panel": "applicationPanelChannelId", "Bewerbungs-Log": "applicationLogChannelId", "Rolle bei Annahme": "applicationAcceptRoleIds", "Teamliste-Kanal": "teamlistChannelId", "Rollen in Teamliste": "teamlistRoleIds", "Duty-Panel": "dutyPanelChannelId", "Duty-Rolle": "dutyRoleIds", "Rollen bei Invite": "teamInviteRoleIds", "Rollen bei Kick entfernen": "teamKickRoleIds", "Team Invite/Kick Log": "teamLogChannelId", "Team-Warns bis Kick": "teamWarnsUntilKick", "Abmelde-Panel": "abmeldungPanelChannelId", "Abmelde-Log": "abmeldungLogChannelId", "Abmeldung muss bestätigt werden": "abmeldungRequireApproval", "Feedback-Kanal": "feedbackChannelId", "Feedback-Log": "feedbackLogChannelId", "Activity-Check-Kanal": "activityCheckChannelId", "Aufgaben-Panel": "tasksPanelChannelId", "Aufgaben-Log": "tasksLogChannelId", "Database-Panel": "databasePanelChannelId", "Fraktions-Announce": "factionAnnounceChannelId", "Fraktions-Log": "factionLogChannelId", "Hausliste-Kanal": "hauslisteChannelId", "Mod-Log": "modLogChannelId", "AutoMod-Log": "automodLogChannelId", "Strafregister-Log": "recordsLogChannelId", "Security-Log": "securityLogChannelId", "Welcome-Kanal": "welcomeChannelId", "Leave-Kanal": "leaveChannelId", "Auto-Rolle": "autoRoleIds", "Verify-Kanal": "verifyChannelId", "Verify-Rolle": "verifiedRoleIds", "Unverified-Rolle": "unverifiedRoleIds", "Partner-Kanal": "partnerChannelId", "Boost-Kanal": "boostChannelId", "Suggest-Kanal": "suggestChannelId", "Giveaway-Kanal": "giveawayChannelId", "Uprank-Announce": "xpUprankChannelId", "Uprank Zeitraum": "xpUprankDays", "RP Announce": "rpAnnounceChannelId", "Server-Stats Kanal": "serverStatsChannelId", "System-Log": "systemLogChannelId", "Partner-Log": "partnerLogChannelId", "Ausweis-Kanal": "ausweisChannelId", "Ausweis-Log": "ausweisLogChannelId", "Max. Zusatz-Ausweise": "ausweisMaxExtra", "Appeals aktiv": "unbanAppealsEnabled", "Nur bei aktivem Ban": "unbanRequireActiveBan", "Appeal-Log": "appealLogChannelId", "Dizzy-Control-Kanal": "dizzyControlChannelId", "Dizzy-Log-Kanal": "dizzyLogChannelId", "IC Log": "icLogChannelId", "IC Mod-Rolle": "icModRoleIds", "IC Access Rolle": "icAccessRoleIds"};
+const KEY_MAP={"Sprache": "language", "System-Name": "systemName", "Log-Kanal": "systemLogChannelId", "Zeitzone": "timezone", "Admin-Rolle": "adminRoleIds", "Staff-Rolle": "staffRoleIds", "Mod-Rolle": "modRoleIds", "IC Panel Zugriff": "icAccessRoleIds", "Database Manager": "databaseManagerRoleIds", "Frak-Verwaltung": "factionManageRoleIds", "Partner Manager": "partnerManagerRoleIds", "HighTeam": "highTeamRoleIds", "Ticket-Panel-Kanal": "ticketPanelChannelId", "Ticket-Log": "ticketLogChannelId", "Ticket-Kategorie": "ticketCategoryId", "Support-Rolle": "supportRoleIds", "Ticket-Blacklist-Rolle": "ticketBlacklistRoleIds", "Warteraum Voice": "warteraumVoiceChannelId", "Support-Textkanal": "supportTextChannelId", "Warteraum-Musik": "warteraumMusicEnabled", "Musik-Preset": "warteraumMusicPreset", "Join-to-Create Support-VCs": "supportJoinToCreate", "Support-VC Kategorie": "supportVcCategoryId", "Admin-Call-Panel": "adminCallPanelChannelId", "Admin-Call-Log": "adminCallLogChannelId", "Büro-Warteraum": "officeWaitingVoiceId", "Büro-Bereitschafts-Rolle": "officeReadyRoleIds", "Bewerbungs-Panel": "applicationPanelChannelId", "Bewerbungs-Log": "applicationLogChannelId", "Rolle bei Annahme": "applicationAcceptRoleIds", "Teamliste-Kanal": "teamlistChannelId", "Rollen in Teamliste": "teamlistRoleIds", "Duty-Panel": "dutyPanelChannelId", "Duty-Rolle": "dutyRoleIds", "Rollen bei Invite": "teamInviteRoleIds", "Rollen bei Kick entfernen": "teamKickRoleIds", "Team Invite/Kick Log": "teamLogChannelId", "Team-Warns bis Kick": "teamWarnsUntilKick", "Abmelde-Panel": "abmeldungPanelChannelId", "Abmelde-Log": "abmeldungLogChannelId", "Abmeldung muss bestätigt werden": "abmeldungRequireApproval", "Feedback-Kanal": "feedbackChannelId", "Feedback-Log": "feedbackLogChannelId", "Activity-Check-Kanal": "activityCheckChannelId", "Aufgaben-Panel": "tasksPanelChannelId", "Aufgaben-Log": "tasksLogChannelId", "Database-Panel": "databasePanelChannelId", "Fraktions-Announce": "factionAnnounceChannelId", "Fraktions-Log": "factionLogChannelId", "Hausliste-Kanal": "hauslisteChannelId", "Mod-Log": "modLogChannelId", "AutoMod-Log": "automodLogChannelId", "Strafregister-Log": "recordsLogChannelId", "Security-Log": "securityLogChannelId", "Welcome-Kanal": "welcomeChannelId", "Leave-Kanal": "leaveChannelId", "Auto-Rolle": "autoRoleIds", "Verify-Kanal": "verifyChannelId", "Verify-Rolle": "verifiedRoleIds", "Unverified-Rolle": "unverifiedRoleIds", "Partner-Kanal": "partnerChannelId", "Boost-Kanal": "boostChannelId", "Suggest-Kanal": "suggestChannelId", "Giveaway-Kanal": "giveawayChannelId", "Uprank-Announce": "xpUprankChannelId", "Uprank Zeitraum": "xpUprankDays", "RP Announce": "rpAnnounceChannelId", "Server-Stats Kanal": "serverStatsChannelId", "System-Log": "systemLogChannelId", "Partner-Log": "partnerLogChannelId", "Ausweis-Kanal": "ausweisChannelId", "Ausweis-Log": "ausweisLogChannelId", "Max. Zusatz-Ausweise": "ausweisMaxExtra", "Appeals aktiv": "unbanAppealsEnabled", "Nur bei aktivem Ban": "unbanRequireActiveBan", "Appeal-Log": "appealLogChannelId", "Dizzy-Control-Kanal": "dizzyControlChannelId", "Dizzy-Log-Kanal": "dizzyLogChannelId", "IC Log": "icLogChannelId", "IC Mod-Rolle": "icModRoleIds", "IC Access Rolle": "icAccessRoleIds", "Control-Embed Bereinigung": "dizzyCleanupMode", "User-Nachrichten": "dizzyKeepUserMessages"};
 const MODULE_MAP={"Tickets": "tickets", "Warteraum": "warteraum", "Admin Call": "adminCall", "Büros": "offices", "Duty": "duty", "Bewerbungen": "applications", "Teamverwaltung": "team", "Security": "security", "AutoMod": "automod", "XP": "xp", "Verify": "verify", "Welcome/Leave": "welcomeLeave", "Partner": "partner", "Fraktionen": "factions", "Ausweis": "ausweis", "Feedback": "feedback", "Aufgaben": "tasks", "Database": "database", "Abmeldung": "abmeldung", "Giveaway": "giveaway", "Suggest": "suggest", "Modul aktiv": "dizzy", "XP aktiv": "xp", "XP Ticket übernehmen": "xpTicketClaim", "XP Voice / Support": "xpVoice", "XP Feedback gut": "xpFeedback"};
 const PANEL_MAP={"Ticket-Panel senden": "tickets", "Admin-Call-Panel senden": "adminCall", "Sticky senden": "dizzySticky", "Stats-Panel senden": "serverStats", "Duty-Panel senden": "duty", "Feedback-Panel senden": "feedback", "Aufgaben-Panel senden": "tasks", "Database-Panel senden": "database", "Teamliste senden": "teamlist", "Abmelde-Panel senden": "abmeldung", "Verify-Panel senden": "verify", "Hausliste senden": "hausliste"};
 
 const API = window.StafforaAPI;
 let state = {
-  guildId: null,
-  guilds: [],
-  config: {},
-  settings: {},
-  channels: [],
-  roles: [],
-  categories: [],
-  user: null,
-  currentCat: null,
-  currentRoleKey: null
+  guildId: null, guilds: [], config: {}, settings: {},
+  channels: [], roles: [], categories: [], user: null,
+  currentCat: null, currentRoleKey: null
 };
 
 function toast(msg){
   const t=document.getElementById('toast');
-  if(!t){ console.log(msg); return; }
-  t.textContent=msg;
-  t.classList.add('show');
+  if(!t) return;
+  t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2200);
 }
-
 function $(id){ return document.getElementById(id); }
-
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
 function getSetting(key, fallback){
   const s = state.settings || {};
   if (s[key] !== undefined && s[key] !== null && s[key] !== '') return s[key];
   return fallback;
 }
-
 function channelOptions(selected){
   const opts = ['<option value="">—</option>'];
   (state.channels||[]).forEach(c=>{
@@ -122,10 +116,6 @@ function categoryOptions(selected){
   });
   return opts.join('');
 }
-function escapeHtml(s){
-  return String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-}
-
 function detectFieldKind(label, typeHint){
   const l = label.toLowerCase();
   if (typeHint === 'select') {
@@ -135,21 +125,17 @@ function detectFieldKind(label, typeHint){
   }
   return typeHint || 'text';
 }
-
 function fieldValueForLabel(label){
   const key = KEY_MAP[label];
   if (!key) return '';
   return getSetting(key, '');
 }
-
 function isOnLabel(label){
-  // module switches
   if (MODULE_MAP[label]) {
     const k = MODULE_MAP[label];
-    const mods = state.settings.modules || state.settings.enabledModules || {};
+    const mods = state.settings.modules || {};
     if (typeof mods === 'object' && mods[k] !== undefined) return !!mods[k];
-    // default on
-    return getSetting(k+'Enabled', true) !== false && getSetting(k, true) !== false;
+    return true;
   }
   const key = KEY_MAP[label];
   if (key) {
@@ -157,7 +143,7 @@ function isOnLabel(label){
     if (v === true || v === 'An' || v === 'on' || v === '1') return true;
     if (v === false || v === 'Aus' || v === 'off' || v === '0') return false;
   }
-  return /An|aktiv/i.test(label) ? true : false;
+  return true;
 }
 
 function renderCard([title,desc,type,items]){
@@ -176,11 +162,10 @@ function renderCard([title,desc,type,items]){
       if (kind === 'channel') {
         control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${channelOptions(val && /^\d+$/.test(String(val)) ? val : '')}</select>`;
       } else if (kind === 'role') {
-        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}" data-multi="0">${roleOptions(val)}</select>`;
+        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${roleOptions(val)}</select>`;
       } else if (kind === 'category') {
         control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${categoryOptions(val && /^\d+$/.test(String(val)) ? val : '')}</select>`;
       } else if (hint === 'select') {
-        // generic select with placeholder options from def
         const opts = String(def).split(',').map(o=>o.trim()).filter(Boolean);
         if (!opts.length) opts.push(def||'—');
         control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}"><option value="">—</option>${opts.map(o=>`<option value="${escapeHtml(o)}"${String(val)===o?' selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
@@ -206,16 +191,10 @@ function renderCard([title,desc,type,items]){
   if(type==='buttons'||type==='actions'){
     body = `<div class="action-row">${items.map(label=>`<button type="button" class="btn action-btn" data-action="${escapeHtml(label)}">${escapeHtml(label)}</button>`).join('')}</div>`;
   }
-  if(type==='list'){
-    body = `<div class="list-box">${items.map(x=>`<div class="list-item">${x}</div>`).join('')}</div>`;
-  }
-  if(type==='table'){
-    body=`<div class="table-wrap"><table><thead><tr><th>Member</th><th>XP</th><th>Tickets</th><th>Duty</th></tr></thead><tbody id="statsBody"><tr><td colspan="4">Laden…</td></tr></tbody></table></div>`;
-  }
-  if(type==='chart'){
-    body=`<div class="chart-bars" id="chartBars">${[42,68,51,79,63,88,71,94,77,83,69,98].map(v=>`<i style="height:${v}%"></i>`).join('')}</div>`;
-  }
-  return `<article class="settings-card glass"><div class="card-head"><div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(desc)}</p></div></div><div class="card-body">${body}</div></article>`;
+  if(type==='list') body = `<div class="list-box">${items.map(x=>`<div class="list-item">${x}</div>`).join('')}</div>`;
+  if(type==='table') body=`<div class="table-wrap"><table><thead><tr><th>Member</th><th>XP</th><th>Tickets</th><th>Duty</th></tr></thead><tbody><tr><td colspan="4">—</td></tr></tbody></table></div>`;
+  if(type==='chart') body=`<div class="chart-bars">${[42,68,51,79,63,88,71,94,77,83,69,98].map(v=>`<i style="height:${v}%"></i>`).join('')}</div>`;
+  return `<article class="settings-card glass"><div class="card-head"><div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(desc)}</p></div><span class="card-chevron">›</span></div><div class="card-body">${body}</div></article>`;
 }
 
 function openCategory(id){
@@ -228,34 +207,23 @@ function openCategory(id){
   }
   state.currentCat = id;
   document.querySelectorAll('[data-cat]').forEach(x=>x.classList.toggle('active',x.dataset.cat===id));
-  const empty = $('empty');
+  const empty=$('empty');
   if(empty){ empty.classList.add('hidden'); empty.style.display='none'; }
   const panel=$('settingsPanel');
   panel.classList.remove('hidden');
   panel.style.display='block';
-  panel.innerHTML=`<div class="settings-heading"><div><span class="eyebrow">SERVER SETTINGS</span><h2>${escapeHtml(c[2])}</h2><p>${escapeHtml(c[3])}</p></div><button class="btn btn-primary" id="saveAll" type="button">Speichern</button></div><div class="settings-grid">${(templates[id]||[]).map(renderCard).join('')}</div>`;
+  // UI: c[1]=name, c[2]=desc (reference style)
+  panel.innerHTML=`<div class="settings-heading"><div><div class="breadcrumb">Server Control <span>/</span> ${escapeHtml(c[1])}</div><h2>${escapeHtml(c[1])}</h2><p>${escapeHtml(c[2])}</p></div><button class="btn btn-primary" id="saveAll" type="button">Speichern</button></div><div class="settings-grid">${(templates[id]||[]).map(renderCard).join('')}</div>`;
   $('saveAll').onclick = () => saveCurrent();
-  panel.querySelectorAll('.toggle').forEach(t=>{
-    t.onclick = () => t.classList.toggle('on');
-  });
-  panel.querySelectorAll('.action-btn').forEach(b=>{
-    b.onclick = () => handleAction(b.dataset.action, id);
-  });
-  panel.querySelectorAll('.role-btn').forEach(b=>{
-    b.onclick = () => openRoleDrawer(b);
-  });
+  panel.querySelectorAll('.toggle').forEach(t=>{ t.onclick = () => t.classList.toggle('on'); });
+  panel.querySelectorAll('.action-btn').forEach(b=>{ b.onclick = () => handleAction(b.dataset.action, id); });
+  panel.querySelectorAll('.role-btn').forEach(b=>{ b.onclick = () => openRoleDrawer(b); });
 }
 
 async function handleAction(label, catId){
   if(!state.guildId){ toast('Kein Server'); return; }
   let panel = PANEL_MAP[label];
   if(!panel){
-    // context defaults
-    const mapCat = {
-      tickets:'tickets', applications:'applications', team:'duty', ausweis:'ausweis',
-      tasks:'tasks', database:'database', rp:'serverStats', dizzy:'dizzySticky', verify:'verify',
-      factions:'hausliste', feedback:'feedback'
-    };
     if (label.includes('Ticket')) panel = 'tickets';
     else if (label.includes('Admin')) panel = 'adminCall';
     else if (label.includes('Sticky')) panel = 'dizzySticky';
@@ -268,7 +236,10 @@ async function handleAction(label, catId){
     else if (label.includes('Abmeld')) panel = 'abmeldung';
     else if (label.includes('Verify')) panel = 'verify';
     else if (label.includes('Haus')) panel = 'hausliste';
-    else panel = mapCat[catId] || 'tickets';
+    else {
+      const mapCat = { tickets:'tickets', applications:'applications', team:'duty', ausweis:'ausweis', tasks:'tasks', database:'database', rp:'serverStats', dizzy:'dizzySticky', verify:'verify', factions:'hausliste' };
+      panel = mapCat[catId] || 'tickets';
+    }
   }
   try {
     toast('Sende…');
@@ -301,7 +272,7 @@ function openRoleDrawer(btn){
       if (arr.includes(id)) arr = arr.filter(x=>x!==id);
       else arr.push(id);
       state.settings[state.currentRoleKey] = arr;
-      openRoleDrawer(btn); // refresh
+      openRoleDrawer(btn);
     };
   });
 }
@@ -313,24 +284,17 @@ async function saveCurrent(){
   panel.querySelectorAll('[data-key]').forEach(el=>{
     const key = el.getAttribute('data-key');
     if(!key) return;
-    if (el.tagName === 'SELECT' || el.tagName === 'INPUT') {
-      partial[key] = el.value;
-    }
+    if (el.tagName === 'SELECT' || el.tagName === 'INPUT') partial[key] = el.value;
   });
-  // modules object
   const modules = Object.assign({}, state.settings.modules || {});
   panel.querySelectorAll('[data-switch]').forEach(el=>{
     const k = el.getAttribute('data-switch');
     if(!k) return;
     const on = el.classList.contains('on');
-    if (MODULE_MAP[el.getAttribute('data-label')] || Object.values(MODULE_MAP).includes(k)) {
-      modules[k] = on;
-    } else {
-      partial[k] = on;
-    }
+    if (Object.values(MODULE_MAP).includes(k) || MODULE_MAP[el.getAttribute('data-label')]) modules[k] = on;
+    else partial[k] = on;
   });
   if (Object.keys(modules).length) partial.modules = modules;
-  // role keys from state
   Object.keys(KEY_MAP).forEach(label=>{
     const k = KEY_MAP[label];
     if (Array.isArray(state.settings[k])) partial[k] = state.settings[k];
@@ -355,15 +319,15 @@ async function loadGuild(gid){
     state.config = cfg || {};
     state.settings = (cfg && (cfg.settings || cfg.config || cfg)) || {};
     if (state.settings.settings) state.settings = state.settings.settings;
-    state.channels = (disc && disc.channels) || (cfg && cfg.channels) || [];
-    state.roles = (disc && disc.roles) || (cfg && cfg.roles) || [];
-    state.categories = (disc && disc.categories) || state.channels.filter(c=>c.type===4) || [];
-    // if channels include categories
+    state.channels = (disc && disc.channels) || [];
+    state.roles = (disc && disc.roles) || [];
+    state.categories = (disc && disc.categories) || [];
     if (!state.categories.length && state.channels.length) {
       state.categories = state.channels.filter(c => c.type === 4 || c.type === 'GUILD_CATEGORY');
       state.channels = state.channels.filter(c => c.type !== 4 && c.type !== 'GUILD_CATEGORY');
     }
     if (state.currentCat) openCategory(state.currentCat);
+    else openCategory('allgemein');
   } catch (e) {
     toast(e.message || 'Laden fehlgeschlagen');
   }
@@ -374,13 +338,13 @@ function renderServerList(){
   if(!list) return;
   const guilds = state.guilds || [];
   if(!guilds.length){
-    list.innerHTML = '<p style="padding:12px;color:#9aa">Keine Server. Bot auf dem Server? Mit Manage Server einloggen.</p>';
+    list.innerHTML = '<p style="padding:12px;color:#9aa">Keine Server gefunden.</p>';
     return;
   }
   list.innerHTML = guilds.map((g,i)=>{
     const name = g.name || g.id;
     const icon = (name||'S').charAt(0).toUpperCase();
-    const sel = state.guildId === g.id ? ' selected' : (i===0 && !state.guildId ? ' selected' : '');
+    const sel = state.guildId === g.id ? ' selected' : '';
     return `<button type="button" class="server-row${sel}" data-id="${g.id}" data-server="${escapeHtml(name)}"><span class="server-icon">${escapeHtml(icon)}</span><span class="grow"><b>${escapeHtml(name)}</b><small>${g.memberCount?g.memberCount+' Mitglieder':''}</small></span><span class="check">✓</span></button>`;
   }).join('');
   list.querySelectorAll('.server-row').forEach(x=>{
@@ -391,7 +355,7 @@ function renderServerList(){
       const name = x.dataset.server;
       $('serverName').textContent = name;
       const hint = $('serverHint');
-      if(hint) hint.textContent = name + ' · Einstellungen für diesen Server';
+      if(hint) hint.textContent = name + ' · Einstellungen gelten nur für diesen Server.';
       $('serverPicker').classList.remove('open');
       await loadGuild(id);
       toast('Server: ' + name);
@@ -399,19 +363,32 @@ function renderServerList(){
   });
 }
 
-function bindUi(){
+function buildNav(){
   const nav = $('categories');
-  if(nav){
-    nav.innerHTML = C.map(c=>`<button type="button" class="nav-link" data-cat="${c[0]}"><span class="nav-label">${c[2]}</span><span class="arrow">›</span></button>`).join('');
-    nav.querySelectorAll('[data-cat]').forEach(x=>{
-      x.onclick = ()=> openCategory(x.dataset.cat);
-    });
+  if(!nav) return;
+  // GROUPS structure from reference
+  if (typeof GROUPS !== 'undefined' && GROUPS.length) {
+    nav.innerHTML = GROUPS.map(([gname, ids])=>{
+      const links = ids.map(id=>{
+        const c = C.find(x=>x[0]===id);
+        if(!c) return '';
+        return `<button type="button" class="nav-link" data-cat="${c[0]}"><span class="nav-label">${escapeHtml(c[1])}</span></button>`;
+      }).join('');
+      return `<div class="nav-group"><div class="nav-group-title">${escapeHtml(gname)}</div>${links}</div>`;
+    }).join('');
+  } else {
+    nav.innerHTML = C.map(c=>`<button type="button" class="nav-link" data-cat="${c[0]}"><span class="nav-label">${escapeHtml(c[1])}</span></button>`).join('');
   }
+  nav.querySelectorAll('[data-cat]').forEach(x=>{
+    x.onclick = ()=> openCategory(x.dataset.cat);
+  });
+}
+
+function bindUi(){
+  buildNav();
   const picker = $('serverPicker');
   const btn = $('serverButton');
-  if(btn && picker){
-    btn.onclick = ()=> picker.classList.toggle('open');
-  }
+  if(btn && picker) btn.onclick = ()=> picker.classList.toggle('open');
   const search = $('serverSearch');
   if(search){
     search.oninput = e=>{
@@ -428,6 +405,9 @@ function bindUi(){
       document.querySelectorAll('.nav-link').forEach(x=>{
         x.style.display = x.textContent.toLowerCase().includes(q) ? 'flex' : 'none';
       });
+      document.querySelectorAll('.nav-group').forEach(g=>{
+        g.style.display = [...g.querySelectorAll('.nav-link')].some(x=>x.style.display!=='none') ? 'block' : 'none';
+      });
     };
   }
   const dc = $('drawerClose');
@@ -439,10 +419,9 @@ async function boot(){
   if(!API){ toast('API fehlt'); return; }
   API.readToken();
   if(!API.getToken()){
-    // stay on page but prompt login via toast + replace side user
-    const su = document.querySelector('.side-user');
+    const su = document.querySelector('.side-user .grow');
     if(su){
-      su.innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Mit Discord anmelden</button>`;
+      document.querySelector('.side-user').innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Mit Discord anmelden</button>`;
       $('loginBtn').onclick = ()=> API.login(location.origin + '/dashboard/');
     }
     toast('Bitte anmelden');
@@ -452,10 +431,9 @@ async function boot(){
   try {
     const me = await API.me();
     state.user = me;
-    const av = document.querySelectorAll('.avatar, .side-user .avatar');
     const name = me.username || me.global_name || 'User';
-    document.querySelectorAll('.side-user b, .side-user .grow b').forEach(el=>{ el.textContent = name; });
-    document.querySelectorAll('.side-user small').forEach(el=>{ el.textContent = me.id || ''; });
+    document.querySelectorAll('.side-user b').forEach(el=>{ el.textContent = name; });
+    document.querySelectorAll('.side-user small').forEach(el=>{ el.textContent = 'eingeloggt'; });
   } catch(e){
     toast(e.message || 'Session ungültig');
     API.logout();
