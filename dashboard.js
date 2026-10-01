@@ -57,7 +57,7 @@ module:[
 ],
 tickets:[
   S('Modul','Tickets an/aus.',['Tickets']),
-  F('Panel & Kanäle','Ticket-Panel und Logs.',['Ticket-Panel-Kanal|tickets|select','Ticket-Log|ticket-logs|select','Ticket-Kategorie|Support|select','Support-Rolle|Support|select','Ticket-Blacklist-Rolle|Ticket-Blacklist|select']),
+  F('Panel & Kanäle','Ticket-Panel und Logs.',['Ticket-Panel-Kanal|tickets|select','Ticket-Log|ticket-logs|select','Ticket-Kategorie|Support|select','Support-Rolle|Support|select','Ticket-Blacklist-Rolle|Ticket-Blacklist|select','Ticket-Panel-Titel|Erstelle hier ein Ticket','Ticket-Panel-Text|Klicke auf den Button, um ein Ticket zu öffnen.']),
   L('Ticket-Arten','Neue Ticket-Art mit Rollen, Kategorie und Embeds.',['ticketTypes']),
   L('Eröffnungsfragen','Frage vor dem Öffnen',['ticketOpenQuestions']),
   F('Limits','',['Ticket-Limit pro User|3','Ticket-Limit Fenster Stunden|24']),
@@ -66,7 +66,8 @@ tickets:[
 warteraum:[
   S('Modul','',['Warteraum']),
   F('Support-Modus','',['Support-VC Modus|Bestehende Channels|enum']),
-  F('Bestehende Channels','Nur bei Modus „Bestehende Channels“.',['Warteraum Voice|Warteraum|select','Support-Textkanal|support-alerts|select','Support-VC Kategorie|Support VC|select','Feste Support-VCs|','Support-Räume mit XP|']),
+  F('Bestehende Channels','Nur bei Modus „Bestehende Channels“.',['Warteraum Voice|Warteraum|select','Support-Textkanal|support-alerts|select','Support-VC Kategorie|Support VC|select']),
+  R('Support VCs','Mehrere feste Support-VCs und XP-Räume.',['Feste Support-VCs','Support-Räume mit XP']),
   F('Join2Create','Nur bei Modus „Join2Create“.',['Support-VC Kategorie|Support VC|select','Join-to-Create Support-VCs|An|enum']),
   F('Musik','Preset oder eigene Datei unten.',['Warteraum-Musik|An|enum','Musik-Preset|DE|enum']),
   F('Logs','',['Warteraum Claim-Log|warteraum-claim-logs|select'])
@@ -150,8 +151,9 @@ stats:[
   F('Stats','',['Stats Tickets|An|enum','Stats Support|An|enum','Stats Duty|An|enum'])
 ],
 security:[
-  S('Modul','',['Security','Anti-Nuke','Anti-Raid']),
-  F('Security','',['Externe Apps deaktivieren|An|enum','Security-Log|security-logs|select']),
+  S('Modul','Anti-Nuke / Anti-Raid und Aktionen.',['Security','Anti-Nuke','Anti-Raid']),
+  S('Aktionen','Was bei Verstößen passiert.',['Security Kick','Security Ban','Security Timeout','Security Warn','Security Nachricht löschen','Bots entfernen','Webhooks entfernen','Integrationen entfernen']),
+  F('Security','',['Externe Apps deaktivieren|An|enum','Security-Log|security-logs|select','Security Timeout Minuten|10']),
   R('Whitelist','',['Security Whitelist Rolle'])
 ],
 welcome:[
@@ -199,7 +201,7 @@ ausweis:[
   S('Modul','',['Ausweis']),
   F('Kanäle','',['Ausweis-Kanal|ausweis|select','Ausweis-Log|ausweis-logs|select','Ausweis Request-Kanal|ausweis-request|select']),
   R('Rechte','',['Ausweis Annehmen Rolle']),
-  L('Custom Ausweise','',['customAusweise']),
+  L('Custom Ausweise','Eigene Ausweis-Arten mit Vorschau.',['customAusweise']),
   B('Panel','',['Ausweis-Panel senden'])
 ],
 unban:[
@@ -245,7 +247,7 @@ const KEY_MAP = {
   "Admin-Rolle":"adminRoleIds","Staff-Rolle":"staffRoleIds","Mod-Rolle":"modRoleIds",
   "IC Panel Zugriff":"ingameAccessRoleIds","IC Access Rolle":"ingameAccessRoleIds","IC Mod-Rolle":"ingameModRoleIds","IC Log":"ingameLogChannelId",
   "Database Manager":"databaseManagerRoleIds","Frak-Verwaltung":"factionManageRoleIds","Partner Manager":"partnerManagerRoleIds","HighTeam":"highTeamRoleIds",
-  "Ticket-Panel-Kanal":"ticketPanelChannelId","Ticket-Log":"ticketLogChannelId","Ticket-Kategorie":"ticketCategoryId",
+  "Ticket-Panel-Titel":"ticketPanelTitle","Ticket-Panel-Text":"ticketPanelText","Ticket-Panel-Kanal":"ticketPanelChannelId","Ticket-Log":"ticketLogChannelId","Ticket-Kategorie":"ticketCategoryId",
   "Support-Rolle":"ticketSupportRoleIds","Ticket-Blacklist-Rolle":"ticketBlacklistRoleIds",
   "Ticket-Limit pro User":"ticketLimitPerUser","Ticket-Limit Fenster Stunden":"ticketLimitWindowHours",
   "Warteraum Voice":"warteraumVoiceChannelId","Support-Textkanal":"supportTextChannelId",
@@ -301,7 +303,7 @@ const MODULE_MAP = {
   "Bewerbungen":"applications","Teamverwaltung":"team","Security":"security","AutoMod":"automod","XP":"xp",
   "Verify":"verify","Welcome/Leave":"welcomeLeave","Partner":"partner","Fraktionen":"factions","Ausweis":"ausweis",
   "Feedback":"feedback","Aufgaben":"tasks","Database":"database","Abmeldung":"abmeldung","Giveaway":"giveaway",
-  "Suggest":"suggest","Interview":"interview","IC Panel":"icPanel","IC Moderation":"icModeration","Modul aktiv":"dizzy","XP aktiv":"xp",
+  "Suggest":"suggest","Interview":"interview","IC Panel":"icPanel","IC Moderation":"icModeration","Security Kick":"securityActionKick","Security Ban":"securityActionBan","Security Timeout":"securityActionTimeout","Security Warn":"securityActionWarn","Security Nachricht löschen":"securityActionDeleteMsg","Bots entfernen":"securityRemoveBots","Webhooks entfernen":"securityRemoveWebhooks","Integrationen entfernen":"securityRemoveIntegrations","Modul aktiv":"dizzy","XP aktiv":"xp",
   "XP Ticket übernehmen":"xpTicketClaim","XP Voice / Support":"xpVoice","XP Feedback gut":"xpFeedback",
   "Stats Tickets":"statsShowTickets","Stats Support":"statsShowSupport","Stats Duty":"statsShowDuty"
 };
@@ -377,13 +379,35 @@ function getSetting(key, fallback){
   if (s[key] !== undefined && s[key] !== null && s[key] !== '') return s[key];
   return fallback;
 }
-function channelOptions(selected){
+function isVoiceChannel(c){
+  const t = c && c.type;
+  return t === 2 || t === 13 || t === '2' || t === '13' || t === 'GUILD_VOICE' || t === 'GUILD_STAGE_VOICE' || c.isVoice === true;
+}
+function isTextChannel(c){
+  const t = c && c.type;
+  return t === 0 || t === 5 || t === '0' || t === '5' || t === 'GUILD_TEXT' || t === 'GUILD_ANNOUNCEMENT' || (!isVoiceChannel(c) && t !== 4 && t !== '4');
+}
+function channelOptions(selected, filter){
   const opts = ['<option value="">—</option>'];
-  (state.channels||[]).forEach(c=>{
+  let list = state.channels || [];
+  if (filter === 'voice') list = list.filter(isVoiceChannel);
+  else if (filter === 'text') list = list.filter(isTextChannel);
+  list.forEach(c=>{
     const sel = String(c.id)===String(selected) ? ' selected' : '';
-    opts.push(`<option value="${c.id}"${sel}># ${escapeHtml(c.name||c.id)}</option>`);
+    const prefix = isVoiceChannel(c) ? '🔊 ' : '# ';
+    opts.push(`<option value="${c.id}"${sel}>${prefix}${escapeHtml(c.name||c.id)}</option>`);
   });
   return opts.join('');
+}
+function multiLabel(ids, kind){
+  const arr = (Array.isArray(ids)?ids:[ids]).filter(Boolean).map(String);
+  if (!arr.length) return 'Auswählen ›';
+  const src = kind === 'role' ? (state.roles||[]) : (state.channels||[]);
+  const names = arr.map(id=>{
+    const hit = src.find(x=>String(x.id)===id);
+    return hit ? (kind==='role'?'@ ':'# ')+(hit.name||id) : id;
+  });
+  return names.slice(0,3).join(', ') + (names.length>3?' +'+(names.length-3):'');
 }
 function roleOptions(selected){
   const opts = ['<option value="">—</option>'];
@@ -452,7 +476,8 @@ function renderCard([title,desc,type,items]){
       if (val === '' || val === null || val === undefined) val = def;
       let control = '';
       if (kind === 'channel') {
-        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${channelOptions(val && /^\d+$/.test(String(val)) ? val : '')}</select>`;
+        const vf = /voice|warteraum|support-vc|büro|vc /.test(String(label).toLowerCase()) ? 'voice' : 'text';
+        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${channelOptions(val && /^\d+$/.test(String(val)) ? val : '', vf)}</select>`;
       } else if (kind === 'role') {
         control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${roleOptions(val)}</select>`;
       } else if (kind === 'category') {
@@ -515,10 +540,19 @@ function renderCard([title,desc,type,items]){
       form = `<div class="structured-form" data-form="officesList">
         <div class="form-title">Büro hinzufügen</div>
         <label class="setting-row"><span>Name</span><input class="sf-name" placeholder="z.B. Highteam Büro"></label>
-        <label class="setting-row"><span>Warteraum</span><select class="sf-wait">${channelOptions('')}</select></label>
+        <label class="setting-row"><span>Warteraum</span><select class="sf-wait">${channelOptions('','voice')}</select></label>
         <label class="setting-row"><span>Rolle bei Beitritt</span><select class="sf-role">${roleOptions('')}</select></label>
-        <label class="setting-row"><span>Büro VC</span><select class="sf-voice">${channelOptions('')}</select></label>
+        <label class="setting-row"><span>Büro VC</span><select class="sf-voice">${channelOptions('','voice')}</select></label>
         <button type="button" class="btn btn-primary listedit-add-btn" style="margin-top:8px">Büro hinzufügen</button>
+      </div>`;
+    } else if (storeKey === 'customAusweise') {
+      form = `<div class="structured-form" data-form="customAusweise">
+        <div class="form-title">Custom Ausweis</div>
+        <label class="setting-row"><span>Name</span><input class="sf-name" placeholder="z.B. PKW-Ausweis"></label>
+        <label class="setting-row"><span>Emoji</span><input class="sf-emoji" placeholder="🚗" style="max-width:80px"></label>
+        <label class="setting-row"><span>Beschreibung</span><input class="sf-desc" placeholder="Was der Ausweis bedeutet"></label>
+        <div class="ausweis-preview" id="ausweisPreview"><div class="aw-card"><span class="aw-emoji">🪪</span><div><b class="aw-name">Vorschau</b><p class="aw-desc">Beschreibung</p></div></div></div>
+        <button type="button" class="btn btn-primary listedit-add-btn" style="margin-top:8px">Ausweis speichern</button>
       </div>`;
     } else if (storeKey === 'ticketTypes') {
       form = `<div class="structured-form" data-form="ticketTypes">
@@ -526,10 +560,15 @@ function renderCard([title,desc,type,items]){
         <label class="setting-row"><span>Name</span><input class="sf-name" placeholder="z.B. Support"></label>
         <label class="setting-row"><span>Emoji</span><input class="sf-emoji" placeholder="🎫" style="max-width:80px"></label>
         <label class="setting-row"><span>Beschreibung</span><input class="sf-desc" placeholder="Kurze Beschreibung"></label>
-        <label class="setting-row"><span>Staff-Rolle</span><select class="sf-staff">${roleOptions('')}</select></label>
-        <label class="setting-row"><span>Ping-Rolle</span><select class="sf-ping">${roleOptions('')}</select></label>
+        <label class="setting-row"><span>Staff-Rollen</span>
+          <button type="button" class="btn role-btn sf-staff-btn" data-temp="sfStaffRoles"><b>Staff-Rollen</b><span class="sf-staff-lbl">Auswählen ›</span></button>
+        </label>
+        <label class="setting-row"><span>Ping-Rollen</span>
+          <button type="button" class="btn role-btn sf-ping-btn" data-temp="sfPingRoles"><b>Ping-Rollen</b><span class="sf-ping-lbl">Auswählen ›</span></button>
+        </label>
         <label class="setting-row"><span>Kategorie</span><select class="sf-cat">${categoryOptions('')}</select></label>
-        <label class="setting-row"><span>Eröffnungs-Embed</span><textarea class="sf-open" rows="2" placeholder="Text beim Öffnen"></textarea></label>
+        <label class="setting-row"><span>Eröffnungsfrage</span><input class="sf-preq" placeholder="Optional: Frage vor dem Öffnen"></label>
+        <label class="setting-row"><span>Eröffnungs-Embed</span><textarea class="sf-open" rows="2" placeholder="Text im Ticket beim Öffnen"></textarea></label>
         <label class="setting-row"><span>Schließungs-Embed</span><textarea class="sf-close" rows="2" placeholder="Text beim Schließen"></textarea></label>
         <button type="button" class="btn btn-primary listedit-add-btn" style="margin-top:8px">Ticket-Art hinzufügen</button>
       </div>`;
@@ -687,7 +726,13 @@ function renderCard([title,desc,type,items]){
     addBtn.onclick = () => {
       let arr = state.settings[key];
       if(!Array.isArray(arr)) arr = [];
-      if (key === 'officesList') {
+      if (key === 'customAusweise') {
+        const name = (box.querySelector('.sf-name')||{}).value || '';
+        const emoji = (box.querySelector('.sf-emoji')||{}).value || '🪪';
+        const description = (box.querySelector('.sf-desc')||{}).value || '';
+        if (!name.trim()) { toast('Error'); return; }
+        arr.push({ id: 'aw_'+Date.now().toString(36), name: name.trim(), emoji: emoji.trim(), description: description.trim() });
+      } else if (key === 'officesList') {
         const name = (box.querySelector('.sf-name')||{}).value || '';
         const waitingChannelId = (box.querySelector('.sf-wait')||{}).value || '';
         const pingRoleId = (box.querySelector('.sf-role')||{}).value || '';
@@ -698,24 +743,32 @@ function renderCard([title,desc,type,items]){
         const name = (box.querySelector('.sf-name')||{}).value || '';
         const emoji = (box.querySelector('.sf-emoji')||{}).value || '';
         const description = (box.querySelector('.sf-desc')||{}).value || '';
-        const supportRoleId = (box.querySelector('.sf-staff')||{}).value || '';
-        const pingRoleId = (box.querySelector('.sf-ping')||{}).value || '';
+        const staffRoles = (state._tempMulti && state._tempMulti.sfStaffRoles) || [];
+        const pingRoles = (state._tempMulti && state._tempMulti.sfPingRoles) || [];
         const categoryId = (box.querySelector('.sf-cat')||{}).value || '';
+        const openQuestion = (box.querySelector('.sf-preq')||{}).value || '';
         const openEmbed = (box.querySelector('.sf-open')||{}).value || '';
         const closeEmbed = (box.querySelector('.sf-close')||{}).value || '';
         if (!name.trim()) { toast('Error'); return; }
+        const id = 'tt_' + Date.now().toString(36);
         arr.push({
+          id,
           name: name.trim(),
           emoji: emoji.trim(),
           description: description.trim(),
-          supportRoleId,
-          staffRoleId: supportRoleId,
-          pingRoleId,
+          supportRoleIds: staffRoles.slice(),
+          supportRoleId: staffRoles[0] || '',
+          staffRoleId: staffRoles[0] || '',
+          pingRoleIds: pingRoles.slice(),
+          pingRoleId: pingRoles[0] || '',
           categoryId,
+          openQuestion: openQuestion.trim(),
+          preQuestion: openQuestion.trim(),
           openEmbed: openEmbed.trim(),
           closeEmbed: closeEmbed.trim(),
           maxLoad: '10'
         });
+        if (state._tempMulti) { state._tempMulti.sfStaffRoles = []; state._tempMulti.sfPingRoles = []; }
       } else {
         const inp = box.querySelector('.listedit-input');
         const v = (inp && inp.value || '').trim();
@@ -732,8 +785,23 @@ function renderCard([title,desc,type,items]){
       }
       state.settings[key] = arr;
       refresh();
+      try { saveCurrent(); } catch(e) {}
     };
   });
+
+  // ausweis preview live
+  panel.querySelectorAll('[data-form="customAusweise"]').forEach(form=>{
+    const upd = ()=>{
+      const em = (form.querySelector('.sf-emoji')||{}).value || '🪪';
+      const nm = (form.querySelector('.sf-name')||{}).value || 'Vorschau';
+      const ds = (form.querySelector('.sf-desc')||{}).value || 'Beschreibung';
+      const pe = form.querySelector('.aw-emoji'); if(pe) pe.textContent = em;
+      const pn = form.querySelector('.aw-name'); if(pn) pn.textContent = nm;
+      const pd = form.querySelector('.aw-desc'); if(pd) pd.textContent = ds;
+    };
+    form.querySelectorAll('input').forEach(i=> i.oninput = upd);
+  });
+  // Join2Create conditional
   // Join2Create conditional: hide/show field groups by mode
   if(id === 'warteraum'){
     const modeSel = panel.querySelector('select[data-key="supportVcMode"]');
@@ -793,31 +861,85 @@ async function handleAction(label, catId){
   }
 }
 
-function openRoleDrawer(btn){
+function openPickerDrawer(opts){
+  // opts: { key, title, kind: 'role'|'channel'|'voice', sourceBtn, tempStore }
   const d=$('drawer');
-  const key = btn.dataset.key || KEY_MAP[btn.dataset.role] || '';
+  if(!d) return;
+  const key = opts.key || '';
   state.currentRoleKey = key;
-  $('drawerTitle').textContent = btn.dataset.role || 'Rollen';
-  const current = getSetting(key, []);
-  const selSet = new Set((Array.isArray(current)?current:[current]).filter(Boolean).map(String));
-  const body = (state.roles||[]).filter(r=>r && r.managed !== true).map(r=>{
-    const on = selSet.has(String(r.id));
-    return `<button type="button" class="setting-row role-pick" data-id="${r.id}" style="width:100%;text-align:left;${on?'border-color:#805dff;':''}"><b>@ ${escapeHtml(r.name)}</b>${on?' <span>✓</span>':''}</button>`;
-  }).join('') || '<p>Keine Rollen geladen.</p>';
-  $('drawerBody').innerHTML = body;
+  state._pickerKind = opts.kind || 'role';
+  state._pickerBtn = opts.sourceBtn || null;
+  state._pickerTemp = opts.tempStore || null;
+  const titleEl = $('drawerTitle');
+  if (titleEl) titleEl.textContent = opts.title || 'Auswahl';
+  let current = [];
+  if (opts.tempStore && state._tempMulti && state._tempMulti[opts.tempStore]) {
+    current = state._tempMulti[opts.tempStore];
+  } else {
+    current = getSetting(key, []);
+  }
+  if (!Array.isArray(current)) current = current ? [current] : [];
+  const selSet = new Set(current.map(String));
+  let items = [];
+  if (opts.kind === 'role') {
+    items = (state.roles||[]).filter(r=>r && r.managed !== true).map(r=>({id:r.id,name:r.name,prefix:'@ '}));
+  } else {
+    let list = state.channels||[];
+    if (opts.kind === 'voice') list = list.filter(isVoiceChannel);
+    else if (opts.kind === 'text') list = list.filter(isTextChannel);
+    items = list.map(c=>({id:c.id,name:c.name,prefix:isVoiceChannel(c)?'🔊 ':'# '}));
+  }
+  const searchHtml = `<input type="search" id="drawerSearch" placeholder="Suchen…" style="width:100%;margin-bottom:10px;padding:10px;border-radius:10px;background:#111;border:1px solid rgba(255,255,255,.08);color:#eee">`;
+  const body = items.map(it=>{
+    const on = selSet.has(String(it.id));
+    return `<button type="button" class="setting-row role-pick" data-id="${it.id}" data-name="${escapeHtml(it.name||'')}" style="width:100%;text-align:left;${on?'border-color:#805dff;':''}"><b>${it.prefix}${escapeHtml(it.name||it.id)}</b>${on?' <span>✓</span>':''}</button>`;
+  }).join('') || '<p>Nichts geladen.</p>';
+  $('drawerBody').innerHTML = searchHtml + '<div id="drawerList">'+body+'</div>';
   d.classList.add('open');
-  $('drawerBody').querySelectorAll('.role-pick').forEach(btn2=>{
+  const applySearch = ()=>{
+    const q = (($('drawerSearch')||{}).value||'').toLowerCase();
+    $('drawerList').querySelectorAll('.role-pick').forEach(b=>{
+      const n = (b.getAttribute('data-name')||b.textContent||'').toLowerCase();
+      b.style.display = !q || n.includes(q) ? '' : 'none';
+    });
+  };
+  if ($('drawerSearch')) $('drawerSearch').oninput = applySearch;
+  $('drawerList').querySelectorAll('.role-pick').forEach(btn2=>{
     btn2.onclick = () => {
       const id = btn2.dataset.id;
-      let arr = getSetting(state.currentRoleKey, []);
+      let arr;
+      if (opts.tempStore) {
+        if (!state._tempMulti) state._tempMulti = {};
+        arr = state._tempMulti[opts.tempStore] || [];
+      } else {
+        arr = getSetting(state.currentRoleKey, []);
+      }
       if (!Array.isArray(arr)) arr = arr ? [arr] : [];
       arr = arr.map(String);
       if (arr.includes(id)) arr = arr.filter(x=>x!==id);
       else arr.push(id);
-      state.settings[state.currentRoleKey] = arr;
-      openRoleDrawer(btn);
+      if (opts.tempStore) {
+        state._tempMulti[opts.tempStore] = arr;
+        // update label on form button
+        if (opts.sourceBtn) {
+          const sp = opts.sourceBtn.querySelector('span');
+          if (sp) sp.textContent = multiLabel(arr, opts.kind==='role'?'role':'channel');
+        }
+      } else {
+        state.settings[state.currentRoleKey] = arr;
+      }
+      openPickerDrawer(opts);
     };
   });
+}
+function openRoleDrawer(btn){
+  const label = btn.dataset.role || '';
+  const key = btn.dataset.key || KEY_MAP[label] || '';
+  let kind = 'role';
+  if (/Support-VCs|Support-Räume|Voice|Warteraum|Feste Support|XP/.test(label) || /Voice|ChannelIds|supportFixed|supportXp/.test(key)) {
+    kind = 'voice';
+  }
+  openPickerDrawer({ key, title: label || 'Auswahl', kind, sourceBtn: btn });
 }
 
 async function saveCurrent(){
@@ -897,8 +1019,9 @@ async function loadGuild(gid, opts){
       const t = c.type;
       return t === 4 || t === '4' || t === 'GUILD_CATEGORY' || Number(t) === 4;
     });
-    state.channels = state.channels.filter(c => {
+    state.channels = (state.channels||[]).filter(c => {
       const t = c.type;
+      // keep text, announce, voice, stage — drop categories only
       return !(t === 4 || t === '4' || t === 'GUILD_CATEGORY' || Number(t) === 4);
     });
     // Prefer text/announce for panel channel selects still includes voice for warteraum

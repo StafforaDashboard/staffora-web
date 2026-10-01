@@ -535,3 +535,14 @@ input[type="file"] {
 .list-card-meta{font-size:11px;color:#8b8b90;margin-top:6px;line-height:1.4}
 .list-empty{color:#777;font-size:12px;margin:4px 0 10px}
 .listedit-items{display:flex;flex-direction:column;gap:6px}
+
+.ausweis-preview{margin-top:10px}
+.aw-card{
+  display:flex;gap:12px;align-items:flex-start;padding:14px;
+  border-radius:12px;border:1px solid rgba(128,93,255,.35);
+  background:linear-gradient(135deg,rgba(30,30,40,.95),rgba(20,20,28,.98));
+}
+.aw-emoji{font-size:28px;line-height:1}
+.aw-card b{display:block;font-size:14px;color:#eee}
+.aw-card p{margin:4px 0 0;font-size:12px;color:#9aa3b8}
+.drawer input[type=search]{margin-bottom:8px}
