@@ -3,17 +3,24 @@ window.STAFFORA_EARLY_ACCESS = false;
 window.StafforaAPI = (function () {
   var API = window.STAFFORA_API;
   var tokenKey = "staffora_token";
+  var staffPwKey = "staffora_staff_pw";
   var staffFlag = "staffora_staff_ok";
 
   function token() { try { return localStorage.getItem(tokenKey) || ""; } catch (e) { return ""; } }
   function setToken(t) {
     try { if (t) localStorage.setItem(tokenKey, t); else localStorage.removeItem(tokenKey); } catch (e) {}
   }
+  function getStaffPw() { try { return localStorage.getItem(staffPwKey) || ""; } catch (e) { return ""; } }
+  function setStaffPw(p) {
+    try { if (p) localStorage.setItem(staffPwKey, p); else localStorage.removeItem(staffPwKey); } catch (e) {}
+  }
   function headers(json) {
     var h = { Accept: "application/json" };
     if (json) h["Content-Type"] = "application/json";
     var t = token();
     if (t) h["Authorization"] = "Bearer " + t;
+    var pw = getStaffPw();
+    if (pw) h["X-Staff-Password"] = pw;
     return h;
   }
   async function req(path, opts) {
@@ -52,7 +59,7 @@ window.StafforaAPI = (function () {
   }
   return {
     getToken: token, setToken: setToken, readToken: readTokenFromUrl,
-    logout: function () { setToken(""); try { sessionStorage.removeItem(staffFlag); } catch(e){} },
+    logout: function () { setToken(""); setStaffPw(""); try { sessionStorage.removeItem(staffFlag); } catch(e){} },
     login: login,
     me: function () { return req("/api/me"); },
     guilds: function (refresh) { return req("/api/guilds" + (refresh ? "?refresh=1" : "")); },
@@ -106,6 +113,26 @@ window.StafforaAPI = (function () {
     staffPremiumCheck: function (userId) {
       return req("/api/staff-portal/premium/" + encodeURIComponent(userId));
     },
-    staffRoster: function () { return req("/api/staff-portal/roster"); }
+    staffRoster: function () { return req("/api/staff-portal/roster"); },
+    uploadMusic: function (guildId, filename, dataBase64) {
+      return req("/api/guilds/" + guildId + "/music/upload", {
+        method: "POST",
+        body: { filename: filename, data: dataBase64 }
+      });
+    },
+    uploadTicketImage: function (guildId, kind, dataBase64) {
+      return req("/api/guilds/" + guildId + "/ticket-image/upload", {
+        method: "POST",
+        body: { kind: kind || "panel", data: dataBase64 }
+      });
+    },
+    staffPasswordLogin: function (password) {
+      return req("/api/staff-portal/login", { method: "POST", body: { password: password } }).then(function (data) {
+        if (data && (data.token || data.ok)) setStaffPw(password);
+        return data;
+      });
+    },
+    clearStaffPw: function () { setStaffPw(""); },
+    getStaffPw: getStaffPw
   };
 })();

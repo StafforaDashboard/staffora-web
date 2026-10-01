@@ -1,73 +1,314 @@
 const C=[
-['allgemein','Allgemein','Grunddaten für den Server'],
+['allgemein','Allgemein / General','Sprache, System-Name, Grunddaten'],
 ['module','Module','Alle Module einzeln an/aus'],
-['dizzy','Dizzy Control','Roblox-Verknüpfungen und Staff-Bestätigung'],
-['rights','Rollen & Rechte','Wer darf was'],
-['tickets','Tickets & Support','Tickets, Warteraum, Admin Call, Büros'],
-['applications','Bewerbungen','Bewerbungs-Panels und Annahmen'],
-['team','Team','Teamliste, Duty, Invite/Kick, Abmeldung, Feedback'],
-['clock','Schicht & Clock','Clock und Zeittracking'],
-['tasks','Aufgaben','Aufgaben-Board und XP'],
-['database','Database','Interne Einträge und Manager'],
-['factions','Haus & Fraktionen','Fraktionen, Warns und Häuser'],
-['moderation','Moderation','Moderations-Logs'],
-['automod','AutoMod','Links, Invites, Caps, Spam'],
-['records','Strafregister','Cases und Maßnahmen'],
-['stats','Team-Stats','Support- und Team-Auswertung'],
-['security','Security','Anti-Nuke, Anti-Raid, Backups'],
-['welcome','Welcome / Leave','Join/Leave und Auto-Rolle'],
-['verify','Verify','Verify-Gate und Rollen'],
-['community','Community','Partner, Boost, Suggest, Giveaway'],
-['xp','XP','XP und Uprank'],
-['rp','RP','RP Announce und Server-Stats'],
-['logs','Logs','Zentrale Log-Kanäle'],
-['system','System','System-Name und Sprache'],
-['partner','Partner','Partner-Kanal und interne Logs'],
-['ausweis','Ausweis','ID-Kanal, Logs, Zusatz-Ausweise'],
-['unban','Unban','Website Appeals und Appeal-Log'],
-['ic','IC Panel','Zugriff und IC-Logs']
+['rights','Rollen & Rechte','Admin, Staff, Mod und Spezial-Rollen'],
+['tickets','Tickets','Ticket-Arten, Panel, Fragen, Rechte'],
+['warteraum','Warteraum','Voice-Support, Musik, Join2Create'],
+['admincall','Admin Call','Panel, Fragen, Logs'],
+['offices','Büros','Jedes Büro mit Warteraum und Bereitschaft'],
+['applications','Bewerbungen','Mehrere Bewerbungen, Fragen, Blacklist'],
+['teamlist','Teamliste','Rollen und Panel'],
+['team','Teamverwaltung','Invite, Kick, Warns, Logs'],
+['duty','Duty & Clock','Duty-Panel, Rolle, Zeittracking'],
+['abmeldung','Abmeldung','Panel, Log, Bestätigung'],
+['feedback','Feedback','Panel, Log, Sticky'],
+['tasks','Aufgaben','Panel, Manager, Permissions'],
+['database','Database','Panel und Manager'],
+['factions','Fraktionen','Announce, Log, Verwaltung'],
+['houses','Häuser','Hausliste und Anzeige'],
+['moderation','Moderation','Logs und Command-Permissions'],
+['records','Strafregister','Gründe und Maßnahmen'],
+['stats','Team-Stats','Auswertung Support und Team'],
+['security','Security','Anti-Nuke, Anti-Raid, Externe Apps'],
+['welcome','Welcome / Leave','Eigene Nachrichten und Kanäle'],
+['verify','Verify','Gate, Rollen, Panel'],
+['interview','Interview','Fragen und Punkte'],
+['suggest','Suggest','Kanal und Rechte'],
+['giveaway','Giveaway','Kanal und Rechte'],
+['xp','XP','Quellen und Uprank'],
+['rp','RP','Announce, Embed, Server-Stats'],
+['partner','Partner','Kanal und Manager'],
+['ausweis','Ausweis','Kanal, Request, Annahme, Custom'],
+['unban','Ban Appeal','Fragen, Log, Annahme'],
+['dizzy','Dizzy Control','Roblox-Link und Sticky'],
+['ic','IC Panel','Zugriff und Logs'],
+['logs','Logs','Zentrale Log-Kanäle']
 ];
 const GROUPS=[
-['Server', ['allgemein','module','dizzy','rights']],
-['Support & Team', ['tickets','applications','team','clock','tasks','database']],
-['RP & Community', ['factions','moderation','automod','records','stats','welcome','verify','community','xp','rp']],
-['System & Sicherheit', ['logs','security','system','partner']],
-['Identität & IC', ['ausweis','unban','ic']]
+['Server', ['allgemein','module','rights','logs']],
+['Support', ['tickets','warteraum','admincall','offices']],
+['Team', ['teamlist','team','duty','abmeldung','feedback','tasks','interview','stats']],
+['Moderation', ['moderation','records','security','database']],
+['Community', ['welcome','verify','suggest','giveaway','xp','partner']],
+['RP & IC', ['factions','houses','rp','ausweis','unban','dizzy','ic']]
 ];
-const F=(title,desc,items)=>[title,desc,'fields',items]; const R=(title,desc,items)=>[title,desc,'roles',items]; const S=(title,desc,items)=>[title,desc,'switches',items]; const B=(title,desc,items)=>[title,desc,'buttons',items]; const A=(title,desc,items)=>[title,desc,'actions',items];
+const F=(title,desc,items)=>[title,desc,'fields',items];
+const R=(title,desc,items)=>[title,desc,'roles',items];
+const S=(title,desc,items)=>[title,desc,'switches',items];
+const B=(title,desc,items)=>[title,desc,'buttons',items];
+const L=(title,desc,items)=>[title,desc,'listedit',items];
+
 const templates={
-allgemein:[F('Grunddaten','Grunddaten für den Server.',['Sprache|Deutsch|select','System-Name|Staffora Community','Log-Kanal|system-logs|select','Zeitzone|Europe/Berlin'])],
-module:[S('Module','Jedes Modul einzeln an/aus. Aus = Feature läuft nicht, auch wenn Kanäle gesetzt sind.',['Tickets','Warteraum','Admin Call','Büros','Duty','Bewerbungen','Teamverwaltung','Security','AutoMod','XP','Verify','Welcome/Leave','Partner','Fraktionen','Ausweis','Feedback','Aufgaben','Database','Abmeldung','Giveaway','Suggest'])],
-rights:[R('Zugriffsrollen','Wer darf was. Ohne passende Rollen greifen Commands/Panels nicht.',['Admin-Rolle','Staff-Rolle','Mod-Rolle','IC Panel Zugriff','Database Manager','Frak-Verwaltung','Partner Manager','HighTeam'])],
-tickets:[F('Tickets & Support','Tickets, Warteraum, Admin Call und Büros.',['Ticket-Panel-Kanal|tickets|select','Ticket-Log|ticket-logs|select','Ticket-Kategorie|Support|select','Support-Rolle|Support|select','Ticket-Blacklist-Rolle|Ticket-Blacklist|select','Warteraum Voice|Warteraum|select','Support-Textkanal|support-alerts|select','Warteraum-Musik|Aus|select','Musik-Preset|DE|select','Join-to-Create Support-VCs|An|select','Support-VC Kategorie|Support VC|select','Admin-Call-Panel|admin-call|select','Admin-Call-Log|admin-call-logs|select','Büro-Warteraum|Büro Warteraum|select','Büro-Bereitschafts-Rolle|Büro Bereitschaft|select']),B('Panels','Panels in die gewählten Kanäle posten.',['Ticket-Panel senden','Admin-Call-Panel senden'])],
-applications:[F('Bewerbungen','Bewerbungs-Panels und Annahmen.',['Bewerbungs-Panel|bewerbungen|select','Bewerbungs-Log|bewerbungs-logs|select','Rolle bei Annahme|Trial Staff|select']),B('Panel','Bewerbungs-Panel posten.',['Panel senden'])],
-team:[F('Teamliste & Duty','Teamliste, Duty, Invite/Kick, Abmeldung, Feedback und Activity Check.',['Teamliste-Kanal|team|select','Rollen in Teamliste|Teamleitung, Admin, Moderator, Support','Duty-Panel|dienst|select','Duty-Rolle|Im Dienst|select','Rollen bei Invite|Trial Staff, Support|select','Rollen bei Kick entfernen|Trial Staff, Support|select','Team Invite/Kick Log|team-logs|select','Team-Warns bis Kick|3','Abmelde-Panel|abmeldung|select','Abmelde-Log|abmeldung-logs|select','Abmeldung muss bestätigt werden|An|select','Feedback-Log|feedback|select','Feedback als Sticky|An|select','Activity-Check Kanal|activity-check|select','Activity-Check Rollen|Team','Activity-Check Dauer|14 Tage','Activity-Check Text|Bitte Aktivität bestätigen.','Activity-Check Zeit|18:00']),B('Panels','Teamliste, Duty, Abmelde und Feedback.',['Teamliste Panel senden','Duty Panel senden','Abmelde Panel senden','Feedback Panel senden'])],
-clock:[S('Schicht & Clock','Zeittracking und Schichtsystem.',['Clock aktiv']),F('Clock Log','Optionaler Log-Kanal.',['Clock-Log|clock-logs|select'])],
-tasks:[F('Aufgaben','Aufgaben-Board.',['Aufgaben-Panel|tasks|select','XP für Aufgaben|25']),B('Panel','Aufgaben-Panel posten.',['Panel senden'])],
-database:[F('Database','Interne Einträge, z.B. Teamsperre und permanente Flags.',['Database-Panel|database|select','Manager-Rolle|Database Manager|select']),B('Panel','Nur Panel-Funktionen.',['Panel senden'])],
-factions:[F('Haus & Fraktionen','Fraktionen selbst konfigurieren — keine Memberverwaltung.',['Frak-Announce|fraktion-announce|select','Warns bis Remove|3','Hausliste-Kanal|hausliste|select','Haus-Ticket Kategorie|Haus-Käufe|select']),B('Hausliste','Hausliste posten.',['Hausliste senden'])],
-moderation:[F('Moderation','Zentrale Moderations-Logs.',['Mod-Log|mod-logs|select','Warn-Log|warn-logs|select','Ban-Log|ban-logs|select'])],
-automod:[S('AutoMod','Automatische Filter.',['Links blocken','Invites blocken','Caps-Filter','Spam-Filter']),F('AutoMod-Log','Log-Kanal für Filteraktionen.',['AutoMod-Log|automod-logs|select'])],
-records:[F('Strafregister','Case- und Stufen-Logik.',['Strafregister-Log|record-logs|select','Beispiel Stufe 1|1 Warn','Beispiel Stufe 2|2 Kick','Beispiel Stufe 3|3 Ban'])],
-stats:[['Support-Statistik','Übersicht über Aktionen, offene Tickets und aktive Staff.','stats','842|Support-Anfragen|317|Tickets|89|Admin Calls|24|Aktive Supporter'],['Supporter-Ranking','Wer die meisten Support-Anfragen bearbeitet hat.','table',''],['Alle Support-Anfragen','Durchsuchbare Support-Anfragen mit Supporter, Kategorie, Status und Zeit.','actions','Anfragen öffnen|Exportieren'],['Support-Verlauf','Tickets, Warteraum und Admin Calls nach Zeitraum.','chart','']],
-security:[S('Security','Schutz vor Nuke und Raids.',['Anti-Nuke','Anti-Raid']),S('Externe Apps','Externe Apps deaktivieren.',['Externe Apps deaktivieren']),F('Security Logs & Backup','Security-Logs und Backup-Zugriff.',['Security-Log|security-logs|select','Main-Log|system-logs|select','Backup Whitelist-Rolle|Security Whitelist|select'])],
-welcome:[F('Welcome / Leave','Join-/Leave-Nachrichten und Auto-Rolle.',['Welcome-Kanal|welcome|select','Welcome-Text|Willkommen {user} auf {server}!','Leave-Kanal|leave|select','Leave-Text|{user} hat den Server verlassen.','Auto-Rolle|Verified|select'])],
-verify:[F('Verify','Verify-Gate und Rollen.',['Verify-Kanal|verify|select','Verified-Rolle|Verified|select','Unverified-Rolle|Unverified|select']),B('Panel','Verify-Panel posten.',['Panel senden'])],
-community:[F('Community','Partner, Boost, Suggest und Giveaway.',['Partner-Kanal|partner|select','Boost-Kanal|boost-danke|select','Suggest-Kanal|suggest|select','Giveaway-Kanal|giveaway|select']),F('Interview','Interview-Fragen und Punkte.',['Interview-Log|interview-logs|select','Min. Punkte|0']),S('Community Module','',['Giveaway','Suggest'])],
-xp:[S('XP','XP-Master-Schalter und Aktionen.',['XP aktiv','XP Ticket übernehmen','XP Voice / Support','XP Feedback gut']),F('Uprank','Rank-Ups und Zeitraum.',['Uprank-Announce|xp-uprank|select','Uprank Zeitraum|7 Tage|select'])],
-rp:[F('RP','Start/Stop und Ingame-Stats.',['RP Announce|rp-announce|select','Server-Stats Kanal|server-stats|select']),B('Stats Panel','Server-Stats Panel posten.',['Stats-Panel senden'])],
-logs:[F('Zentrale Logs','Zentrale Log-Kanäle, die mit anderen Tabs überschneiden können.',['System-Log|system-logs|select','Mod-Log|mod-logs|select','Ticket-Log|ticket-logs|select','Security-Log|security-logs|select'])],
-system:[F('System','System-Name und Sprache.',['System-Name|Staffora Community','Sprache|Deutsch|select'])],
-partner:[F('Partner','Partner-Anzeige und interne Logs.',['Partner-Kanal|partner|select','Partner-Log|partner-logs|select'])],
-ausweis:[F('Ausweis','Ausweis-System.',['Ausweis-Kanal|ausweis|select','Ausweis-Log|ausweis-logs|select','Max. Zusatz-Ausweise|3']),B('Panel','Ausweis-Panel posten.',['Panel senden'])],
-unban:[F('Unban','Website Ban Appeal.',['Appeals aktiv|An|select','Nur bei aktivem Ban|An|select','Appeal-Log|appeal-logs|select'])],
-dizzy:[S('Dizzy Control','User schreiben ihren Roblox-Namen in den Control-Kanal; Staff bestätigt die erkannte Verknüpfung.', ['Modul aktiv']),F('Dizzy Control','Kanal und Rechte für Roblox-Verknüpfungen.',['Dizzy-Control-Kanal|dizzy-control|select','Dizzy-Log-Kanal|dizzy-logs|select']),R('Bestätigung','Nur diese Rolle darf eine Verknüpfung mit „Complete“ bestätigen.',['Staff-Rolle']),B('Sticky','Sticky-Nachricht im Control-Kanal setzen bzw. neu setzen.',['Sticky senden']),F('Ablauf','Nach dem Namen prüft der Bot die Verknüpfung und zeigt das Roblox-Profil. Staff bestätigt; danach wird das Control-Embed nach kurzer Zeit entfernt, während das Sticky bleibt bzw. neu gesetzt wird. User-Nachrichten bleiben mit Reaktion erhalten.',['Control-Embed Bereinigung|Nach Bestätigung|select','User-Nachrichten|Bleiben mit Reaktion|select'])],
-ic:[R('IC Panel Zugriff','Wer die IC-Seite nutzen darf.',['IC Access Rolle']),F('IC Logs & Moderation','Logs und Rechte für IC-Aktionen.',['IC Log|ic-logs|select','IC Mod-Rolle|IC Moderator|select'])]
+allgemein:[
+  F('Grunddaten','Sprache und Server-Name.',['Sprache|de|select','System-Name|Staffora','Zeitzone|Europe/Berlin','Log-Kanal|system-logs|select'])
+],
+module:[
+  S('Module','Aus = Feature läuft nicht.',['Tickets','Warteraum','Admin Call','Büros','Duty','Bewerbungen','Teamverwaltung','Security','AutoMod','XP','Verify','Welcome/Leave','Partner','Fraktionen','Ausweis','Feedback','Aufgaben','Database','Abmeldung','Giveaway','Suggest','Interview'])
+],
+rights:[
+  R('Zugriff','Wer Dashboard-Befehle und Panels nutzen darf.',['Admin-Rolle','Staff-Rolle','Mod-Rolle','HighTeam','IC Panel Zugriff','Database Manager','Frak-Verwaltung','Partner Manager'])
+],
+tickets:[
+  S('Modul','Tickets an/aus.',['Tickets']),
+  F('Panel & Kanäle','Ticket-Panel und Logs.',['Ticket-Panel-Kanal|tickets|select','Ticket-Log|ticket-logs|select','Ticket-Kategorie|Support|select','Support-Rolle|Support|select','Ticket-Blacklist-Rolle|Ticket-Blacklist|select']),
+  L('Ticket-Arten','Eigene Kategorien (Name, Support-Rolle, Auslastung max).',['ticketTypes']),
+  L('Eröffnungsfragen','Fragen vor dem Öffnen (pro Art oder global).',['ticketOpenQuestions']),
+  F('Limits','Wie viele Tickets in welcher Zeit.',['Ticket-Limit pro User|3','Ticket-Limit Fenster Stunden|24']),
+  B('Panel','',['Ticket-Panel senden'])
+],
+warteraum:[
+  S('Modul','',['Warteraum']),
+  F('Support-Modus','Join2Create oder feste Channels.',['Support-VC Modus|Bestehende Channels|select']),
+  F('Bestehende Channels','Nur relevant wenn Modus = Bestehende Channels.',['Warteraum Voice|Warteraum|select','Support-Textkanal|support-alerts|select','Support-VC Kategorie|Support VC|select','Feste Support-VCs|','Support-Räume mit XP|']),
+  F('Join2Create','Nur relevant wenn Modus = Join2Create.',['Support-VC Kategorie|Support VC|select','Join-to-Create Support-VCs|An|select']),
+  F('Musik','',['Warteraum-Musik|An|select','Musik-Preset|DE|select']),
+  F('Logs','',['Warteraum Claim-Log|warteraum-claim-logs|select'])
+],
+admincall:[
+  S('Modul','',['Admin Call']),
+  F('Panel & Log','',['Admin-Call-Panel|admin-call|select','Admin-Call-Log|admin-call-logs|select','Admin-Call Support-Rolle|Admin|select','Admin-Call Blacklist-Rolle|']),
+  L('Admin-Call Fragen','Fragen beim Öffnen (z.B. Grund, Wo bist du?).',['adminCallQuestions']),
+  B('Panel','',['Admin-Call-Panel senden'])
+],
+offices:[
+  S('Modul','',['Büros']),
+  L('Büro-Liste','Jedes Büro: Name, Warteraum-VC, Bereitschafts-Rolle, Voice-Kanal.',['officesList']),
+  F('Standard','Fallback wenn Büro nichts Eigenes hat.',['Büro-Warteraum|Büro Warteraum|select','Büro-Bereitschafts-Rolle|Büro Bereitschaft|select'])
+],
+applications:[
+  S('Modul','',['Bewerbungen']),
+  L('Bewerbungen','Mehrere Bewerbungs-Arten mit eigenen Fragen.',['applicationsList']),
+  F('Panel & Rechte','',['Bewerbungs-Panel|bewerbungen|select','Bewerbungs-Log|bewerbungs-logs|select','Rolle bei Annahme|Trial Staff|select','Bewerbungs-Blacklist-Rolle|']),
+  L('Globale Fragen','Zusätzliche Standard-Fragen.',['applicationQuestions']),
+  B('Panel','',['Bewerbungs-Panel senden'])
+],
+teamlist:[
+  F('Teamliste','',['Teamliste-Kanal|team|select']),
+  R('Rollen in Teamliste','Discord-Rollen die aufgelistet werden (Hierarchie).',['Rollen in Teamliste']),
+  B('Panel','',['Teamliste senden'])
+],
+team:[
+  S('Modul','',['Teamverwaltung']),
+  R('Invite / Kick Rollen','',['Rollen bei Invite','Rollen bei Kick entfernen']),
+  F('Warns & Log','',['Team Invite/Kick Log|team-logs|select','Team-Warns bis Kick|3']),
+  F('Activity Check','',['Activity-Check-Kanal|activity|select','Activity-Check Dauer|14','Activity-Check Text|Bitte Aktivität bestätigen.'])
+],
+duty:[
+  S('Modul','Duty inkl. Clock/Zeittracking.',['Duty']),
+  F('Duty','',['Duty-Panel|dienst|select','Duty-Rolle|Im Dienst|select','Clock-Log|clock-logs|select']),
+  B('Panel','',['Duty-Panel senden'])
+],
+abmeldung:[
+  S('Modul','',['Abmeldung']),
+  F('Panel & Log','',['Abmelde-Panel|abmeldung|select','Abmelde-Log|abmeldung-logs|select','Abmeldung muss bestätigt werden|An|select','Abmelde-Rolle|Abgemeldet|select']),
+  B('Panel','',['Abmelde-Panel senden'])
+],
+feedback:[
+  S('Modul','',['Feedback']),
+  F('Kanäle','',['Feedback-Kanal|feedback|select','Feedback-Log|feedback-logs|select','Feedback als Sticky|An|select']),
+  B('Panel','',['Feedback-Panel senden'])
+],
+tasks:[
+  S('Modul','',['Aufgaben']),
+  F('Panel & Log','',['Aufgaben-Panel|aufgaben|select','Aufgaben-Log|aufgaben-logs|select']),
+  R('Permissions','',['Aufgaben-Manager','Aufgaben Claim-Rolle']),
+  B('Panel','',['Aufgaben-Panel senden'])
+],
+database:[
+  S('Modul','',['Database']),
+  F('Panel','',['Database-Panel|database|select']),
+  R('Rechte','',['Database Manager']),
+  B('Panel','',['Database-Panel senden'])
+],
+factions:[
+  S('Modul','',['Fraktionen']),
+  F('Kanäle','',['Fraktions-Announce|frak-announce|select','Fraktions-Log|frak-logs|select','Fraktions-Warns bis Kick|3']),
+  R('Rechte','',['Frak-Verwaltung']),
+  L('Fraktions-Fragen','Bewerbungsfragen für Fraktionen.',['factionAppQuestions'])
+],
+houses:[
+  F('Hausliste','',['Hausliste-Kanal|hausliste|select','Häuser auf Ausweis anzeigen|An|select']),
+  B('Panel','',['Hausliste senden'])
+],
+moderation:[
+  F('Logs','',['Mod-Log|mod-logs|select']),
+  R('Command Permissions','Welche Rollen /warn /kick /ban /timeout /softban nutzen dürfen.',['Warn Permission','Kick Permission','Ban Permission','Timeout Permission','Softban Permission','Note Permission'])
+],
+records:[
+  F('Strafregister','',['Strafregister-Log|records-logs|select']),
+  L('Staff-Gründe','z.B. VDM → 1 Warn, 2 Kick, 3 Ban.',['modReasons'])
+],
+stats:[
+  F('Team-Stats','Auswertung (Support, Tickets, Duty).',['Stats-Kanal|team-stats|select']),
+  S('Anzeigen','',['Stats Tickets','Stats Support','Stats Duty'])
+],
+security:[
+  S('Security','',['Security']),
+  F('Logs','',['Security-Log|security-logs|select']),
+  F('Externe Apps','Button/Permission „Externe Apps verwenden“ deaktivieren.',['Externe Apps deaktivieren|An|select','Externe-Apps Rolle|']),
+  F('Anti-Nuke / Anti-Raid','',['Anti-Nuke|An|select','Anti-Raid|An|select','Backup Whitelist-Rolle|'])
+],
+welcome:[
+  S('Modul','',['Welcome/Leave']),
+  F('Kanäle','',['Welcome-Kanal|welcome|select','Leave-Kanal|leave|select']),
+  F('Welcome Nachricht','Titel und Text (Platzhalter: {user} {server}).',['Welcome Titel|Willkommen!','Welcome Text|Hey {user}, willkommen auf {server}!','Welcome Ping|An|select']),
+  F('Leave Nachricht','',['Leave Titel|Tschüss','Leave Text|{user} hat den Server verlassen.']),
+  R('Auto-Rolle','',['Auto-Rolle'])
+],
+verify:[
+  S('Modul','',['Verify']),
+  F('Kanäle & Rollen','',['Verify-Kanal|verify|select']),
+  R('Rollen','',['Verify-Rolle','Unverified-Rolle']),
+  B('Panel','',['Verify-Panel senden'])
+],
+interview:[
+  S('Modul','',['Interview']),
+  F('Log','',['Interview-Log|interview-logs|select','Interview Min. Punkte|0']),
+  L('Interview-Fragen','Fragen für Ausbilder (Richtig / Fast / Falsch).',['interviewQuestions'])
+],
+suggest:[
+  S('Modul','',['Suggest']),
+  F('Kanal & Rechte','',['Suggest-Kanal|suggest|select']),
+  R('Annehmen / Ablehnen','',['Suggest Manager'])
+],
+giveaway:[
+  S('Modul','',['Giveaway']),
+  F('Kanal','',['Giveaway-Kanal|giveaway|select']),
+  R('Rechte','',['Giveaway Manager'])
+],
+xp:[
+  S('XP','',['XP aktiv','XP Ticket übernehmen','XP Voice / Support','XP Feedback gut']),
+  F('Uprank','',['XP Uprank Announce|xp-uprank|select','XP für Uprank|1000'])
+],
+rp:[
+  F('RP Announce','Eigene Texte.',['RP-Announce-Kanal|rp|select','RP Start Titel|RP Start','RP Start Text|Das RP ist gestartet.','RP Stop Titel|RP Stop','RP Stop Text|Das RP ist beendet.']),
+  F('Server Stats Panel','',['Stats-Panel-Kanal|server-stats|select','Server Code|','Server Name|']),
+  B('Panel','',['Stats-Panel senden'])
+],
+partner:[
+  S('Modul','',['Partner']),
+  F('Kanäle','',['Partner-Kanal|partner|select','Partner-Log|partner-logs|select']),
+  R('Rechte','',['Partner Manager'])
+],
+ausweis:[
+  S('Modul','',['Ausweis']),
+  F('Kanäle','',['Ausweis-Kanal|ausweis|select','Ausweis-Log|ausweis-logs|select','Ausweis Request-Kanal|ausweis-request|select']),
+  R('Annahme','',['Ausweis Annehmen']),
+  L('Custom Ausweise','z.B. PKW, Kleiner Waffenschein.',['customAusweise']),
+  F('Limits','',['Max. Zusatz-Ausweise|3']),
+  B('Panel','',['Ausweis-Panel senden'])
+],
+unban:[
+  F('Ban Appeal','Website-Appeals.',['Appeals aktiv|An|select','Nur bei aktivem Ban|An|select','Appeal-Log|appeal-logs|select']),
+  L('Appeal-Fragen','Fragen auf dem Appeal-Formular.',['unbanQuestions']),
+  R('Annehmen / Ablehnen','',['Appeal Manager'])
+],
+dizzy:[
+  S('Dizzy','',['Modul aktiv']),
+  F('Kanäle','',['Dizzy-Control-Kanal|dizzy-control|select','Dizzy-Log-Kanal|dizzy-logs|select']),
+  R('Bestätigung','',['Staff-Rolle']),
+  B('Sticky','',['Sticky senden'])
+],
+ic:[
+  R('IC Zugriff','',['IC Access Rolle','IC Mod-Rolle']),
+  F('Logs','',['IC Log|ic-logs|select'])
+],
+logs:[
+  F('Zentrale Logs','Optional gebündelt.',['Log-Kanal|system-logs|select','Mod-Log|mod-logs|select','Ticket-Log|ticket-logs|select','Security-Log|security-logs|select'])
+]
 };
-const KEY_MAP={"Sprache": "language", "System-Name": "systemName", "Log-Kanal": "logChannelId", "Zeitzone": "timezone", "Admin-Rolle": "adminRoleIds", "Staff-Rolle": "staffRoleIds", "Mod-Rolle": "modRoleIds", "IC Panel Zugriff": "ingameAccessRoleIds", "Database Manager": "databaseManagerRoleIds", "Frak-Verwaltung": "factionManageRoleIds", "Partner Manager": "partnerManagerRoleIds", "HighTeam": "highTeamRoleIds", "Ticket-Panel-Kanal": "ticketPanelChannelId", "Ticket-Log": "ticketLogChannelId", "Ticket-Kategorie": "ticketCategoryId", "Support-Rolle": "ticketSupportRoleIds", "Ticket-Blacklist-Rolle": "ticketBlacklistRoleIds", "Warteraum Voice": "warteraumVoiceChannelId", "Support-Textkanal": "supportTextChannelId", "Warteraum-Musik": "warteraumMusicEnabled", "Musik-Preset": "warteraumMusicPreset", "Join-to-Create Support-VCs": "supportJoinToCreate", "Support-VC Kategorie": "supportVcCategoryId", "Admin-Call-Panel": "adminCallPanelChannelId", "Admin-Call-Log": "adminCallLogChannelId", "Büro-Warteraum": "officeWaitingChannelId", "Büro-Bereitschafts-Rolle": "officePingRoleIds", "Bewerbungs-Panel": "bewerbungPanelChannelId", "Bewerbungs-Log": "appLogChannelId", "Rolle bei Annahme": "applicationAcceptRoleIds", "Teamliste-Kanal": "teamlistChannelId", "Rollen in Teamliste": "teamlistRoleIds", "Duty-Panel": "dutyPanelChannelId", "Duty-Rolle": "dutyRoleIds", "Rollen bei Invite": "teamInviteRoleIds", "Rollen bei Kick entfernen": "teamKickRoleIds", "Team Invite/Kick Log": "teamLogChannelId", "Team-Warns bis Kick": "teamWarnsUntilKick", "Abmelde-Panel": "abmeldungPanelChannelId", "Abmelde-Log": "abmeldungLogChannelId", "Abmeldung muss bestätigt werden": "abmeldungRequireApproval", "Feedback-Kanal": "feedbackChannelId", "Feedback-Log": "feedbackLogChannelId", "Activity-Check-Kanal": "activityCheckChannelId", "Aufgaben-Panel": "tasksPanelChannelId", "Aufgaben-Log": "tasksLogChannelId", "Database-Panel": "databasePanelChannelId", "Fraktions-Announce": "factionAnnounceChannelId", "Fraktions-Log": "factionLogChannelId", "Hausliste-Kanal": "hauslisteChannelId", "Mod-Log": "modLogChannelId", "AutoMod-Log": "autoModLogChannelId", "Strafregister-Log": "recordsLogChannelId", "Security-Log": "securityLogChannelId", "Welcome-Kanal": "welcomeChannelId", "Leave-Kanal": "leaveChannelId", "Auto-Rolle": "autoRoleIds", "Verify-Kanal": "verifyChannelId", "Verify-Rolle": "verifyRoleIds", "Unverified-Rolle": "unverifiedRoleId", "Partner-Kanal": "partnerChannelId", "Boost-Kanal": "boostChannelId", "Suggest-Kanal": "suggestChannelId", "Giveaway-Kanal": "giveawayChannelId", "Uprank-Announce": "xpUprankChannelId", "Uprank Zeitraum": "xpUprankDays", "RP Announce": "rpAnnounceChannelId", "Server-Stats Kanal": "serverStatsChannelId", "System-Log": "logChannelId", "Partner-Log": "partnerLogChannelId", "Ausweis-Kanal": "ausweisChannelId", "Ausweis-Log": "ausweisLogChannelId", "Max. Zusatz-Ausweise": "ausweisMaxExtra", "Appeals aktiv": "unbanRequestEnabled", "Nur bei aktivem Ban": "unbanRequireActiveBan", "Appeal-Log": "unbanRequestChannelId", "Dizzy-Control-Kanal": "ingameDizzyChannelId", "Dizzy-Log-Kanal": "dizzyLogChannelId", "IC Log": "ingameBanLogChannelId", "IC Mod-Rolle": "ingameModRoleIds", "IC Access Rolle": "ingameAccessRoleIds"};
-const MODULE_MAP={"Tickets": "tickets", "Warteraum": "warteraum", "Admin Call": "adminCall", "Büros": "offices", "Duty": "duty", "Bewerbungen": "applications", "Teamverwaltung": "team", "Security": "security", "AutoMod": "automod", "XP": "xp", "Verify": "verify", "Welcome/Leave": "welcomeLeave", "Partner": "partner", "Fraktionen": "factions", "Ausweis": "ausweis", "Feedback": "feedback", "Aufgaben": "tasks", "Database": "database", "Abmeldung": "abmeldung", "Giveaway": "giveaway", "Suggest": "suggest", "Modul aktiv": "dizzy", "XP aktiv": "xp", "XP Ticket übernehmen": "xpTicketClaim", "XP Voice / Support": "xpVoice", "XP Feedback gut": "xpFeedback"};
-const PANEL_CHANNEL={"tickets": "ticketPanelChannelId", "adminCall": "adminCallPanelChannelId", "applications": "bewerbungPanelChannelId", "duty": "dutyPanelChannelId", "feedback": "feedbackChannelId", "tasks": "tasksPanelChannelId", "database": "databasePanelChannelId", "teamlist": "teamlistChannelId", "abmeldung": "abmeldungPanelChannelId", "verify": "verifyChannelId", "hausliste": "hauslisteChannelId", "serverStats": "serverStatsChannelId", "ausweis": "ausweisPanelChannelId", "dizzySticky": "ingameDizzyChannelId"};
-const PANEL_MAP={"Ticket-Panel senden": "tickets", "Admin-Call-Panel senden": "adminCall", "Sticky senden": "dizzySticky", "Stats-Panel senden": "serverStats", "Duty-Panel senden": "duty", "Feedback-Panel senden": "feedback", "Aufgaben-Panel senden": "tasks", "Database-Panel senden": "database", "Teamliste senden": "teamlist", "Abmelde-Panel senden": "abmeldung", "Verify-Panel senden": "verify", "Hausliste senden": "hausliste"};
+
+const KEY_MAP = {
+  "Sprache":"language","System-Name":"systemName","Log-Kanal":"logChannelId","Zeitzone":"timezone",
+  "Admin-Rolle":"adminRoleIds","Staff-Rolle":"staffRoleIds","Mod-Rolle":"modRoleIds",
+  "IC Panel Zugriff":"ingameAccessRoleIds","IC Access Rolle":"ingameAccessRoleIds","IC Mod-Rolle":"ingameModRoleIds","IC Log":"ingameLogChannelId",
+  "Database Manager":"databaseManagerRoleIds","Frak-Verwaltung":"factionManageRoleIds","Partner Manager":"partnerManagerRoleIds","HighTeam":"highTeamRoleIds",
+  "Ticket-Panel-Kanal":"ticketPanelChannelId","Ticket-Log":"ticketLogChannelId","Ticket-Kategorie":"ticketCategoryId",
+  "Support-Rolle":"ticketSupportRoleIds","Ticket-Blacklist-Rolle":"ticketBlacklistRoleIds",
+  "Ticket-Limit pro User":"ticketLimitPerUser","Ticket-Limit Fenster Stunden":"ticketLimitWindowHours",
+  "Warteraum Voice":"warteraumVoiceChannelId","Support-Textkanal":"supportTextChannelId",
+  "Warteraum-Musik":"warteraumMusicEnabled","Musik-Preset":"warteraumMusicPreset",
+  "Join-to-Create Support-VCs":"supportJoinToCreate","Support-VC Kategorie":"supportVcCategoryId",
+  "Support-VC Modus":"supportVcMode","Feste Support-VCs":"supportFixedVoiceIds","Support-Räume mit XP":"supportXpVoiceIds",
+  "Warteraum Claim-Log":"warteraumClaimLogChannelId",
+  "Admin-Call-Panel":"adminCallPanelChannelId","Admin-Call-Log":"adminCallLogChannelId",
+  "Admin-Call Support-Rolle":"adminCallSupportRoleIds","Admin-Call Blacklist-Rolle":"adminCallBlacklistRoleIds",
+  "Büro-Warteraum":"officeWaitingChannelId","Büro-Bereitschafts-Rolle":"officePingRoleIds",
+  "Bewerbungs-Panel":"bewerbungPanelChannelId","Bewerbungs-Log":"appLogChannelId","Rolle bei Annahme":"applicationAcceptRoleIds",
+  "Bewerbungs-Blacklist-Rolle":"applicationBlacklistRoleIds",
+  "Teamliste-Kanal":"teamlistChannelId","Rollen in Teamliste":"teamlistRoleIds",
+  "Duty-Panel":"dutyPanelChannelId","Duty-Rolle":"dutyRoleIds","Clock-Log":"clockLogChannelId",
+  "Rollen bei Invite":"teamInviteRoleIds","Rollen bei Kick entfernen":"teamKickRoleIds",
+  "Team Invite/Kick Log":"teamLogChannelId","Team-Warns bis Kick":"teamWarnsUntilKick",
+  "Abmelde-Panel":"abmeldungPanelChannelId","Abmelde-Log":"abmeldungLogChannelId",
+  "Abmeldung muss bestätigt werden":"abmeldungRequireApproval","Abmelde-Rolle":"abmeldungRoleIds",
+  "Feedback-Kanal":"feedbackChannelId","Feedback-Log":"feedbackLogChannelId","Feedback als Sticky":"feedbackSticky",
+  "Activity-Check-Kanal":"activityCheckChannelId","Activity-Check Dauer":"activityCheckDurationMin","Activity-Check Text":"activityCheckText",
+  "Aufgaben-Panel":"tasksPanelChannelId","Aufgaben-Log":"tasksLogChannelId",
+  "Aufgaben-Manager":"tasksManagerRoleIds","Aufgaben Claim-Rolle":"tasksClaimRoleIds",
+  "Database-Panel":"databasePanelChannelId",
+  "Fraktions-Announce":"factionAnnounceChannelId","Fraktions-Log":"factionLogChannelId","Fraktions-Warns bis Kick":"factionWarnsUntilKick",
+  "Hausliste-Kanal":"hauslisteChannelId","Häuser auf Ausweis anzeigen":"ausweisShowHouses",
+  "Mod-Log":"modLogChannelId",
+  "Warn Permission":"permWarnRoleIds","Kick Permission":"permKickRoleIds","Ban Permission":"permBanRoleIds",
+  "Timeout Permission":"permTimeoutRoleIds","Softban Permission":"permSoftbanRoleIds","Note Permission":"permNoteRoleIds",
+  "AutoMod-Log":"autoModLogChannelId","Strafregister-Log":"recordsLogChannelId","Security-Log":"securityLogChannelId",
+  "Externe Apps deaktivieren":"securityDisableExternalApps","Externe-Apps Rolle":"securityExternalAppsRoleIds",
+  "Anti-Nuke":"antiNukeEnabled","Anti-Raid":"antiRaidEnabled","Backup Whitelist-Rolle":"backupWhitelistRoleIds",
+  "Welcome-Kanal":"welcomeChannelId","Leave-Kanal":"leaveChannelId","Auto-Rolle":"autoRoleIds",
+  "Welcome Titel":"welcomeTitle","Welcome Text":"welcomeText","Welcome Ping":"welcomePing",
+  "Leave Titel":"leaveTitle","Leave Text":"leaveText",
+  "Verify-Kanal":"verifyChannelId","Verify-Rolle":"verifyRoleIds","Unverified-Rolle":"unverifiedRoleId",
+  "Interview-Log":"interviewLogChannelId","Interview Min. Punkte":"interviewMinPoints",
+  "Suggest-Kanal":"suggestChannelId","Suggest Manager":"suggestManagerRoleIds",
+  "Giveaway-Kanal":"giveawayChannelId","Giveaway Manager":"giveawayManagerRoleIds",
+  "Partner-Kanal":"partnerChannelId","Partner-Log":"partnerLogChannelId","Boost-Kanal":"boostChannelId",
+  "XP Uprank Announce":"xpUprankChannelId","XP für Uprank":"xpUprankThreshold",
+  "RP-Announce-Kanal":"rpAnnounceChannelId","RP Start Titel":"rpStartTitle","RP Start Text":"rpStartText",
+  "RP Stop Titel":"rpStopTitle","RP Stop Text":"rpStopText",
+  "Stats-Panel-Kanal":"serverStatsChannelId","Stats-Kanal":"teamStatsChannelId","Server Code":"serverStatsCode","Server Name":"serverStatsServerName",
+  "Ausweis-Kanal":"ausweisChannelId","Ausweis-Log":"ausweisLogChannelId","Ausweis Request-Kanal":"ausweisRequestChannelId",
+  "Ausweis Annehmen":"ausweisAcceptRoleIds","Max. Zusatz-Ausweise":"ausweisMaxExtra",
+  "Appeals aktiv":"unbanRequestEnabled","Nur bei aktivem Ban":"unbanRequireActiveBan","Appeal-Log":"unbanRequestChannelId",
+  "Appeal Manager":"unbanManagerRoleIds",
+  "Dizzy-Control-Kanal":"ingameDizzyChannelId","Dizzy-Log-Kanal":"ingameDizzyLogChannelId"
+};
+
+const MODULE_MAP = {
+  "Tickets":"tickets","Warteraum":"warteraum","Admin Call":"adminCall","Büros":"offices","Duty":"duty",
+  "Bewerbungen":"applications","Teamverwaltung":"team","Security":"security","AutoMod":"automod","XP":"xp",
+  "Verify":"verify","Welcome/Leave":"welcomeLeave","Partner":"partner","Fraktionen":"factions","Ausweis":"ausweis",
+  "Feedback":"feedback","Aufgaben":"tasks","Database":"database","Abmeldung":"abmeldung","Giveaway":"giveaway",
+  "Suggest":"suggest","Interview":"interview","Modul aktiv":"dizzy","XP aktiv":"xp",
+  "XP Ticket übernehmen":"xpTicketClaim","XP Voice / Support":"xpVoice","XP Feedback gut":"xpFeedback",
+  "Stats Tickets":"statsShowTickets","Stats Support":"statsShowSupport","Stats Duty":"statsShowDuty"
+};
+
+const PANEL_CHANNEL = {
+  "tickets":"ticketPanelChannelId","adminCall":"adminCallPanelChannelId","applications":"bewerbungPanelChannelId",
+  "duty":"dutyPanelChannelId","feedback":"feedbackChannelId","tasks":"tasksPanelChannelId",
+  "database":"databasePanelChannelId","teamlist":"teamlistChannelId","abmeldung":"abmeldungPanelChannelId",
+  "verify":"verifyChannelId","hausliste":"hauslisteChannelId","serverStats":"serverStatsChannelId",
+  "ausweis":"ausweisChannelId","dizzySticky":"ingameDizzyChannelId"
+};
+const PANEL_MAP = {
+  "Ticket-Panel senden":"tickets","Admin-Call-Panel senden":"adminCall","Bewerbungs-Panel senden":"applications",
+  "Sticky senden":"dizzySticky","Stats-Panel senden":"serverStats","Duty-Panel senden":"duty",
+  "Feedback-Panel senden":"feedback","Aufgaben-Panel senden":"tasks","Database-Panel senden":"database",
+  "Teamliste senden":"teamlist","Abmelde-Panel senden":"abmeldung","Verify-Panel senden":"verify",
+  "Hausliste senden":"hausliste","Ausweis-Panel senden":"ausweis","Panel senden":"applications"
+};
+
 
 const API = window.StafforaAPI;
 let state = {
@@ -200,7 +441,13 @@ function renderCard([title,desc,type,items]){
       } else if (kind === 'category') {
         control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${categoryOptions(val && /^\d+$/.test(String(val)) ? val : '')}</select>`;
       } else if (hint === 'select') {
-        const opts = String(def).split(',').map(o=>o.trim()).filter(Boolean);
+        let opts = String(def).split(',').map(o=>o.trim()).filter(Boolean);
+        if (label === 'Sprache' || key === 'language') opts = ['de','en'];
+        if (label === 'Support-VC Modus' || key === 'supportVcMode') opts = ['Bestehende Channels','Join2Create'];
+        if (label === 'Warteraum-Musik' || label === 'Musik-Preset' || label === 'Appeals aktiv' || label === 'Nur bei aktivem Ban' || label === 'Feedback als Sticky' || label === 'Abmeldung muss bestätigt werden' || label === 'Häuser auf Ausweis anzeigen' || label === 'Externe Apps deaktivieren' || label === 'Anti-Nuke' || label === 'Anti-Raid' || label === 'Welcome Ping' || label === 'Join-to-Create Support-VCs') {
+          if (label === 'Musik-Preset') opts = ['DE','EN'];
+          else opts = ['An','Aus'];
+        }
         if (!opts.length) opts.push(def||'—');
         control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}"><option value="">—</option>${opts.map(o=>`<option value="${escapeHtml(o)}"${String(val)===o?' selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
       } else {
@@ -226,12 +473,101 @@ function renderCard([title,desc,type,items]){
     body = `<div class="action-row">${items.map(label=>`<button type="button" class="btn action-btn" data-action="${escapeHtml(label)}">${escapeHtml(label)}</button>`).join('')}</div>`;
   }
   if(type==='list') body = `<div class="list-box">${items.map(x=>`<div class="list-item">${x}</div>`).join('')}</div>`;
+  if(type==='listedit'){
+    const storeKey = items[0] || 'list';
+    let arr = state.settings[storeKey];
+    if(!Array.isArray(arr)) arr = [];
+    body = `<div class="listedit" data-store="${escapeHtml(storeKey)}">
+      <div class="listedit-items">${arr.map((row,i)=>{
+        const text = typeof row === 'string' ? row : (row.name || row.question || row.label || row.reason || JSON.stringify(row));
+        return `<div class="setting-row"><span>${escapeHtml(String(text))}</span><button type="button" class="btn listedit-rm" data-i="${i}">✕</button></div>`;
+      }).join('') || '<p style="color:#888;font-size:12px">Noch leer — Eintrag hinzufügen.</p>'}
+      </div>
+      <div class="listedit-add" style="display:flex;gap:8px;margin-top:8px">
+        <input class="listedit-input" placeholder="Neuer Eintrag…" style="flex:1">
+        <button type="button" class="btn btn-primary listedit-add-btn">Hinzufügen</button>
+      </div>
+      <p style="font-size:11px;color:#888;margin-top:6px">Für Gründe z.B. <code>VDM | 1:warn,2:kick,3:ban</code> · Für Büros: <code>Name | Warteraum-Kanal-ID | Rollen-ID</code></p>
+    </div>`;
+  }
   if(type==='table') body=`<div class="table-wrap"><table><thead><tr><th>Member</th><th>XP</th><th>Tickets</th><th>Duty</th></tr></thead><tbody><tr><td colspan="4">—</td></tr></tbody></table></div>`;
   if(type==='chart') body=`<div class="chart-bars">${[42,68,51,79,63,88,71,94,77,83,69,98].map(v=>`<i style="height:${v}%"></i>`).join('')}</div>`;
   return `<article class="settings-card glass"><div class="card-head"><div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(desc)}</p></div><span class="card-chevron">›</span></div><div class="card-body">${body}</div></article>`;
 }
 
-function openCategory(id){
+
+  function wireFileUploads(catId) {
+    const panel = document.getElementById('settingsPanel');
+    if (!panel || !state.guildId) return;
+    // remove old
+    panel.querySelectorAll('.file-upload-block').forEach(n => n.remove());
+
+    function addBlock(title, accept, onFile) {
+      const card = document.createElement('div');
+      card.className = 'card file-upload-block';
+      card.innerHTML = `<h3>${title}</h3>
+        <div class="setting-row">
+          <div class="setting-info"><span class="setting-label">${title}</span>
+          <span class="setting-desc">Datei wählen und hochladen</span></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="file" accept="${accept}" class="fu-input" style="max-width:220px">
+            <button type="button" class="btn btn-primary fu-btn">Upload</button>
+            <span class="fu-status" style="font-size:12px;color:#9aa3b8"></span>
+          </div>
+        </div>`;
+      const inp = card.querySelector('.fu-input');
+      const btn = card.querySelector('.fu-btn');
+      const st = card.querySelector('.fu-status');
+      btn.onclick = async () => {
+        const f = inp.files && inp.files[0];
+        if (!f) { if (window.toast) toast('Error'); return; }
+        st.textContent = '…';
+        try {
+          await onFile(f, st);
+          st.textContent = 'OK';
+          if (window.toast) toast('OK');
+        } catch (e) {
+          st.textContent = 'Error';
+          if (window.toast) toast('Error');
+        }
+      };
+      panel.appendChild(card);
+    }
+
+    function readAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
+    if (catId === 'warteraum' && S.uploadMusic) {
+      addBlock('Warteraum Musik-Datei', 'audio/*,.mp3,.ogg,.wav,.webm,.m4a', async (f, st) => {
+        const data = await readAsDataURL(f);
+        await S.uploadMusic(state.guildId, f.name, data);
+      });
+    }
+    if (catId === 'tickets' && S.uploadTicketImage) {
+      addBlock('Ticket Panel Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
+        const data = await readAsDataURL(f);
+        await S.uploadTicketImage(state.guildId, 'panel', data);
+      });
+      addBlock('Ticket Eröffnung Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
+        const data = await readAsDataURL(f);
+        await S.uploadTicketImage(state.guildId, 'create', data);
+      });
+      addBlock('Ticket Close Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
+        const data = await readAsDataURL(f);
+        await S.uploadTicketImage(state.guildId, 'close', data);
+      });
+    }
+  }
+
+  function openCategory(id){
+  // file uploads after render
+  const __after = () => { try { wireFileUploads(id); } catch (e) {} };
   const c=C.find(x=>x[0]===id);
   if(!c) return;
   state.currentCat = id;
@@ -262,6 +598,63 @@ function openCategory(id){
   panel.querySelectorAll('.toggle').forEach(t=>{ t.onclick = () => t.classList.toggle('on'); });
   panel.querySelectorAll('.action-btn').forEach(b=>{ b.onclick = () => handleAction(b.dataset.action, id); });
   panel.querySelectorAll('.role-btn').forEach(b=>{ b.onclick = () => openRoleDrawer(b); });
+  panel.querySelectorAll('.listedit').forEach(box=>{
+    const key = box.getAttribute('data-store');
+    const refresh = () => openCategory(id);
+    box.querySelectorAll('.listedit-rm').forEach(btn=>{
+      btn.onclick = () => {
+        let arr = state.settings[key];
+        if(!Array.isArray(arr)) arr = [];
+        arr.splice(Number(btn.getAttribute('data-i')), 1);
+        state.settings[key] = arr;
+        refresh();
+      };
+    });
+    const addBtn = box.querySelector('.listedit-add-btn');
+    const inp = box.querySelector('.listedit-input');
+    if(addBtn && inp){
+      addBtn.onclick = () => {
+        const v = (inp.value||'').trim();
+        if(!v) return;
+        let arr = state.settings[key];
+        if(!Array.isArray(arr)) arr = [];
+        // parse special formats
+        if(key === 'modReasons' && v.includes('|')){
+          const [reason, ladder] = v.split('|').map(s=>s.trim());
+          arr.push({ reason, ladder: ladder || '' });
+        } else if(key === 'officesList' && v.includes('|')){
+          const parts = v.split('|').map(s=>s.trim());
+          arr.push({ name: parts[0], waitingChannelId: parts[1]||'', pingRoleId: parts[2]||'', voiceChannelId: parts[3]||'' });
+        } else if(key === 'ticketTypes' && v.includes('|')){
+          const parts = v.split('|').map(s=>s.trim());
+          arr.push({ name: parts[0], supportRoleId: parts[1]||'', maxLoad: parts[2]||'10' });
+        } else if(key === 'applicationsList' && v.includes('|')){
+          const parts = v.split('|').map(s=>s.trim());
+          arr.push({ name: parts[0], acceptRoleId: parts[1]||'' });
+        } else {
+          arr.push(v);
+        }
+        state.settings[key] = arr;
+        refresh();
+      };
+    }
+  });
+  // Join2Create conditional: hide/show field groups by mode
+  if(id === 'warteraum'){
+    const modeSel = panel.querySelector('select[data-key="supportVcMode"]');
+    const applyMode = () => {
+      const mode = modeSel ? modeSel.value : '';
+      const isJ2C = /join/i.test(mode) || mode === 'Join2Create';
+      panel.querySelectorAll('.settings-card').forEach(card=>{
+        const h = (card.querySelector('h3')||{}).textContent || '';
+        if(h.includes('Join2Create')) card.style.display = isJ2C ? '' : 'none';
+        if(h.includes('Bestehende')) card.style.display = isJ2C ? 'none' : '';
+      });
+    };
+    if(modeSel){ modeSel.onchange = applyMode; applyMode(); }
+  }
+
+  try { wireFileUploads(id); } catch (e) {}
 }
 
 async function handleAction(label, catId){
@@ -370,6 +763,10 @@ async function saveCurrent(){
     toast('Speichern…');
     const tasks = [];
     if (Object.keys(partial).length) tasks.push(API.patchSettings(state.guildId, partial));
+    // persist listedit arrays
+    ['ticketTypes','ticketOpenQuestions','adminCallQuestions','officesList','applicationsList','applicationQuestions','modReasons','interviewQuestions','factionAppQuestions','customAusweise','unbanQuestions'].forEach(k=>{
+      if (Array.isArray(state.settings[k])) partial[k] = state.settings[k];
+    });
     if (hasModules) tasks.push(API.patchModules(state.guildId, modules));
     const results = await Promise.all(tasks);
     const last = results[results.length - 1] || {};
@@ -502,21 +899,29 @@ function bindUi(){
 
 async function boot(){
   bindUi();
-  // Always show first category so main is never empty
-  openCategory(state.currentCat || 'allgemein');
-
   if(!API){ toast('Error'); return; }
   API.readToken();
 
   if(!API.getToken()){
     const su = document.querySelector('.side-user');
     if(su){
-      su.innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Mit Discord anmelden</button>`;
+      su.innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Discord Login</button>`;
       const lb = $('loginBtn');
       if(lb) lb.onclick = ()=> API.login(location.origin + '/dashboard/');
     }
-    // refresh category banner
-    openCategory(state.currentCat || 'allgemein');
+    const panel = $('settingsPanel');
+    if(panel){
+      panel.innerHTML = `<div class="login-banner glass" style="max-width:480px;margin:40px auto;flex-direction:column;text-align:center">
+        <div><b>Login required</b><p>Melde dich mit Discord an, um das Dashboard zu nutzen. / Log in with Discord to use the dashboard.</p></div>
+        <button type="button" class="btn btn-primary" id="mainLogin" style="margin-top:12px">Discord Login</button>
+      </div>`;
+      const ml = $('mainLogin');
+      if(ml) ml.onclick = ()=> API.login(location.origin + '/dashboard/');
+    }
+    // disable nav until login
+    document.querySelectorAll('[data-cat]').forEach(x=>{
+      x.onclick = ()=> API.login(location.origin + '/dashboard/');
+    });
     return;
   }
 
