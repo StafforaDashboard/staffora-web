@@ -1,14 +1,13 @@
 const C=[
-['allgemein','Allgemein / General','Sprache, System-Name, Grunddaten'],
+['allgemein','Allgemein / General','Sprache und Grunddaten'],
 ['module','Module','Alle Module einzeln an/aus'],
-['rights','Rollen & Rechte','Admin, Staff, Mod und Spezial-Rollen'],
 ['tickets','Tickets','Ticket-Arten, Panel, Fragen, Rechte'],
 ['warteraum','Warteraum','Voice-Support, Musik, Join2Create'],
 ['admincall','Admin Call','Panel, Fragen, Logs'],
 ['offices','Büros','Jedes Büro mit Warteraum und Bereitschaft'],
 ['applications','Bewerbungen','Mehrere Bewerbungen, Fragen, Blacklist'],
 ['teamlist','Teamliste','Rollen und Panel'],
-['team','Teamverwaltung','Invite, Kick, Warns, Logs'],
+['team','Teamverwaltung','Invite, Kick, Warns, Suspend, Logs'],
 ['duty','Duty & Clock','Duty-Panel, Rolle, Zeittracking'],
 ['abmeldung','Abmeldung','Panel, Log, Bestätigung'],
 ['feedback','Feedback','Panel, Log, Sticky'],
@@ -27,18 +26,19 @@ const C=[
 ['giveaway','Giveaway','Kanal und Rechte'],
 ['xp','XP','Quellen und Uprank'],
 ['rp','RP','Announce, Embed, Server-Stats'],
-['partner','Partner','Kanal und Manager'],
+['partner','Partner','Kanal, Manager, Fragen'],
 ['ausweis','Ausweis','Kanal, Request, Annahme, Custom'],
 ['unban','Ban Appeal','Fragen, Log, Annahme'],
 ['dizzy','Dizzy Control','Roblox-Link und Sticky'],
 ['ic','IC Panel','Zugriff und Logs'],
+['icmod','IC Moderation','Warn / Kick / Ban Panel + Log'],
 ['logs','Logs','Zentrale Log-Kanäle']
 ];
 const GROUPS=[
-['Server', ['allgemein','module','rights','logs']],
+['Server', ['allgemein','module','logs']],
 ['Support', ['tickets','warteraum','admincall','offices']],
 ['Team', ['teamlist','team','duty','abmeldung','feedback','tasks','interview','stats']],
-['Moderation', ['moderation','records','security','database']],
+['Moderation', ['moderation','records','security','database','icmod']],
 ['Community', ['welcome','verify','suggest','giveaway','xp','partner']],
 ['RP & IC', ['factions','houses','rp','ausweis','unban','dizzy','ic']]
 ];
@@ -50,78 +50,75 @@ const L=(title,desc,items)=>[title,desc,'listedit',items];
 
 const templates={
 allgemein:[
-  F('Grunddaten','Sprache und Server-Name.',['Sprache|de|select','System-Name|Staffora','Zeitzone|Europe/Berlin','Log-Kanal|system-logs|select'])
+  F('Grunddaten','Sprache und Zeitzone.',['Sprache|de|select','Zeitzone|Europe/Berlin','Log-Kanal|system-logs|select'])
 ],
 module:[
-  S('Module','Aus = Feature läuft nicht.',['Tickets','Warteraum','Admin Call','Büros','Duty','Bewerbungen','Teamverwaltung','Security','AutoMod','XP','Verify','Welcome/Leave','Partner','Fraktionen','Ausweis','Feedback','Aufgaben','Database','Abmeldung','Giveaway','Suggest','Interview'])
-],
-rights:[
-  R('Zugriff','Wer Dashboard-Befehle und Panels nutzen darf.',['Admin-Rolle','Staff-Rolle','Mod-Rolle','HighTeam','IC Panel Zugriff','Database Manager','Frak-Verwaltung','Partner Manager'])
+  S('Module','Aus = Feature läuft nicht und Kategorie wird ausgeblendet.',['Tickets','Warteraum','Admin Call','Büros','Duty','Bewerbungen','Teamverwaltung','Security','AutoMod','XP','Verify','Welcome/Leave','Partner','Fraktionen','Ausweis','Feedback','Aufgaben','Database','Abmeldung','Giveaway','Suggest','Interview','IC Panel','IC Moderation'])
 ],
 tickets:[
   S('Modul','Tickets an/aus.',['Tickets']),
   F('Panel & Kanäle','Ticket-Panel und Logs.',['Ticket-Panel-Kanal|tickets|select','Ticket-Log|ticket-logs|select','Ticket-Kategorie|Support|select','Support-Rolle|Support|select','Ticket-Blacklist-Rolle|Ticket-Blacklist|select']),
-  L('Ticket-Arten','Eigene Kategorien (Name, Support-Rolle, Auslastung max).',['ticketTypes']),
-  L('Eröffnungsfragen','Fragen vor dem Öffnen (pro Art oder global).',['ticketOpenQuestions']),
-  F('Limits','Wie viele Tickets in welcher Zeit.',['Ticket-Limit pro User|3','Ticket-Limit Fenster Stunden|24']),
+  L('Ticket-Arten','Neue Ticket-Art mit Rollen, Kategorie und Embeds.',['ticketTypes']),
+  L('Eröffnungsfragen','Frage vor dem Öffnen',['ticketOpenQuestions']),
+  F('Limits','',['Ticket-Limit pro User|3','Ticket-Limit Fenster Stunden|24']),
   B('Panel','',['Ticket-Panel senden'])
 ],
 warteraum:[
   S('Modul','',['Warteraum']),
-  F('Support-Modus','Join2Create oder feste Channels.',['Support-VC Modus|Bestehende Channels|select']),
-  F('Bestehende Channels','Nur relevant wenn Modus = Bestehende Channels.',['Warteraum Voice|Warteraum|select','Support-Textkanal|support-alerts|select','Support-VC Kategorie|Support VC|select','Feste Support-VCs|','Support-Räume mit XP|']),
-  F('Join2Create','Nur relevant wenn Modus = Join2Create.',['Support-VC Kategorie|Support VC|select','Join-to-Create Support-VCs|An|select']),
-  F('Musik','',['Warteraum-Musik|An|select','Musik-Preset|DE|select']),
+  F('Support-Modus','',['Support-VC Modus|Bestehende Channels|enum']),
+  F('Bestehende Channels','Nur bei Modus „Bestehende Channels“.',['Warteraum Voice|Warteraum|select','Support-Textkanal|support-alerts|select','Support-VC Kategorie|Support VC|select','Feste Support-VCs|','Support-Räume mit XP|']),
+  F('Join2Create','Nur bei Modus „Join2Create“.',['Support-VC Kategorie|Support VC|select','Join-to-Create Support-VCs|An|enum']),
+  F('Musik','Preset oder eigene Datei unten.',['Warteraum-Musik|An|enum','Musik-Preset|DE|enum']),
   F('Logs','',['Warteraum Claim-Log|warteraum-claim-logs|select'])
 ],
 admincall:[
   S('Modul','',['Admin Call']),
   F('Panel & Log','',['Admin-Call-Panel|admin-call|select','Admin-Call-Log|admin-call-logs|select','Admin-Call Support-Rolle|Admin|select','Admin-Call Blacklist-Rolle|']),
-  L('Admin-Call Fragen','Fragen beim Öffnen (z.B. Grund, Wo bist du?).',['adminCallQuestions']),
+  L('Admin-Call Fragen','',['adminCallQuestions']),
   B('Panel','',['Admin-Call-Panel senden'])
 ],
 offices:[
   S('Modul','',['Büros']),
-  L('Büro-Liste','Jedes Büro: Name, Warteraum-VC, Bereitschafts-Rolle, Voice-Kanal.',['officesList']),
-  F('Standard','Fallback wenn Büro nichts Eigenes hat.',['Büro-Warteraum|Büro Warteraum|select','Büro-Bereitschafts-Rolle|Büro Bereitschaft|select'])
+  L('Büros','Büro anlegen: Name, Warteraum, Beitritts-Rolle, Büro-VC.',['officesList']),
+  F('Log','',['Büro-Log|office-logs|select'])
 ],
 applications:[
   S('Modul','',['Bewerbungen']),
-  L('Bewerbungen','Mehrere Bewerbungs-Arten mit eigenen Fragen.',['applicationsList']),
-  F('Panel & Rechte','',['Bewerbungs-Panel|bewerbungen|select','Bewerbungs-Log|bewerbungs-logs|select','Rolle bei Annahme|Trial Staff|select','Bewerbungs-Blacklist-Rolle|']),
-  L('Globale Fragen','Zusätzliche Standard-Fragen.',['applicationQuestions']),
+  F('Panel & Log','',['Bewerbungs-Panel|applications|select','Bewerbungs-Log|application-logs|select','Bewerbungs-Blacklist-Rolle|']),
+  L('Bewerbungen','Format: Name | Accept-Rollen-ID',['applicationsList']),
+  L('Fragen','',['applicationQuestions']),
   B('Panel','',['Bewerbungs-Panel senden'])
 ],
 teamlist:[
-  F('Teamliste','',['Teamliste-Kanal|team|select']),
-  R('Rollen in Teamliste','Discord-Rollen die aufgelistet werden (Hierarchie).',['Rollen in Teamliste']),
+  F('Teamliste','',['Teamliste-Kanal|teamlist|select']),
+  R('Rollen in der Liste','Reihenfolge = Discord-Hierarchie.',['Teamliste-Rollen']),
   B('Panel','',['Teamliste senden'])
 ],
 team:[
   S('Modul','',['Teamverwaltung']),
-  R('Invite / Kick Rollen','',['Rollen bei Invite','Rollen bei Kick entfernen']),
-  F('Warns & Log','',['Team Invite/Kick Log|team-logs|select','Team-Warns bis Kick|3']),
-  F('Activity Check','',['Activity-Check-Kanal|activity|select','Activity-Check Dauer|14','Activity-Check Text|Bitte Aktivität bestätigen.'])
+  F('Logs','',['Team-Log|team-logs|select']),
+  R('Rechte','',['Team Invite Rolle','Team Kick Rolle','Team Warn Rolle','Team Suspend Rolle']),
+  F('Warns bis Kick','',['Team-Warns bis Auto-Kick|3'])
 ],
 duty:[
-  S('Modul','Duty inkl. Clock/Zeittracking.',['Duty']),
-  F('Duty','',['Duty-Panel|dienst|select','Duty-Rolle|Im Dienst|select','Clock-Log|clock-logs|select']),
+  S('Modul','',['Duty']),
+  F('Panel & Rolle','',['Duty-Panel|duty|select','Duty-Rolle|On Duty|select']),
   B('Panel','',['Duty-Panel senden'])
 ],
 abmeldung:[
   S('Modul','',['Abmeldung']),
-  F('Panel & Log','',['Abmelde-Panel|abmeldung|select','Abmelde-Log|abmeldung-logs|select','Abmeldung muss bestätigt werden|An|select','Abmelde-Rolle|Abgemeldet|select']),
+  F('Panel & Log','',['Abmelde-Panel|abmeldung|select','Abmelde-Log|abmeldung-logs|select','Abmeldung muss bestätigt werden|An|enum']),
   B('Panel','',['Abmelde-Panel senden'])
 ],
 feedback:[
   S('Modul','',['Feedback']),
-  F('Kanäle','',['Feedback-Kanal|feedback|select','Feedback-Log|feedback-logs|select','Feedback als Sticky|An|select']),
+  F('Panel & Log','',['Feedback-Kanal|feedback|select','Feedback-Log|feedback-logs|select','Feedback als Sticky|Aus|enum']),
   B('Panel','',['Feedback-Panel senden'])
 ],
 tasks:[
   S('Modul','',['Aufgaben']),
-  F('Panel & Log','',['Aufgaben-Panel|aufgaben|select','Aufgaben-Log|aufgaben-logs|select']),
-  R('Permissions','',['Aufgaben-Manager','Aufgaben Claim-Rolle']),
+  F('Panel','',['Aufgaben-Panel|tasks|select']),
+  R('Rechte','',['Aufgaben Manager','Aufgaben Claim']),
   B('Panel','',['Aufgaben-Panel senden'])
 ],
 database:[
@@ -132,103 +129,118 @@ database:[
 ],
 factions:[
   S('Modul','',['Fraktionen']),
-  F('Kanäle','',['Fraktions-Announce|frak-announce|select','Fraktions-Log|frak-logs|select','Fraktions-Warns bis Kick|3']),
-  R('Rechte','',['Frak-Verwaltung']),
-  L('Fraktions-Fragen','Bewerbungsfragen für Fraktionen.',['factionAppQuestions'])
+  F('Kanäle','',['Fraktions-Announce|faction-announce|select','Fraktions-Log|faction-logs|select']),
+  R('Rechte','',['Frak-Verwaltung','Frak Manager']),
+  L('Fraktions-Bewerbungsfragen','',['factionAppQuestions'])
 ],
 houses:[
-  F('Hausliste','',['Hausliste-Kanal|hausliste|select','Häuser auf Ausweis anzeigen|An|select']),
+  F('Hausliste','',['Hausliste-Kanal|houses|select']),
+  R('Rechte','',['Haus Manager']),
   B('Panel','',['Hausliste senden'])
 ],
 moderation:[
   F('Logs','',['Mod-Log|mod-logs|select']),
-  R('Command Permissions','Welche Rollen /warn /kick /ban /timeout /softban nutzen dürfen.',['Warn Permission','Kick Permission','Ban Permission','Timeout Permission','Softban Permission','Note Permission'])
+  R('Command Rechte','',['Ban Rolle','Kick Rolle','Timeout Rolle','Warn Rolle','Softban Rolle'])
 ],
 records:[
-  F('Strafregister','',['Strafregister-Log|records-logs|select']),
-  L('Staff-Gründe','z.B. VDM → 1 Warn, 2 Kick, 3 Ban.',['modReasons'])
+  L('Strafgründe','Format: VDM | 1:warn,2:kick,3:ban',['modReasons']),
+  F('Log','',['Strafregister-Log|records-logs|select'])
 ],
 stats:[
-  F('Team-Stats','Auswertung (Support, Tickets, Duty).',['Stats-Kanal|team-stats|select']),
-  S('Anzeigen','',['Stats Tickets','Stats Support','Stats Duty'])
+  F('Stats','',['Stats Tickets|An|enum','Stats Support|An|enum','Stats Duty|An|enum'])
 ],
 security:[
-  S('Security','',['Security']),
-  F('Logs','',['Security-Log|security-logs|select']),
-  F('Externe Apps','Button/Permission „Externe Apps verwenden“ deaktivieren.',['Externe Apps deaktivieren|An|select','Externe-Apps Rolle|']),
-  F('Anti-Nuke / Anti-Raid','',['Anti-Nuke|An|select','Anti-Raid|An|select','Backup Whitelist-Rolle|'])
+  S('Modul','',['Security','Anti-Nuke','Anti-Raid']),
+  F('Security','',['Externe Apps deaktivieren|An|enum','Security-Log|security-logs|select']),
+  R('Whitelist','',['Security Whitelist Rolle'])
 ],
 welcome:[
   S('Modul','',['Welcome/Leave']),
   F('Kanäle','',['Welcome-Kanal|welcome|select','Leave-Kanal|leave|select']),
-  F('Welcome Nachricht','Titel und Text (Platzhalter: {user} {server}).',['Welcome Titel|Willkommen!','Welcome Text|Hey {user}, willkommen auf {server}!','Welcome Ping|An|select']),
-  F('Leave Nachricht','',['Leave Titel|Tschüss','Leave Text|{user} hat den Server verlassen.']),
-  R('Auto-Rolle','',['Auto-Rolle'])
+  F('Texte','Platzhalter: {user} {server} {memberCount}',['Welcome-Nachricht|Willkommen {user}!','Leave-Nachricht|{user} hat den Server verlassen.','Welcome Ping|Aus|enum'])
 ],
 verify:[
   S('Modul','',['Verify']),
-  F('Kanäle & Rollen','',['Verify-Kanal|verify|select']),
-  R('Rollen','',['Verify-Rolle','Unverified-Rolle']),
+  F('Panel & Rollen','',['Verify-Kanal|verify|select']),
+  R('Rollen','',['Verify Rolle geben','Unverified Rolle']),
   B('Panel','',['Verify-Panel senden'])
 ],
 interview:[
   S('Modul','',['Interview']),
-  F('Log','',['Interview-Log|interview-logs|select','Interview Min. Punkte|0']),
-  L('Interview-Fragen','Fragen für Ausbilder (Richtig / Fast / Falsch).',['interviewQuestions'])
+  L('Fragen','',['interviewQuestions']),
+  F('Punkte','',['Interview Punkte Richtig|2','Interview Punkte Fast|1','Interview Punkte Falsch|0'])
 ],
 suggest:[
   S('Modul','',['Suggest']),
-  F('Kanal & Rechte','',['Suggest-Kanal|suggest|select']),
-  R('Annehmen / Ablehnen','',['Suggest Manager'])
+  F('Kanal','',['Suggest-Kanal|suggestions|select']),
+  R('Rechte','',['Suggest Annehmen Rolle'])
 ],
 giveaway:[
   S('Modul','',['Giveaway']),
-  F('Kanal','',['Giveaway-Kanal|giveaway|select']),
-  R('Rechte','',['Giveaway Manager'])
+  F('Kanal','',['Giveaway-Kanal|giveaways|select']),
+  R('Rechte','',['Giveaway Rolle'])
 ],
 xp:[
-  S('XP','',['XP aktiv','XP Ticket übernehmen','XP Voice / Support','XP Feedback gut']),
-  F('Uprank','',['XP Uprank Announce|xp-uprank|select','XP für Uprank|1000'])
+  S('Modul','',['XP','XP Ticket übernehmen','XP Voice / Support','XP Feedback gut']),
+  F('Uprank','',['XP Uprank Kanal|xp-uprank|select'])
 ],
 rp:[
-  F('RP Announce','Eigene Texte.',['RP-Announce-Kanal|rp|select','RP Start Titel|RP Start','RP Start Text|Das RP ist gestartet.','RP Stop Titel|RP Stop','RP Stop Text|Das RP ist beendet.']),
-  F('Server Stats Panel','',['Stats-Panel-Kanal|server-stats|select','Server Code|','Server Name|']),
+  F('RP & Stats','',['RP Announce|rp-announce|select','Server-Stats Kanal|server-stats|select']),
   B('Panel','',['Stats-Panel senden'])
 ],
 partner:[
   S('Modul','',['Partner']),
-  F('Kanäle','',['Partner-Kanal|partner|select','Partner-Log|partner-logs|select']),
-  R('Rechte','',['Partner Manager'])
+  F('Kanal','',['Partner-Kanal|partners|select']),
+  R('Rechte','',['Partner Manager']),
+  L('Partner-Fragen','',['partnerQuestions']),
+  B('Panel','',['Panel senden'])
 ],
 ausweis:[
   S('Modul','',['Ausweis']),
   F('Kanäle','',['Ausweis-Kanal|ausweis|select','Ausweis-Log|ausweis-logs|select','Ausweis Request-Kanal|ausweis-request|select']),
-  R('Annahme','',['Ausweis Annehmen']),
-  L('Custom Ausweise','z.B. PKW, Kleiner Waffenschein.',['customAusweise']),
-  F('Limits','',['Max. Zusatz-Ausweise|3']),
+  R('Rechte','',['Ausweis Annehmen Rolle']),
+  L('Custom Ausweise','',['customAusweise']),
   B('Panel','',['Ausweis-Panel senden'])
 ],
 unban:[
-  F('Ban Appeal','Website-Appeals.',['Appeals aktiv|An|select','Nur bei aktivem Ban|An|select','Appeal-Log|appeal-logs|select']),
-  L('Appeal-Fragen','Fragen auf dem Appeal-Formular.',['unbanQuestions']),
-  R('Annehmen / Ablehnen','',['Appeal Manager'])
+  S('Modul','',['Appeals aktiv']),
+  F('Appeal','',['Unban-Log|unban-logs|select','Appeals aktiv|An|enum','Nur bei aktivem Ban|An|enum']),
+  L('Unban-Fragen','',['unbanQuestions']),
+  R('Rechte','',['Unban Annehmen Rolle'])
 ],
 dizzy:[
-  S('Dizzy','',['Modul aktiv']),
-  F('Kanäle','',['Dizzy-Control-Kanal|dizzy-control|select','Dizzy-Log-Kanal|dizzy-logs|select']),
-  R('Bestätigung','',['Staff-Rolle']),
-  B('Sticky','',['Sticky senden'])
+  S('Modul','',['Modul aktiv']),
+  F('Kanal','',['Dizzy Control Kanal|dizzy|select','Dizzy Log|dizzy-logs|select']),
+  B('Panel','',['Sticky senden'])
 ],
 ic:[
-  R('IC Zugriff','',['IC Access Rolle','IC Mod-Rolle']),
-  F('Logs','',['IC Log|ic-logs|select'])
+  S('Modul','',['IC Panel']),
+  R('Zugriff','',['IC Panel Zugriff','IC Mod-Rolle']),
+  F('Log','',['IC Log|ic-logs|select'])
+],
+icmod:[
+  S('Modul','',['IC Moderation']),
+  F('Panel & Log','Discord-Panel für Warn/Kick/Tempban/Permban (sync mit IC).',['IC-Mod Panel|ic-mod|select','IC-Mod Log|ic-mod-logs|select']),
+  R('Rechte','',['IC Mod-Rolle','IC Log Remove Rolle']),
+  B('Panel','',['IC-Mod-Panel senden'])
 ],
 logs:[
-  F('Zentrale Logs','Optional gebündelt.',['Log-Kanal|system-logs|select','Mod-Log|mod-logs|select','Ticket-Log|ticket-logs|select','Security-Log|security-logs|select'])
+  F('Zentrale Logs','',['Log-Kanal|system-logs|select','Mod-Log|mod-logs|select','Ticket-Log|ticket-logs|select','Security-Log|security-logs|select'])
 ]
 };
 
 const KEY_MAP = {
+
+  "Team Suspend Rolle":"teamSuspendRoleIds","Frak Manager":"factionManagerRoleIds","Haus Manager":"houseManagerRoleIds",
+  "Partner-Fragen":"partnerQuestions","IC-Mod Panel":"icModPanelChannelId","IC-Mod Log":"icModLogChannelId",
+  "IC Log Remove Rolle":"icLogRemoveRoleIds","IC Moderation":"icModeration",
+  "Aufgaben Manager":"tasksManagerRoleIds","Aufgaben Claim":"tasksClaimRoleIds",
+  "Teamliste-Rollen":"teamlistRoleIds","Team Invite Rolle":"teamInviteRoleIds","Team Kick Rolle":"teamKickRoleIds",
+  "Team Warn Rolle":"teamWarnRoleIds","Ban Rolle":"banRoleIds","Kick Rolle":"kickRoleIds","Timeout Rolle":"timeoutRoleIds",
+  "Warn Rolle":"warnRoleIds","Softban Rolle":"softbanRoleIds","Security Whitelist Rolle":"securityWhitelistRoleIds",
+  "Verify Rolle geben":"verifyRoleIds","Unverified Rolle":"unverifiedRoleIds","Suggest Annehmen Rolle":"suggestAcceptRoleIds",
+  "Giveaway Rolle":"giveawayRoleIds","Ausweis Annehmen Rolle":"ausweisAcceptRoleIds","Unban Annehmen Rolle":"unbanAcceptRoleIds",
+  "Büro-Log":"officeLogChannelId","Strafregister-Log":"recordsLogChannelId",
   "Sprache":"language","System-Name":"systemName","Log-Kanal":"logChannelId","Zeitzone":"timezone",
   "Admin-Rolle":"adminRoleIds","Staff-Rolle":"staffRoleIds","Mod-Rolle":"modRoleIds",
   "IC Panel Zugriff":"ingameAccessRoleIds","IC Access Rolle":"ingameAccessRoleIds","IC Mod-Rolle":"ingameModRoleIds","IC Log":"ingameLogChannelId",
@@ -289,7 +301,7 @@ const MODULE_MAP = {
   "Bewerbungen":"applications","Teamverwaltung":"team","Security":"security","AutoMod":"automod","XP":"xp",
   "Verify":"verify","Welcome/Leave":"welcomeLeave","Partner":"partner","Fraktionen":"factions","Ausweis":"ausweis",
   "Feedback":"feedback","Aufgaben":"tasks","Database":"database","Abmeldung":"abmeldung","Giveaway":"giveaway",
-  "Suggest":"suggest","Interview":"interview","Modul aktiv":"dizzy","XP aktiv":"xp",
+  "Suggest":"suggest","Interview":"interview","IC Panel":"icPanel","IC Moderation":"icModeration","Modul aktiv":"dizzy","XP aktiv":"xp",
   "XP Ticket übernehmen":"xpTicketClaim","XP Voice / Support":"xpVoice","XP Feedback gut":"xpFeedback",
   "Stats Tickets":"statsShowTickets","Stats Support":"statsShowSupport","Stats Duty":"statsShowDuty"
 };
@@ -299,14 +311,14 @@ const PANEL_CHANNEL = {
   "duty":"dutyPanelChannelId","feedback":"feedbackChannelId","tasks":"tasksPanelChannelId",
   "database":"databasePanelChannelId","teamlist":"teamlistChannelId","abmeldung":"abmeldungPanelChannelId",
   "verify":"verifyChannelId","hausliste":"hauslisteChannelId","serverStats":"serverStatsChannelId",
-  "ausweis":"ausweisChannelId","dizzySticky":"ingameDizzyChannelId"
+  "ausweis":"ausweisChannelId","dizzySticky":"ingameDizzyChannelId","icMod":"icModPanelChannelId"
 };
 const PANEL_MAP = {
   "Ticket-Panel senden":"tickets","Admin-Call-Panel senden":"adminCall","Bewerbungs-Panel senden":"applications",
   "Sticky senden":"dizzySticky","Stats-Panel senden":"serverStats","Duty-Panel senden":"duty",
   "Feedback-Panel senden":"feedback","Aufgaben-Panel senden":"tasks","Database-Panel senden":"database",
   "Teamliste senden":"teamlist","Abmelde-Panel senden":"abmeldung","Verify-Panel senden":"verify",
-  "Hausliste senden":"hausliste","Ausweis-Panel senden":"ausweis","Panel senden":"applications"
+  "Hausliste senden":"hausliste","Ausweis-Panel senden":"ausweis","Panel senden":"applications","IC-Mod-Panel senden":"icMod"
 };
 
 
@@ -392,14 +404,19 @@ function categoryOptions(selected){
   return opts.join('');
 }
 function detectFieldKind(label, typeHint){
-  const l = label.toLowerCase();
-  if (typeHint === 'select') {
-    if (/rolle|role|zugriff|manager|highteam|bereitschaft|blacklist|staff|mod|admin|ic access|ic mod/.test(l)) return 'role';
-    if (/kategorie|category|vc kategorie|ticket-kategorie/.test(l) && !/kanal/.test(l)) return 'category';
-    if (/kanal|channel|voice|panel|log|warteraum|announce|stats|sticky|control/.test(l)) return 'channel';
+  const l = String(label||'').toLowerCase();
+  const hint = String(typeHint||'').toLowerCase();
+  if (hint === 'enum' || hint === 'text') return hint === 'enum' ? 'enum' : (hint || 'text');
+  if (hint === 'select') {
+    // pure option selects (not discord entities)
+    if (/modus|preset|sprache|language|appeals|sticky|bestätigt|häuser auf|externe apps|anti-nuke|anti-raid|welcome ping|join-to-create|stats |musik/.test(l)) return 'enum';
+    if (/rolle|role|zugriff|manager|highteam|bereitschaft|blacklist|staff|mod-rolle|admin-rolle|ic access|ic mod|annehmen|suspend|claim|whitelist|unverified|giveaway rolle|invite rolle|kick rolle|warn rolle|ban rolle|timeout|softban/.test(l)) return 'role';
+    if (/kategorie|category/.test(l) && !/kanal|channel|panel|log/.test(l)) return 'category';
+    if (/kanal|channel|voice|panel|log|warteraum|announce|stats-kanal|sticky|control|hausliste|teamliste|duty-panel|bewerbungs|ticket-panel|feedback|aufgaben|database|verify-kanal|leave|welcome-kanal|partner-kanal|ausweis|suggest|giveaway|uprank|rp announce|ic-mod|ic log|büro-log|strafregister/.test(l)) return 'channel';
   }
-  return typeHint || 'text';
+  return hint || 'text';
 }
+
 function fieldValueForLabel(label){
   const key = KEY_MAP[label];
   if (!key) return '';
@@ -440,16 +457,15 @@ function renderCard([title,desc,type,items]){
         control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${roleOptions(val)}</select>`;
       } else if (kind === 'category') {
         control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${categoryOptions(val && /^\d+$/.test(String(val)) ? val : '')}</select>`;
-      } else if (hint === 'select') {
+      } else if (kind === 'enum' || hint === 'enum' || hint === 'select') {
         let opts = String(def).split(',').map(o=>o.trim()).filter(Boolean);
         if (label === 'Sprache' || key === 'language') opts = ['de','en'];
         if (label === 'Support-VC Modus' || key === 'supportVcMode') opts = ['Bestehende Channels','Join2Create'];
-        if (label === 'Warteraum-Musik' || label === 'Musik-Preset' || label === 'Appeals aktiv' || label === 'Nur bei aktivem Ban' || label === 'Feedback als Sticky' || label === 'Abmeldung muss bestätigt werden' || label === 'Häuser auf Ausweis anzeigen' || label === 'Externe Apps deaktivieren' || label === 'Anti-Nuke' || label === 'Anti-Raid' || label === 'Welcome Ping' || label === 'Join-to-Create Support-VCs') {
-          if (label === 'Musik-Preset') opts = ['DE','EN'];
-          else opts = ['An','Aus'];
-        }
-        if (!opts.length) opts.push(def||'—');
-        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}"><option value="">—</option>${opts.map(o=>`<option value="${escapeHtml(o)}"${String(val)===o?' selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
+        if (label === 'Musik-Preset' || key === 'warteraumMusicPreset') opts = ['DE','EN'];
+        else if (/^(Warteraum-Musik|Appeals aktiv|Nur bei aktivem Ban|Feedback als Sticky|Abmeldung muss bestätigt werden|Häuser auf Ausweis anzeigen|Externe Apps deaktivieren|Anti-Nuke|Anti-Raid|Welcome Ping|Join-to-Create Support-VCs|Stats Tickets|Stats Support|Stats Duty)$/.test(label)) opts = ['An','Aus'];
+        if (!opts.length) opts = [def||'—'].filter(Boolean);
+        const cur = String(val||'');
+        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}"><option value="">—</option>${opts.map(o=>`<option value="${escapeHtml(o)}"${cur===o?' selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
       } else {
         control = `<input data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}" value="${escapeHtml(val)}" placeholder="${escapeHtml(def)}">`;
       }
@@ -477,17 +493,56 @@ function renderCard([title,desc,type,items]){
     const storeKey = items[0] || 'list';
     let arr = state.settings[storeKey];
     if(!Array.isArray(arr)) arr = [];
-    body = `<div class="listedit" data-store="${escapeHtml(storeKey)}">
-      <div class="listedit-items">${arr.map((row,i)=>{
-        const text = typeof row === 'string' ? row : (row.name || row.question || row.label || row.reason || JSON.stringify(row));
-        return `<div class="setting-row"><span>${escapeHtml(String(text))}</span><button type="button" class="btn listedit-rm" data-i="${i}">✕</button></div>`;
-      }).join('') || '<p style="color:#888;font-size:12px">Noch leer — Eintrag hinzufügen.</p>'}
-      </div>
-      <div class="listedit-add" style="display:flex;gap:8px;margin-top:8px">
+    const itemRows = arr.map((row,i)=>{
+      if (storeKey === 'officesList' && row && typeof row === 'object') {
+        return `<div class="list-card" data-i="${i}">
+          <div class="list-card-head"><b>${escapeHtml(row.name||'Büro')}</b><button type="button" class="btn listedit-rm" data-i="${i}">Entfernen</button></div>
+          <div class="list-card-meta">Warteraum: ${escapeHtml(row.waitingChannelId||'—')} · Rolle: ${escapeHtml(row.pingRoleId||'—')} · VC: ${escapeHtml(row.voiceChannelId||'—')}</div>
+        </div>`;
+      }
+      if (storeKey === 'ticketTypes' && row && typeof row === 'object') {
+        return `<div class="list-card" data-i="${i}">
+          <div class="list-card-head"><b>${escapeHtml((row.emoji?row.emoji+' ':'')+(row.name||'Ticket'))}</b><button type="button" class="btn listedit-rm" data-i="${i}">Entfernen</button></div>
+          <div class="list-card-meta">${escapeHtml(row.description||'')} · Cat: ${escapeHtml(row.categoryId||'—')} · Staff: ${escapeHtml(row.supportRoleId||row.staffRoleId||'—')}</div>
+        </div>`;
+      }
+      const text = typeof row === 'string' ? row : (row.name || row.question || row.label || row.reason || JSON.stringify(row));
+      return `<div class="setting-row"><span>${escapeHtml(String(text))}</span><button type="button" class="btn listedit-rm" data-i="${i}">Entfernen</button></div>`;
+    }).join('') || '<p class="list-empty">Noch keine Einträge.</p>';
+
+    let form = '';
+    if (storeKey === 'officesList') {
+      form = `<div class="structured-form" data-form="officesList">
+        <div class="form-title">Büro hinzufügen</div>
+        <label class="setting-row"><span>Name</span><input class="sf-name" placeholder="z.B. Highteam Büro"></label>
+        <label class="setting-row"><span>Warteraum</span><select class="sf-wait">${channelOptions('')}</select></label>
+        <label class="setting-row"><span>Rolle bei Beitritt</span><select class="sf-role">${roleOptions('')}</select></label>
+        <label class="setting-row"><span>Büro VC</span><select class="sf-voice">${channelOptions('')}</select></label>
+        <button type="button" class="btn btn-primary listedit-add-btn" style="margin-top:8px">Büro hinzufügen</button>
+      </div>`;
+    } else if (storeKey === 'ticketTypes') {
+      form = `<div class="structured-form" data-form="ticketTypes">
+        <div class="form-title">Ticket-Art hinzufügen</div>
+        <label class="setting-row"><span>Name</span><input class="sf-name" placeholder="z.B. Support"></label>
+        <label class="setting-row"><span>Emoji</span><input class="sf-emoji" placeholder="🎫" style="max-width:80px"></label>
+        <label class="setting-row"><span>Beschreibung</span><input class="sf-desc" placeholder="Kurze Beschreibung"></label>
+        <label class="setting-row"><span>Staff-Rolle</span><select class="sf-staff">${roleOptions('')}</select></label>
+        <label class="setting-row"><span>Ping-Rolle</span><select class="sf-ping">${roleOptions('')}</select></label>
+        <label class="setting-row"><span>Kategorie</span><select class="sf-cat">${categoryOptions('')}</select></label>
+        <label class="setting-row"><span>Eröffnungs-Embed</span><textarea class="sf-open" rows="2" placeholder="Text beim Öffnen"></textarea></label>
+        <label class="setting-row"><span>Schließungs-Embed</span><textarea class="sf-close" rows="2" placeholder="Text beim Schließen"></textarea></label>
+        <button type="button" class="btn btn-primary listedit-add-btn" style="margin-top:8px">Ticket-Art hinzufügen</button>
+      </div>`;
+    } else {
+      form = `<div class="listedit-add" style="display:flex;gap:8px;margin-top:8px">
         <input class="listedit-input" placeholder="Neuer Eintrag…" style="flex:1">
         <button type="button" class="btn btn-primary listedit-add-btn">Hinzufügen</button>
-      </div>
-      <p style="font-size:11px;color:#888;margin-top:6px">Für Gründe z.B. <code>VDM | 1:warn,2:kick,3:ban</code> · Für Büros: <code>Name | Warteraum-Kanal-ID | Rollen-ID</code></p>
+      </div>`;
+    }
+
+    body = `<div class="listedit" data-store="${escapeHtml(storeKey)}">
+      <div class="listedit-items">${itemRows}</div>
+      ${form}
     </div>`;
   }
   if(type==='table') body=`<div class="table-wrap"><table><thead><tr><th>Member</th><th>XP</th><th>Tickets</th><th>Duty</th></tr></thead><tbody><tr><td colspan="4">—</td></tr></tbody></table></div>`;
@@ -504,17 +559,16 @@ function renderCard([title,desc,type,items]){
 
     function addBlock(title, accept, onFile) {
       const card = document.createElement('div');
-      card.className = 'card file-upload-block';
-      card.innerHTML = `<h3>${title}</h3>
-        <div class="setting-row">
-          <div class="setting-info"><span class="setting-label">${title}</span>
-          <span class="setting-desc">Datei wählen und hochladen</span></div>
+      card.className = 'settings-card glass file-upload-block';
+      card.innerHTML = `<div class="card-head"><div><h3>${title}</h3><p>Datei wählen und hochladen</p></div></div>
+        <div class="card-body"><div class="setting-row">
+          <span>${title}</span>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <input type="file" accept="${accept}" class="fu-input" style="max-width:220px">
+            <input type="file" accept="${accept}" class="fu-input" style="max-width:220px;background:#111;color:#ddd;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px">
             <button type="button" class="btn btn-primary fu-btn">Upload</button>
             <span class="fu-status" style="font-size:12px;color:#9aa3b8"></span>
           </div>
-        </div>`;
+        </div></div>`;
       const inp = card.querySelector('.fu-input');
       const btn = card.querySelector('.fu-btn');
       const st = card.querySelector('.fu-status');
@@ -543,24 +597,24 @@ function renderCard([title,desc,type,items]){
       });
     }
 
-    if (catId === 'warteraum' && S.uploadMusic) {
+    if (catId === 'warteraum' && API && API.uploadMusic) {
       addBlock('Warteraum Musik-Datei', 'audio/*,.mp3,.ogg,.wav,.webm,.m4a', async (f, st) => {
         const data = await readAsDataURL(f);
-        await S.uploadMusic(state.guildId, f.name, data);
+        await API.uploadMusic(state.guildId, f.name, data);
       });
     }
-    if (catId === 'tickets' && S.uploadTicketImage) {
+    if (catId === 'tickets' && API && API.uploadTicketImage) {
       addBlock('Ticket Panel Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
         const data = await readAsDataURL(f);
-        await S.uploadTicketImage(state.guildId, 'panel', data);
+        await API.uploadTicketImage(state.guildId, 'panel', data);
       });
       addBlock('Ticket Eröffnung Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
         const data = await readAsDataURL(f);
-        await S.uploadTicketImage(state.guildId, 'create', data);
+        await API.uploadTicketImage(state.guildId, 'create', data);
       });
       addBlock('Ticket Close Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
         const data = await readAsDataURL(f);
-        await S.uploadTicketImage(state.guildId, 'close', data);
+        await API.uploadTicketImage(state.guildId, 'close', data);
       });
     }
   }
@@ -595,49 +649,90 @@ function renderCard([title,desc,type,items]){
 
   const saveBtn = $('saveAll');
   if(saveBtn) saveBtn.onclick = () => saveCurrent();
-  panel.querySelectorAll('.toggle').forEach(t=>{ t.onclick = () => t.classList.toggle('on'); });
+  panel.querySelectorAll('.toggle').forEach(t=>{
+    t.onclick = () => {
+      t.classList.toggle('on');
+      const k = t.getAttribute('data-switch');
+      if (!k) return;
+      if (!state.modules) state.modules = {};
+      const on = t.classList.contains('on');
+      // module keys are short ids without Role
+      if (MODULE_MAP[t.getAttribute('data-label')] || Object.values(MODULE_MAP).includes(k)) {
+        state.modules[k] = on;
+      } else if (KEY_MAP[t.getAttribute('data-label')]) {
+        state.settings[KEY_MAP[t.getAttribute('data-label')]] = on;
+      } else {
+        state.modules[k] = on;
+      }
+      // rebuild nav to hide disabled modules
+      try { buildNav(); } catch(e) {}
+    };
+  });
   panel.querySelectorAll('.action-btn').forEach(b=>{ b.onclick = () => handleAction(b.dataset.action, id); });
   panel.querySelectorAll('.role-btn').forEach(b=>{ b.onclick = () => openRoleDrawer(b); });
   panel.querySelectorAll('.listedit').forEach(box=>{
     const key = box.getAttribute('data-store');
-    const refresh = () => openCategory(id);
     box.querySelectorAll('.listedit-rm').forEach(btn=>{
       btn.onclick = () => {
+        const i = parseInt(btn.getAttribute('data-i'), 10);
         let arr = state.settings[key];
         if(!Array.isArray(arr)) arr = [];
-        arr.splice(Number(btn.getAttribute('data-i')), 1);
+        arr.splice(i, 1);
         state.settings[key] = arr;
         refresh();
       };
     });
     const addBtn = box.querySelector('.listedit-add-btn');
-    const inp = box.querySelector('.listedit-input');
-    if(addBtn && inp){
-      addBtn.onclick = () => {
-        const v = (inp.value||'').trim();
+    if(!addBtn) return;
+    addBtn.onclick = () => {
+      let arr = state.settings[key];
+      if(!Array.isArray(arr)) arr = [];
+      if (key === 'officesList') {
+        const name = (box.querySelector('.sf-name')||{}).value || '';
+        const waitingChannelId = (box.querySelector('.sf-wait')||{}).value || '';
+        const pingRoleId = (box.querySelector('.sf-role')||{}).value || '';
+        const voiceChannelId = (box.querySelector('.sf-voice')||{}).value || '';
+        if (!name.trim()) { toast('Error'); return; }
+        arr.push({ name: name.trim(), waitingChannelId, pingRoleId, voiceChannelId });
+      } else if (key === 'ticketTypes') {
+        const name = (box.querySelector('.sf-name')||{}).value || '';
+        const emoji = (box.querySelector('.sf-emoji')||{}).value || '';
+        const description = (box.querySelector('.sf-desc')||{}).value || '';
+        const supportRoleId = (box.querySelector('.sf-staff')||{}).value || '';
+        const pingRoleId = (box.querySelector('.sf-ping')||{}).value || '';
+        const categoryId = (box.querySelector('.sf-cat')||{}).value || '';
+        const openEmbed = (box.querySelector('.sf-open')||{}).value || '';
+        const closeEmbed = (box.querySelector('.sf-close')||{}).value || '';
+        if (!name.trim()) { toast('Error'); return; }
+        arr.push({
+          name: name.trim(),
+          emoji: emoji.trim(),
+          description: description.trim(),
+          supportRoleId,
+          staffRoleId: supportRoleId,
+          pingRoleId,
+          categoryId,
+          openEmbed: openEmbed.trim(),
+          closeEmbed: closeEmbed.trim(),
+          maxLoad: '10'
+        });
+      } else {
+        const inp = box.querySelector('.listedit-input');
+        const v = (inp && inp.value || '').trim();
         if(!v) return;
-        let arr = state.settings[key];
-        if(!Array.isArray(arr)) arr = [];
-        // parse special formats
         if(key === 'modReasons' && v.includes('|')){
           const [reason, ladder] = v.split('|').map(s=>s.trim());
           arr.push({ reason, ladder: ladder || '' });
-        } else if(key === 'officesList' && v.includes('|')){
-          const parts = v.split('|').map(s=>s.trim());
-          arr.push({ name: parts[0], waitingChannelId: parts[1]||'', pingRoleId: parts[2]||'', voiceChannelId: parts[3]||'' });
-        } else if(key === 'ticketTypes' && v.includes('|')){
-          const parts = v.split('|').map(s=>s.trim());
-          arr.push({ name: parts[0], supportRoleId: parts[1]||'', maxLoad: parts[2]||'10' });
         } else if(key === 'applicationsList' && v.includes('|')){
           const parts = v.split('|').map(s=>s.trim());
           arr.push({ name: parts[0], acceptRoleId: parts[1]||'' });
         } else {
           arr.push(v);
         }
-        state.settings[key] = arr;
-        refresh();
-      };
-    }
+      }
+      state.settings[key] = arr;
+      refresh();
+    };
   });
   // Join2Create conditional: hide/show field groups by mode
   if(id === 'warteraum'){
@@ -846,21 +941,40 @@ function renderServerList(){
   });
 }
 
+function moduleEnabledForCat(catId){
+  // always show server/meta categories
+  if (['allgemein','module','logs'].includes(catId)) return true;
+  const map = {
+    tickets:'tickets', warteraum:'warteraum', admincall:'adminCall', offices:'offices',
+    applications:'applications', team:'team', duty:'duty', abmeldung:'abmeldung',
+    feedback:'feedback', tasks:'tasks', database:'database', factions:'factions',
+    houses:'houses', moderation:null, records:null, stats:null, security:'security',
+    welcome:'welcomeLeave', verify:'verify', interview:'interview', suggest:'suggest',
+    giveaway:'giveaway', xp:'xp', rp:null, partner:'partner', ausweis:'ausweis',
+    unban:null, dizzy:'dizzy', ic:'icPanel', icmod:'icModeration', teamlist:null
+  };
+  const mod = map[catId];
+  if (!mod) return true;
+  const mods = state.modules || {};
+  if (mods[mod] === false || mods[mod] === 0 || mods[mod] === 'off') return false;
+  return true;
+}
 function buildNav(){
   const nav = $('categories');
   if(!nav) return;
-  // GROUPS structure from reference
   if (typeof GROUPS !== 'undefined' && GROUPS.length) {
     nav.innerHTML = GROUPS.map(([gname, ids])=>{
       const links = ids.map(id=>{
         const c = C.find(x=>x[0]===id);
         if(!c) return '';
+        if (!moduleEnabledForCat(id)) return '';
         return `<button type="button" class="nav-link" data-cat="${c[0]}"><span class="nav-label">${escapeHtml(c[1])}</span></button>`;
       }).join('');
+      if (!links.replace(/\s/g,'')) return '';
       return `<div class="nav-group"><div class="nav-group-title">${escapeHtml(gname)}</div>${links}</div>`;
     }).join('');
   } else {
-    nav.innerHTML = C.map(c=>`<button type="button" class="nav-link" data-cat="${c[0]}"><span class="nav-label">${escapeHtml(c[1])}</span></button>`).join('');
+    nav.innerHTML = C.filter(c=>moduleEnabledForCat(c[0])).map(c=>`<button type="button" class="nav-link" data-cat="${c[0]}"><span class="nav-label">${escapeHtml(c[1])}</span></button>`).join('');
   }
   nav.querySelectorAll('[data-cat]').forEach(x=>{
     x.onclick = ()=> openCategory(x.dataset.cat);
