@@ -16,8 +16,7 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="/api.js?v=gate1"></script>
-<script src="/gate.js?v=gate1"></script>
+<script src="/api.js?v=fix2"></script>
 <script>
 (function(){
   function toast(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
@@ -40,7 +39,7 @@
     }
   }
   document.addEventListener('DOMContentLoaded',function(){
-    if(window.StafforaGate) window.StafforaGate.ensure(start);
+    if(window.StafforaGate) window.start();
     else start();
   });
 })();

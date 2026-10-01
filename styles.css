@@ -425,3 +425,17 @@ footer a:hover{color:#fff}
 @media(max-width:900px){
   .module-strip{grid-template-columns:1fr}
 }
+
+/* login banner + toggle */
+.login-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;border-radius:12px;margin-bottom:14px;border:1px solid rgba(117,91,255,.35);background:linear-gradient(135deg,rgba(109,48,255,.18),rgba(58,96,255,.08))}
+.login-banner b{display:block;font-size:13px;margin-bottom:4px}
+.login-banner p{margin:0;font-size:11px;color:#9aa3b8;line-height:1.4}
+.btn.toggle,.toggle{width:44px;height:24px;border-radius:99px;border:0;background:rgba(255,255,255,.12);position:relative;padding:0;flex:none;cursor:pointer}
+.btn.toggle i,.toggle i{display:block;width:18px;height:18px;border-radius:50%;background:#aeb7ca;position:absolute;top:3px;left:3px;transition:.2s;pointer-events:none}
+.btn.toggle.on,.toggle.on{background:linear-gradient(90deg,#7c3cff,#4c7dff)}
+.btn.toggle.on i,.toggle.on i{left:23px;background:#fff}
+.setting-row select,.setting-row input{min-width:180px;max-width:280px;height:32px;padding:6px 10px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:#232324;color:#e8e8ea}
+.role-btn{width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid rgba(255,255,255,.06);border-radius:10px;background:rgba(255,255,255,.03);text-align:left;margin:4px 0}
+.role-btn span{color:#888;font-size:11px}
+.action-row{display:flex;flex-wrap:wrap;gap:8px;padding:8px 0}
+.settings-panel{display:block;min-height:200px}

@@ -1,28 +1,19 @@
 window.STAFFORA_API = window.STAFFORA_API || "https://staffora.apps.bot-hosting.cloud";
-/** Set false later to disable key gate completely */
-window.STAFFORA_EARLY_ACCESS = true;
+window.STAFFORA_EARLY_ACCESS = false;
 window.StafforaAPI = (function () {
   var API = window.STAFFORA_API;
   var tokenKey = "staffora_token";
-  var accessKey = "staffora_access_key";
+  var staffFlag = "staffora_staff_ok";
 
   function token() { try { return localStorage.getItem(tokenKey) || ""; } catch (e) { return ""; } }
   function setToken(t) {
     try { if (t) localStorage.setItem(tokenKey, t); else localStorage.removeItem(tokenKey); } catch (e) {}
-  }
-  function getAccessKey() {
-    try { return localStorage.getItem(accessKey) || ""; } catch (e) { return ""; }
-  }
-  function setAccessKey(k) {
-    try { if (k) localStorage.setItem(accessKey, k); else localStorage.removeItem(accessKey); } catch (e) {}
   }
   function headers(json) {
     var h = { Accept: "application/json" };
     if (json) h["Content-Type"] = "application/json";
     var t = token();
     if (t) h["Authorization"] = "Bearer " + t;
-    var ak = getAccessKey();
-    if (ak) h["X-Staffora-Access-Key"] = ak;
     return h;
   }
   async function req(path, opts) {
@@ -43,7 +34,7 @@ window.StafforaAPI = (function () {
     var text = await res.text();
     var data = null;
     try { data = text ? JSON.parse(text) : null; } catch (e) { data = { raw: text }; }
-    if (!res.ok) throw new Error("Error");
+    if (!res.ok) throw new Error((data && (data.error || data.message)) || "Error");
     return data;
   }
   function login(returnUrl) {
@@ -59,32 +50,10 @@ window.StafforaAPI = (function () {
       history.replaceState({}, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
     }
   }
-  function hasAccess() {
-    if (!window.STAFFORA_EARLY_ACCESS) return true;
-    return !!getAccessKey();
-  }
-  async function validateAccessKey(key) {
-    key = String(key || "").replace(/\s+/g, "").trim();
-    if (!/^[A-Za-z0-9]{32}$/.test(key)) throw new Error("Error");
-    try {
-      var data = await req("/api/early-access/validate", { method: "POST", body: { key: key } });
-      if (!data || data.valid === false) throw new Error("Error");
-      setAccessKey(key);
-      return data;
-    } catch (e) {
-      // Soft accept: valid format stored if bot unreachable
-      setAccessKey(key);
-      return { valid: true, soft: true };
-    }
-  }
   return {
     getToken: token, setToken: setToken, readToken: readTokenFromUrl,
-    logout: function () { setToken(""); },
+    logout: function () { setToken(""); try { sessionStorage.removeItem(staffFlag); } catch(e){} },
     login: login,
-    getAccessKey: getAccessKey, setAccessKey: setAccessKey,
-    clearAccessKey: function () { setAccessKey(""); },
-    hasAccess: hasAccess,
-    validateAccessKey: validateAccessKey,
     me: function () { return req("/api/me"); },
     guilds: function (refresh) { return req("/api/guilds" + (refresh ? "?refresh=1" : "")); },
     config: function (gid) { return req("/api/guilds/" + gid + "/config"); },
@@ -101,6 +70,42 @@ window.StafforaAPI = (function () {
       return req("/api/guilds/" + gid + "/panels/send", {
         method: "POST", body: { type: type, channelId: channelId }
       });
-    }
+    },
+    /* Public Unban / Appeal */
+    unbanServers: function () { return req("/api/public/unban/servers"); },
+    unbanConfig: function (gid) { return req("/api/public/guilds/" + gid + "/unban/config"); },
+    unbanCheck: function (gid, robloxUsername) {
+      return req("/api/public/guilds/" + gid + "/unban/check", {
+        method: "POST", body: { robloxUsername: robloxUsername }
+      });
+    },
+    unbanSubmit: function (gid, body) {
+      return req("/api/public/guilds/" + gid + "/unban/submit", { method: "POST", body: body || {} });
+    },
+    /* Staff portal (Discord OAuth + roster) */
+    staffMe: function () { return req("/api/staff-portal/me"); },
+    staffOverview: function () { return req("/api/staff-portal/overview"); },
+    staffGuilds: function () { return req("/api/staff-portal/guilds"); },
+    staffBlacklist: function () { return req("/api/staff-portal/blacklist"); },
+    staffBlacklistAdd: function (guildId, reason) {
+      return req("/api/staff-portal/blacklist/add", { method: "POST", body: { guildId: guildId, reason: reason } });
+    },
+    staffBlacklistRemove: function (guildId) {
+      return req("/api/staff-portal/blacklist/remove", { method: "POST", body: { guildId: guildId } });
+    },
+    staffErrors: function () { return req("/api/staff-portal/errors"); },
+    staffInvite: function (guildId) {
+      return req("/api/staff-portal/invite", { method: "POST", body: { guildId: guildId } });
+    },
+    staffPremiumGrant: function (userId, days) {
+      return req("/api/staff-portal/premium/grant", { method: "POST", body: { userId: userId, days: days } });
+    },
+    staffPremiumRevoke: function (userId) {
+      return req("/api/staff-portal/premium/revoke", { method: "POST", body: { userId: userId } });
+    },
+    staffPremiumCheck: function (userId) {
+      return req("/api/staff-portal/premium/" + encodeURIComponent(userId));
+    },
+    staffRoster: function () { return req("/api/staff-portal/roster"); }
   };
 })();

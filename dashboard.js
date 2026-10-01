@@ -234,21 +234,31 @@ function renderCard([title,desc,type,items]){
 function openCategory(id){
   const c=C.find(x=>x[0]===id);
   if(!c) return;
-  if(!state.guildId){
-    toast('Error');
-    $('serverPicker') && $('serverPicker').classList.add('open');
-    return;
-  }
   state.currentCat = id;
   document.querySelectorAll('[data-cat]').forEach(x=>x.classList.toggle('active',x.dataset.cat===id));
   const empty=$('empty');
   if(empty){ empty.classList.add('hidden'); empty.style.display='none'; }
   const panel=$('settingsPanel');
+  if(!panel) return;
   panel.classList.remove('hidden');
   panel.style.display='block';
-  // UI: c[1]=name, c[2]=desc (reference style)
-  panel.innerHTML=`<div class="settings-heading"><div><div class="breadcrumb">Server Control <span>/</span> ${escapeHtml(c[1])}</div><h2>${escapeHtml(c[1])}</h2><p>${escapeHtml(c[2])}</p></div><button class="btn btn-primary" id="saveAll" type="button">Speichern</button></div><div class="settings-grid">${(templates[id]||[]).map(renderCard).join('')}</div>`;
-  $('saveAll').onclick = () => saveCurrent();
+
+  let banner = '';
+  if(!API || !API.getToken()){
+    banner = `<div class="login-banner glass"><div><b>Discord Login nötig</b><p>Melde dich an, wähle deinen Server und speichere Einstellungen.</p></div><button type="button" class="btn btn-primary" id="bannerLogin">Mit Discord anmelden</button></div>`;
+  } else if(!state.guildId){
+    banner = `<div class="login-banner glass"><div><b>Server wählen</b><p>Wähle links oben deinen Server, damit Kanäle und Rollen geladen werden.</p></div><button type="button" class="btn btn-primary" id="bannerServer">Server wählen</button></div>`;
+  }
+
+  panel.innerHTML = banner + `<div class="settings-heading"><div><div class="breadcrumb">Server Control <span>/</span> ${escapeHtml(c[1])}</div><h2>${escapeHtml(c[1])}</h2><p>${escapeHtml(c[2])}</p></div><button class="btn btn-primary" id="saveAll" type="button">Speichern</button></div><div class="settings-grid">${(templates[id]||[]).map(renderCard).join('')}</div>`;
+
+  const bl = $('bannerLogin');
+  if(bl) bl.onclick = ()=> API.login(location.origin + '/dashboard/');
+  const bs = $('bannerServer');
+  if(bs) bs.onclick = ()=> { const p=$('serverPicker'); if(p) p.classList.add('open'); };
+
+  const saveBtn = $('saveAll');
+  if(saveBtn) saveBtn.onclick = () => saveCurrent();
   panel.querySelectorAll('.toggle').forEach(t=>{ t.onclick = () => t.classList.toggle('on'); });
   panel.querySelectorAll('.action-btn').forEach(b=>{ b.onclick = () => handleAction(b.dataset.action, id); });
   panel.querySelectorAll('.role-btn').forEach(b=>{ b.onclick = () => openRoleDrawer(b); });
@@ -492,61 +502,71 @@ function bindUi(){
 
 async function boot(){
   bindUi();
+  // Always show first category so main is never empty
+  openCategory(state.currentCat || 'allgemein');
+
   if(!API){ toast('Error'); return; }
   API.readToken();
+
   if(!API.getToken()){
-    const su = document.querySelector('.side-user .grow');
+    const su = document.querySelector('.side-user');
     if(su){
-      document.querySelector('.side-user').innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Mit Discord anmelden</button>`;
-      $('loginBtn').onclick = ()=> API.login(location.origin + '/dashboard/');
+      su.innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Mit Discord anmelden</button>`;
+      const lb = $('loginBtn');
+      if(lb) lb.onclick = ()=> API.login(location.origin + '/dashboard/');
     }
-    toast('Error');
-    $('serverPicker') && $('serverPicker').classList.add('open');
+    // refresh category banner
+    openCategory(state.currentCat || 'allgemein');
     return;
   }
+
   try {
     const me = await API.me();
     state.user = me;
     const name = me.username || me.global_name || 'User';
-    document.querySelectorAll('.side-user b').forEach(el=>{ el.textContent = name; });
-    document.querySelectorAll('.side-user small').forEach(el=>{ el.textContent = 'eingeloggt'; });
-    if (me.avatar) {
-      document.querySelectorAll('.side-user .avatar').forEach(el=>{
-        el.style.backgroundImage = 'url('+me.avatar+')';
-        el.style.backgroundSize = 'cover';
-        el.textContent = '';
-      });
-    } else {
-      document.querySelectorAll('.side-user .avatar').forEach(el=>{
-        el.textContent = (name||'U').charAt(0).toUpperCase();
-      });
+    const su = document.querySelector('.side-user');
+    if(su){
+      const letter = (name||'U').charAt(0).toUpperCase();
+      const av = me.avatar
+        ? `<span class="avatar" style="background-image:url(${me.avatar});background-size:cover"></span>`
+        : `<span class="avatar">${letter}</span>`;
+      su.innerHTML = `${av}<span class="grow"><b>${escapeHtml(name)}</b><small>eingeloggt</small></span><button type="button" class="btn" id="logoutBtn" style="padding:6px 10px;font-size:11px">Logout</button>`;
+      const lo = $('logoutBtn');
+      if(lo) lo.onclick = ()=>{ API.logout(); location.reload(); };
     }
   } catch(e){
     toast('Error');
     API.logout();
-    API.login(location.origin + '/dashboard/');
+    const su = document.querySelector('.side-user');
+    if(su){
+      su.innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Mit Discord anmelden</button>`;
+      const lb = $('loginBtn');
+      if(lb) lb.onclick = ()=> API.login(location.origin + '/dashboard/');
+    }
+    openCategory(state.currentCat || 'allgemein');
     return;
   }
+
   try {
     const g = await API.guilds(true);
-    state.guilds = Array.isArray(g) ? g : (g.guilds || g.servers || []);
+    state.guilds = Array.isArray(g) ? g : ((g && (g.guilds || g.servers)) || []);
     renderServerList();
-    $('serverPicker') && $('serverPicker').classList.add('open');
     if(state.guilds.length === 1){
       const g0 = state.guilds[0];
       setServerMeta(g0);
       await loadGuild(g0.id, { refresh: true });
-      $('serverPicker').classList.remove('open');
+      $('serverPicker') && $('serverPicker').classList.remove('open');
+    } else if(state.guilds.length > 1){
+      $('serverPicker') && $('serverPicker').classList.add('open');
+      openCategory(state.currentCat || 'allgemein');
+    } else {
+      openCategory(state.currentCat || 'allgemein');
+      toast('Error');
     }
   } catch(e){
     toast('Error');
+    openCategory(state.currentCat || 'allgemein');
   }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-  if (window.StafforaGate) {
-    window.StafforaGate.ensure(boot);
-  } else {
-    boot();
-  }
-});
+document.addEventListener('DOMContentLoaded', boot);

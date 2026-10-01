@@ -1,8 +1,59 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Staffora — Ban Appeal</title><link rel="stylesheet" href="/styles.css"></head><body><div class="appeal-wrap"><section class="appeal glass"><a class="back" href="/">← Zurück zu Staffora</a><div class="eyebrow">Unban / Ban Appeal</div><h1>Ban Appeal</h1><p>Fülle das Formular vollständig und ehrlich aus. Das Staff-Team prüft deine Anfrage anhand der Serverregeln und der hinterlegten Moderationsdaten.</p><div class="notice">Hinweis: In der echten Integration wird hier geprüft, ob für deine Discord-ID ein aktiver Ban vorhanden ist.</div>
-<form class="form" style="margin-top:22px" onsubmit="event.preventDefault();document.getElementById('sent').hidden=false">
-<div class="field"><label class="label">Discord ID</label><input class="input" placeholder="z. B. 123456789012345678" required></div>
-<div class="field"><label class="label">Ban-Grund</label><input class="input" placeholder="Falls bekannt"></div>
-<div class="field"><label class="label">Warum sollte der Ban aufgehoben werden?</label><textarea class="textarea" required placeholder="Beschreibe deinen Fall..."></textarea></div>
-<div class="field"><label class="label">Was hast du aus dem Vorfall gelernt?</label><textarea class="textarea" required placeholder="Deine Antwort..."></textarea></div>
-<div class="field"><label class="label">Zusätzliche Informationen</label><textarea class="textarea" placeholder="Optional"></textarea></div>
-<button class="btn btn-primary" type="submit">Appeal absenden →</button></form><div id="sent" class="notice" style="margin-top:15px" hidden>✓ Demo-Übermittlung erfolgreich. Im Backend würde der Antrag jetzt gespeichert und an das Staff-Team weitergeleitet.</div></section></div><script src="/api.js"></script></body></html>
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staffora — Ban Appeal</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.appeal-wrap{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px}
+.appeal{width:min(560px,100%);padding:28px;border-radius:18px}
+.appeal h1{margin:8px 0 10px;font-size:26px}
+.appeal .step{display:none}.appeal .step.on{display:block}
+.appeal .field{margin-bottom:14px}
+.appeal .label{display:block;font-size:12px;color:#9aa3b8;margin-bottom:6px}
+.appeal select,.appeal input,.appeal textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.35);color:#fff;outline:0}
+.appeal textarea{min-height:90px;resize:vertical}
+.appeal .notice{padding:12px 14px;border-radius:10px;background:rgba(117,91,255,.12);border:1px solid rgba(117,91,255,.25);font-size:13px;margin:12px 0;line-height:1.45}
+.appeal .notice.err{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#fca5a5}
+.appeal .notice.ok{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);color:#6ee7b7}
+.appeal .back{display:inline-block;margin-bottom:14px;color:#9aa3b8;font-size:13px}
+.appeal .row-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+</style>
+</head>
+<body class="scene">
+<div class="appeal-wrap">
+  <section class="appeal glass">
+    <a class="back" href="/">← Staffora</a>
+    <div class="eyebrow">UNBAN</div>
+    <h1>Ban Appeal</h1>
+    <p style="color:#9aa3b8;margin:0 0 18px;font-size:14px;line-height:1.5">Server wählen → Roblox-Name prüfen → Formular absenden.</p>
+
+    <div class="step on" id="step1">
+      <div class="field">
+        <label class="label">Server</label>
+        <select id="serverSelect"><option value="">Laden…</option></select>
+      </div>
+      <div class="field">
+        <label class="label">Roblox Username</label>
+        <input id="robloxName" placeholder="Dein Roblox-Name" autocomplete="off">
+      </div>
+      <button type="button" class="btn btn-primary" id="btnCheck">Prüfen →</button>
+      <div id="checkMsg" class="notice" hidden></div>
+    </div>
+
+    <div class="step" id="step2">
+      <div class="notice ok" id="checkOk"></div>
+      <div id="questions"></div>
+      <div class="row-btns">
+        <button type="button" class="btn" id="btnBack">← Zurück</button>
+        <button type="button" class="btn btn-primary" id="btnSubmit">Appeal absenden</button>
+      </div>
+      <div id="submitMsg" class="notice" hidden></div>
+    </div>
+  </section>
+</div>
+<script src="/api.js?v=fix3"></script>
+<script src="/appeal.js?v=fix3"></script>
+</body>
+</html>
