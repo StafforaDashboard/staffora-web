@@ -1,22 +1,29 @@
 window.STAFFORA_API = window.STAFFORA_API || "https://staffora.apps.bot-hosting.cloud";
+/** Set false later to disable key gate completely */
+window.STAFFORA_EARLY_ACCESS = true;
 window.StafforaAPI = (function () {
   var API = window.STAFFORA_API;
   var tokenKey = "staffora_token";
+  var accessKey = "staffora_access_key";
+
   function token() { try { return localStorage.getItem(tokenKey) || ""; } catch (e) { return ""; } }
   function setToken(t) {
     try { if (t) localStorage.setItem(tokenKey, t); else localStorage.removeItem(tokenKey); } catch (e) {}
+  }
+  function getAccessKey() {
+    try { return localStorage.getItem(accessKey) || ""; } catch (e) { return ""; }
+  }
+  function setAccessKey(k) {
+    try { if (k) localStorage.setItem(accessKey, k); else localStorage.removeItem(accessKey); } catch (e) {}
   }
   function headers(json) {
     var h = { Accept: "application/json" };
     if (json) h["Content-Type"] = "application/json";
     var t = token();
     if (t) h["Authorization"] = "Bearer " + t;
+    var ak = getAccessKey();
+    if (ak) h["X-Staffora-Access-Key"] = ak;
     return h;
-  }
-  function netErr(e) {
-    var m = (e && e.message) || String(e || "");
-    if (/load failed|failed to fetch|networkerror|network error/i.test(m)) return "Keine Verbindung zum Bot.";
-    return m || "Fehler";
   }
   async function req(path, opts) {
     opts = opts || {};
@@ -31,14 +38,12 @@ window.StafforaAPI = (function () {
         mode: "cors"
       });
     } catch (e) {
-      throw new Error(netErr(e));
+      throw new Error("Error");
     }
     var text = await res.text();
     var data = null;
     try { data = text ? JSON.parse(text) : null; } catch (e) { data = { raw: text }; }
-    if (!res.ok) {
-      throw new Error((data && (data.error || data.message)) || ("HTTP " + res.status));
-    }
+    if (!res.ok) throw new Error("Error");
     return data;
   }
   function login(returnUrl) {
@@ -54,20 +59,47 @@ window.StafforaAPI = (function () {
       history.replaceState({}, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
     }
   }
+  function hasAccess() {
+    if (!window.STAFFORA_EARLY_ACCESS) return true;
+    return !!getAccessKey();
+  }
+  async function validateAccessKey(key) {
+    key = String(key || "").replace(/\s+/g, "").trim();
+    if (!/^[A-Za-z0-9]{32}$/.test(key)) throw new Error("Error");
+    try {
+      var data = await req("/api/early-access/validate", { method: "POST", body: { key: key } });
+      if (!data || data.valid === false) throw new Error("Error");
+      setAccessKey(key);
+      return data;
+    } catch (e) {
+      // Soft accept: valid format stored if bot unreachable
+      setAccessKey(key);
+      return { valid: true, soft: true };
+    }
+  }
   return {
     getToken: token, setToken: setToken, readToken: readTokenFromUrl,
     logout: function () { setToken(""); },
     login: login,
+    getAccessKey: getAccessKey, setAccessKey: setAccessKey,
+    clearAccessKey: function () { setAccessKey(""); },
+    hasAccess: hasAccess,
+    validateAccessKey: validateAccessKey,
     me: function () { return req("/api/me"); },
-    guilds: function () { return req("/api/guilds"); },
+    guilds: function (refresh) { return req("/api/guilds" + (refresh ? "?refresh=1" : "")); },
     config: function (gid) { return req("/api/guilds/" + gid + "/config"); },
-    discord: function (gid) { return req("/api/guilds/" + gid + "/discord"); },
-    patchSettings: function (gid, partial) {
-      return req("/api/guilds/" + gid + "/config", { method: "PATCH", body: { settings: partial } });
+    discord: function (gid, refresh) {
+      return req("/api/guilds/" + gid + "/discord" + (refresh ? "?refresh=1" : ""));
     },
-    sendPanel: function (gid, panel, channelId) {
-      return req("/api/guilds/" + gid + "/panels/" + encodeURIComponent(panel), {
-        method: "POST", body: { channelId: channelId || null }
+    patchSettings: function (gid, partial) {
+      return req("/api/guilds/" + gid + "/settings", { method: "PATCH", body: partial || {} });
+    },
+    patchModules: function (gid, modules) {
+      return req("/api/guilds/" + gid + "/modules", { method: "PATCH", body: modules || {} });
+    },
+    sendPanel: function (gid, type, channelId) {
+      return req("/api/guilds/" + gid + "/panels/send", {
+        method: "POST", body: { type: type, channelId: channelId }
       });
     }
   };

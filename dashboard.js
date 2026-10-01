@@ -53,7 +53,7 @@ stats:[['Support-Statistik','Übersicht über Aktionen, offene Tickets und aktiv
 security:[S('Security','Schutz vor Nuke und Raids.',['Anti-Nuke','Anti-Raid']),S('Externe Apps','Externe Apps deaktivieren.',['Externe Apps deaktivieren']),F('Security Logs & Backup','Security-Logs und Backup-Zugriff.',['Security-Log|security-logs|select','Main-Log|system-logs|select','Backup Whitelist-Rolle|Security Whitelist|select'])],
 welcome:[F('Welcome / Leave','Join-/Leave-Nachrichten und Auto-Rolle.',['Welcome-Kanal|welcome|select','Welcome-Text|Willkommen {user} auf {server}!','Leave-Kanal|leave|select','Leave-Text|{user} hat den Server verlassen.','Auto-Rolle|Verified|select'])],
 verify:[F('Verify','Verify-Gate und Rollen.',['Verify-Kanal|verify|select','Verified-Rolle|Verified|select','Unverified-Rolle|Unverified|select']),B('Panel','Verify-Panel posten.',['Panel senden'])],
-community:[F('Community','Partner, Boost, Suggest und Giveaway.',['Partner-Kanal|partner|select','Boost-Kanal|boost-danke|select','Suggest-Kanal|suggest|select','Giveaway-Kanal|giveaway|select'])],
+community:[F('Community','Partner, Boost, Suggest und Giveaway.',['Partner-Kanal|partner|select','Boost-Kanal|boost-danke|select','Suggest-Kanal|suggest|select','Giveaway-Kanal|giveaway|select']),F('Interview','Interview-Fragen und Punkte.',['Interview-Log|interview-logs|select','Min. Punkte|0']),S('Community Module','',['Giveaway','Suggest'])],
 xp:[S('XP','XP-Master-Schalter und Aktionen.',['XP aktiv','XP Ticket übernehmen','XP Voice / Support','XP Feedback gut']),F('Uprank','Rank-Ups und Zeitraum.',['Uprank-Announce|xp-uprank|select','Uprank Zeitraum|7 Tage|select'])],
 rp:[F('RP','Start/Stop und Ingame-Stats.',['RP Announce|rp-announce|select','Server-Stats Kanal|server-stats|select']),B('Stats Panel','Server-Stats Panel posten.',['Stats-Panel senden'])],
 logs:[F('Zentrale Logs','Zentrale Log-Kanäle, die mit anderen Tabs überschneiden können.',['System-Log|system-logs|select','Mod-Log|mod-logs|select','Ticket-Log|ticket-logs|select','Security-Log|security-logs|select'])],
@@ -64,8 +64,9 @@ unban:[F('Unban','Website Ban Appeal.',['Appeals aktiv|An|select','Nur bei aktiv
 dizzy:[S('Dizzy Control','User schreiben ihren Roblox-Namen in den Control-Kanal; Staff bestätigt die erkannte Verknüpfung.', ['Modul aktiv']),F('Dizzy Control','Kanal und Rechte für Roblox-Verknüpfungen.',['Dizzy-Control-Kanal|dizzy-control|select','Dizzy-Log-Kanal|dizzy-logs|select']),R('Bestätigung','Nur diese Rolle darf eine Verknüpfung mit „Complete“ bestätigen.',['Staff-Rolle']),B('Sticky','Sticky-Nachricht im Control-Kanal setzen bzw. neu setzen.',['Sticky senden']),F('Ablauf','Nach dem Namen prüft der Bot die Verknüpfung und zeigt das Roblox-Profil. Staff bestätigt; danach wird das Control-Embed nach kurzer Zeit entfernt, während das Sticky bleibt bzw. neu gesetzt wird. User-Nachrichten bleiben mit Reaktion erhalten.',['Control-Embed Bereinigung|Nach Bestätigung|select','User-Nachrichten|Bleiben mit Reaktion|select'])],
 ic:[R('IC Panel Zugriff','Wer die IC-Seite nutzen darf.',['IC Access Rolle']),F('IC Logs & Moderation','Logs und Rechte für IC-Aktionen.',['IC Log|ic-logs|select','IC Mod-Rolle|IC Moderator|select'])]
 };
-const KEY_MAP={"Sprache": "language", "System-Name": "systemName", "Log-Kanal": "systemLogChannelId", "Zeitzone": "timezone", "Admin-Rolle": "adminRoleIds", "Staff-Rolle": "staffRoleIds", "Mod-Rolle": "modRoleIds", "IC Panel Zugriff": "icAccessRoleIds", "Database Manager": "databaseManagerRoleIds", "Frak-Verwaltung": "factionManageRoleIds", "Partner Manager": "partnerManagerRoleIds", "HighTeam": "highTeamRoleIds", "Ticket-Panel-Kanal": "ticketPanelChannelId", "Ticket-Log": "ticketLogChannelId", "Ticket-Kategorie": "ticketCategoryId", "Support-Rolle": "supportRoleIds", "Ticket-Blacklist-Rolle": "ticketBlacklistRoleIds", "Warteraum Voice": "warteraumVoiceChannelId", "Support-Textkanal": "supportTextChannelId", "Warteraum-Musik": "warteraumMusicEnabled", "Musik-Preset": "warteraumMusicPreset", "Join-to-Create Support-VCs": "supportJoinToCreate", "Support-VC Kategorie": "supportVcCategoryId", "Admin-Call-Panel": "adminCallPanelChannelId", "Admin-Call-Log": "adminCallLogChannelId", "Büro-Warteraum": "officeWaitingVoiceId", "Büro-Bereitschafts-Rolle": "officeReadyRoleIds", "Bewerbungs-Panel": "applicationPanelChannelId", "Bewerbungs-Log": "applicationLogChannelId", "Rolle bei Annahme": "applicationAcceptRoleIds", "Teamliste-Kanal": "teamlistChannelId", "Rollen in Teamliste": "teamlistRoleIds", "Duty-Panel": "dutyPanelChannelId", "Duty-Rolle": "dutyRoleIds", "Rollen bei Invite": "teamInviteRoleIds", "Rollen bei Kick entfernen": "teamKickRoleIds", "Team Invite/Kick Log": "teamLogChannelId", "Team-Warns bis Kick": "teamWarnsUntilKick", "Abmelde-Panel": "abmeldungPanelChannelId", "Abmelde-Log": "abmeldungLogChannelId", "Abmeldung muss bestätigt werden": "abmeldungRequireApproval", "Feedback-Kanal": "feedbackChannelId", "Feedback-Log": "feedbackLogChannelId", "Activity-Check-Kanal": "activityCheckChannelId", "Aufgaben-Panel": "tasksPanelChannelId", "Aufgaben-Log": "tasksLogChannelId", "Database-Panel": "databasePanelChannelId", "Fraktions-Announce": "factionAnnounceChannelId", "Fraktions-Log": "factionLogChannelId", "Hausliste-Kanal": "hauslisteChannelId", "Mod-Log": "modLogChannelId", "AutoMod-Log": "automodLogChannelId", "Strafregister-Log": "recordsLogChannelId", "Security-Log": "securityLogChannelId", "Welcome-Kanal": "welcomeChannelId", "Leave-Kanal": "leaveChannelId", "Auto-Rolle": "autoRoleIds", "Verify-Kanal": "verifyChannelId", "Verify-Rolle": "verifiedRoleIds", "Unverified-Rolle": "unverifiedRoleIds", "Partner-Kanal": "partnerChannelId", "Boost-Kanal": "boostChannelId", "Suggest-Kanal": "suggestChannelId", "Giveaway-Kanal": "giveawayChannelId", "Uprank-Announce": "xpUprankChannelId", "Uprank Zeitraum": "xpUprankDays", "RP Announce": "rpAnnounceChannelId", "Server-Stats Kanal": "serverStatsChannelId", "System-Log": "systemLogChannelId", "Partner-Log": "partnerLogChannelId", "Ausweis-Kanal": "ausweisChannelId", "Ausweis-Log": "ausweisLogChannelId", "Max. Zusatz-Ausweise": "ausweisMaxExtra", "Appeals aktiv": "unbanAppealsEnabled", "Nur bei aktivem Ban": "unbanRequireActiveBan", "Appeal-Log": "appealLogChannelId", "Dizzy-Control-Kanal": "dizzyControlChannelId", "Dizzy-Log-Kanal": "dizzyLogChannelId", "IC Log": "icLogChannelId", "IC Mod-Rolle": "icModRoleIds", "IC Access Rolle": "icAccessRoleIds", "Control-Embed Bereinigung": "dizzyCleanupMode", "User-Nachrichten": "dizzyKeepUserMessages"};
+const KEY_MAP={"Sprache": "language", "System-Name": "systemName", "Log-Kanal": "logChannelId", "Zeitzone": "timezone", "Admin-Rolle": "adminRoleIds", "Staff-Rolle": "staffRoleIds", "Mod-Rolle": "modRoleIds", "IC Panel Zugriff": "ingameAccessRoleIds", "Database Manager": "databaseManagerRoleIds", "Frak-Verwaltung": "factionManageRoleIds", "Partner Manager": "partnerManagerRoleIds", "HighTeam": "highTeamRoleIds", "Ticket-Panel-Kanal": "ticketPanelChannelId", "Ticket-Log": "ticketLogChannelId", "Ticket-Kategorie": "ticketCategoryId", "Support-Rolle": "ticketSupportRoleIds", "Ticket-Blacklist-Rolle": "ticketBlacklistRoleIds", "Warteraum Voice": "warteraumVoiceChannelId", "Support-Textkanal": "supportTextChannelId", "Warteraum-Musik": "warteraumMusicEnabled", "Musik-Preset": "warteraumMusicPreset", "Join-to-Create Support-VCs": "supportJoinToCreate", "Support-VC Kategorie": "supportVcCategoryId", "Admin-Call-Panel": "adminCallPanelChannelId", "Admin-Call-Log": "adminCallLogChannelId", "Büro-Warteraum": "officeWaitingChannelId", "Büro-Bereitschafts-Rolle": "officePingRoleIds", "Bewerbungs-Panel": "bewerbungPanelChannelId", "Bewerbungs-Log": "appLogChannelId", "Rolle bei Annahme": "applicationAcceptRoleIds", "Teamliste-Kanal": "teamlistChannelId", "Rollen in Teamliste": "teamlistRoleIds", "Duty-Panel": "dutyPanelChannelId", "Duty-Rolle": "dutyRoleIds", "Rollen bei Invite": "teamInviteRoleIds", "Rollen bei Kick entfernen": "teamKickRoleIds", "Team Invite/Kick Log": "teamLogChannelId", "Team-Warns bis Kick": "teamWarnsUntilKick", "Abmelde-Panel": "abmeldungPanelChannelId", "Abmelde-Log": "abmeldungLogChannelId", "Abmeldung muss bestätigt werden": "abmeldungRequireApproval", "Feedback-Kanal": "feedbackChannelId", "Feedback-Log": "feedbackLogChannelId", "Activity-Check-Kanal": "activityCheckChannelId", "Aufgaben-Panel": "tasksPanelChannelId", "Aufgaben-Log": "tasksLogChannelId", "Database-Panel": "databasePanelChannelId", "Fraktions-Announce": "factionAnnounceChannelId", "Fraktions-Log": "factionLogChannelId", "Hausliste-Kanal": "hauslisteChannelId", "Mod-Log": "modLogChannelId", "AutoMod-Log": "autoModLogChannelId", "Strafregister-Log": "recordsLogChannelId", "Security-Log": "securityLogChannelId", "Welcome-Kanal": "welcomeChannelId", "Leave-Kanal": "leaveChannelId", "Auto-Rolle": "autoRoleIds", "Verify-Kanal": "verifyChannelId", "Verify-Rolle": "verifyRoleIds", "Unverified-Rolle": "unverifiedRoleId", "Partner-Kanal": "partnerChannelId", "Boost-Kanal": "boostChannelId", "Suggest-Kanal": "suggestChannelId", "Giveaway-Kanal": "giveawayChannelId", "Uprank-Announce": "xpUprankChannelId", "Uprank Zeitraum": "xpUprankDays", "RP Announce": "rpAnnounceChannelId", "Server-Stats Kanal": "serverStatsChannelId", "System-Log": "logChannelId", "Partner-Log": "partnerLogChannelId", "Ausweis-Kanal": "ausweisChannelId", "Ausweis-Log": "ausweisLogChannelId", "Max. Zusatz-Ausweise": "ausweisMaxExtra", "Appeals aktiv": "unbanRequestEnabled", "Nur bei aktivem Ban": "unbanRequireActiveBan", "Appeal-Log": "unbanRequestChannelId", "Dizzy-Control-Kanal": "ingameDizzyChannelId", "Dizzy-Log-Kanal": "dizzyLogChannelId", "IC Log": "ingameBanLogChannelId", "IC Mod-Rolle": "ingameModRoleIds", "IC Access Rolle": "ingameAccessRoleIds"};
 const MODULE_MAP={"Tickets": "tickets", "Warteraum": "warteraum", "Admin Call": "adminCall", "Büros": "offices", "Duty": "duty", "Bewerbungen": "applications", "Teamverwaltung": "team", "Security": "security", "AutoMod": "automod", "XP": "xp", "Verify": "verify", "Welcome/Leave": "welcomeLeave", "Partner": "partner", "Fraktionen": "factions", "Ausweis": "ausweis", "Feedback": "feedback", "Aufgaben": "tasks", "Database": "database", "Abmeldung": "abmeldung", "Giveaway": "giveaway", "Suggest": "suggest", "Modul aktiv": "dizzy", "XP aktiv": "xp", "XP Ticket übernehmen": "xpTicketClaim", "XP Voice / Support": "xpVoice", "XP Feedback gut": "xpFeedback"};
+const PANEL_CHANNEL={"tickets": "ticketPanelChannelId", "adminCall": "adminCallPanelChannelId", "applications": "bewerbungPanelChannelId", "duty": "dutyPanelChannelId", "feedback": "feedbackChannelId", "tasks": "tasksPanelChannelId", "database": "databasePanelChannelId", "teamlist": "teamlistChannelId", "abmeldung": "abmeldungPanelChannelId", "verify": "verifyChannelId", "hausliste": "hauslisteChannelId", "serverStats": "serverStatsChannelId", "ausweis": "ausweisPanelChannelId", "dizzySticky": "ingameDizzyChannelId"};
 const PANEL_MAP={"Ticket-Panel senden": "tickets", "Admin-Call-Panel senden": "adminCall", "Sticky senden": "dizzySticky", "Stats-Panel senden": "serverStats", "Duty-Panel senden": "duty", "Feedback-Panel senden": "feedback", "Aufgaben-Panel senden": "tasks", "Database-Panel senden": "database", "Teamliste senden": "teamlist", "Abmelde-Panel senden": "abmeldung", "Verify-Panel senden": "verify", "Hausliste senden": "hausliste"};
 
 const API = window.StafforaAPI;
@@ -85,6 +86,39 @@ function $(id){ return document.getElementById(id); }
 function escapeHtml(s){
   return String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 }
+function formatMembers(n){
+  if (n == null || n === '' || isNaN(Number(n))) return '';
+  return Number(n).toLocaleString('de-DE') + ' Mitglieder';
+}
+function setServerMeta(g){
+  if (!g) return;
+  const name = g.name || g.id || 'Server';
+  const sn = $('serverName');
+  if (sn) sn.textContent = name;
+  const btn = $('serverButton');
+  if (btn) {
+    let small = btn.querySelector('small');
+    if (!small) {
+      const grow = btn.querySelector('.grow');
+      if (grow) { small = document.createElement('small'); grow.appendChild(small); }
+    }
+    if (small) {
+      const mc = g.memberCount != null ? formatMembers(g.memberCount) : '';
+      small.textContent = mc ? (mc + ' · Online') : 'Online';
+    }
+    const iconEl = btn.querySelector('.server-icon');
+    if (iconEl) {
+      if (g.icon) {
+        iconEl.innerHTML = '<img src="'+escapeHtml(g.icon)+'" alt="" style="width:100%;height:100%;border-radius:inherit;object-fit:cover">';
+      } else {
+        iconEl.textContent = (name||'S').charAt(0).toUpperCase();
+      }
+    }
+  }
+  const hint = $('serverHint');
+  if (hint) hint.textContent = name + ' · Einstellungen gelten nur für diesen Server.';
+}
+
 function getSetting(key, fallback){
   const s = state.settings || {};
   if (s[key] !== undefined && s[key] !== null && s[key] !== '') return s[key];
@@ -133,7 +167,7 @@ function fieldValueForLabel(label){
 function isOnLabel(label){
   if (MODULE_MAP[label]) {
     const k = MODULE_MAP[label];
-    const mods = state.settings.modules || {};
+    const mods = state.modules || state.settings.modules || {};
     if (typeof mods === 'object' && mods[k] !== undefined) return !!mods[k];
     return true;
   }
@@ -201,7 +235,7 @@ function openCategory(id){
   const c=C.find(x=>x[0]===id);
   if(!c) return;
   if(!state.guildId){
-    toast('Bitte zuerst einen Server wählen.');
+    toast('Error');
     $('serverPicker') && $('serverPicker').classList.add('open');
     return;
   }
@@ -221,7 +255,7 @@ function openCategory(id){
 }
 
 async function handleAction(label, catId){
-  if(!state.guildId){ toast('Kein Server'); return; }
+  if(!state.guildId){ toast('Error'); return; }
   let panel = PANEL_MAP[label];
   if(!panel){
     if (label.includes('Ticket')) panel = 'tickets';
@@ -242,11 +276,22 @@ async function handleAction(label, catId){
     }
   }
   try {
+    const chKey = PANEL_CHANNEL[panel];
+    let channelId = chKey ? (state.settings[chKey] || null) : null;
+    // fallback: any selected channel on page
+    if (!channelId) {
+      const sel = document.querySelector('#settingsPanel select[data-key$="ChannelId"], #settingsPanel select[data-key*="Panel"], #settingsPanel select[data-key*="Channel"]');
+      if (sel && sel.value) channelId = sel.value;
+    }
+    if (!channelId) {
+      toast('Error');
+      return;
+    }
     toast('Sende…');
-    await API.sendPanel(state.guildId, panel, null);
+    await API.sendPanel(state.guildId, panel, channelId);
     toast('Gesendet');
   } catch (e) {
-    toast(e.message || 'Senden fehlgeschlagen');
+    toast('Error');
   }
 }
 
@@ -257,7 +302,7 @@ function openRoleDrawer(btn){
   $('drawerTitle').textContent = btn.dataset.role || 'Rollen';
   const current = getSetting(key, []);
   const selSet = new Set((Array.isArray(current)?current:[current]).filter(Boolean).map(String));
-  const body = (state.roles||[]).filter(r=>!r.managed).map(r=>{
+  const body = (state.roles||[]).filter(r=>r && r.managed !== true).map(r=>{
     const on = selSet.has(String(r.id));
     return `<button type="button" class="setting-row role-pick" data-id="${r.id}" style="width:100%;text-align:left;${on?'border-color:#805dff;':''}"><b>@ ${escapeHtml(r.name)}</b>${on?' <span>✓</span>':''}</button>`;
   }).join('') || '<p>Keine Rollen geladen.</p>';
@@ -278,58 +323,88 @@ function openRoleDrawer(btn){
 }
 
 async function saveCurrent(){
-  if(!state.guildId){ toast('Kein Server'); return; }
+  if(!state.guildId){ toast('Error'); return; }
   const panel = $('settingsPanel');
   const partial = {};
   panel.querySelectorAll('[data-key]').forEach(el=>{
     const key = el.getAttribute('data-key');
     if(!key) return;
-    if (el.tagName === 'SELECT' || el.tagName === 'INPUT') partial[key] = el.value;
+    if (el.tagName === 'SELECT' || el.tagName === 'INPUT') {
+      let v = el.value;
+      // empty string → null so bot clears optional fields
+      if (v === '') v = null;
+      // numeric-looking single ids stay strings
+      partial[key] = v;
+    }
   });
-  const modules = Object.assign({}, state.settings.modules || {});
-  panel.querySelectorAll('[data-switch]').forEach(el=>{
-    const k = el.getAttribute('data-switch');
-    if(!k) return;
-    const on = el.classList.contains('on');
-    if (Object.values(MODULE_MAP).includes(k) || MODULE_MAP[el.getAttribute('data-label')]) modules[k] = on;
-    else partial[k] = on;
-  });
-  if (Object.keys(modules).length) partial.modules = modules;
+  // role arrays from drawer
   Object.keys(KEY_MAP).forEach(label=>{
     const k = KEY_MAP[label];
     if (Array.isArray(state.settings[k])) partial[k] = state.settings[k];
   });
+  // modules separate endpoint
+  const modules = Object.assign({}, state.modules || {});
+  let hasModules = false;
+  panel.querySelectorAll('[data-switch]').forEach(el=>{
+    const k = el.getAttribute('data-switch');
+    if(!k) return;
+    const on = el.classList.contains('on');
+    if (Object.values(MODULE_MAP).includes(k) || MODULE_MAP[el.getAttribute('data-label')]) {
+      modules[k] = on;
+      hasModules = true;
+    } else {
+      partial[k] = on;
+    }
+  });
   try {
     toast('Speichern…');
-    const res = await API.patchSettings(state.guildId, partial);
-    state.settings = Object.assign({}, state.settings, (res && res.settings) || partial);
+    const tasks = [];
+    if (Object.keys(partial).length) tasks.push(API.patchSettings(state.guildId, partial));
+    if (hasModules) tasks.push(API.patchModules(state.guildId, modules));
+    const results = await Promise.all(tasks);
+    const last = results[results.length - 1] || {};
+    if (last.settings) state.settings = Object.assign({}, state.settings, last.settings);
+    else state.settings = Object.assign({}, state.settings, partial);
+    if (last.modules) state.modules = Object.assign({}, state.modules, last.modules);
+    else if (hasModules) state.modules = modules;
     toast('Gespeichert');
   } catch (e) {
-    toast(e.message || 'Speichern fehlgeschlagen');
+    toast('Error');
   }
 }
 
-async function loadGuild(gid){
-  state.guildId = gid;
+async function loadGuild(gid, opts){
+  opts = opts || {};
+  state.guildId = String(gid);
+  const gmeta = (state.guilds || []).find(x => String(x.id) === String(gid));
+  if (gmeta) setServerMeta(gmeta);
   try {
+    toast('…');
     const [cfg, disc] = await Promise.all([
-      API.config(gid).catch(()=>({})),
-      API.discord(gid).catch(()=>({}))
+      API.config(gid),
+      API.discord(gid, !!opts.refresh)
     ]);
     state.config = cfg || {};
-    state.settings = (cfg && (cfg.settings || cfg.config || cfg)) || {};
-    if (state.settings.settings) state.settings = state.settings.settings;
+    // Bot returns { settings, modules, ... }
+    state.settings = Object.assign({}, (cfg && cfg.settings) || {});
+    state.modules = Object.assign({}, (cfg && cfg.modules) || {});
     state.channels = (disc && disc.channels) || [];
     state.roles = (disc && disc.roles) || [];
-    state.categories = (disc && disc.categories) || [];
-    if (!state.categories.length && state.channels.length) {
-      state.categories = state.channels.filter(c => c.type === 4 || c.type === 'GUILD_CATEGORY');
-      state.channels = state.channels.filter(c => c.type !== 4 && c.type !== 'GUILD_CATEGORY');
-    }
+    // categories: type 4
+    state.categories = state.channels.filter(c => {
+      const t = c.type;
+      return t === 4 || t === '4' || t === 'GUILD_CATEGORY' || Number(t) === 4;
+    });
+    state.channels = state.channels.filter(c => {
+      const t = c.type;
+      return !(t === 4 || t === '4' || t === 'GUILD_CATEGORY' || Number(t) === 4);
+    });
+    // Prefer text/announce for panel channel selects still includes voice for warteraum
     if (state.currentCat) openCategory(state.currentCat);
     else openCategory('allgemein');
+    toast('OK');
   } catch (e) {
-    toast(e.message || 'Laden fehlgeschlagen');
+    toast('Error');
   }
 }
 
@@ -341,24 +416,25 @@ function renderServerList(){
     list.innerHTML = '<p style="padding:12px;color:#9aa">Keine Server gefunden.</p>';
     return;
   }
-  list.innerHTML = guilds.map((g,i)=>{
+  list.innerHTML = guilds.map((g)=>{
     const name = g.name || g.id;
-    const icon = (name||'S').charAt(0).toUpperCase();
-    const sel = state.guildId === g.id ? ' selected' : '';
-    return `<button type="button" class="server-row${sel}" data-id="${g.id}" data-server="${escapeHtml(name)}"><span class="server-icon">${escapeHtml(icon)}</span><span class="grow"><b>${escapeHtml(name)}</b><small>${g.memberCount?g.memberCount+' Mitglieder':''}</small></span><span class="check">✓</span></button>`;
+    const letter = (name||'S').charAt(0).toUpperCase();
+    const sel = String(state.guildId) === String(g.id) ? ' selected' : '';
+    const members = g.memberCount != null ? formatMembers(g.memberCount) : 'Mitglieder werden geladen…';
+    const iconHtml = g.icon
+      ? `<img src="${escapeHtml(g.icon)}" alt="" style="width:100%;height:100%;border-radius:inherit;object-fit:cover">`
+      : escapeHtml(letter);
+    return `<button type="button" class="server-row${sel}" data-id="${escapeHtml(String(g.id))}" data-server="${escapeHtml(name)}"><span class="server-icon">${iconHtml}</span><span class="grow"><b>${escapeHtml(name)}</b><small>${escapeHtml(members)}</small></span><span class="check">✓</span></button>`;
   }).join('');
   list.querySelectorAll('.server-row').forEach(x=>{
     x.onclick = async ()=>{
       list.querySelectorAll('.server-row').forEach(y=>y.classList.remove('selected'));
       x.classList.add('selected');
       const id = x.dataset.id;
-      const name = x.dataset.server;
-      $('serverName').textContent = name;
-      const hint = $('serverHint');
-      if(hint) hint.textContent = name + ' · Einstellungen gelten nur für diesen Server.';
+      const gmeta = (state.guilds||[]).find(g => String(g.id) === String(id));
+      setServerMeta(gmeta || { id, name: x.dataset.server });
       $('serverPicker').classList.remove('open');
-      await loadGuild(id);
-      toast('Server: ' + name);
+      await loadGuild(id, { refresh: true });
     };
   });
 }
@@ -416,7 +492,7 @@ function bindUi(){
 
 async function boot(){
   bindUi();
-  if(!API){ toast('API fehlt'); return; }
+  if(!API){ toast('Error'); return; }
   API.readToken();
   if(!API.getToken()){
     const su = document.querySelector('.side-user .grow');
@@ -424,7 +500,7 @@ async function boot(){
       document.querySelector('.side-user').innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Mit Discord anmelden</button>`;
       $('loginBtn').onclick = ()=> API.login(location.origin + '/dashboard/');
     }
-    toast('Bitte anmelden');
+    toast('Error');
     $('serverPicker') && $('serverPicker').classList.add('open');
     return;
   }
@@ -434,26 +510,43 @@ async function boot(){
     const name = me.username || me.global_name || 'User';
     document.querySelectorAll('.side-user b').forEach(el=>{ el.textContent = name; });
     document.querySelectorAll('.side-user small').forEach(el=>{ el.textContent = 'eingeloggt'; });
+    if (me.avatar) {
+      document.querySelectorAll('.side-user .avatar').forEach(el=>{
+        el.style.backgroundImage = 'url('+me.avatar+')';
+        el.style.backgroundSize = 'cover';
+        el.textContent = '';
+      });
+    } else {
+      document.querySelectorAll('.side-user .avatar').forEach(el=>{
+        el.textContent = (name||'U').charAt(0).toUpperCase();
+      });
+    }
   } catch(e){
-    toast(e.message || 'Session ungültig');
+    toast('Error');
     API.logout();
     API.login(location.origin + '/dashboard/');
     return;
   }
   try {
-    const g = await API.guilds();
+    const g = await API.guilds(true);
     state.guilds = Array.isArray(g) ? g : (g.guilds || g.servers || []);
     renderServerList();
     $('serverPicker') && $('serverPicker').classList.add('open');
     if(state.guilds.length === 1){
       const g0 = state.guilds[0];
-      $('serverName').textContent = g0.name || g0.id;
-      await loadGuild(g0.id);
+      setServerMeta(g0);
+      await loadGuild(g0.id, { refresh: true });
       $('serverPicker').classList.remove('open');
     }
   } catch(e){
-    toast(e.message || 'Serverliste fehlgeschlagen');
+    toast('Error');
   }
 }
 
-document.addEventListener('DOMContentLoaded', boot);
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.StafforaGate) {
+    window.StafforaGate.ensure(boot);
+  } else {
+    boot();
+  }
+});
