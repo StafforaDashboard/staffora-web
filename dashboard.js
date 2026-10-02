@@ -1,3 +1,32 @@
+
+async function ensureWebhookSetup(gid) {
+  try {
+    if (!gid || !window.API) return;
+    const r = await (window.API.webhookSetup
+      ? window.API.webhookSetup(gid)
+      : window.API.get('/api/guilds/' + gid + '/ingame/webhook-setup'));
+    if (!r || !r.ok) return;
+    state.settings = state.settings || {};
+    if (r.secret) state.settings.ingameWebhookSecret = r.secret;
+    state._webhookUrl = r.url;
+    state._webhookDetected = r.detected;
+    let box = document.getElementById('webhook-setup-info');
+    if (!box) {
+      const host = document.getElementById('settingsForm') || document.getElementById('content') || document.body;
+      box = document.createElement('div');
+      box.id = 'webhook-setup-info';
+      if (host.firstChild) host.insertBefore(box, host.firstChild);
+      else host.appendChild(box);
+    }
+    box.innerHTML = '<div class="card" style="padding:12px;margin:8px 0;border:1px solid rgba(139,92,246,.35);border-radius:12px">' +
+      '<div style="font-weight:600;margin-bottom:6px">Ingame Webhook</div>' +
+      '<div style="font-size:12px;opacity:.85;word-break:break-all">URL: <code>' + (r.url||'') + '</code></div>' +
+      '<div style="font-size:12px;opacity:.85;margin-top:4px">Secret: <code>' + (r.secret||'') + '</code></div>' +
+      '<div style="font-size:12px;margin-top:4px">' + (r.detected ? 'Status: erkannt · aktiv' : 'Status: warte auf erstes Event') + '</div>' +
+      '<div style="font-size:11px;opacity:.7;margin-top:6px">Playtime: player_join / player_leave / player_heartbeat an diese URL senden. Danach ist Tracking automatisch aktiv.</div></div>';
+  } catch (e) { console.warn('webhook-setup', e); }
+}
+
 const C=[
 ['allgemein','Allgemein / General','Sprache und Grunddaten'],
 ['module','Module','Alle Module einzeln an/aus'],
@@ -134,8 +163,9 @@ tasks:[
 ],
 database:[
   S('Modul','',['Database']),
-  F('Panel','',['Database-Panel|database|select']),
+  F('Panel & Log','',['Database-Panel|database|select','Database-Log|database-logs|select']),
   R('Rechte','',['Database Manager']),
+  F('Typen','Custom-Einträge über Panel: Teamsperre, Perm-Ban, Note, Custom + sticky Rollen.',[]),
   B('Panel','',['Database-Panel senden'])
 ],
 factions:[
@@ -151,7 +181,8 @@ houses:[
 ],
 moderation:[
   F('Logs','',['Mod-Log|mod-logs|select']),
-  R('Command Rechte','',['Ban Rolle','Kick Rolle','Timeout Rolle','Warn Rolle','Softban Rolle'])
+  R('Command Rechte','',['Ban Rolle','Kick Rolle','Timeout Rolle','Warn Rolle','Softban Rolle']),
+  B('Panel','Discord Mod-Panel senden',['Mod-Panel senden'])
 ],
 records:[
   L('Strafgründe','Format: VDM | 1:warn,2:kick,3:ban',['modReasons']),
@@ -209,7 +240,8 @@ interview:[
 suggest:[
   S('Modul','',['Suggest']),
   F('Kanal','',['Suggest-Kanal|suggestions|select']),
-  R('Rechte','',['Suggest Annehmen Rolle'])
+  R('Rechte','',['Suggest Einreichen Rolle','Suggest Annehmen Rolle']),
+  L('Kategorien','z.B. Ingame, Discord, Team — Hinzufügen drücken',['suggestCategories'])
 ],
 giveaway:[
   S('Modul','',['Giveaway']),
@@ -221,7 +253,17 @@ xp:[
   F('Uprank','',['XP Uprank Kanal|xp-uprank|select'])
 ],
 rp:[
-  F('RP & Stats','',['RP Announce|rp-announce|select','Server-Stats Kanal|server-stats|select']),
+  F('Server Stats','Titel, Code, Owner, Online/Offline, Players.',[
+    'Server-Stats Kanal|server-stats|select',
+    'Stats Titel|Server Stats',
+    'Server Name|Server',
+    'Server Code|',
+    'Server Online|An|enum',
+    'Players|0',
+    'Max Players|',
+    'Owner Roblox|',
+    'RP Announce|rp-announce|select'
+  ]),
   B('Panel','',['Stats-Panel senden'])
 ],
 partner:[
@@ -266,6 +308,11 @@ logs:[
 };
 
 const KEY_MAP = {
+
+  "Stats Titel":"serverStatsTitle","Server Name":"serverStatsServerName","Server Online":"serverStatsOnline",
+  "Players":"serverStatsPlayers","Max Players":"serverStatsMaxPlayers","Owner Roblox":"serverStatsOwnerRoblox",
+  "Ingame Webhook Log":"ingameWebhookChannelId",
+  "Suggest Kategorien":"suggestCategories",
   "Nuke Channel Delete":"nukeChannelDeleteEnabled","Nuke Channel Delete Limit":"nukeChannelDeleteLimit","Nuke Channel Delete Aktion":"nukeChannelDeleteAction",
   "Nuke Channel Create":"nukeChannelCreateEnabled","Nuke Channel Create Limit":"nukeChannelCreateLimit","Nuke Channel Create Aktion":"nukeChannelCreateAction",
   "Nuke Role Delete":"nukeRoleDeleteEnabled","Nuke Role Delete Limit":"nukeRoleDeleteLimit","Nuke Role Delete Aktion":"nukeRoleDeleteAction",
@@ -553,7 +600,7 @@ function renderCard([title,desc,type,items]){
         if (label === 'Sprache' || key === 'language') opts = ['de','en'];
         if (label === 'Support-VC Modus' || key === 'supportVcMode') opts = ['Bestehende Channels','Join2Create'];
         if (/Aktion|Standard-Aktion/.test(label)) opts = ['Log only','Warn','Kick','Ban','Timeout','Strip roles','Remove','Delete','Quarantine'];
-        if ((/^Nuke /.test(label) || /^Raid /.test(label) || label === 'Duty Pflicht für Übernehmen') && !/Limit|Aktion|Fenster|Tage|Minuten/.test(label)) opts = ['An','Aus'];
+        if ((/^Nuke /.test(label) || /^Raid /.test(label) || label === 'Duty Pflicht für Übernehmen' || label === 'Server Online') && !/Limit|Aktion|Fenster|Tage|Minuten/.test(label)) opts = ['An','Aus'];
         if (/Channel löschen|Channel erstellen|Rolle löschen|Rolle erstellen|Mass Ban|Mass Kick|Webhook|Bot hinzufügen|Integration|Join-Spam|Message-Spam|Mention-Spam|Emoji-Spam|Security Standard-Aktion/.test(label)) {
           opts = ['Log only','Warn','Kick','Ban','Timeout','Remove','Delete'];
         }
@@ -707,24 +754,33 @@ function renderCard([title,desc,type,items]){
       });
     }
 
-    if (catId === 'warteraum' && API && API.uploadMusic) {
-      addBlock('Warteraum Musik-Datei', 'audio/*,.mp3,.ogg,.wav,.webm,.m4a', async (f, st) => {
+    if (catId === 'warteraum') {
+      addBlock('Warteraum Musik-Datei (mp3/ogg/wav)', 'audio/*,.mp3,.ogg,.wav,.webm,.m4a', async (f, st) => {
+        if (!state.guildId) throw new Error('Kein Server');
+        if (!API || !API.uploadMusic) throw new Error('Upload API fehlt');
         const data = await readAsDataURL(f);
-        await API.uploadMusic(state.guildId, f.name, data);
+        const r = await API.uploadMusic(state.guildId, f.name, data);
+        if (r && r.error) throw new Error(r.error);
       });
     }
-    if (catId === 'tickets' && API && API.uploadTicketImage) {
+    if (catId === 'tickets') {
       addBlock('Ticket Panel Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
+        if (!state.guildId) throw new Error('Kein Server');
         const data = await readAsDataURL(f);
-        await API.uploadTicketImage(state.guildId, 'panel', data);
+        const r = await API.uploadTicketImage(state.guildId, 'panel', data);
+        if (r && r.error) throw new Error(r.error);
       });
       addBlock('Ticket Eröffnung Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
+        if (!state.guildId) throw new Error('Kein Server');
         const data = await readAsDataURL(f);
-        await API.uploadTicketImage(state.guildId, 'create', data);
+        const r = await API.uploadTicketImage(state.guildId, 'create', data);
+        if (r && r.error) throw new Error(r.error);
       });
       addBlock('Ticket Close Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
+        if (!state.guildId) throw new Error('Kein Server');
         const data = await readAsDataURL(f);
-        await API.uploadTicketImage(state.guildId, 'close', data);
+        const r = await API.uploadTicketImage(state.guildId, 'close', data);
+        if (r && r.error) throw new Error(r.error);
       });
     }
   }
@@ -1102,6 +1158,7 @@ async function loadGuild(gid, opts){
     // Prefer text/announce for panel channel selects still includes voice for warteraum
     if (state.currentCat) openCategory(state.currentCat);
     else openCategory('allgemein');
+    try { ensureWebhookSetup(gid); } catch (_) {}
     toast('OK');
   } catch (e) {
     toast('Error');

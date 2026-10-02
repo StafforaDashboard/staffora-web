@@ -62,6 +62,8 @@ window.StafforaAPI = (function () {
     logout: function () { setToken(""); setStaffPw(""); try { sessionStorage.removeItem(staffFlag); } catch(e){} },
     login: login,
     me: function () { return req("/api/me"); },
+    get: function (path) { return req(path); },
+    webhookSetup: function (gid) { return req("/api/guilds/" + gid + "/ingame/webhook-setup"); },
     guilds: function (refresh) { return req("/api/guilds" + (refresh ? "?refresh=1" : "")); },
     config: function (gid) { return req("/api/guilds/" + gid + "/config"); },
     discord: function (gid, refresh) {
