@@ -17,7 +17,6 @@ const C=[
 ['houses','Häuser','Hausliste und Anzeige'],
 ['moderation','Moderation','Logs und Command-Permissions'],
 ['records','Strafregister','Gründe und Maßnahmen'],
-['stats','Team-Stats','Auswertung Support und Team'],
 ['security','Security','Anti-Nuke, Anti-Raid, Externe Apps'],
 ['welcome','Welcome / Leave','Eigene Nachrichten und Kanäle'],
 ['verify','Verify','Gate, Rollen, Panel'],
@@ -37,7 +36,7 @@ const C=[
 const GROUPS=[
 ['Server', ['allgemein','module','logs']],
 ['Support', ['tickets','warteraum','admincall','offices']],
-['Team', ['teamlist','team','duty','abmeldung','feedback','tasks','interview','stats']],
+['Team', ['teamlist','team','duty','abmeldung','feedback','tasks','interview']],
 ['Moderation', ['moderation','records','security','database','icmod']],
 ['Community', ['welcome','verify','suggest','giveaway','xp','partner']],
 ['RP & IC', ['factions','houses','rp','ausweis','unban','dizzy','ic']]
@@ -91,7 +90,10 @@ applications:[
   B('Panel','',['Bewerbungs-Panel senden'])
 ],
 teamlist:[
-  F('Teamliste','',['Teamliste-Kanal|teamlist|select']),
+  F('Teamliste','Titel und Kanal (kein Auto-Timer).',[
+    'Teamliste-Kanal|teamlist|select',
+    'Teamliste-Titel|Teamliste'
+  ]),
   R('Rollen in der Liste','Reihenfolge = Discord-Hierarchie.',['Teamliste-Rollen']),
   B('Panel','',['Teamliste senden'])
 ],
@@ -103,7 +105,15 @@ team:[
 ],
 duty:[
   S('Modul','',['Duty']),
-  F('Panel & Rolle','',['Duty-Panel|duty|select','Duty-Rolle|On Duty|select']),
+  F('Panel','Titel, Text und Kanal (GalaxyBot-Style Support-Bereitschaft).',[
+    'Duty-Panel|duty|select',
+    'Duty-Panel-Titel|Support-Bereitschaft',
+    'Duty-Panel-Text|Trete die Supportbereitschaft an, um Benachrichtigungen zu neuen Support Fällen zu erhalten und diese übernehmen zu können. Nutze dafür den unteren Button.',
+    'Duty-Rolle|On Duty|select'
+  ]),
+  F('Übernehmen nur mit Bereitschaft','Wenn An: nur User im Dienst können Tickets/Support übernehmen.',[
+    'Duty Pflicht für Übernehmen|Aus|enum'
+  ]),
   B('Panel','',['Duty-Panel senden'])
 ],
 abmeldung:[
@@ -151,10 +161,34 @@ stats:[
   F('Stats','',['Stats Tickets|An|enum','Stats Support|An|enum','Stats Duty|An|enum'])
 ],
 security:[
-  S('Modul','Anti-Nuke / Anti-Raid und Aktionen.',['Security','Anti-Nuke','Anti-Raid']),
-  S('Aktionen','Was bei Verstößen passiert.',['Security Kick','Security Ban','Security Timeout','Security Warn','Security Nachricht löschen','Bots entfernen','Webhooks entfernen','Integrationen entfernen']),
-  F('Security','',['Externe Apps deaktivieren|An|enum','Security-Log|security-logs|select','Security Timeout Minuten|10']),
-  R('Whitelist','',['Security Whitelist Rolle'])
+  S('Module','',['Security','Anti-Nuke','Anti-Raid']),
+  F('Allgemein','',[
+    'Security-Log|security-logs|select',
+    'Security Standard-Aktion|Strip roles|enum',
+    'Security Timeout Minuten|10',
+    'Externe Apps deaktivieren|An|enum',
+    'Anti-Nuke Fenster Sekunden|10'
+  ]),
+  R('Whitelist','',['Security Whitelist Rolle']),
+  F('Anti-Nuke','Pro Modul An/Aus, Limit und Aktion.',[
+    'Nuke Channel Delete|An|enum','Nuke Channel Delete Limit|3','Nuke Channel Delete Aktion|Strip roles|enum',
+    'Nuke Channel Create|An|enum','Nuke Channel Create Limit|5','Nuke Channel Create Aktion|Strip roles|enum',
+    'Nuke Role Delete|An|enum','Nuke Role Delete Limit|3','Nuke Role Delete Aktion|Strip roles|enum',
+    'Nuke Role Create|An|enum','Nuke Role Create Limit|5','Nuke Role Create Aktion|Strip roles|enum',
+    'Nuke Ban|An|enum','Nuke Ban Limit|3','Nuke Ban Aktion|Ban|enum',
+    'Nuke Kick|An|enum','Nuke Kick Limit|5','Nuke Kick Aktion|Kick|enum',
+    'Nuke Webhook|An|enum','Nuke Webhook Limit|2','Nuke Webhook Aktion|Remove|enum',
+    'Nuke Bot Add|An|enum','Nuke Bot Add Limit|1','Nuke Bot Add Aktion|Kick|enum',
+    'Nuke Integration|An|enum','Nuke Integration Limit|1','Nuke Integration Aktion|Remove|enum',
+    'Nuke Guild Update|An|enum','Nuke Guild Update Limit|2','Nuke Guild Update Aktion|Strip roles|enum'
+  ]),
+  F('Anti-Raid','',[
+    'Raid Join Wave|An|enum','Raid Join Limit|15','Raid Join Fenster|10','Raid Join Aktion|Kick|enum',
+    'Raid Account Age|An|enum','Raid Min Account Tage|7','Raid Account Age Aktion|Kick|enum',
+    'Raid Message Spam|An|enum','Raid Spam Limit|8','Raid Spam Fenster|5','Raid Spam Aktion|Timeout|enum',
+    'Raid Mention Spam|An|enum','Raid Mention Limit|5','Raid Mention Aktion|Timeout|enum',
+    'Raid Lockdown|An|enum'
+  ])
 ],
 welcome:[
   S('Modul','',['Welcome/Leave']),
@@ -232,6 +266,30 @@ logs:[
 };
 
 const KEY_MAP = {
+  "Nuke Channel Delete":"nukeChannelDeleteEnabled","Nuke Channel Delete Limit":"nukeChannelDeleteLimit","Nuke Channel Delete Aktion":"nukeChannelDeleteAction",
+  "Nuke Channel Create":"nukeChannelCreateEnabled","Nuke Channel Create Limit":"nukeChannelCreateLimit","Nuke Channel Create Aktion":"nukeChannelCreateAction",
+  "Nuke Role Delete":"nukeRoleDeleteEnabled","Nuke Role Delete Limit":"nukeRoleDeleteLimit","Nuke Role Delete Aktion":"nukeRoleDeleteAction",
+  "Nuke Role Create":"nukeRoleCreateEnabled","Nuke Role Create Limit":"nukeRoleCreateLimit","Nuke Role Create Aktion":"nukeRoleCreateAction",
+  "Nuke Ban":"nukeBanEnabled","Nuke Ban Limit":"nukeBanLimit","Nuke Ban Aktion":"nukeBanAction",
+  "Nuke Kick":"nukeKickEnabled","Nuke Kick Limit":"nukeKickLimit","Nuke Kick Aktion":"nukeKickAction",
+  "Nuke Webhook":"nukeWebhookEnabled","Nuke Webhook Limit":"nukeWebhookLimit","Nuke Webhook Aktion":"nukeWebhookAction",
+  "Nuke Bot Add":"nukeBotAddEnabled","Nuke Bot Add Limit":"nukeBotAddLimit","Nuke Bot Add Aktion":"nukeBotAddAction",
+  "Nuke Integration":"nukeIntegrationEnabled","Nuke Integration Limit":"nukeIntegrationLimit","Nuke Integration Aktion":"nukeIntegrationAction",
+  "Nuke Guild Update":"nukeGuildUpdateEnabled","Nuke Guild Update Limit":"nukeGuildUpdateLimit","Nuke Guild Update Aktion":"nukeGuildUpdateAction",
+  "Raid Join Wave":"raidJoinEnabled","Raid Join Limit":"raidJoinLimit","Raid Join Fenster":"raidJoinWindowSec","Raid Join Aktion":"raidJoinAction",
+  "Raid Account Age":"raidAccountAgeEnabled","Raid Min Account Tage":"raidMinAccountDays","Raid Account Age Aktion":"raidAccountAgeAction",
+  "Raid Message Spam":"raidSpamEnabled","Raid Spam Limit":"raidSpamLimit","Raid Spam Fenster":"raidSpamWindowSec","Raid Spam Aktion":"raidSpamAction",
+  "Raid Mention Spam":"raidMentionEnabled","Raid Mention Limit":"raidMentionLimit","Raid Mention Aktion":"raidMentionAction",
+  "Raid Lockdown":"raidLockdownEnabled","Anti-Nuke Fenster Sekunden":"antiNukeWindowSec",
+
+  "Channel löschen":"antiNukeChannelDeleteAction","Channel erstellen":"antiNukeChannelCreateAction",
+  "Rolle löschen":"antiNukeRoleDeleteAction","Rolle erstellen":"antiNukeRoleCreateAction",
+  "Mass Ban":"antiNukeBanAction","Mass Kick":"antiNukeKickAction",
+  "Webhook erstellen":"antiNukeWebhookAction","Bot hinzufügen":"antiNukeBotAddAction",
+  "Integration hinzufügen":"antiNukeIntegrationAction",
+  "Join-Spam":"antiRaidJoinAction","Message-Spam":"antiRaidSpamAction",
+  "Mention-Spam":"antiRaidMentionAction","Emoji-Spam":"antiRaidEmojiAction",
+  "Security Standard-Aktion":"antiNukeAction",
 
   "Team Suspend Rolle":"teamSuspendRoleIds","Frak Manager":"factionManagerRoleIds","Haus Manager":"houseManagerRoleIds",
   "Partner-Fragen":"partnerQuestions","IC-Mod Panel":"icModPanelChannelId","IC-Mod Log":"icModLogChannelId",
@@ -309,11 +367,19 @@ const MODULE_MAP = {
 };
 
 const PANEL_CHANNEL = {
-  "tickets":"ticketPanelChannelId","adminCall":"adminCallPanelChannelId","applications":"bewerbungPanelChannelId",
-  "duty":"dutyPanelChannelId","feedback":"feedbackChannelId","tasks":"tasksPanelChannelId",
-  "database":"databasePanelChannelId","teamlist":"teamlistChannelId","abmeldung":"abmeldungPanelChannelId",
-  "verify":"verifyChannelId","hausliste":"hauslisteChannelId","serverStats":"serverStatsChannelId",
-  "ausweis":"ausweisChannelId","dizzySticky":"ingameDizzyChannelId","icMod":"icModPanelChannelId"
+  "tickets":"ticketPanelChannelId","ticket":"ticketPanelChannelId",
+  "adminCall":"adminCallPanelChannelId","admincall":"adminCallPanelChannelId","admin_call":"adminCallPanelChannelId",
+  "applications":"bewerbungPanelChannelId","bewerbung":"bewerbungPanelChannelId","app":"bewerbungPanelChannelId",
+  "duty":"dutyPanelChannelId","online_admin":"dutyPanelChannelId",
+  "feedback":"feedbackChannelId","tasks":"tasksPanelChannelId",
+  "database":"databasePanelChannelId","teamlist":"teamlistChannelId","team_list":"teamlistChannelId",
+  "abmeldung":"abmeldungPanelChannelId","abmelden":"abmeldungPanelChannelId",
+  "verify":"verifyChannelId","hausliste":"hauslisteChannelId",
+  "serverStats":"serverStatsChannelId","server_stats":"serverStatsChannelId","stats":"serverStatsChannelId",
+  "ausweis":"ausweisChannelId","dizzySticky":"ingameDizzyChannelId",
+  "icMod":"icModPanelChannelId","modpanel":"icModPanelChannelId",
+  "partner":"partnerChannelId","suggest":"suggestChannelId","giveaway":"giveawayChannelId",
+  "xp_panel":"xpUprankChannelId","interview":"interviewPanelChannelId","fraktionsliste":"fraktionslistePanelChannelId"
 };
 const PANEL_MAP = {
   "Ticket-Panel senden":"tickets","Admin-Call-Panel senden":"adminCall","Bewerbungs-Panel senden":"applications",
@@ -328,7 +394,7 @@ const API = window.StafforaAPI;
 let state = {
   guildId: null, guilds: [], config: {}, settings: {},
   channels: [], roles: [], categories: [], user: null,
-  currentCat: null, currentRoleKey: null
+  currentCat: null, currentRoleKey: null, _tempMulti: {}, modules: {}
 };
 
 function toast(msg){
@@ -486,6 +552,11 @@ function renderCard([title,desc,type,items]){
         let opts = String(def).split(',').map(o=>o.trim()).filter(Boolean);
         if (label === 'Sprache' || key === 'language') opts = ['de','en'];
         if (label === 'Support-VC Modus' || key === 'supportVcMode') opts = ['Bestehende Channels','Join2Create'];
+        if (/Aktion|Standard-Aktion/.test(label)) opts = ['Log only','Warn','Kick','Ban','Timeout','Strip roles','Remove','Delete','Quarantine'];
+        if ((/^Nuke /.test(label) || /^Raid /.test(label) || label === 'Duty Pflicht für Übernehmen') && !/Limit|Aktion|Fenster|Tage|Minuten/.test(label)) opts = ['An','Aus'];
+        if (/Channel löschen|Channel erstellen|Rolle löschen|Rolle erstellen|Mass Ban|Mass Kick|Webhook|Bot hinzufügen|Integration|Join-Spam|Message-Spam|Mention-Spam|Emoji-Spam|Security Standard-Aktion/.test(label)) {
+          opts = ['Log only','Warn','Kick','Ban','Timeout','Remove','Delete'];
+        }
         if (label === 'Musik-Preset' || key === 'warteraumMusicPreset') opts = ['DE','EN'];
         else if (/^(Warteraum-Musik|Appeals aktiv|Nur bei aktivem Ban|Feedback als Sticky|Abmeldung muss bestätigt werden|Häuser auf Ausweis anzeigen|Externe Apps deaktivieren|Anti-Nuke|Anti-Raid|Welcome Ping|Join-to-Create Support-VCs|Stats Tickets|Stats Support|Stats Duty)$/.test(label)) opts = ['An','Aus'];
         if (!opts.length) opts = [def||'—'].filter(Boolean);
@@ -712,81 +783,75 @@ function renderCard([title,desc,type,items]){
   panel.querySelectorAll('.listedit').forEach(box=>{
     const key = box.getAttribute('data-store');
     box.querySelectorAll('.listedit-rm').forEach(btn=>{
-      btn.onclick = () => {
+      btn.onclick = (ev) => {
+        ev.preventDefault();
         const i = parseInt(btn.getAttribute('data-i'), 10);
-        let arr = state.settings[key];
-        if(!Array.isArray(arr)) arr = [];
+        let arr = Array.isArray(state.settings[key]) ? state.settings[key].slice() : [];
         arr.splice(i, 1);
         state.settings[key] = arr;
-        refresh();
+        openCategory(id);
+        saveCurrent();
       };
     });
     const addBtn = box.querySelector('.listedit-add-btn');
-    if(!addBtn) return;
-    addBtn.onclick = () => {
-      let arr = state.settings[key];
-      if(!Array.isArray(arr)) arr = [];
-      if (key === 'customAusweise') {
-        const name = (box.querySelector('.sf-name')||{}).value || '';
-        const emoji = (box.querySelector('.sf-emoji')||{}).value || '🪪';
-        const description = (box.querySelector('.sf-desc')||{}).value || '';
-        if (!name.trim()) { toast('Error'); return; }
-        arr.push({ id: 'aw_'+Date.now().toString(36), name: name.trim(), emoji: emoji.trim(), description: description.trim() });
-      } else if (key === 'officesList') {
-        const name = (box.querySelector('.sf-name')||{}).value || '';
-        const waitingChannelId = (box.querySelector('.sf-wait')||{}).value || '';
-        const pingRoleId = (box.querySelector('.sf-role')||{}).value || '';
-        const voiceChannelId = (box.querySelector('.sf-voice')||{}).value || '';
-        if (!name.trim()) { toast('Error'); return; }
-        arr.push({ name: name.trim(), waitingChannelId, pingRoleId, voiceChannelId });
-      } else if (key === 'ticketTypes') {
-        const name = (box.querySelector('.sf-name')||{}).value || '';
-        const emoji = (box.querySelector('.sf-emoji')||{}).value || '';
-        const description = (box.querySelector('.sf-desc')||{}).value || '';
-        const staffRoles = (state._tempMulti && state._tempMulti.sfStaffRoles) || [];
-        const pingRoles = (state._tempMulti && state._tempMulti.sfPingRoles) || [];
-        const categoryId = (box.querySelector('.sf-cat')||{}).value || '';
-        const openQuestion = (box.querySelector('.sf-preq')||{}).value || '';
-        const openEmbed = (box.querySelector('.sf-open')||{}).value || '';
-        const closeEmbed = (box.querySelector('.sf-close')||{}).value || '';
-        if (!name.trim()) { toast('Error'); return; }
-        const id = 'tt_' + Date.now().toString(36);
-        arr.push({
-          id,
-          name: name.trim(),
-          emoji: emoji.trim(),
-          description: description.trim(),
-          supportRoleIds: staffRoles.slice(),
-          supportRoleId: staffRoles[0] || '',
-          staffRoleId: staffRoles[0] || '',
-          pingRoleIds: pingRoles.slice(),
-          pingRoleId: pingRoles[0] || '',
-          categoryId,
-          openQuestion: openQuestion.trim(),
-          preQuestion: openQuestion.trim(),
-          openEmbed: openEmbed.trim(),
-          closeEmbed: closeEmbed.trim(),
-          maxLoad: '10'
-        });
-        if (state._tempMulti) { state._tempMulti.sfStaffRoles = []; state._tempMulti.sfPingRoles = []; }
-      } else {
-        const inp = box.querySelector('.listedit-input');
-        const v = (inp && inp.value || '').trim();
-        if(!v) return;
-        if(key === 'modReasons' && v.includes('|')){
-          const [reason, ladder] = v.split('|').map(s=>s.trim());
-          arr.push({ reason, ladder: ladder || '' });
-        } else if(key === 'applicationsList' && v.includes('|')){
-          const parts = v.split('|').map(s=>s.trim());
-          arr.push({ name: parts[0], acceptRoleId: parts[1]||'' });
+    if (addBtn) {
+      addBtn.onclick = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        let arr = Array.isArray(state.settings[key]) ? state.settings[key].slice() : [];
+        if (key === 'customAusweise') {
+          const name = (box.querySelector('.sf-name')||{}).value || '';
+          const emoji = (box.querySelector('.sf-emoji')||{}).value || '🪪';
+          const description = (box.querySelector('.sf-desc')||{}).value || '';
+          if (!name.trim()) { toast('Error'); return; }
+          arr.push({ id: 'aw_'+Date.now().toString(36), name: name.trim(), emoji: emoji.trim(), description: description.trim() });
+        } else if (key === 'officesList') {
+          const name = (box.querySelector('.sf-name')||{}).value || '';
+          const waitingChannelId = (box.querySelector('.sf-wait')||{}).value || '';
+          const pingRoleId = (box.querySelector('.sf-role')||{}).value || '';
+          const voiceChannelId = (box.querySelector('.sf-voice')||{}).value || '';
+          if (!name.trim()) { toast('Error'); return; }
+          arr.push({ name: name.trim(), waitingChannelId, pingRoleId, voiceChannelId });
+        } else if (key === 'ticketTypes') {
+          const name = (box.querySelector('.sf-name')||{}).value || '';
+          const emoji = (box.querySelector('.sf-emoji')||{}).value || '';
+          const description = (box.querySelector('.sf-desc')||{}).value || '';
+          const staffRoles = (state._tempMulti && state._tempMulti.sfStaffRoles) || [];
+          const pingRoles = (state._tempMulti && state._tempMulti.sfPingRoles) || [];
+          const categoryId = (box.querySelector('.sf-cat')||{}).value || '';
+          const openQuestion = (box.querySelector('.sf-preq')||{}).value || '';
+          const openEmbed = (box.querySelector('.sf-open')||{}).value || '';
+          const closeEmbed = (box.querySelector('.sf-close')||{}).value || '';
+          if (!name.trim()) { toast('Error'); return; }
+          arr.push({
+            id: 'tt_' + Date.now().toString(36),
+            name: name.trim(), emoji: emoji.trim(), description: description.trim(),
+            supportRoleIds: staffRoles.slice(), supportRoleId: staffRoles[0]||'', staffRoleId: staffRoles[0]||'',
+            pingRoleIds: pingRoles.slice(), pingRoleId: pingRoles[0]||'',
+            categoryId, openQuestion: openQuestion.trim(), preQuestion: openQuestion.trim(),
+            openEmbed: openEmbed.trim(), closeEmbed: closeEmbed.trim(), maxLoad: '10'
+          });
+          if (state._tempMulti) { state._tempMulti.sfStaffRoles = []; state._tempMulti.sfPingRoles = []; }
         } else {
-          arr.push(v);
+          const inp = box.querySelector('.listedit-input');
+          const v = ((inp && inp.value) || '').trim();
+          if (!v) { toast('Error'); return; }
+          if (key === 'modReasons' && v.includes('|')) {
+            const [reason, ladder] = v.split('|').map(s=>s.trim());
+            arr.push({ reason, ladder: ladder || '' });
+          } else if (key === 'applicationsList' && v.includes('|')) {
+            const parts = v.split('|').map(s=>s.trim());
+            arr.push({ name: parts[0], acceptRoleId: parts[1]||'' });
+          } else {
+            arr.push(v);
+          }
+          if (inp) inp.value = '';
         }
-      }
-      state.settings[key] = arr;
-      refresh();
-      try { saveCurrent(); } catch(e) {}
-    };
+        state.settings[key] = arr;
+        openCategory(id);
+        saveCurrent();
+      };
+    }
   });
 
   // ausweis preview live
@@ -824,21 +889,36 @@ async function handleAction(label, catId){
   if(!state.guildId){ toast('Error'); return; }
   let panel = PANEL_MAP[label];
   if(!panel){
-    if (label.includes('Ticket')) panel = 'tickets';
-    else if (label.includes('Admin')) panel = 'adminCall';
-    else if (label.includes('Sticky')) panel = 'dizzySticky';
-    else if (label.includes('Stats')) panel = 'serverStats';
-    else if (label.includes('Duty')) panel = 'duty';
-    else if (label.includes('Feedback')) panel = 'feedback';
-    else if (label.includes('Aufgabe')) panel = 'tasks';
-    else if (label.includes('Database')) panel = 'database';
-    else if (label.includes('Teamlist') || label.includes('Teamliste')) panel = 'teamlist';
-    else if (label.includes('Abmeld')) panel = 'abmeldung';
-    else if (label.includes('Verify')) panel = 'verify';
-    else if (label.includes('Haus')) panel = 'hausliste';
+    const L = String(label||'').toLowerCase();
+    if (L.includes('ticket')) panel = 'tickets';
+    else if (L.includes('admin')) panel = 'admincall';
+    else if (L.includes('sticky') || L.includes('dizzy')) panel = 'dizzySticky';
+    else if (L.includes('stats')) panel = 'server_stats';
+    else if (L.includes('duty') || L.includes('online')) panel = 'duty';
+    else if (L.includes('feedback')) panel = 'feedback';
+    else if (L.includes('aufgabe')) panel = 'tasks';
+    else if (L.includes('database')) panel = 'database';
+    else if (L.includes('teamlist') || L.includes('teamliste')) panel = 'teamlist';
+    else if (L.includes('abmeld')) panel = 'abmelden';
+    else if (L.includes('verify')) panel = 'verify';
+    else if (L.includes('haus')) panel = 'hausliste';
+    else if (L.includes('bewerb') || L.includes('application')) panel = 'bewerbung';
+    else if (L.includes('ausweis')) panel = 'ausweis';
+    else if (L.includes('partner')) panel = 'partner';
+    else if (L.includes('ic-mod') || L.includes('ic mod')) panel = 'modpanel';
+    else if (L.includes('suggest')) panel = 'suggest';
+    else if (L.includes('giveaway')) panel = 'giveaway';
+    else if (L.includes('xp')) panel = 'xp_panel';
+    else if (L.includes('interview')) panel = 'interview';
     else {
-      const mapCat = { tickets:'tickets', applications:'applications', team:'duty', ausweis:'ausweis', tasks:'tasks', database:'database', rp:'serverStats', dizzy:'dizzySticky', verify:'verify', factions:'hausliste' };
-      panel = mapCat[catId] || 'tickets';
+      const mapCat = {
+        tickets:'tickets', applications:'bewerbung', team:'duty', ausweis:'ausweis',
+        tasks:'tasks', database:'database', rp:'server_stats', dizzy:'dizzySticky',
+        verify:'verify', factions:'fraktionsliste', houses:'hausliste', feedback:'feedback',
+        abmeldung:'abmelden', teamlist:'teamlist', admincall:'admincall', partner:'partner',
+        icmod:'modpanel', suggest:'suggest', giveaway:'giveaway', xp:'xp_panel', interview:'interview'
+      };
+      panel = mapCat[catId] || catId || 'tickets';
     }
   }
   try {
@@ -893,7 +973,7 @@ function openPickerDrawer(opts){
   const body = items.map(it=>{
     const on = selSet.has(String(it.id));
     return `<button type="button" class="setting-row role-pick" data-id="${it.id}" data-name="${escapeHtml(it.name||'')}" style="width:100%;text-align:left;${on?'border-color:#805dff;':''}"><b>${it.prefix}${escapeHtml(it.name||it.id)}</b>${on?' <span>✓</span>':''}</button>`;
-  }).join('') || '<p>Nichts geladen.</p>';
+  }).join('') || '<p style="color:#f87171">Nichts geladen — Server neu wählen oder Rollen aktualisieren.</p>';
   $('drawerBody').innerHTML = searchHtml + '<div id="drawerList">'+body+'</div>';
   d.classList.add('open');
   const applySearch = ()=>{
@@ -946,53 +1026,48 @@ async function saveCurrent(){
   if(!state.guildId){ toast('Error'); return; }
   const panel = $('settingsPanel');
   const partial = {};
-  panel.querySelectorAll('[data-key]').forEach(el=>{
-    const key = el.getAttribute('data-key');
-    if(!key) return;
-    if (el.tagName === 'SELECT' || el.tagName === 'INPUT') {
-      let v = el.value;
-      // empty string → null so bot clears optional fields
-      if (v === '') v = null;
-      // numeric-looking single ids stay strings
-      partial[key] = v;
-    }
-  });
-  // role arrays from drawer
-  Object.keys(KEY_MAP).forEach(label=>{
-    const k = KEY_MAP[label];
-    if (Array.isArray(state.settings[k])) partial[k] = state.settings[k];
-  });
-  // modules separate endpoint
-  const modules = Object.assign({}, state.modules || {});
-  let hasModules = false;
-  panel.querySelectorAll('[data-switch]').forEach(el=>{
-    const k = el.getAttribute('data-switch');
-    if(!k) return;
-    const on = el.classList.contains('on');
-    if (Object.values(MODULE_MAP).includes(k) || MODULE_MAP[el.getAttribute('data-label')]) {
-      modules[k] = on;
-      hasModules = true;
-    } else {
-      partial[k] = on;
-    }
-  });
-  try {
-    toast('Speichern…');
-    const tasks = [];
-    if (Object.keys(partial).length) tasks.push(API.patchSettings(state.guildId, partial));
-    // persist listedit arrays
-    ['ticketTypes','ticketOpenQuestions','adminCallQuestions','officesList','applicationsList','applicationQuestions','modReasons','interviewQuestions','factionAppQuestions','customAusweise','unbanQuestions'].forEach(k=>{
-      if (Array.isArray(state.settings[k])) partial[k] = state.settings[k];
+  if (panel) {
+    panel.querySelectorAll('[data-key]').forEach(el=>{
+      const key = el.getAttribute('data-key');
+      if(!key) return;
+      if (el.tagName === 'SELECT' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        let v = el.value;
+        if (v === '') v = null;
+        partial[key] = v;
+      }
     });
-    if (hasModules) tasks.push(API.patchModules(state.guildId, modules));
-    const results = await Promise.all(tasks);
-    const last = results[results.length - 1] || {};
-    if (last.settings) state.settings = Object.assign({}, state.settings, last.settings);
-    else state.settings = Object.assign({}, state.settings, partial);
-    if (last.modules) state.modules = Object.assign({}, state.modules, last.modules);
-    else if (hasModules) state.modules = modules;
+  }
+  // always persist arrays / multi-selects from state
+  const arrayKeys = [
+    'ticketTypes','ticketOpenQuestions','adminCallQuestions','officesList','applicationsList',
+    'applicationQuestions','modReasons','interviewQuestions','factionAppQuestions','customAusweise',
+    'unbanQuestions','partnerQuestions','teamlistRoleIds','supportFixedVoiceIds','supportXpVoiceIds',
+    'ticketSupportRoleIds','adminRoleIds','staffRoleIds','modRoleIds','ingameAccessRoleIds',
+    'ingameModRoleIds','teamInviteRoleIds','teamKickRoleIds','teamWarnRoleIds','teamSuspendRoleIds',
+    'factionManageRoleIds','factionManagerRoleIds','houseManagerRoleIds','databaseManagerRoleIds',
+    'tasksManagerRoleIds','tasksClaimRoleIds','securityWhitelistRoleIds','verifyRoleIds','unverifiedRoleIds',
+    'banRoleIds','kickRoleIds','timeoutRoleIds','warnRoleIds','softbanRoleIds','highTeamRoleIds',
+    'partnerManagerRoleIds','ausweisAcceptRoleIds','unbanAcceptRoleIds','giveawayRoleIds','suggestAcceptRoleIds'
+  ];
+  arrayKeys.forEach(k=>{
+    if (state.settings[k] !== undefined) partial[k] = state.settings[k];
+  });
+  // any other array in settings
+  Object.keys(state.settings||{}).forEach(k=>{
+    if (Array.isArray(state.settings[k]) && partial[k] === undefined) partial[k] = state.settings[k];
+  });
+
+  const modules = Object.assign({}, state.modules || {});
+  const tasks = [];
+  try {
+    if (Object.keys(partial).length) tasks.push(API.patchSettings(state.guildId, partial));
+    if (Object.keys(modules).length) tasks.push(API.patchModules(state.guildId, modules));
+    await Promise.all(tasks);
+    // merge back
+    Object.assign(state.settings, partial);
     toast('Gespeichert');
   } catch (e) {
+    console.error('save', e);
     toast('Error');
   }
 }
