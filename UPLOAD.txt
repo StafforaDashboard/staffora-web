@@ -1,0 +1,19 @@
+Staffora Website — GitHub Pages Upload
+=====================================
+Upload ALL files so that the ROOT of the repo (or docs/) contains:
+
+  index.html          → https://staffora.info/
+  styles.css
+  api.js
+  dashboard.js
+  staff.js
+  app.js
+  dashboard/index.html → https://staffora.info/dashboard/
+  staff/index.html     → https://staffora.info/staff/
+  ic/index.html        → https://staffora.info/ic/
+  appeal/index.html    → https://staffora.info/appeal/
+  terms/index.html     → https://staffora.info/terms/
+  privacy/index.html   → https://staffora.info/privacy/
+  CNAME                → staffora.info
+
+Do NOT nest another folder. Files must be at repository root.
