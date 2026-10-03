@@ -1266,58 +1266,67 @@ function bindUi(){
   if(dc) dc.onclick = ()=> $('drawer').classList.remove('open');
 }
 
+function forceDiscordLogin(returnUrl){
+  const ret = returnUrl || (location.origin + '/dashboard/');
+  try {
+    // brief UI so user sees why redirect happens
+    const panel = $('settingsPanel');
+    if(panel){
+      panel.innerHTML = `<div class="login-banner glass" style="max-width:480px;margin:40px auto;flex-direction:column;text-align:center">
+        <div><b>Discord Login</b><p>Weiterleitung zu Discord …</p></div>
+      </div>`;
+    }
+  } catch(_){}
+  if(API && typeof API.login === 'function'){
+    API.login(ret);
+  } else {
+    const apiBase = (window.STAFFORA_API || '').replace(/\/$/, '');
+    location.href = apiBase + '/auth/login?return=' + encodeURIComponent(ret);
+  }
+}
+
 async function boot(){
   bindUi();
   if(!API){ toast('Error'); return; }
   API.readToken();
 
+  // No token → always redirect to Discord OAuth (do not show dashboard)
   if(!API.getToken()){
-    const su = document.querySelector('.side-user');
-    if(su){
-      su.innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Discord Login</button>`;
-      const lb = $('loginBtn');
-      if(lb) lb.onclick = ()=> API.login(location.origin + '/dashboard/');
-    }
-    const panel = $('settingsPanel');
-    if(panel){
-      panel.innerHTML = `<div class="login-banner glass" style="max-width:480px;margin:40px auto;flex-direction:column;text-align:center">
-        <div><b>Login required</b><p>Melde dich mit Discord an, um das Dashboard zu nutzen. / Log in with Discord to use the dashboard.</p></div>
-        <button type="button" class="btn btn-primary" id="mainLogin" style="margin-top:12px">Discord Login</button>
-      </div>`;
-      const ml = $('mainLogin');
-      if(ml) ml.onclick = ()=> API.login(location.origin + '/dashboard/');
-    }
-    // disable nav until login
-    document.querySelectorAll('[data-cat]').forEach(x=>{
-      x.onclick = ()=> API.login(location.origin + '/dashboard/');
-    });
+    forceDiscordLogin(location.origin + location.pathname + location.search);
     return;
   }
 
+  // Token present → validate with API; invalid/expired → clear + OAuth
   try {
     const me = await API.me();
-    state.user = me;
-    const name = me.username || me.global_name || 'User';
+    if(!me || (!me.id && !me.username && !me.user)){
+      try { API.setToken(''); } catch(_){}
+      forceDiscordLogin(location.origin + '/dashboard/');
+      return;
+    }
+    state.user = me.user || me;
+    const u = state.user || {};
+    const name = u.username || u.global_name || me.username || me.global_name || 'User';
+    const avatarHash = u.avatar || me.avatar;
+    const uid = u.id || me.id;
     const su = document.querySelector('.side-user');
     if(su){
       const letter = (name||'U').charAt(0).toUpperCase();
-      const av = me.avatar
-        ? `<span class="avatar" style="background-image:url(${me.avatar});background-size:cover"></span>`
-        : `<span class="avatar">${letter}</span>`;
-      su.innerHTML = `${av}<span class="grow"><b>${escapeHtml(name)}</b><small>eingeloggt</small></span><button type="button" class="btn" id="logoutBtn" style="padding:6px 10px;font-size:11px">Logout</button>`;
+      let avHtml = `<span class="avatar">${letter}</span>`;
+      if(avatarHash && uid){
+        const url = String(avatarHash).startsWith('http')
+          ? avatarHash
+          : `https://cdn.discordapp.com/avatars/${uid}/${avatarHash}.png?size=64`;
+        avHtml = `<span class="avatar" style="background-image:url(${url});background-size:cover"></span>`;
+      }
+      su.innerHTML = `${avHtml}<span class="grow"><b>${escapeHtml(name)}</b><small>eingeloggt</small></span><button type="button" class="btn" id="logoutBtn" style="padding:6px 10px;font-size:11px">Logout</button>`;
       const lo = $('logoutBtn');
-      if(lo) lo.onclick = ()=>{ API.logout(); location.reload(); };
+      if(lo) lo.onclick = ()=>{ API.logout(); forceDiscordLogin(location.origin + '/dashboard/'); };
     }
   } catch(e){
-    toast('Error');
-    API.logout();
-    const su = document.querySelector('.side-user');
-    if(su){
-      su.innerHTML = `<button type="button" class="btn btn-primary" id="loginBtn" style="width:100%">Mit Discord anmelden</button>`;
-      const lb = $('loginBtn');
-      if(lb) lb.onclick = ()=> API.login(location.origin + '/dashboard/');
-    }
-    openCategory(state.currentCat || 'allgemein');
+    // invalid/expired session → Discord OAuth again
+    try { API.logout(); } catch(_){}
+    forceDiscordLogin(location.origin + '/dashboard/');
     return;
   }
 
@@ -1338,6 +1347,12 @@ async function boot(){
       toast('Error');
     }
   } catch(e){
+    const msg = String((e && e.message) || '');
+    if(/401|403|auth|token|login|unauthorized/i.test(msg) || !API.getToken()){
+      try { API.logout(); } catch(_){}
+      forceDiscordLogin(location.origin + '/dashboard/');
+      return;
+    }
     toast('Error');
     openCategory(state.currentCat || 'allgemein');
   }

@@ -41,7 +41,12 @@ window.StafforaAPI = (function () {
     var text = await res.text();
     var data = null;
     try { data = text ? JSON.parse(text) : null; } catch (e) { data = { raw: text }; }
-    if (!res.ok) throw new Error((data && (data.error || data.message)) || "Error");
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        try { setToken(""); } catch (e) {}
+      }
+      throw new Error((data && (data.error || data.message)) || "Error");
+    }
     return data;
   }
   function login(returnUrl) {

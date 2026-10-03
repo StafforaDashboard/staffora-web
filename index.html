@@ -1,118 +1,115 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Staffora — Discord Bot</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staffora — Staff</title>
 <link rel="stylesheet" href="/styles.css">
+<style>
+.staff-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.staff-gate .card{width:min(420px,100%);padding:32px;border-radius:18px;text-align:center}
+.staff-gate h1{margin:10px 0;font-size:24px}
+.staff-gate p{color:#9aa3b8;font-size:14px;line-height:1.5}
+.staff-app{display:none}.staff-app.on{display:block}
+.staff-shell{display:flex;min-height:100vh}
+.staff-side{width:260px;padding:18px;border-right:1px solid rgba(255,255,255,.06)}
+.staff-main{flex:1;padding:24px;max-width:960px}
+.staff-main h1{margin:0 0 6px}
+.staff-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0}
+.staff-stats .s{padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}
+.staff-stats strong{display:block;font-size:22px;margin-top:4px}
+.staff-panel{padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,.08);margin-bottom:16px;background:rgba(0,0,0,.25)}
+.staff-panel h2{margin:0 0 8px;font-size:16px}
+.staff-panel .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.staff-panel input{flex:1;min-width:140px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:#111;color:#fff}
+.nav-s{display:block;padding:10px 12px;border-radius:10px;color:#aeb8d1;margin:4px 0;text-align:left;border:0;background:transparent;width:100%}
+.nav-s.active,.nav-s:hover{background:rgba(109,48,255,.25);color:#fff}
+table.st{width:100%;border-collapse:collapse;font-size:13px}
+table.st th,table.st td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+.hidden{display:none!important}
+</style>
 </head>
-<body class="site">
-<canvas id="bg"></canvas>
-<nav class="nav">
-  <a class="brand" href="/"><span class="brand-mark">S</span><span>Staffora</span></a>
-  <div class="nav-links">
-    <a href="#features">Features</a>
-    <a href="/dashboard/">Dashboard</a>
-    <a href="/appeal/">Ban Appeal</a>
-    <a href="/ic/">IC Panel</a>
+<body class="scene">
+<div class="staff-gate" id="staffGate">
+  <div class="card glass">
+    <div class="brand-mark" style="margin:0 auto 12px">S</div>
+    <h1>Staff Center</h1>
+    <p>Nur für Staffora-Administratoren.<br>Zugang wird über den Helper-Bot vergeben.</p>
+    <button type="button" class="btn btn-primary" id="staffDiscordLogin" style="width:100%;margin-top:12px">Mit Discord anmelden</button>
+    <p id="staffErr" style="color:#f87171;min-height:20px;margin-top:8px;font-size:13px"></p>
+    <a href="/" style="color:#9aa3b8;font-size:13px">← Home</a>
   </div>
-  <a class="btn btn-primary" href="/dashboard/">Dashboard öffnen <span>↗</span></a>
-</nav>
+</div>
 
-
-<main class="home-page">
-  <div class="home-orb orb-a"></div>
-  <div class="home-orb orb-b"></div>
-  <div class="home-grid"></div>
-
-  <section class="hero-3d reveal">
-    <div class="hero-copy">
-      <div class="eyebrow"><span class="status-dot"></span> Staffora · Discord Management Suite</div>
-      <h1>Dein Server.<br><span>Deine Kontrolle.</span></h1>
-      <p class="hero-lead">Staffora verbindet Moderation, Support, Teamverwaltung, RP-Tools und Server-Sicherheit in einer modernen Oberfläche.</p>
-      <div class="hero-actions">
-        <a class="btn btn-primary magnetic" href="/dashboard/">Dashboard öffnen <span>↗</span></a>
-        <a class="btn btn-ghost magnetic" href="#features">Features entdecken <span>↓</span></a>
+<div class="staff-app" id="staffApp">
+  <div class="staff-shell">
+    <aside class="staff-side glass" style="margin:12px;border-radius:16px">
+      <a class="brand" href="/" style="margin-bottom:16px;display:flex"><span class="brand-mark">S</span><span><b>STAFFORA</b><small>STAFF</small></span></a>
+      <button type="button" class="nav-s active" data-tab="overview">Overview</button>
+      <button type="button" class="nav-s" data-tab="servers">Servers</button>
+      <button type="button" class="nav-s" data-tab="blacklist">Blacklist</button>
+      <button type="button" class="nav-s" data-tab="premium">Premium</button>
+      <button type="button" class="nav-s" data-tab="errors">Errors</button>
+      <div style="margin-top:auto;padding-top:20px">
+        <div id="staffUser" style="font-size:12px;color:#9aa3b8;margin-bottom:8px"></div>
+        <button type="button" class="btn" id="staffLogout" style="width:100%">Logout</button>
       </div>
-      <div class="hero-meta">
-        <span>● Discord OAuth2</span><span>● Server-spezifisch</span><span>● Live Sync</span>
+    </aside>
+    <main class="staff-main">
+      <div data-pane="overview">
+        <h1>Overview</h1>
+        <p style="color:#9aa3b8">Internes Staff-Panel</p>
+        <div class="staff-stats">
+          <div class="s glass"><span>Servers</span><strong id="st-servers">—</strong></div>
+          <div class="s glass"><span>Blacklist</span><strong id="st-bl">—</strong></div>
+          <div class="s glass"><span>Errors</span><strong id="st-err">—</strong></div>
+          <div class="s glass"><span>Status</span><strong id="st-ok">—</strong></div>
+        </div>
       </div>
-    </div>
-
-    <div class="hero-visual tilt-card" data-tilt>
-      <div class="dashboard-glow"></div>
-      <div class="floating-panel panel-top"><span>SECURITY</span><strong>Protected</strong><i>✓</i></div>
-      <div class="mock-window">
-        <div class="mock-bar"><span></span><span></span><span></span><b>staffora / dashboard</b></div>
-        <div class="mock-body">
-          <aside><div class="mock-logo">S</div><div class="mock-line active"></div><div class="mock-line"></div><div class="mock-line"></div><div class="mock-line"></div><div class="mock-line short"></div></aside>
-          <div class="mock-content">
-            <div class="mock-kicker">SERVER CONTROL</div><h3>Übersicht</h3>
-            <div class="mock-stats"><div><small>Members</small><strong>2,481</strong></div><div><small>Tickets</small><strong>24</strong></div><div><small>Security</small><strong>99%</strong></div></div>
-            <div class="mock-chart"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div data-pane="servers" class="hidden">
+        <div class="staff-panel">
+          <h2>Bot Servers</h2>
+          <button type="button" class="btn" id="btnSyncGuilds">Sync</button>
+          <div class="table-wrap" style="margin-top:12px">
+            <table class="st"><thead><tr><th>Server</th><th>ID</th><th></th></tr></thead><tbody id="guildBody"></tbody></table>
           </div>
         </div>
       </div>
-      <div class="floating-panel panel-bottom"><span>LIVE</span><strong>Bot connected</strong><i class="pulse"></i></div>
-    </div>
-  </section>
-
-  <section class="feature-intro reveal" id="features">
-    <div><span class="section-label">01 · FEATURES</span><h2>Alles, was dein Team<br><em>braucht.</em></h2></div>
-    <p>Eine zentrale Steuerung für deine Discord-Community — mit den Modulen aus dem Staffora-Konzept und einer Oberfläche, die sich wie ein echtes Produkt anfühlt.</p>
-  </section>
-
-  <section class="feature-grid">
-    <article class="feature-card reveal"><div class="feature-icon">◈</div><span>01</span><h3>Moderation</h3><p>Kick, Ban, Softban, Warn, Timeout, Notes und Strafregister zentral verwalten.</p><div class="card-line"></div></article>
-    <article class="feature-card reveal"><div class="feature-icon">⌁</div><span>02</span><h3>Tickets & Support</h3><p>Kategorien, Staff-Rollen, Panels, KI je Kategorie, Limits und Support-Flows.</p><div class="card-line"></div></article>
-    <article class="feature-card reveal"><div class="feature-icon">✦</div><span>03</span><h3>Team & Schicht</h3><p>Teamrollen, Dienststatus, Clock, Tracking, Aufgaben und Abmeldungen.</p><div class="card-line"></div></article>
-    <article class="feature-card reveal"><div class="feature-icon">⌂</div><span>04</span><h3>RP & Fraktionen</h3><p>Häuser, Fraktionen, RP-Ankündigungen, Server-Stats und IC-Workflows.</p><div class="card-line"></div></article>
-    <article class="feature-card reveal"><div class="feature-icon">⬡</div><span>05</span><h3>Security & AutoMod</h3><p>Anti-Nuke, Anti-Raid, Limits, AutoMod, Logs und Schutzmechanismen.</p><div class="card-line"></div></article>
-    <article class="feature-card reveal"><div class="feature-icon">◎</div><span>06</span><h3>Database & IC Panel</h3><p>Spieler suchen, Einträge verwalten, Bans prüfen und IC-Aktionen ausführen.</p><div class="card-line"></div></article>
-  </section>
-
-  <section class="module-strip reveal">
-    <div class="strip-copy"><span class="section-label">02 · CONTROL CENTER</span><h2>Ein System.<br><em>Viele Module.</em></h2></div>
-    <div class="module-cloud">
-      <span>Allgemein</span><span>Tickets</span><span>Bewerbungen</span><span>Team</span><span>Schicht & Clock</span><span>Aufgaben</span><span>Database</span><span>Moderation</span><span>AutoMod</span><span>Security</span><span>Welcome</span><span>Verify</span><span>XP</span><span>Logs & Stats</span>
-    </div>
-  </section>
-
-  <section class="cta-3d reveal">
-    <div class="cta-ring"></div>
-    <span class="section-label">03 · READY</span>
-    <h2>Dein Server verdient<br><em>mehr Kontrolle.</em></h2>
-    <p>Starte mit Staffora und verwalte deine Community aus einem einzigen, klaren Control Center.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><a class="btn btn-primary magnetic" href="/dashboard/">Zu Staffora <span>→</span></a><a class="btn btn-ghost" href="/staff/">Staff Center <span>→</span></a></div>
-  </section>
-</main>
-<script>
-(() => {
-  const reveals = document.querySelectorAll('.reveal');
-  const io = new IntersectionObserver(entries => entries.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
-  }), {threshold:.12});
-  reveals.forEach(el => io.observe(el));
-
-  document.querySelectorAll('[data-tilt]').forEach(card => {
-    card.addEventListener('pointermove', e => {
-      const r = card.getBoundingClientRect();
-      const x = (e.clientX-r.left)/r.width-.5, y = (e.clientY-r.top)/r.height-.5;
-      card.style.transform = `perspective(1100px) rotateY(${x*7}deg) rotateX(${y*-7}deg) translateY(-6px)`;
-    });
-    card.addEventListener('pointerleave', () => card.style.transform = '');
-  });
-
-  document.querySelectorAll('.magnetic').forEach(btn => {
-    btn.addEventListener('pointermove', e => {
-      const r=btn.getBoundingClientRect();
-      btn.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.08}px, ${(e.clientY-r.top-r.height/2)*.08}px)`;
-    });
-    btn.addEventListener('pointerleave',()=>btn.style.transform='');
-  });
-})();
-</script>
-
-
-<footer><span>© 2026 Staffora</span><span>Discord Management Suite</span><span><a href="/dashboard/">Dashboard</a> · <a href="/ic/">IC</a> · <a href="/staff/">Staff</a> · <a href="/appeal/">Appeal</a></span></footer>
-<script src="/app.js"></script>
-</body></html>
+      <div data-pane="blacklist" class="hidden">
+        <div class="staff-panel">
+          <h2>Blacklist</h2>
+          <div class="row">
+            <input id="blGuild" placeholder="Guild ID">
+            <input id="blReason" placeholder="Reason">
+            <button type="button" class="btn btn-primary" id="blAdd">Add</button>
+          </div>
+          <div id="blList" style="margin-top:14px"></div>
+        </div>
+      </div>
+      <div data-pane="premium" class="hidden">
+        <div class="staff-panel">
+          <h2>Premium</h2>
+          <div class="row">
+            <input id="premUser" placeholder="Discord User ID">
+            <input id="premDays" placeholder="Days" value="30" style="max-width:100px">
+            <button type="button" class="btn btn-primary" id="premGrant">Grant</button>
+            <button type="button" class="btn" id="premRevoke">Revoke</button>
+            <button type="button" class="btn" id="premCheck">Check</button>
+          </div>
+          <pre id="premOut" style="margin-top:12px;font-size:12px;color:#9aa3b8"></pre>
+        </div>
+      </div>
+      <div data-pane="errors" class="hidden">
+        <div class="staff-panel">
+          <h2>Errors</h2>
+          <pre id="errBox" style="font-size:11px;max-height:400px;overflow:auto;color:#c4c4c7"></pre>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="/api.js?v=staff6"></script>
+<script src="/staff.js?v=staff6"></script>
+</body>
+</html>
