@@ -1,0 +1,13 @@
+Discord Developer Portal — URLs die funktionieren:
+
+Nutzungsbedingungen-URL:
+https://staffora.info/terms.html
+
+URL der Datenschutzerklärung:
+https://staffora.info/privacy.html
+
+NICHT verwenden (404 auf GitHub Pages ohne Ordner-Deploy):
+https://staffora.info/privacy/
+https://staffora.info/terms/
+
+Nach Upload von privacy/index.html und terms/index.html funktionieren auch die /-Pfade.
