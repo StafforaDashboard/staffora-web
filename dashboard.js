@@ -806,7 +806,14 @@ function renderCard([title,desc,type,items]){
     banner = `<div class="login-banner glass"><div><b>Server wählen</b><p>Wähle links oben deinen Server, damit Kanäle und Rollen geladen werden.</p></div><button type="button" class="btn btn-primary" id="bannerServer">Server wählen</button></div>`;
   }
 
-  panel.innerHTML = banner + `<div class="settings-heading"><div><div class="breadcrumb">Server Control <span>/</span> ${escapeHtml(c[1])}</div><h2>${escapeHtml(c[1])}</h2><p>${escapeHtml(c[2])}</p></div><button class="btn btn-primary" id="saveAll" type="button">Speichern</button></div><div class="settings-grid">${(templates[id]||[]).map(renderCard).join('')}</div>`;
+  const cards = (templates[id]||[]).map(renderCard).join('');
+  const emptyHint = cards
+    ? ''
+    : '<div class="settings-card glass" style="padding:20px"><h3>Keine Settings in dieser Kategorie</h3><p>Wähle eine andere Kategorie in der Sidebar oder speichere zuerst Module.</p></div>';
+  panel.innerHTML = banner + `<div class="settings-heading"><div><div class="breadcrumb">Server Control <span>/</span> ${escapeHtml(c[1])}</div><h2>${escapeHtml(c[1])}</h2><p>${escapeHtml(c[2])}</p></div><button class="btn btn-primary" id="saveAll" type="button">Speichern</button></div><div class="settings-grid">${cards || emptyHint}</div>`;
+  panel.style.display = 'block';
+  panel.style.visibility = 'visible';
+  panel.style.opacity = '1';
 
   const bl = $('bannerLogin');
   if(bl) bl.onclick = ()=> API.login(location.origin + '/dashboard/');
