@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Staffora — Staff</title>
+<title>Staffora — Staff Portal</title>
 <link rel="stylesheet" href="/styles.css">
 <style>
 .staff-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
@@ -28,12 +28,16 @@ table.st{width:100%;border-collapse:collapse;font-size:13px}
 table.st th,table.st td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
 .hidden{display:none!important}
 </style>
-</head>
+<style id="dark-critical">
+body{background:#05070f!important;color:#e8eaf2!important;color-scheme:dark}
+.card,.glass{background:#0c1020!important;color:#e8eaf2!important}
+button,input{-webkit-appearance:none!important;background:#141828!important;color:#e8eaf2!important}
+</style></head>
 <body class="scene">
 <div class="staff-gate" id="staffGate">
   <div class="card glass">
     <div class="brand-mark" style="margin:0 auto 12px">S</div>
-    <h1>Staff Center</h1>
+    <h1>Staffora Staff</h1>
     <p>Nur für Staffora-Administratoren.<br>Zugang wird über den Helper-Bot vergeben.</p>
     <button type="button" class="btn btn-primary" id="staffDiscordLogin" style="width:100%;margin-top:12px">Mit Discord anmelden</button>
     <p id="staffErr" style="color:#f87171;min-height:20px;margin-top:8px;font-size:13px"></p>

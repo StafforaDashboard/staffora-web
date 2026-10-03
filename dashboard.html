@@ -4,7 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Staffora — Dashboard</title>
-<link rel="stylesheet" href="/styles.css?v=dark1">
+<link rel="stylesheet" href="/styles.css?v=dark3">
+<style id="dark-critical">
+body.dashboard-page,body.scene{background:#05070f!important;color:#e8eaf2!important;color-scheme:dark}
+.server-picker{background:#0c1020!important;border:1px solid rgba(130,100,255,.3)!important;color:#e8eaf2!important}
+.server-row,button.server-row{-webkit-appearance:none!important;appearance:none!important;background:#141828!important;color:#e8eaf2!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:12px!important}
+.server-row b{color:#f0f2fa!important}.server-row small{color:#8b93a8!important}
+.server-search,input,select,textarea{-webkit-appearance:none!important;background:#0d1220!important;color:#e8eaf2!important;border:1px solid rgba(255,255,255,.1)!important}
+.settings-card,.settings-panel{color:#e8eaf2!important}
+.sidebar,.dashboard-sidebar{background:rgba(10,14,28,.95)!important}
+</style>
 </head>
 <body class="scene dashboard-page">
 <div class="app-shell dashboard-shell">
@@ -68,8 +77,8 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="/api.js?v=dark1"></script>
-<script src="/dashboard.js?v=dark1"></script>
+<script src="/api.js?v=panel2"></script>
+<script src="/dashboard.js?v=panel2"></script>
 <script src="/app.js"></script>
 </body>
 </html>

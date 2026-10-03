@@ -51,6 +51,7 @@ window.StafforaAPI = (function () {
   }
   function login(returnUrl) {
     var ru = encodeURIComponent(returnUrl || (location.origin + "/dashboard/"));
+    // always prefer Staffora dashboard, never staff center as default
     location.href = API.replace(/\/$/, "") + "/auth/login?return=" + ru;
   }
   function readTokenFromUrl() {

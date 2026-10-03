@@ -369,7 +369,7 @@ const KEY_MAP = {
   "Duty-Panel":"dutyPanelChannelId","Duty-Rolle":"dutyRoleIds","Clock-Log":"clockLogChannelId",
   "Rollen bei Invite":"teamInviteRoleIds","Rollen bei Kick entfernen":"teamKickRoleIds",
   "Team Invite/Kick Log":"teamLogChannelId","Team-Warns bis Kick":"teamWarnsUntilKick",
-  "Abmelde-Panel":"abmeldungPanelChannelId","Abmelde-Log":"abmeldungLogChannelId",
+  "Abmelde-Panel":"abmeldungPanelChannelId","Abmelden-Panel":"abmeldenPanelChannelId","Abmelde-Log":"abmeldungLogChannelId",
   "Abmeldung muss bestätigt werden":"abmeldungRequireApproval","Abmelde-Rolle":"abmeldungRoleIds",
   "Feedback-Kanal":"feedbackChannelId","Feedback-Log":"feedbackLogChannelId","Feedback als Sticky":"feedbackSticky",
   "Activity-Check-Kanal":"activityCheckChannelId","Activity-Check Dauer":"activityCheckDurationMin","Activity-Check Text":"activityCheckText",
@@ -420,7 +420,7 @@ const PANEL_CHANNEL = {
   "duty":"dutyPanelChannelId","online_admin":"dutyPanelChannelId",
   "feedback":"feedbackChannelId","tasks":"tasksPanelChannelId",
   "database":"databasePanelChannelId","teamlist":"teamlistChannelId","team_list":"teamlistChannelId",
-  "abmeldung":"abmeldungPanelChannelId","abmelden":"abmeldungPanelChannelId",
+  "abmeldung":"abmeldungPanelChannelId","abmelden":"abmeldungPanelChannelId","abmeldenPanel":"abmeldenPanelChannelId",
   "verify":"verifyChannelId","hausliste":"hauslisteChannelId",
   "serverStats":"serverStatsChannelId","server_stats":"serverStatsChannelId","stats":"serverStatsChannelId",
   "ausweis":"ausweisChannelId","dizzySticky":"ingameDizzyChannelId",
@@ -432,8 +432,8 @@ const PANEL_MAP = {
   "Ticket-Panel senden":"tickets","Admin-Call-Panel senden":"adminCall","Bewerbungs-Panel senden":"applications",
   "Sticky senden":"dizzySticky","Stats-Panel senden":"serverStats","Duty-Panel senden":"duty",
   "Feedback-Panel senden":"feedback","Aufgaben-Panel senden":"tasks","Database-Panel senden":"database",
-  "Teamliste senden":"teamlist","Abmelde-Panel senden":"abmeldung","Verify-Panel senden":"verify",
-  "Hausliste senden":"hausliste","Ausweis-Panel senden":"ausweis","Panel senden":"applications","IC-Mod-Panel senden":"icMod"
+  "Teamliste senden":"teamlist","Abmelde-Panel senden":"abmelden","Verify-Panel senden":"verify",
+  "Hausliste senden":"hausliste","Ausweis-Panel senden":"ausweis","Panel senden":"applications","IC-Mod-Panel senden":"modpanel","Ingame-Panel senden":"modpanel","IC-Panel senden":"modpanel","Mod-Panel senden":"modpanel"
 };
 
 
@@ -985,22 +985,47 @@ async function handleAction(label, catId){
     }
   }
   try {
-    const chKey = PANEL_CHANNEL[panel];
-    let channelId = chKey ? (state.settings[chKey] || null) : null;
+    if (!state.guildId) {
+      toast('Zuerst Server wählen');
+      return;
+    }
+    // normalize panel type for bot
+    const panelNormMap = {
+      abmeldung: 'abmelden', abmelde: 'abmelden',
+      icMod: 'modpanel', icmod: 'modpanel', ingame: 'modpanel', ic: 'modpanel'
+    };
+    if (panelNormMap[panel]) panel = panelNormMap[panel];
+
+    const chKeys = [
+      PANEL_CHANNEL[panel],
+      panel === 'abmelden' ? 'abmeldungPanelChannelId' : null,
+      panel === 'abmelden' ? 'abmeldenPanelChannelId' : null,
+      panel === 'modpanel' ? 'icModPanelChannelId' : null,
+      panel === 'modpanel' ? 'modPanelChannelId' : null,
+      panel === 'modpanel' ? 'ingameLogChannelId' : null
+    ].filter(Boolean);
+    let channelId = null;
+    for (const k of chKeys) {
+      if (state.settings[k]) { channelId = state.settings[k]; break; }
+    }
     // fallback: any selected channel on page
     if (!channelId) {
-      const sel = document.querySelector('#settingsPanel select[data-key$="ChannelId"], #settingsPanel select[data-key*="Panel"], #settingsPanel select[data-key*="Channel"]');
-      if (sel && sel.value) channelId = sel.value;
+      const sels = document.querySelectorAll('#settingsPanel select[data-key$="ChannelId"], #settingsPanel select[data-key*="Panel"], #settingsPanel select[data-key*="Channel"]');
+      for (const sel of sels) {
+        if (sel && sel.value && /^\d{15,22}$/.test(String(sel.value))) { channelId = sel.value; break; }
+      }
     }
     if (!channelId) {
-      toast('Error');
+      toast('Kanal wählen (Panel-Kanal in den Settings)');
       return;
     }
     toast('Sende…');
     await API.sendPanel(state.guildId, panel, channelId);
     toast('Gesendet');
   } catch (e) {
-    toast('Error');
+    const msg = (e && e.message) ? String(e.message).slice(0, 120) : 'Error';
+    toast(msg);
+    console.warn('[panel send]', panel, e);
   }
 }
 
