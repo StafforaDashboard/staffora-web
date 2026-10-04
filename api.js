@@ -116,6 +116,8 @@ window.StafforaAPI = (function () {
     login: login,
     me: function () { return req("/api/me"); },
     get: function (path) { return req(path); },
+    post: function (path, body) { return req(path, { method: "POST", body: body || {} }); },
+    del: function (path) { return req(path, { method: "DELETE" }); },
     webhookSetup: function (gid) { return req("/api/guilds/" + gid + "/ingame/webhook-setup"); },
     guilds: function (refresh) { return req("/api/guilds" + (refresh ? "?refresh=1" : "")); },
     config: function (gid) { return req("/api/guilds/" + gid + "/config"); },

@@ -16,7 +16,7 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="/api.js?v=fix2"></script>
+<script src="/api.js?v=oauth1"></script>
 <script>
 (function(){
   function toast(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
@@ -25,17 +25,18 @@
     API.readToken();
     var root=document.getElementById('icRoot');
     if(!API.getToken()){
-      root.innerHTML='<button class="btn btn-primary" id="icLogin">Discord Login</button>';
-      document.getElementById('icLogin').onclick=function(){API.login(location.href)};
+      root.innerHTML='<p style="color:#8994b2">Weiterleitung zu Discord …</p>';
+      API.login(location.href);
       return;
     }
     try{
       var me=await API.me();
-      root.innerHTML='<p>Logged in as <b>'+ (me.username||me.id) +'</b></p><p style="color:#8994b2">Open Dashboard for full settings. IC tools load per server after selection in Dashboard.</p><a class="btn btn-primary" href="/dashboard/">Dashboard</a>';
+      var u=me.user||me;
+      root.innerHTML='<p>Logged in as <b>'+ (u.username||u.id||me.username||me.id) +'</b></p><p style="color:#8994b2">Open Dashboard for full settings.</p><a class="btn btn-primary" href="/dashboard/">Dashboard</a>';
     }catch(e){
-      toast('Error');
-      root.innerHTML='<button class="btn btn-primary" id="icLogin2">Discord Login</button>';
-      document.getElementById('icLogin2').onclick=function(){API.login(location.href)};
+      try{API.logout();}catch(x){}
+      root.innerHTML='<p style="color:#8994b2">Weiterleitung zu Discord …</p>';
+      API.login(location.href);
     }
   }
   document.addEventListener('DOMContentLoaded',function(){
