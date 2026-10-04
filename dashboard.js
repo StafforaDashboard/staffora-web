@@ -28,6 +28,11 @@ async function ensureWebhookSetup(gid) {
 }
 
 const C=[
+['teamsperre','Teamsperre','Bewerbungen sperren'],
+['testphase','Testphase','Erinnerungen und Rolle danach'],
+['temprollen','Temp-Rollen','Rollen auf Zeit'],
+['honeypot','Honeypot','Falle für Bots und Raider'],
+['rollenpanel','Rollen-Panel','Rollen selbst zuweisen'],
 ['allgemein','Allgemein / General','Sprache und Grunddaten'],
 ['module','Module','Alle Module einzeln an/aus'],
 ['tickets','Tickets','Ticket-Arten, Panel, Fragen, Rechte'],
@@ -65,9 +70,9 @@ const C=[
 const GROUPS=[
 ['Server', ['allgemein','module','logs']],
 ['Support', ['tickets','warteraum','admincall','offices']],
-['Team', ['teamlist','team','duty','abmeldung','feedback','tasks','interview']],
-['Moderation', ['moderation','records','security','database','icmod']],
-['Community', ['welcome','verify','suggest','giveaway','xp','partner']],
+['Team', ['teamlist','team','duty','abmeldung','feedback','tasks','interview','teamsperre','testphase','temprollen']],
+['Moderation', ['moderation','records','security','database','icmod','honeypot']],
+['Community', ['welcome','verify','suggest','giveaway','xp','partner','rollenpanel']],
 ['RP & IC', ['factions','houses','rp','ausweis','unban','dizzy','ic']]
 ];
 const F=(title,desc,items)=>[title,desc,'fields',items];
@@ -77,6 +82,39 @@ const B=(title,desc,items)=>[title,desc,'buttons',items];
 const L=(title,desc,items)=>[title,desc,'listedit',items];
 
 const templates={
+teamsperre:[
+  S('Modul','',['Teamsperre']),
+  F('Rolle & Log','Wer diese Rolle hat, kann sich nicht für das Team bewerben (die Bewerbungs-Blacklist-Rolle zählt ebenfalls).',['Teamsperre-Rolle||select','Teamsperre-Log|teamsperre-logs|select']),
+  R('Verwalter','Wer darf Sperren setzen? Admins immer.',['Teamsperre Manager']),
+  F('Panel','',['Teamsperre-Panel|teamsperre|select']),
+  B('Panel','Sperre setzen/aufheben per Button. Auch per /teamsperre.',['Teamsperre-Panel senden'])
+],
+testphase:[
+  S('Modul','',['Testphase']),
+  F('Rollen','Testphase-Rolle gilt während der Testphase, die Rolle danach wird bei Bestehen vergeben.',['Testphase-Rolle||select','Rolle nach Testphase||select']),
+  F('Dauer & Erinnerungen','Erinnerungen: Tage vor Ende, z. B. 3,1. Auto-Pass An = nach Ablauf automatisch bestanden.',['Testphase Dauer (Tage)|14','Testphase Erinnerungen (Tage)|3,1','Testphase Auto-Pass|An|enum']),
+  F('Kanäle','',['Testphase-Log|testphase-logs|select','Testphase-Erinnerungs-Kanal|testphase|select','Testphase-Panel|testphase-panel|select']),
+  R('Entscheider','Wer darf bestehen/verlängern/ablehnen? Admins immer.',['Testphase Manager']),
+  B('Panel','Starten per /testphase start.',['Testphase-Panel senden'])
+],
+temprollen:[
+  S('Modul','',['Temp-Rollen']),
+  F('Kanäle','',['Temp-Rollen-Log|temprollen-logs|select','Temp-Rollen-Panel|temprollen|select']),
+  R('Verwalter','Wer darf Temp-Rollen vergeben? Admins immer.',['Temp-Rollen Manager']),
+  B('Panel','Vergeben per Button oder /temprolle. Dauer z. B. 30m, 12h, 7d, 2w.',['Temp-Rollen-Panel senden'])
+],
+honeypot:[
+  S('Modul','',['Honeypot']),
+  F('Falle','Wer hier schreibt (kein Staff), wird bestraft.',['Honeypot-Kanal||select','Honeypot Strafe|Ban|enum','Honeypot Timeout Minuten|1440','Honeypot DM|An|enum','Honeypot-Log|honeypot-logs|select']),
+  R('Ausnahmen','',['Honeypot Ausnahme-Rolle']),
+  B('Hinweis','Sendet die Warnnachricht in den Honeypot-Kanal.',['Honeypot-Hinweis senden'])
+],
+rollenpanel:[
+  S('Modul','',['Rollen-Panel']),
+  F('Panel','',['Rollen-Panel-Kanal|rollenpanel|select','Rollen-Panel Titel|Rollen','Rollen-Panel Text|Wähle deine Rollen','Rollen-Panel Modus|Mehrfach|enum']),
+  R('Rollen','Nur sichere Rollen (ohne Admin-/Mod-Rechte) werden angeboten.',['Rollen-Panel Rollen']),
+  B('Panel','',['Rollen-Panel senden'])
+],
 allgemein:[
   F('Grunddaten','Sprache und Zeitzone.',['Sprache|de|select','Zeitzone|Europe/Berlin','Log-Kanal|system-logs|select'])
 ],
@@ -308,6 +346,11 @@ logs:[
 };
 
 const KEY_MAP = {
+  "Teamsperre-Rolle":"teamsperreRoleId","Teamsperre-Log":"teamsperreLogChannelId","Teamsperre Manager":"teamsperreManagerRoleIds","Teamsperre-Panel":"teamsperrePanelChannelId",
+  "Testphase-Rolle":"testphaseRoleId","Rolle nach Testphase":"testphasePassRoleId","Testphase Dauer (Tage)":"testphaseDays","Testphase Erinnerungen (Tage)":"testphaseReminderDays","Testphase Auto-Pass":"testphaseAutoPass","Testphase-Log":"testphaseLogChannelId","Testphase-Erinnerungs-Kanal":"testphaseNotifyChannelId","Testphase-Panel":"testphasePanelChannelId","Testphase Manager":"testphaseManagerRoleIds",
+  "Temp-Rollen-Log":"tempRoleLogChannelId","Temp-Rollen-Panel":"tempRolePanelChannelId","Temp-Rollen Manager":"tempRoleManagerRoleIds",
+  "Honeypot-Kanal":"honeypotChannelId","Honeypot Strafe":"honeypotStrafe","Honeypot Timeout Minuten":"honeypotTimeoutMin","Honeypot DM":"honeypotDm","Honeypot-Log":"honeypotLogChannelId","Honeypot Ausnahme-Rolle":"honeypotIgnoreRoleIds",
+  "Rollen-Panel-Kanal":"rolePanelChannelId","Rollen-Panel Titel":"rolePanelTitle","Rollen-Panel Text":"rolePanelText","Rollen-Panel Modus":"rolePanelModus","Rollen-Panel Rollen":"rolePanelRoleIds",
 
   "Stats Titel":"serverStatsTitle","Server Name":"serverStatsServerName","Server Online":"serverStatsOnline",
   "Players":"serverStatsPlayers","Max Players":"serverStatsMaxPlayers","Owner Roblox":"serverStatsOwnerRoblox",
@@ -404,6 +447,7 @@ const KEY_MAP = {
 };
 
 const MODULE_MAP = {
+  "Teamsperre":"teamsperre","Testphase":"testphase","Temp-Rollen":"tempRoles","Honeypot":"honeypot","Rollen-Panel":"rolePanel",
   "Tickets":"tickets","Warteraum":"warteraum","Admin Call":"adminCall","Büros":"offices","Duty":"duty",
   "Bewerbungen":"applications","Teamverwaltung":"team","Security":"security","AutoMod":"automod","XP":"xp",
   "Verify":"verify","Welcome/Leave":"welcomeLeave","Partner":"partner","Fraktionen":"factions","Ausweis":"ausweis",
@@ -414,6 +458,7 @@ const MODULE_MAP = {
 };
 
 const PANEL_CHANNEL = {
+  "teamsperre":"teamsperrePanelChannelId","testphase":"testphasePanelChannelId","temprole":"tempRolePanelChannelId","honeypot":"honeypotChannelId","rollenpanel":"rolePanelChannelId",
   "tickets":"ticketPanelChannelId","ticket":"ticketPanelChannelId",
   "adminCall":"adminCallPanelChannelId","admincall":"adminCallPanelChannelId","admin_call":"adminCallPanelChannelId",
   "applications":"bewerbungPanelChannelId","bewerbung":"bewerbungPanelChannelId","app":"bewerbungPanelChannelId",
@@ -429,6 +474,7 @@ const PANEL_CHANNEL = {
   "xp_panel":"xpUprankChannelId","interview":"interviewPanelChannelId","fraktionsliste":"fraktionslistePanelChannelId"
 };
 const PANEL_MAP = {
+  "Teamsperre-Panel senden":"teamsperre","Testphase-Panel senden":"testphase","Temp-Rollen-Panel senden":"temprole","Honeypot-Hinweis senden":"honeypot","Rollen-Panel senden":"rollenpanel",
   "Ticket-Panel senden":"tickets","Admin-Call-Panel senden":"adminCall","Bewerbungs-Panel senden":"applications",
   "Sticky senden":"dizzySticky","Stats-Panel senden":"serverStats","Duty-Panel senden":"duty",
   "Feedback-Panel senden":"feedback","Aufgaben-Panel senden":"tasks","Database-Panel senden":"database",
@@ -438,6 +484,7 @@ const PANEL_MAP = {
 
 
 const API = window.StafforaAPI;
+window.API = API;
 let state = {
   guildId: null, guilds: [], config: {}, settings: {},
   channels: [], roles: [], categories: [], user: null,
@@ -606,6 +653,9 @@ function renderCard([title,desc,type,items]){
         }
         if (label === 'Musik-Preset' || key === 'warteraumMusicPreset') opts = ['DE','EN'];
         else if (/^(Warteraum-Musik|Appeals aktiv|Nur bei aktivem Ban|Feedback als Sticky|Abmeldung muss bestätigt werden|Häuser auf Ausweis anzeigen|Externe Apps deaktivieren|Anti-Nuke|Anti-Raid|Welcome Ping|Join-to-Create Support-VCs|Stats Tickets|Stats Support|Stats Duty)$/.test(label)) opts = ['An','Aus'];
+        if (label === 'Testphase Auto-Pass' || label === 'Honeypot DM') opts = ['An','Aus'];
+        if (label === 'Honeypot Strafe') opts = ['Ban','Softban','Kick','Timeout','Nur löschen'];
+        if (label === 'Rollen-Panel Modus') opts = ['Mehrfach','Einzeln'];
         if (!opts.length) opts = [def||'—'].filter(Boolean);
         const cur = String(val||'');
         control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}"><option value="">—</option>${opts.map(o=>`<option value="${escapeHtml(o)}"${cur===o?' selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
@@ -711,18 +761,17 @@ function renderCard([title,desc,type,items]){
   function wireFileUploads(catId) {
     const panel = document.getElementById('settingsPanel');
     if (!panel || !state.guildId) return;
-    // remove old
     panel.querySelectorAll('.file-upload-block').forEach(n => n.remove());
 
-    function addBlock(title, accept, onFile) {
+    function addBlock(title, hint, accept, maxMB, onFile) {
       const card = document.createElement('div');
       card.className = 'settings-card glass file-upload-block';
-      card.innerHTML = `<div class="card-head"><div><h3>${title}</h3><p>Datei wählen und hochladen</p></div></div>
+      card.innerHTML = `<div class="card-head"><div><h3>${title}</h3><p>${hint}</p></div></div>
         <div class="card-body"><div class="setting-row">
-          <span>${title}</span>
+          <span>Datei (max. ${maxMB} MB)</span>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <input type="file" accept="${accept}" class="fu-input" style="max-width:220px;background:#111;color:#ddd;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px">
-            <button type="button" class="btn btn-primary fu-btn">Upload</button>
+            <button type="button" class="btn btn-primary fu-btn">Hochladen</button>
             <span class="fu-status" style="font-size:12px;color:#9aa3b8"></span>
           </div>
         </div></div>`;
@@ -731,16 +780,20 @@ function renderCard([title,desc,type,items]){
       const st = card.querySelector('.fu-status');
       btn.onclick = async () => {
         const f = inp.files && inp.files[0];
-        if (!f) { if (window.toast) toast('Error'); return; }
-        st.textContent = '…';
-        try {
-          await onFile(f, st);
-          st.textContent = 'OK';
-          if (window.toast) toast('OK');
-        } catch (e) {
-          st.textContent = 'Error';
-          if (window.toast) toast('Error');
+        if (!f) { st.textContent = 'Bitte zuerst eine Datei wählen.'; st.style.color = '#f87171'; toast('Keine Datei gewählt'); return; }
+        if (f.size > maxMB * 1024 * 1024) {
+          st.textContent = 'Zu groß (' + (f.size / 1048576).toFixed(1) + ' MB, max. ' + maxMB + ' MB)'; st.style.color = '#f87171'; toast('Datei zu groß'); return;
         }
+        btn.disabled = true; st.style.color = '#9aa3b8'; st.textContent = 'Lade hoch…';
+        try {
+          const r = await onFile(f);
+          st.textContent = (r && r.message) || 'Gespeichert ✓'; st.style.color = '#4ade80';
+          toast('Hochgeladen');
+        } catch (e) {
+          const m = (e && e.message) ? String(e.message).slice(0, 140) : 'Upload fehlgeschlagen';
+          st.textContent = m; st.style.color = '#f87171'; toast(m);
+          console.warn('[upload]', e);
+        } finally { btn.disabled = false; }
       };
       panel.appendChild(card);
     }
@@ -749,39 +802,30 @@ function renderCard([title,desc,type,items]){
       return new Promise((resolve, reject) => {
         const r = new FileReader();
         r.onload = () => resolve(r.result);
-        r.onerror = reject;
+        r.onerror = () => reject(new Error('Datei konnte nicht gelesen werden.'));
         r.readAsDataURL(file);
       });
     }
+    const IMG = 'image/png,image/jpeg,image/webp,image/gif';
+    const imgUpload = (kind, label, hint) => addBlock(label, hint, IMG, 8, async (f) => {
+      const data = await readAsDataURL(f);
+      const r = await API.uploadTicketImage(state.guildId, kind, data);
+      if (r && r.error) throw new Error(r.error);
+      return { message: 'Gespeichert ✓ – Ticket-Panel neu senden, damit es erscheint' };
+    });
 
     if (catId === 'warteraum') {
-      addBlock('Warteraum Musik-Datei (mp3/ogg/wav)', 'audio/*,.mp3,.ogg,.wav,.webm,.m4a', async (f, st) => {
-        if (!state.guildId) throw new Error('Kein Server');
-        if (!API || !API.uploadMusic) throw new Error('Upload API fehlt');
+      addBlock('Warteraum-Musik', 'Wird im Warteraum abgespielt. Alternativ in Discord: /warteraum-musik', 'audio/*,.mp3,.ogg,.wav,.webm,.m4a', 25, async (f) => {
         const data = await readAsDataURL(f);
         const r = await API.uploadMusic(state.guildId, f.name, data);
         if (r && r.error) throw new Error(r.error);
+        return { message: 'Gespeichert ✓ – wird beim nächsten Beitritt gespielt' };
       });
     }
     if (catId === 'tickets') {
-      addBlock('Ticket Panel Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
-        if (!state.guildId) throw new Error('Kein Server');
-        const data = await readAsDataURL(f);
-        const r = await API.uploadTicketImage(state.guildId, 'panel', data);
-        if (r && r.error) throw new Error(r.error);
-      });
-      addBlock('Ticket Eröffnung Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
-        if (!state.guildId) throw new Error('Kein Server');
-        const data = await readAsDataURL(f);
-        const r = await API.uploadTicketImage(state.guildId, 'create', data);
-        if (r && r.error) throw new Error(r.error);
-      });
-      addBlock('Ticket Close Bild', 'image/png,image/jpeg,image/webp,image/gif', async (f) => {
-        if (!state.guildId) throw new Error('Kein Server');
-        const data = await readAsDataURL(f);
-        const r = await API.uploadTicketImage(state.guildId, 'close', data);
-        if (r && r.error) throw new Error(r.error);
-      });
+      imgUpload('panel', 'Ticket-Panel Bild', 'Bild im Ticket-Panel. Alternativ in Discord: /ticket-bild');
+      imgUpload('create', 'Ticket-Eröffnung Bild', 'Bild in der Nachricht, wenn ein Ticket geöffnet wird');
+      imgUpload('close', 'Ticket-Close Bild', 'Bild in der Nachricht beim Schließen');
     }
   }
 
@@ -843,6 +887,7 @@ function renderCard([title,desc,type,items]){
   });
   panel.querySelectorAll('.action-btn').forEach(b=>{ b.onclick = () => handleAction(b.dataset.action, id); });
   panel.querySelectorAll('.role-btn').forEach(b=>{ b.onclick = () => openRoleDrawer(b); });
+  __after(); // Upload-Blöcke (Ticket-Bilder, Warteraum-Musik) einhängen – wurde vorher nie aufgerufen
   panel.querySelectorAll('.listedit').forEach(box=>{
     const key = box.getAttribute('data-store');
     box.querySelectorAll('.listedit-rm').forEach(btn=>{
@@ -1156,11 +1201,12 @@ async function saveCurrent(){
     toast('Gespeichert');
   } catch (e) {
     console.error('save', e);
-    toast('Error');
+    toast(e && e.message ? String(e.message).slice(0, 140) : 'Speichern fehlgeschlagen');
   }
 }
 
 async function loadGuild(gid, opts){
+  setTimeout(function(){ try{ refreshStatus(); }catch(e){} }, 800);
   opts = opts || {};
   state.guildId = String(gid);
   const gmeta = (state.guilds || []).find(x => String(x.id) === String(gid));
@@ -1238,7 +1284,8 @@ function moduleEnabledForCat(catId){
     houses:'houses', moderation:null, records:null, stats:null, security:'security',
     welcome:'welcomeLeave', verify:'verify', interview:'interview', suggest:'suggest',
     giveaway:'giveaway', xp:'xp', rp:null, partner:'partner', ausweis:'ausweis',
-    unban:null, dizzy:'dizzy', ic:'icPanel', icmod:'icModeration', teamlist:null
+    unban:null, dizzy:'dizzy', ic:'icPanel', icmod:'icModeration', teamlist:null,
+    teamsperre:'teamsperre', testphase:'testphase', temprollen:'tempRoles', honeypot:'honeypot', rollenpanel:'rolePanel'
   };
   const mod = map[catId];
   if (!mod) return true;
@@ -1391,3 +1438,38 @@ async function boot(){
 }
 
 document.addEventListener('DOMContentLoaded', boot);
+
+
+/* ---------- Verbindungsstatus Website ↔ Bot ---------- */
+async function refreshStatus(){
+  let box = document.getElementById('conn-banner');
+  if(!box){
+    box = document.createElement('div');
+    box.id = 'conn-banner';
+    box.style.cssText = 'position:fixed;left:14px;bottom:14px;z-index:60;max-width:340px;font-size:12px;line-height:1.45;padding:9px 12px;border-radius:12px;background:rgba(10,14,28,.92);border:1px solid rgba(255,255,255,.1);color:#cbd5e1;backdrop-filter:blur(8px);cursor:pointer';
+    box.title = 'Klicken für Details';
+    box.onclick = function(){ box.dataset.open = box.dataset.open === '1' ? '0' : '1'; paint(); };
+    document.body.appendChild(box);
+  }
+  let health = null, sys = null, err = '';
+  try { health = await API.ping(); } catch(e){ err = (e && e.message) || 'nicht erreichbar'; }
+  if (health && state.guildId && API.getToken && API.getToken()) {
+    try { sys = await API.systemStatus(state.guildId); } catch(e){ /* Rechte/Server fehlen – nur Basisstatus zeigen */ }
+  }
+  function paint(){
+    const dot = (c)=>'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+c+';margin-right:7px"></span>';
+    if(!health){ box.innerHTML = dot('#f87171') + '<b>Bot nicht erreichbar</b><br>' + escapeHtml(err); return; }
+    const botOk = health.bot !== false;
+    const issues = sys ? sys.system.filter(x=>!x.ok).concat(sys.ai && !sys.ai.ok ? [sys.ai] : []) : [];
+    const color = !botOk ? '#f87171' : issues.length ? '#fbbf24' : '#4ade80';
+    let html = dot(color) + (botOk ? 'Bot online · ' + (health.guilds||0) + ' Server' : '<b>API online, Bot offline</b>');
+    if (issues.length) html += ' · <b>' + issues.length + ' Hinweis(e)</b>';
+    if (box.dataset.open === '1' && sys) {
+      html += '<div style="margin-top:7px">' + sys.system.map(x=>(x.ok?'✅ ':'❌ ')+escapeHtml(x.text)).join('<br>') + '<br>' + (sys.ai.ok?'✅ ':'❌ ') + 'KI: ' + escapeHtml(sys.ai.text) + '</div>';
+    }
+    box.innerHTML = html;
+  }
+  paint();
+}
+setInterval(function(){ try{ refreshStatus(); }catch(e){} }, 60000);
+window.addEventListener('load', function(){ setTimeout(function(){ try{ refreshStatus(); }catch(e){} }, 1200); });

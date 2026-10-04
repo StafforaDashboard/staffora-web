@@ -21,11 +21,40 @@ window.StafforaAPI = (function () {
     if (t) h["Authorization"] = "Bearer " + t;
     var pw = getStaffPw();
     if (pw) h["X-Staff-Password"] = pw;
+    var ak = getAccessKey();
+    if (ak) h["X-Staffora-Access-Key"] = ak;
     return h;
   }
+  var accessKeyKey = "staffora_access_key";
+  var accessOkFlag = "staffora_access_ok";
+  function getAccessKey() { try { return localStorage.getItem(accessKeyKey) || ""; } catch (e) { return ""; } }
+  function setAccessKey(k) { try { if (k) localStorage.setItem(accessKeyKey, k); else localStorage.removeItem(accessKeyKey); } catch (e) {} }
+  function hasAccess() {
+    if (!window.STAFFORA_EARLY_ACCESS) return true;
+    try { return !!getAccessKey() && sessionStorage.getItem(accessOkFlag) === "1"; } catch (e) { return false; }
+  }
+  async function validateAccessKey(key) {
+    key = String(key || "").trim();
+    if (!key) throw new Error("Bitte einen Key eingeben.");
+    var res;
+    try {
+      res = await fetch(API.replace(/\/$/, "") + "/api/early-access/validate", {
+        method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ key: key }), mode: "cors", credentials: "omit"
+      });
+    } catch (e) { throw new Error("Bot nicht erreichbar – bitte später erneut versuchen."); }
+    var data = null; try { data = await res.json(); } catch (e) {}
+    if (!res.ok || !data || !data.valid) throw new Error((data && (data.message || data.error)) || "Ungültiger Key");
+    setAccessKey(key);
+    try { sessionStorage.setItem(accessOkFlag, "1"); } catch (e) {}
+    return data;
+  }
+
   async function req(path, opts) {
     opts = opts || {};
     var url = API.replace(/\/$/, "") + path;
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, opts.timeout || 30000) : null;
     var res;
     try {
       res = await fetch(url, {
@@ -33,19 +62,31 @@ window.StafforaAPI = (function () {
         headers: headers(!!opts.body),
         body: opts.body ? JSON.stringify(opts.body) : undefined,
         credentials: "omit",
-        mode: "cors"
+        mode: "cors",
+        signal: ctrl ? ctrl.signal : undefined
       });
     } catch (e) {
-      throw new Error("Error");
+      if (timer) clearTimeout(timer);
+      var err = new Error(e && e.name === "AbortError"
+        ? "Zeitüberschreitung – der Bot antwortet nicht (Upload zu groß oder Bot offline)."
+        : "Bot nicht erreichbar – läuft der Bot und stimmt die API-URL?");
+      err.network = true;
+      throw err;
     }
+    if (timer) clearTimeout(timer);
     var text = await res.text();
     var data = null;
     try { data = text ? JSON.parse(text) : null; } catch (e) { data = { raw: text }; }
     if (!res.ok) {
-      if (res.status === 401 || res.status === 403) {
-        try { setToken(""); } catch (e) {}
-      }
-      throw new Error((data && (data.error || data.message)) || "Error");
+      // Nur bei abgelaufener Anmeldung ausloggen – 403 heißt nur "keine Rechte für diese Aktion"
+      if (res.status === 401) { try { setToken(""); } catch (e) {} }
+      var msg = (data && (data.error || data.message)) ||
+        (res.status === 413 ? "Datei zu groß für den Server." :
+         res.status === 401 ? "Nicht angemeldet – bitte neu einloggen." :
+         res.status === 403 ? "Keine Berechtigung für diese Aktion." :
+         res.status === 404 ? "Nicht gefunden (Bot nicht auf dem Server?)." :
+         res.status >= 500 ? "Serverfehler im Bot (" + res.status + ")." : "Fehler " + res.status);
+      var e2 = new Error(msg); e2.status = res.status; throw e2;
     }
     return data;
   }
@@ -65,6 +106,12 @@ window.StafforaAPI = (function () {
   }
   return {
     getToken: token, setToken: setToken, readToken: readTokenFromUrl,
+    getAccessKey: getAccessKey, setAccessKey: setAccessKey, validateAccessKey: validateAccessKey, hasAccess: hasAccess,
+    ping: function () { return req("/api/health", { timeout: 8000 }); },
+    systemStatus: function (gid) { return req("/api/guilds/" + gid + "/system-status"); },
+    tempRoles: function (gid) { return req("/api/guilds/" + gid + "/temp-roles"); },
+    testphases: function (gid) { return req("/api/guilds/" + gid + "/testphases"); },
+    teamsperre: function (gid) { return req("/api/guilds/" + gid + "/teamsperre"); },
     logout: function () { setToken(""); setStaffPw(""); try { sessionStorage.removeItem(staffFlag); } catch(e){} },
     login: login,
     me: function () { return req("/api/me"); },
@@ -124,13 +171,13 @@ window.StafforaAPI = (function () {
     staffRoster: function () { return req("/api/staff-portal/roster"); },
     uploadMusic: function (guildId, filename, dataBase64) {
       return req("/api/guilds/" + guildId + "/music/upload", {
-        method: "POST",
+        method: "POST", timeout: 180000,
         body: { filename: filename, data: dataBase64 }
       });
     },
     uploadTicketImage: function (guildId, kind, dataBase64) {
       return req("/api/guilds/" + guildId + "/ticket-image/upload", {
-        method: "POST",
+        method: "POST", timeout: 120000,
         body: { kind: kind || "panel", data: dataBase64 }
       });
     },
