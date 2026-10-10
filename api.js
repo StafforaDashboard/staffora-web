@@ -86,7 +86,7 @@ window.StafforaAPI = (function () {
          res.status === 403 ? "Keine Berechtigung für diese Aktion." :
          res.status === 404 ? "Nicht gefunden (Bot nicht auf dem Server?)." :
          res.status >= 500 ? "Serverfehler im Bot (" + res.status + ")." : "Fehler " + res.status);
-      var e2 = new Error(msg); e2.status = res.status; throw e2;
+      var e2 = new Error(msg); e2.status = res.status; e2.data = data; throw e2;
     }
     return data;
   }
@@ -118,6 +118,7 @@ window.StafforaAPI = (function () {
     get: function (path) { return req(path); },
     post: function (path, body) { return req(path, { method: "POST", body: body || {} }); },
     del: function (path) { return req(path, { method: "DELETE" }); },
+    put: function (path, body) { return req(path, { method: "PUT", body: body || {} }); },
     webhookSetup: function (gid) { return req("/api/guilds/" + gid + "/ingame/webhook-setup"); },
     guilds: function (refresh) { return req("/api/guilds" + (refresh ? "?refresh=1" : "")); },
     config: function (gid) { return req("/api/guilds/" + gid + "/config"); },

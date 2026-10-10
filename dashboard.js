@@ -28,6 +28,7 @@ async function ensureWebhookSetup(gid) {
 }
 
 const C=[
+['ranglaufbahn','Ranglaufbahn','Gruppen, Rollen & Permissions'],
 ['embeds','Embeds','Nachrichten im Staffora-Layout'],
 ['teamsperre','Teamsperre','Bewerbungen sperren'],
 ['testphase','Testphase','Erinnerungen und Rolle danach'],
@@ -71,7 +72,7 @@ const C=[
 const GROUPS=[
 ['Server', ['allgemein','module','logs','embeds']],
 ['Support', ['tickets','warteraum','admincall','offices']],
-['Team', ['teamlist','team','duty','abmeldung','feedback','tasks','interview','teamsperre','testphase','temprollen']],
+['Team', ['ranglaufbahn','teamlist','team','duty','abmeldung','feedback','tasks','interview','teamsperre','testphase','temprollen']],
 ['Moderation', ['moderation','records','security','database','icmod','honeypot']],
 ['Community', ['welcome','verify','suggest','giveaway','xp','partner','rollenpanel']],
 ['RP & IC', ['factions','houses','rp','ausweis','unban','dizzy','ic']]
@@ -83,6 +84,9 @@ const B=(title,desc,items)=>[title,desc,'buttons',items];
 const L=(title,desc,items)=>[title,desc,'listedit',items];
 
 const templates={
+ranglaufbahn:[
+  S('Modul','Die Ranglaufbahn gilt für /team, /uprank, /downrank, Bewerbungen, Interviews, Tickets und Activity Checks.',['Teamverwaltung'])
+],
 teamsperre:[
   S('Modul','',['Teamsperre']),
   F('Rolle & Log','Wer diese Rolle hat, kann sich nicht für das Team bewerben. Die Bewerbungs-Blacklist-Rolle zählt ebenfalls.',['Teamsperre-Rolle||select','Teamsperre-Log|teamsperre-logs|select']),
@@ -836,7 +840,7 @@ function renderCard([title,desc,type,items]){
 
   function openCategory(id){
   // file uploads after render
-  const __after = () => { try { wireFileUploads(id); } catch (e) {} try { wireLive(id); } catch (e) { console.warn('[live]', e); } };
+  const __after = () => { try { wireFileUploads(id); } catch (e) {} try { wireLive(id); } catch (e) { console.warn('[live]', e); } try { wireRank(id); } catch (e) { console.warn('[rank]', e); } };
   const c=C.find(x=>x[0]===id);
   if(!c) return;
   state.currentCat = id;
@@ -1295,7 +1299,7 @@ function moduleEnabledForCat(catId){
     welcome:'welcomeLeave', verify:'verify', interview:'interview', suggest:'suggest',
     giveaway:'giveaway', xp:'xp', rp:null, partner:'partner', ausweis:'ausweis',
     unban:null, dizzy:'dizzy', ic:'icPanel', icmod:'icModeration', teamlist:null,
-    teamsperre:'teamsperre', testphase:'testphase', temprollen:'tempRoles', honeypot:'honeypot', rollenpanel:'rolePanel', embeds:'embedBuilder'
+    ranglaufbahn:'team', teamsperre:'teamsperre', testphase:'testphase', temprollen:'tempRoles', honeypot:'honeypot', rollenpanel:'rolePanel', embeds:'embedBuilder'
   };
   const mod = map[catId];
   if (!mod) return true;
@@ -1449,6 +1453,276 @@ async function boot(){
 
 document.addEventListener('DOMContentLoaded', boot);
 
+
+/* ---------- Ranglaufbahn & Permissions ---------- */
+// Reine Hilfsfunktionen (auch ohne Browser testbar)
+function rcMove(arr, from, to){
+  if (!Array.isArray(arr) || from === to || from < 0 || to < 0 || from >= arr.length || to >= arr.length) return Array.isArray(arr) ? arr.slice() : [];
+  const a = arr.slice(); const x = a.splice(from, 1)[0]; a.splice(to, 0, x); return a;
+}
+// Mittelpunkte der übrigen Karten (ohne die gezogene) → Einfügeposition 0..n
+function rcDropIndex(mids, y){ let i = 0; while (i < mids.length && y > mids[i]) i++; return i; }
+// Reihenfolge der Gruppen-IDs nach dem Ablegen: `others` = IDs der übrigen Karten, `at` = Einfügeposition
+function rcOrderAfterDrop(others, draggedId, at){ const a = others.slice(); a.splice(Math.max(0, Math.min(a.length, at)), 0, draggedId); return a; }
+function rcNewGroup(n){ return { id: 'g_' + Math.random().toString(16).slice(2, 10), name: 'Neue Gruppe ' + n, roles: [], permissions: {}, requirements: { xp: 0, dutyHours: 0, feedbackAvg: 0, feedbackCount: 0 } }; }
+// Schnelle Prüfung vor dem Senden (der Bot prüft zusätzlich selbst)
+function rcValidate(cfg){
+  const errors = []; const owner = new Map();
+  (cfg.groups || []).forEach((g, i) => {
+    if (!String(g.name || '').trim()) errors.push('Gruppe ' + (i + 1) + ': Der Name fehlt.');
+    (g.roles || []).forEach(r => {
+      if (owner.has(r.roleId)) errors.push('Eine Rolle ist in „' + owner.get(r.roleId) + '“ und „' + g.name + '“ – eine Rolle darf nur in einer Gruppe sein.');
+      else owner.set(r.roleId, g.name);
+    });
+  });
+  (cfg.baseRoleIds || []).forEach(id => { if (owner.has(id)) errors.push('Eine Basisrolle ist gleichzeitig in „' + owner.get(id) + '“.'); });
+  (cfg.suspendRoleIds || []).forEach(id => { if (owner.has(id)) errors.push('Eine Suspendierungs-Rolle ist gleichzeitig in „' + owner.get(id) + '“.'); if ((cfg.baseRoleIds || []).includes(id)) errors.push('Eine Rolle kann nicht Basis- und Suspendierungs-Rolle sein.'); });
+  return errors;
+}
+
+function rcInjectStyle(){
+  if (document.getElementById('rc-style')) return;
+  const st = document.createElement('style'); st.id = 'rc-style';
+  st.textContent = `
+  .rc-root{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+  .rc-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .rc-note{color:#9aa3b8;font-size:13px}.rc-bad{color:#f87171}
+  .rc-badge{font-size:12px;padding:3px 9px;border-radius:99px;background:rgba(251,191,36,.15);color:#fbbf24}
+  .rc-msgs{display:flex;flex-direction:column;gap:6px}
+  .rc-msg{padding:8px 11px;border-radius:10px;font-size:13px;background:rgba(255,255,255,.05)}
+  .rc-msg.error{background:rgba(248,113,113,.14);color:#fca5a5}.rc-msg.warn{background:rgba(251,191,36,.12);color:#fcd34d}.rc-msg.ok{background:rgba(74,222,128,.12);color:#86efac}
+  .rc-list{display:flex;flex-direction:column;gap:10px;position:relative}
+  .rc-group{border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.035)}
+  .rc-group header{display:flex;align-items:center;gap:8px;padding:10px 12px;flex-wrap:wrap}
+  .rc-handle{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;background:rgba(255,255,255,.07);border:0;color:#cbd5e1;border-radius:8px;width:34px;height:34px;font-size:18px;line-height:1}
+  .rc-handle:active{cursor:grabbing}
+  .rc-rank{font-size:12px;color:#a78bfa;min-width:74px}
+  .rc-name{flex:1;min-width:140px;background:#111;color:#eee;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-weight:600}
+  .rc-ib{background:rgba(255,255,255,.07);border:0;color:#cbd5e1;border-radius:8px;min-width:34px;height:34px;cursor:pointer}
+  .rc-ib:hover{background:rgba(255,255,255,.14)}.rc-ib.danger:hover{background:rgba(248,113,113,.3)}
+  .rc-count{font-size:12px;color:#9aa3b8}
+  .rc-body{padding:4px 14px 14px;display:flex;flex-direction:column;gap:12px}
+  .rc-body h4{margin:6px 0 2px;font-size:13px;color:#cbd5e1}
+  .rc-role{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .rc-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;background:rgba(255,255,255,.07);font-size:13px}
+  .rc-chip i{width:10px;height:10px;border-radius:50%;background:var(--c,#99aab5);display:inline-block}
+  .rc-chip.gone{background:rgba(248,113,113,.15);color:#fca5a5}
+  .rc-input{background:#111;color:#ddd;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:7px 9px;min-width:120px}
+  .rc-perms{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px}
+  .rc-check{display:flex;gap:8px;align-items:center;font-size:13px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.04);cursor:pointer}
+  .rc-reqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+  .rc-req{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#9aa3b8}.rc-req.off{opacity:.4}
+  .rc-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .rc-x{cursor:pointer;margin-left:2px;opacity:.7}.rc-x:hover{opacity:1}
+  .rc-dragging{position:fixed;z-index:9999;pointer-events:none;opacity:.92;box-shadow:0 14px 40px rgba(0,0,0,.5);background:#1b1f33}
+  .rc-placeholder{border:2px dashed rgba(167,139,250,.55);border-radius:14px;background:rgba(167,139,250,.07)}
+  .rc-empty{padding:18px;text-align:center;color:#9aa3b8;border:1px dashed rgba(255,255,255,.14);border-radius:14px}
+  `;
+  document.head.appendChild(st);
+}
+
+async function wireRank(catId){
+  if (catId !== 'ranglaufbahn') return;
+  const panel = $('settingsPanel');
+  if (!panel || !state.guildId || !API || !API.getToken()) return;
+  rcInjectStyle();
+  panel.querySelectorAll('.rc-root').forEach(n => n.remove());
+  const host = document.createElement('div'); host.className = 'rc-root';
+  host.innerHTML = '<div class="rc-note">Lade Ranglaufbahn…</div>';
+  panel.appendChild(host);
+  const base = '/api/guilds/' + state.guildId + '/rank-career';
+  let data;
+  try { data = await API.get(base); }
+  catch (e) { host.innerHTML = '<div class="rc-note rc-bad">' + escapeHtml(e.message || 'Konnte nicht geladen werden') + '</div>'; return; }
+  if (state.currentCat !== 'ranglaufbahn' || !host.isConnected) return;
+
+  const roleMap = new Map((data.roles || []).map(r => [r.id, r]));
+  const perms = data.permissions || [];
+  const cfg = JSON.parse(JSON.stringify(data.config));
+  cfg.groups.forEach(g => { g.permissions = g.permissions || {}; g.requirements = g.requirements || {}; g.roles = g.roles || []; });
+  const open = new Set(cfg.groups.length <= 4 ? cfg.groups.map(g => g.id) : []);
+  let dirty = !!data.legacy, saving = false, messages = [];
+  if (data.legacy) messages = [{ level: 'warn', text: 'Es wird noch die alte Rangliste verwendet. Speichere einmal, um sie in Gruppen umzuwandeln.' }];
+  const q = (sel) => host.querySelector(sel);
+  const say = (m) => toast(String(m || '').slice(0, 140));
+
+  const used = () => { const s = new Set(); cfg.groups.forEach(g => g.roles.forEach(r => s.add(r.roleId))); (cfg.baseRoleIds || []).forEach(i => s.add(i)); (cfg.suspendRoleIds || []).forEach(i => s.add(i)); return s; };
+  const chip = (id, extra) => {
+    const r = roleMap.get(id);
+    if (!r) return '<span class="rc-chip gone" title="Diese Rolle gibt es nicht mehr">gelöschte Rolle ' + escapeHtml(String(id).slice(-6)) + (extra || '') + '</span>';
+    return '<span class="rc-chip" style="--c:' + escapeHtml(r.color && r.color !== '#000000' ? r.color : '#99aab5') + '"><i></i>' + escapeHtml(r.name) + (extra || '') + '</span>';
+  };
+  const addSelect = (act, extra, label) => {
+    const u = used();
+    const opts = (data.roles || []).filter(r => !r.managed && !u.has(r.id)).map(r => '<option value="' + r.id + '">@ ' + escapeHtml(r.name) + '</option>').join('');
+    return '<select class="rc-input" data-act="' + act + '" ' + (extra || '') + '><option value="">' + (label || '＋ Rolle hinzufügen…') + '</option>' + opts + '</select>';
+  };
+  const num = (v, key, g, step, max) => '<input class="rc-input" type="number" min="0" max="' + max + '" step="' + step + '" value="' + (Number(v) || 0) + '" data-f="' + key + '" data-gid="' + escapeHtml(g.id) + '">';
+
+  function groupHtml(g, i){
+    const isOpen = open.has(g.id); const n = cfg.groups.length;
+    const tag = n > 1 ? (i === 0 ? 'Höchster Rang' : i === n - 1 ? 'Niedrigster Rang' : 'Rang ' + (i + 1)) : 'Rang 1';
+    let body = '';
+    if (isOpen) {
+      const rows = g.roles.length ? g.roles.map((r, ri) => '<div class="rc-role">' + chip(r.roleId) +
+        '<input class="rc-input" data-f="label" data-gid="' + escapeHtml(g.id) + '" data-ri="' + ri + '" maxlength="32" placeholder="Eigener Name (optional)" value="' + escapeHtml(r.label || '') + '">' +
+        '<button type="button" class="rc-ib danger" data-act="rmrole" data-gid="' + escapeHtml(g.id) + '" data-ri="' + ri + '" title="Rolle aus der Gruppe entfernen">✕</button></div>').join('')
+        : '<div class="rc-note">Noch keine Rolle. Füge bestehende Discord-Rollen hinzu – es werden keine neuen Rollen erstellt.</div>';
+      const permHtml = perms.map(p => '<label class="rc-check"><input type="checkbox" data-perm="' + p.key + '" data-gid="' + escapeHtml(g.id) + '"' + (g.permissions[p.key] ? ' checked' : '') + '>' + escapeHtml(p.label) + '</label>').join('');
+      const rq = cfg.requirements || {};
+      const req = (on, label, field) => '<div class="rc-req' + (on ? '' : ' off') + '"><span>' + label + (on ? '' : ' (oben deaktiviert)') + '</span>' + field + '</div>';
+      body = '<div class="rc-body"><div><h4>Discord-Rollen dieser Gruppe</h4>' + rows + '<div style="margin-top:6px">' + addSelect('addrole', 'data-gid="' + escapeHtml(g.id) + '"') + '</div></div>' +
+        '<div><h4>Permissions <button type="button" class="rc-ib" data-act="permall" data-gid="' + escapeHtml(g.id) + '" style="height:26px;font-size:12px;padding:0 8px">Alle</button> <button type="button" class="rc-ib" data-act="permnone" data-gid="' + escapeHtml(g.id) + '" style="height:26px;font-size:12px;padding:0 8px">Keine</button></h4><div class="rc-perms">' + permHtml + '</div></div>' +
+        '<div><h4>Anforderungen für den Aufstieg in diese Gruppe</h4><div class="rc-reqs">' +
+        req(rq.xp, 'XP', num(g.requirements.xp, 'req.xp', g, 1, 10000000)) +
+        req(rq.duty, 'Dienstzeit (Stunden)', num(g.requirements.dutyHours, 'req.dutyHours', g, 0.5, 10000)) +
+        req(rq.feedback, 'Feedback-Schnitt (1–5)', num(g.requirements.feedbackAvg, 'req.feedbackAvg', g, 0.1, 5)) +
+        req(rq.feedback, 'Mindestens Feedbacks', num(g.requirements.feedbackCount, 'req.feedbackCount', g, 1, 10000)) +
+        '</div><div class="rc-note" style="margin-top:4px">0 = keine Anforderung für diesen Wert.</div></div></div>';
+    }
+    return '<article class="rc-group" data-gid="' + escapeHtml(g.id) + '"><header>' +
+      '<button type="button" class="rc-handle" data-handle title="Ziehen zum Sortieren" aria-label="Gruppe verschieben">⠿</button>' +
+      '<span class="rc-rank">' + tag + '</span>' +
+      '<input class="rc-name" data-f="name" data-gid="' + escapeHtml(g.id) + '" maxlength="40" value="' + escapeHtml(g.name) + '" placeholder="Gruppenname">' +
+      '<span class="rc-count">' + g.roles.length + ' Rolle' + (g.roles.length === 1 ? '' : 'n') + '</span>' +
+      '<button type="button" class="rc-ib" data-act="up" data-gid="' + escapeHtml(g.id) + '" title="Nach oben"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
+      '<button type="button" class="rc-ib" data-act="down" data-gid="' + escapeHtml(g.id) + '" title="Nach unten"' + (i === n - 1 ? ' disabled' : '') + '>▼</button>' +
+      '<button type="button" class="rc-ib" data-act="toggle" data-gid="' + escapeHtml(g.id) + '" title="Ein-/Ausklappen">' + (isOpen ? '▴' : '▾') + '</button>' +
+      '<button type="button" class="rc-ib danger" data-act="del" data-gid="' + escapeHtml(g.id) + '" title="Gruppe löschen">🗑</button></header>' + body + '</article>';
+  }
+
+  function render(){
+    const rq = cfg.requirements || (cfg.requirements = { xp: true, duty: false, feedback: false, windowDays: 30 });
+    const chips = (ids, rm) => ids.map((id, i) => chip(id, ' <span class="rc-x" data-act="' + rm + '" data-i="' + i + '" title="Entfernen">✕</span>')).join('') || '<span class="rc-note">keine</span>';
+    host.innerHTML =
+      '<div class="rc-bar"><b>Ranglaufbahn</b> <span class="rc-note">Oben = höchster Rang · Gruppen am Griff ⠿ ziehen oder mit ▲▼ verschieben</span>' + (dirty ? ' <span class="rc-badge">Ungespeicherte Änderungen</span>' : '') + '</div>' +
+      '<div class="rc-bar"><button type="button" class="btn btn-primary" data-act="save"' + (saving ? ' disabled' : '') + '>' + (saving ? 'Speichert…' : 'Ranglaufbahn speichern') + '</button>' +
+      '<button type="button" class="btn" data-act="addgroup">＋ Gruppe</button><button type="button" class="btn" data-act="check">Systemcheck</button></div>' +
+      '<div class="rc-msgs">' + messages.map(m => '<div class="rc-msg ' + m.level + '">' + ({ error: '❌ ', warn: '⚠️ ', info: 'ℹ️ ', ok: '✅ ' }[m.level] || '') + escapeHtml(m.text) + '</div>').join('') + '</div>' +
+      '<div class="rc-list">' + (cfg.groups.length ? cfg.groups.map(groupHtml).join('') : '<div class="rc-empty">Noch keine Gruppen. Lege mit „＋ Gruppe“ die erste an und füge bestehende Discord-Rollen hinzu.</div>') + '</div>' +
+      '<article class="settings-card glass"><div class="card-head"><div><h3>Allgemein</h3><p>Gilt für alle Gruppen und alle Team-Commands und Panels.</p></div></div><div class="card-body" style="display:flex;flex-direction:column;gap:12px">' +
+      '<div><b>Basisrollen</b><div class="rc-note">Bei der Aufnahme vergeben, bei „Staff entfernen“ entzogen, bei Rangwechseln behalten.</div><div class="rc-chips">' + chips(cfg.baseRoleIds || [], 'rmbase') + addSelect('addbase', '') + '</div></div>' +
+      '<div><b>Suspendierungs-Rollen</b><div class="rc-note">Wer suspendiert ist, verliert die Gruppen-Rollen und bekommt diese Rollen. Beim Entsuspendieren kommt alles zurück.</div><div class="rc-chips">' + chips(cfg.suspendRoleIds || [], 'rmsusp') + addSelect('addsusp', '') + '</div></div>' +
+      '<div><b>Anforderungen für Rangaufstiege</b><div class="rc-note">Aktive Anforderungen müssen für einen Uprank erfüllt sein. Standard: nur XP.</div><div class="rc-chips">' +
+      '<label class="rc-check"><input type="checkbox" data-g="req.xp"' + (rq.xp ? ' checked' : '') + '>XP</label>' +
+      '<label class="rc-check"><input type="checkbox" data-g="req.duty"' + (rq.duty ? ' checked' : '') + '>Dienstzeit</label>' +
+      '<label class="rc-check"><input type="checkbox" data-g="req.feedback"' + (rq.feedback ? ' checked' : '') + '>Feedback</label>' +
+      '<span class="rc-req" style="flex-direction:row;align-items:center;gap:6px">Zeitraum (Tage) <input class="rc-input" style="min-width:80px;width:80px" type="number" min="1" max="365" data-g="req.windowDays" value="' + (rq.windowDays || 30) + '"></span></div></div>' +
+      '<div><label class="rc-check" style="display:inline-flex"><input type="checkbox" data-g="adminBypassRequirements"' + (cfg.adminBypassRequirements ? ' checked' : '') + '>Server-Admins dürfen Anforderungen überspringen</label>' +
+      ' <label class="rc-check" style="display:inline-flex"><input type="checkbox" data-g="legacyFallback"' + (cfg.legacyFallback !== false ? ' checked' : '') + '>Bisherige Rollen-Einstellungen (z. B. Ticket-Support-Rollen) bleiben zusätzlich erlaubt</label></div>' +
+      '</div></article>';
+  }
+
+  const find = (gid) => cfg.groups.find(g => g.id === gid);
+  const mark = () => { if (!dirty) { dirty = true; const bar = q('.rc-bar'); if (bar && !bar.querySelector('.rc-badge')) bar.insertAdjacentHTML('beforeend', ' <span class="rc-badge">Ungespeicherte Änderungen</span>'); } };
+
+  async function save(){
+    const errs = rcValidate(cfg);
+    if (errs.length) { messages = errs.map(t => ({ level: 'error', text: t })); render(); say(errs[0]); return; }
+    saving = true; render();
+    try {
+      const r = await API.put(base, cfg);
+      cfg.groups = r.config.groups; cfg.baseRoleIds = r.config.baseRoleIds; cfg.suspendRoleIds = r.config.suspendRoleIds; cfg.requirements = r.config.requirements;
+      cfg.adminBypassRequirements = r.config.adminBypassRequirements; cfg.legacyFallback = r.config.legacyFallback;
+      dirty = false; messages = (r.warnings || []).map(t => ({ level: 'warn', text: t })); if (!messages.length) messages = [{ level: 'ok', text: 'Gespeichert.' }];
+      say('Ranglaufbahn gespeichert');
+    } catch (e) {
+      const list = (e && e.data && e.data.errors) || null;
+      messages = (list || [e.message || 'Speichern fehlgeschlagen']).map(t => ({ level: 'error', text: t }));
+      say(e.message);
+    }
+    saving = false; render();
+  }
+  async function check(){
+    if (dirty) { messages = [{ level: 'warn', text: 'Der Systemcheck prüft die gespeicherte Ranglaufbahn – bitte zuerst speichern.' }]; render(); return; }
+    messages = [{ level: 'info', text: 'Prüfe…' }]; render();
+    try { const r = await API.get(base + '/check'); messages = (r.items || []).map(i => ({ level: i.level, text: i.text })); }
+    catch (e) { messages = [{ level: 'error', text: e.message }]; }
+    render();
+  }
+
+  host.addEventListener('click', (ev) => {
+    const t = ev.target.closest('[data-act]'); if (!t || t.tagName === 'SELECT') return;
+    const act = t.dataset.act; const g = t.dataset.gid ? find(t.dataset.gid) : null;
+    const i = cfg.groups.findIndex(x => g && x.id === g.id);
+    if (act === 'save') return save();
+    if (act === 'check') return check();
+    if (act === 'addgroup') { if (cfg.groups.length >= (data.limits && data.limits.groups || 25)) { say('Maximal ' + (data.limits && data.limits.groups || 25) + ' Gruppen'); return; } const ng = rcNewGroup(cfg.groups.length + 1); cfg.groups.push(ng); open.add(ng.id); mark(); render(); return; }
+    if (!g && !/base|susp/.test(act)) return;
+    if (act === 'toggle') { open.has(g.id) ? open.delete(g.id) : open.add(g.id); render(); return; }
+    if (act === 'up' || act === 'down') { cfg.groups = rcMove(cfg.groups, i, act === 'up' ? i - 1 : i + 1); mark(); render(); return; }
+    if (act === 'del') { if (!window.confirm('Gruppe „' + g.name + '“ löschen? Die Discord-Rollen bleiben bestehen.')) return; cfg.groups.splice(i, 1); mark(); render(); return; }
+    if (act === 'rmrole') { g.roles.splice(Number(t.dataset.ri), 1); mark(); render(); return; }
+    if (act === 'permall' || act === 'permnone') { perms.forEach(p => { g.permissions[p.key] = act === 'permall'; }); mark(); render(); return; }
+    if (act === 'rmbase') { cfg.baseRoleIds.splice(Number(t.dataset.i), 1); mark(); render(); return; }
+    if (act === 'rmsusp') { cfg.suspendRoleIds.splice(Number(t.dataset.i), 1); mark(); render(); return; }
+  });
+  host.addEventListener('change', (ev) => {
+    const t = ev.target;
+    if (t.tagName === 'SELECT' && t.dataset.act && t.value) {
+      const v = t.value;
+      if (t.dataset.act === 'addrole') { const g = find(t.dataset.gid); if (g && !used().has(v)) g.roles.push({ roleId: v, label: '' }); }
+      if (t.dataset.act === 'addbase') { cfg.baseRoleIds = (cfg.baseRoleIds || []).concat(used().has(v) ? [] : [v]); }
+      if (t.dataset.act === 'addsusp') { cfg.suspendRoleIds = (cfg.suspendRoleIds || []).concat(used().has(v) ? [] : [v]); }
+      mark(); render(); return;
+    }
+    if (t.dataset.perm) { const g = find(t.dataset.gid); if (g) { g.permissions[t.dataset.perm] = t.checked; mark(); } return; }
+    if (t.dataset.g) {
+      const k = t.dataset.g; const rq = cfg.requirements || (cfg.requirements = {});
+      if (k.startsWith('req.')) rq[k.slice(4)] = t.type === 'checkbox' ? t.checked : Math.max(1, Math.min(365, parseInt(t.value, 10) || 30));
+      else cfg[k] = t.checked;
+      mark(); render();
+    }
+  });
+  host.addEventListener('input', (ev) => {
+    const t = ev.target; const f = t.dataset && t.dataset.f; if (!f) return;
+    const g = find(t.dataset.gid); if (!g) return;
+    if (f === 'name') g.name = t.value;
+    else if (f === 'label') { const r = g.roles[Number(t.dataset.ri)]; if (r) r.label = t.value; }
+    else if (f.startsWith('req.')) g.requirements[f.slice(4)] = Number(t.value) || 0;
+    mark();
+  });
+
+  // ---- Drag & Drop (Maus und Touch über Pointer Events) ----
+  host.addEventListener('pointerdown', (ev) => {
+    const h = ev.target.closest && ev.target.closest('[data-handle]'); if (!h) return;
+    if (ev.button !== undefined && ev.button > 0) return;
+    const card = h.closest('.rc-group'); const list = card && card.parentElement; if (!list) return;
+    ev.preventDefault();
+    const rect = card.getBoundingClientRect(); const offY = ev.clientY - rect.top;
+    const ph = document.createElement('div'); ph.className = 'rc-placeholder'; ph.style.height = (rect.height || card.offsetHeight || 60) + 'px';
+    const draggedId = card.dataset.gid;
+    card.after(ph);
+    card.classList.add('rc-dragging'); card.style.width = (rect.width || 0) + 'px'; card.style.left = rect.left + 'px'; card.style.top = rect.top + 'px';
+    try { h.setPointerCapture(ev.pointerId); } catch (_) {}
+    let lastY = ev.clientY; let done = false;
+    const others = () => [...list.querySelectorAll(':scope > .rc-group')].filter(c => c !== card);
+    const place = (y) => {
+      const o = others(); const mids = o.map(c => { const r = c.getBoundingClientRect(); return r.top + r.height / 2; });
+      const at = rcDropIndex(mids, y);
+      if (at >= o.length) list.appendChild(ph); else list.insertBefore(ph, o[at]);
+    };
+    const move = (e) => { lastY = e.clientY; card.style.top = (e.clientY - offY) + 'px'; place(e.clientY); };
+    const scroller = setInterval(() => { if (lastY < 90) window.scrollBy(0, -14); else if (lastY > (window.innerHeight || 800) - 90) window.scrollBy(0, 14); }, 30);
+    const finish = (commit) => {
+      if (done) return; done = true; clearInterval(scroller);
+      h.removeEventListener('pointermove', move); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', cancel); document.removeEventListener('keydown', esc);
+      let at = 0; const kids = [...list.children].filter(c => c === ph || (c.classList && c.classList.contains('rc-group') && c !== card));
+      at = kids.indexOf(ph); const ids = kids.filter(c => c !== ph).map(c => c.dataset.gid);
+      ph.remove(); card.classList.remove('rc-dragging'); card.style.cssText = '';
+      if (commit) {
+        const order = rcOrderAfterDrop(ids, draggedId, at);
+        const before = cfg.groups.map(g => g.id).join();
+        if (order.join() !== before) { cfg.groups = order.map(id => find(id)).filter(Boolean); mark(); }
+      }
+      render();
+    };
+    const up = () => finish(true); const cancel = () => finish(false); const esc = (e) => { if (e.key === 'Escape') finish(false); };
+    h.addEventListener('pointermove', move); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', cancel); document.addEventListener('keydown', esc);
+  });
+
+  render();
+}
 
 /* ---------- Live-Verwaltung im Dashboard (Teamsperre, Testphase, Temp-Rollen, Giveaways) ---------- */
 function wireLive(catId){
