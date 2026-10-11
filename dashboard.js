@@ -241,8 +241,17 @@ security:[
     'Security-Log|security-logs|select',
     'Security Standard-Aktion|Strip roles|enum',
     'Security Timeout Minuten|10',
-    'Externe Apps deaktivieren|An|enum',
     'Anti-Nuke Fenster Sekunden|10'
+  ]),
+  F('Externe Apps','Rollen + Channels. Alle Channels = überall sperren. Neue Channels werden automatisch gesperrt wenn „alle Channels“ an ist.',[
+    'Externe Apps deaktivieren|An|enum',
+    'Externe Apps alle Channels|An|enum'
+  ]),
+  R('Externe Apps Rollen','Leer = @everyone',['Externe-Apps Rolle']),
+  R('Externe Apps Channels','Leer = alle Channels',['Externe-Apps Channels']),
+  B('Externe Apps anwenden','Einstellungen speichern und auf dem Server setzen',[
+    'Externe Apps jetzt sperren',
+    'Externe Apps wieder erlauben'
   ]),
   R('Whitelist','',['Security Whitelist Rolle']),
   F('Anti-Nuke','Pro Modul An/Aus, Limit und Aktion.',[
@@ -431,7 +440,7 @@ const KEY_MAP = {
   "Warn Permission":"permWarnRoleIds","Kick Permission":"permKickRoleIds","Ban Permission":"permBanRoleIds",
   "Timeout Permission":"permTimeoutRoleIds","Softban Permission":"permSoftbanRoleIds","Note Permission":"permNoteRoleIds",
   "AutoMod-Log":"autoModLogChannelId","Strafregister-Log":"recordsLogChannelId","Security-Log":"securityLogChannelId",
-  "Externe Apps deaktivieren":"securityDisableExternalApps","Externe-Apps Rolle":"securityExternalAppsRoleIds",
+  "Externe Apps deaktivieren":"securityDisableExternalApps","Externe Apps alle Channels":"securityExternalAppsEveryChannel","Externe-Apps Rolle":"securityExternalAppsRoleIds","Externe-Apps Channels":"securityExternalAppsChannelIds",
   "Anti-Nuke":"antiNukeEnabled","Anti-Raid":"antiRaidEnabled","Backup Whitelist-Rolle":"backupWhitelistRoleIds",
   "Welcome-Kanal":"welcomeChannelId","Leave-Kanal":"leaveChannelId","Auto-Rolle":"autoRoleIds",
   "Welcome Titel":"welcomeTitle","Welcome Text":"welcomeText","Welcome Ping":"welcomePing",
@@ -659,7 +668,7 @@ function renderCard([title,desc,type,items]){
           opts = ['Log only','Warn','Kick','Ban','Timeout','Remove','Delete'];
         }
         if (label === 'Musik-Preset' || key === 'warteraumMusicPreset') opts = ['DE','EN'];
-        else if (/^(Warteraum-Musik|Appeals aktiv|Nur bei aktivem Ban|Feedback als Sticky|Abmeldung muss bestätigt werden|Häuser auf Ausweis anzeigen|Externe Apps deaktivieren|Anti-Nuke|Anti-Raid|Welcome Ping|Join-to-Create Support-VCs|Stats Tickets|Stats Support|Stats Duty)$/.test(label)) opts = ['An','Aus'];
+        else if (/^(Warteraum-Musik|Appeals aktiv|Nur bei aktivem Ban|Feedback als Sticky|Abmeldung muss bestätigt werden|Häuser auf Ausweis anzeigen|Externe Apps deaktivieren|Externe Apps alle Channels|Anti-Nuke|Anti-Raid|Welcome Ping|Join-to-Create Support-VCs|Stats Tickets|Stats Support|Stats Duty)$/.test(label)) opts = ['An','Aus'];
         if (label === 'Testphase Auto-Pass' || label === 'Honeypot DM') opts = ['An','Aus'];
         if (label === 'Honeypot Strafe') opts = ['Ban','Softban','Kick','Timeout','Nur löschen'];
         if (label === 'Rollen-Panel Modus') opts = ['Mehrfach','Einzeln'];
@@ -1005,6 +1014,42 @@ function renderCard([title,desc,type,items]){
 async function handleAction(label, catId){
   if(!state.guildId){ toast('Error'); return; }
   try { await saveCurrent(); } catch (e) {}  // erst speichern, dann senden
+
+  // Externe Apps sofort anwenden
+  const L0 = String(label||'').toLowerCase();
+  if (L0.includes('externe apps jetzt sperren') || L0.includes('externe apps wieder erlauben')) {
+    try {
+      const enable = L0.includes('sperren');
+      const roleIds = getSetting('securityExternalAppsRoleIds', []) || [];
+      const channelIds = getSetting('securityExternalAppsChannelIds', []) || [];
+      const every = isOnLabel('Externe Apps alle Channels') || getSetting('securityExternalAppsEveryChannel', true) !== false;
+      if (typeof API.externalApps === 'function') {
+        const r = await API.externalApps(state.guildId, {
+          enabled: enable,
+          roleIds: Array.isArray(roleIds) ? roleIds : [],
+          channelIds: every ? [] : (Array.isArray(channelIds) ? channelIds : []),
+          everyChannel: every,
+          forceAll: every
+        });
+        toast(enable
+          ? `Externe Apps gesperrt (${(r&&r.ok)||0}/${(r&&r.total)||0} Channels)`
+          : `Externe Apps erlaubt (${(r&&r.ok)||0} Channels)`);
+      } else {
+        await API.post('/api/guilds/' + state.guildId + '/security/external-apps', {
+          enabled: enable,
+          roleIds: Array.isArray(roleIds) ? roleIds : [],
+          channelIds: every ? [] : (Array.isArray(channelIds) ? channelIds : []),
+          everyChannel: every,
+          forceAll: every
+        });
+        toast(enable ? 'Externe Apps gesperrt' : 'Externe Apps erlaubt');
+      }
+    } catch (e) {
+      toast('Error: ' + (e.message || e));
+    }
+    return;
+  }
+
   let panel = PANEL_MAP[label];
   if(!panel){
     const L = String(label||'').toLowerCase();
@@ -1162,6 +1207,9 @@ function openRoleDrawer(btn){
   if (/Support-VCs|Support-Räume|Voice|Warteraum|Feste Support|XP/.test(label) || /Voice|ChannelIds|supportFixed|supportXp/.test(key)) {
     kind = 'voice';
   }
+  if (/Externe-Apps Channels|Externe Apps Channels/.test(label) || /externalAppsChannelIds|securityExternalAppsChannelIds/.test(key)) {
+    kind = 'channel';
+  }
   openPickerDrawer({ key, title: label || 'Auswahl', kind, sourceBtn: btn });
 }
 
@@ -1188,7 +1236,7 @@ async function saveCurrent(){
     'ticketSupportRoleIds','adminRoleIds','staffRoleIds','modRoleIds','ingameAccessRoleIds',
     'ingameModRoleIds','teamInviteRoleIds','teamKickRoleIds','teamWarnRoleIds','teamSuspendRoleIds',
     'factionManageRoleIds','factionManagerRoleIds','houseManagerRoleIds','databaseManagerRoleIds',
-    'tasksManagerRoleIds','tasksClaimRoleIds','securityWhitelistRoleIds','verifyRoleIds','unverifiedRoleIds',
+    'tasksManagerRoleIds','tasksClaimRoleIds','securityWhitelistRoleIds','securityExternalAppsRoleIds','securityExternalAppsChannelIds','verifyRoleIds','unverifiedRoleIds',
     'banRoleIds','kickRoleIds','timeoutRoleIds','warnRoleIds','softbanRoleIds','highTeamRoleIds',
     'partnerManagerRoleIds','ausweisAcceptRoleIds','unbanAcceptRoleIds','giveawayRoleIds','suggestAcceptRoleIds'
   ];

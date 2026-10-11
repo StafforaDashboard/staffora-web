@@ -131,6 +131,11 @@ window.StafforaAPI = (function () {
     patchModules: function (gid, modules) {
       return req("/api/guilds/" + gid + "/modules", { method: "PATCH", body: modules || {} });
     },
+    externalApps: function (gid, body) {
+      return req("/api/guilds/" + gid + "/security/external-apps", {
+        method: "POST", body: body || {}, timeout: 120000
+      });
+    },
     sendPanel: function (gid, type, channelId) {
       return req("/api/guilds/" + gid + "/panels/send", {
         method: "POST", body: { type: type, channelId: channelId }
