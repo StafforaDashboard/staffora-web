@@ -119,6 +119,7 @@ window.StafforaAPI = (function () {
     post: function (path, body) { return req(path, { method: "POST", body: body || {} }); },
     del: function (path) { return req(path, { method: "DELETE" }); },
     put: function (path, body) { return req(path, { method: "PUT", body: body || {} }); },
+    patch: function (path, body) { return req(path, { method: "PATCH", body: body || {} }); },
     webhookSetup: function (gid) { return req("/api/guilds/" + gid + "/ingame/webhook-setup"); },
     guilds: function (refresh) { return req("/api/guilds" + (refresh ? "?refresh=1" : "")); },
     config: function (gid) { return req("/api/guilds/" + gid + "/config"); },
@@ -131,14 +132,9 @@ window.StafforaAPI = (function () {
     patchModules: function (gid, modules) {
       return req("/api/guilds/" + gid + "/modules", { method: "PATCH", body: modules || {} });
     },
-    externalApps: function (gid, body) {
-      return req("/api/guilds/" + gid + "/security/external-apps", {
-        method: "POST", body: body || {}, timeout: 120000
-      });
-    },
-    sendPanel: function (gid, type, channelId) {
+    sendPanel: function (gid, type, channelId, extra) {
       return req("/api/guilds/" + gid + "/panels/send", {
-        method: "POST", body: { type: type, channelId: channelId }
+        method: "POST", body: Object.assign({ type: type, channelId: channelId }, extra || {})
       });
     },
     /* Public Unban / Appeal */

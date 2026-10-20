@@ -3,65 +3,78 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Staffora — Dashboard</title>
-<link rel="stylesheet" href="/styles.css?v=dark3">
-<style id="dark-critical">
-body.dashboard-page,body.scene{background:#05070f!important;color:#e8eaf2!important;color-scheme:dark}
-.server-picker{background:#0c1020!important;border:1px solid rgba(130,100,255,.3)!important;color:#e8eaf2!important}
-.server-row,button.server-row{-webkit-appearance:none!important;appearance:none!important;background:#141828!important;color:#e8eaf2!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:12px!important}
-.server-row b{color:#f0f2fa!important}.server-row small{color:#8b93a8!important}
-.server-search,input,select,textarea{-webkit-appearance:none!important;background:#0d1220!important;color:#e8eaf2!important;border:1px solid rgba(255,255,255,.1)!important}
-.settings-card,.settings-panel{color:#e8eaf2!important}
-.sidebar,.dashboard-sidebar{background:rgba(10,14,28,.95)!important}
-</style>
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0c13">
+<title>Staffora Dashboard</title>
+<link rel="preload" href="/assets/fonts/onest-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/bricolage-grotesque-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/dashboard.css?v=coll2">
 </head>
-<body class="scene dashboard-page">
+<body class="dashboard-page">
+<div class="load-bar" aria-hidden="true"></div>
+
 <div class="app-shell dashboard-shell">
-  <aside class="sidebar dashboard-sidebar glass">
+  <aside class="sidebar dashboard-sidebar" id="sidebar">
     <a class="brand" href="/">
       <span class="brand-mark">S</span>
-      <span><b>STAFFORA</b><small>CONTROL CENTER</small></span>
+      <span><b>Staffora</b><small>Control Center</small></span>
     </a>
 
-    <button class="server-mini" id="serverButton">
+    <button class="sb-back" id="allServers" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+      <span>Alle Server</span>
+    </button>
+
+    <button class="server-mini" id="serverButton" type="button" aria-haspopup="dialog">
       <span class="server-icon">S</span>
       <span class="grow"><b id="serverName">Server wählen</b><small>Noch kein Server ausgewählt</small></span>
-      <span class="server-chevron">⌄</span>
+      <span class="server-chevron" aria-hidden="true">⌄</span>
     </button>
 
     <div class="sidebar-search">
-      <input id="globalSearch" placeholder="Kategorie suchen …">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="globalSearch" type="search" placeholder="Seite suchen" aria-label="Seite suchen" autocomplete="off">
+      <kbd aria-hidden="true">Ctrl K</kbd>
     </div>
 
-    <nav id="categories" class="category-nav"></nav>
+    <nav id="categories" class="category-nav" aria-label="Kategorien"></nav>
 
-    <div class="side-user">
-      <span class="avatar">M</span>
-      <span class="grow"><b>MaxPower</b><small>Server Admin</small></span>
-      <span class="side-version">v2.2.0</span>
-    </div>
+    <div class="side-foot"><span>Staffora</span><span class="side-version">v3.9</span></div>
   </aside>
+  <div class="scrim" id="scrim"></div>
 
   <section class="workspace dashboard-workspace">
-    <div class="server-picker glass" id="serverPicker">
-      <div class="picker-head">
-        <div><span class="eyebrow">SERVER AUSWÄHLEN</span><h2>Server auswählen</h2></div>
-        <button class="picker-close" onclick="document.getElementById('serverPicker').classList.remove('open')">Schließen</button>
+    <div class="server-picker" id="serverPicker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+      <div class="picker-card">
+        <div class="picker-head">
+          <h2 id="pickerTitle">Server auswählen</h2>
+          <div class="picker-head-actions">
+            <button class="icon-btn" id="pickerRefresh" type="button" title="Serverliste neu laden" aria-label="Serverliste neu laden"></button>
+            <button class="btn picker-close" type="button" onclick="document.getElementById('serverPicker').classList.remove('open')">Schließen</button>
+          </div>
+        </div>
+        <p>Die Einstellungen gelten nur für den gewählten Server.</p>
+        <input class="server-search" id="serverSearch" type="search" placeholder="Server suchen" aria-label="Server suchen" autocomplete="off">
+        <div class="server-list" id="serverList"></div>
       </div>
-      <p>Wähle den Server, dessen Einstellungen du bearbeiten möchtest.</p>
-      <input class="server-search" id="serverSearch" placeholder="Server suchen …">
-      <div class="server-list" id="serverList"></div>
     </div>
 
-    <main class="dashboard-main dashboard-content">
-      <div class="dashboard-topline">
-        <div>
-          <span class="eyebrow">SERVER CONTROL</span>
-          <div class="dashboard-title-row"><h1>Dashboard</h1><span class="server-context" id="serverHint">Staffora Community · Einstellungen gelten nur für diesen Server.</span></div>
+    <header class="dashboard-topline">
+      <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Menü öffnen" aria-controls="sidebar" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <nav class="crumbs" aria-label="Pfad"><span id="serverHint">Kein Server gewählt</span><span id="crumbGroup"></span><b id="crumbPage"></b></nav>
+      <div class="top-actions">
+        <button class="status-pill" id="statusPill" type="button" data-state="idle" aria-expanded="false" aria-controls="statusPop"><span class="status-dot"></span><span id="statusText">Status prüfen</span></button>
+        <div class="status-pop" id="statusPop" hidden></div>
+        <div class="side-user">
+          <span class="avatar">?</span>
+          <span class="grow"><b>Anmeldung</b><small>Verbinde mit Discord …</small></span>
         </div>
-        <div class="top-status"><span class="status-dot"></span>Online</div>
       </div>
+    </header>
 
+    <main class="dashboard-main dashboard-content" id="main">
       <section class="settings-stage">
         <div class="empty-state glass hidden" id="empty"></div>
         <div class="settings-panel" id="settingsPanel"></div>
@@ -71,14 +84,14 @@ body.dashboard-page,body.scene{background:#05070f!important;color:#e8eaf2!import
 </div>
 
 <div class="drawer" id="drawer">
-  <div class="drawer-card">
-    <div class="drawer-head"><div><span class="eyebrow">AUSWAHL</span><h2 id="drawerTitle">Auswählen</h2></div><button class="icon-btn" id="drawerClose">×</button></div>
+  <div class="drawer-card" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+    <div class="drawer-head"><div><h2 id="drawerTitle">Auswählen</h2></div><button class="icon-btn" id="drawerClose" type="button" aria-label="Schließen">×</button></div>
     <div class="action-list" id="drawerBody"></div>
   </div>
 </div>
-<div class="toast" id="toast"></div>
-<script src="/api.js?v=panel2"></script>
-<script src="/dashboard.js?v=panel2"></script>
-<script src="/app.js"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/api.js?v=coll2"></script>
+<script src="/dashboard.js?v=coll2"></script>
+<script src="/dashboard-ui.js?v=coll2"></script>
 </body>
 </html>

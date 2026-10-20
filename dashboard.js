@@ -9,25 +9,36 @@ async function ensureWebhookSetup(gid) {
     state.settings = state.settings || {};
     if (r.secret) state.settings.ingameWebhookSecret = r.secret;
     state._webhookUrl = r.url;
+    state._webhookSecret = r.secret || '';
     state._webhookDetected = r.detected;
-    let box = document.getElementById('webhook-setup-info');
-    if (!box) {
-      const host = document.getElementById('settingsForm') || document.getElementById('content') || document.body;
-      box = document.createElement('div');
-      box.id = 'webhook-setup-info';
-      if (host.firstChild) host.insertBefore(box, host.firstChild);
-      else host.appendChild(box);
-    }
-    box.innerHTML = '<div class="card" style="padding:12px;margin:8px 0;border:1px solid rgba(139,92,246,.35);border-radius:12px">' +
-      '<div style="font-weight:600;margin-bottom:6px">Ingame Webhook</div>' +
-      '<div style="font-size:12px;opacity:.85;word-break:break-all">URL: <code>' + (r.url||'') + '</code></div>' +
-      '<div style="font-size:12px;opacity:.85;margin-top:4px">Secret: <code>' + (r.secret||'') + '</code></div>' +
-      '<div style="font-size:12px;margin-top:4px">' + (r.detected ? 'Status: erkannt · aktiv' : 'Status: warte auf erstes Event') + '</div>' +
-      '<div style="font-size:11px;opacity:.7;margin-top:6px">Playtime: player_join / player_leave / player_heartbeat an diese URL senden. Danach ist Tracking automatisch aktiv.</div></div>';
+    paintWebhookCard();
   } catch (e) { console.warn('webhook-setup', e); }
+}
+function paintWebhookCard() {
+  const panel = document.getElementById('settingsPanel');
+  const old = document.getElementById('webhook-setup-info');
+  if (old) old.remove();
+  if (!panel || !state._webhookUrl || !['ic', 'icmod', 'dizzy'].includes(state.currentCat)) return;
+  const grid = panel.querySelector('.settings-grid') || panel;
+  const el = document.createElement('article');
+  el.id = 'webhook-setup-info';
+  el.className = 'settings-card glass live-block';
+  el.innerHTML = '<div class="card-head"><div><h3>Ingame-Webhook</h3><p>Sende player_join, player_leave und player_heartbeat an diese URL. Danach ist das Tracking automatisch aktiv.</p></div></div>' +
+    '<div class="card-body">' +
+    '<div class="setting-row"><span>URL</span><div class="mp-row"><input readonly value="' + escapeHtml(state._webhookUrl) + '"><button type="button" class="btn btn-sm" data-copy="url">Kopieren</button></div></div>' +
+    (state._webhookSecret ? '<div class="setting-row"><span>Secret</span><div class="mp-row"><input readonly value="' + escapeHtml(state._webhookSecret) + '"><button type="button" class="btn btn-sm" data-copy="secret">Kopieren</button></div></div>' : '') +
+    '<div class="setting-row"><span>Status</span><span>' + (state._webhookDetected ? 'Erkannt und aktiv' : 'Wartet auf das erste Event') + '</span></div></div>';
+  el.querySelectorAll('[data-copy]').forEach(b => {
+    b.onclick = async () => {
+      const v = b.dataset.copy === 'secret' ? state._webhookSecret : state._webhookUrl;
+      try { await navigator.clipboard.writeText(v); toast('Kopiert', 'ok'); } catch (_) { toast('Kopieren nicht möglich – bitte markieren und mit Strg+C kopieren', 'err'); }
+    };
+  });
+  grid.appendChild(el);
 }
 
 const C=[
+['home','Übersicht','Status, Module und Hinweise'],
 ['ranglaufbahn','Ranglaufbahn','Gruppen, Rollen & Permissions'],
 ['embeds','Embeds','Nachrichten im Staffora-Layout'],
 ['teamsperre','Teamsperre','Bewerbungen sperren'],
@@ -50,7 +61,8 @@ const C=[
 ['tasks','Aufgaben','Panel, Manager, Permissions'],
 ['database','Database','Panel und Manager'],
 ['factions','Fraktionen','Announce, Log, Verwaltung'],
-['houses','Häuser','Hausliste und Anzeige'],
+['houses','Häuser','Hausliste, Häuser verwalten, Kauf-Buttons'],
+['icnames','IC-Namen','Eintragen, Suchen, Löschung nach Teamkick'],
 ['moderation','Moderation','Logs und Command-Permissions'],
 ['records','Strafregister','Gründe und Maßnahmen'],
 ['security','Security','Anti-Nuke, Anti-Raid, Externe Apps'],
@@ -63,27 +75,32 @@ const C=[
 ['rp','RP','Announce, Embed, Server-Stats'],
 ['partner','Partner','Kanal, Manager, Fragen'],
 ['ausweis','Ausweis','Kanal, Request, Annahme, Custom'],
+['fly','Fly & Nametag','Anfragen, Staff-Kanal, Logs'],
 ['unban','Ban Appeal','Fragen, Log, Annahme'],
 ['dizzy','Dizzy Control','Roblox-Link und Sticky'],
 ['ic','IC Panel','Zugriff und Logs'],
 ['icmod','IC Moderation','Warn / Kick / Ban Panel + Log'],
+['sticky','Sticky','Nachricht bleibt unten im Kanal'],
 ['logs','Logs','Zentrale Log-Kanäle']
 ];
 const GROUPS=[
-['Server', ['allgemein','module','logs','embeds']],
+['Start', ['home']],
+['Server', ['allgemein','module','logs','embeds','sticky']],
 ['Support', ['tickets','warteraum','admincall','offices']],
 ['Team', ['ranglaufbahn','teamlist','team','duty','abmeldung','feedback','tasks','interview','teamsperre','testphase','temprollen']],
 ['Moderation', ['moderation','records','security','database','icmod','honeypot']],
 ['Community', ['welcome','verify','suggest','giveaway','xp','partner','rollenpanel']],
-['RP & IC', ['factions','houses','rp','ausweis','unban','dizzy','ic']]
+['RP & IC', ['factions','houses','icnames','rp','ausweis','fly','unban','dizzy','ic']]
 ];
 const F=(title,desc,items)=>[title,desc,'fields',items];
 const R=(title,desc,items)=>[title,desc,'roles',items];
 const S=(title,desc,items)=>[title,desc,'switches',items];
 const B=(title,desc,items)=>[title,desc,'buttons',items];
 const L=(title,desc,items)=>[title,desc,'listedit',items];
+const K=(title,desc,coll)=>[title,desc,'collection',[coll]]; // Karten-Liste mit „… erstellen“ (siehe COLL)
 
 const templates={
+home:[],
 ranglaufbahn:[
   S('Modul','Die Ranglaufbahn gilt für /team, /uprank, /downrank, Bewerbungen, Interviews, Tickets und Activity Checks.',['Teamverwaltung'])
 ],
@@ -125,23 +142,27 @@ allgemein:[
   F('Grunddaten','Sprache und Zeitzone.',['Sprache|de|select','Zeitzone|Europe/Berlin','Log-Kanal|system-logs|select'])
 ],
 module:[
-  S('Module','Aus = Feature läuft nicht, die Kategorie wird ausgeblendet und die zugehörigen Slash-Commands verschwinden vom Server.',['Tickets','Warteraum','Admin Call','Büros','Duty','Bewerbungen','Teamverwaltung','Security','AutoMod','XP','Verify','Welcome/Leave','Partner','Fraktionen','Ausweis','Feedback','Aufgaben','Database','Abmeldung','Giveaway','Suggest','Interview','IC Panel','IC Moderation','Embeds & Say','Status & RP'])
+  S('Module','Aus = Feature läuft nicht, die Kategorie wird ausgeblendet und die zugehörigen Slash-Commands verschwinden vom Server.',['Tickets','Warteraum','Admin Call','Büros','Duty','Bewerbungen','Teamverwaltung','Security','AutoMod','XP','Verify','Welcome/Leave','Partner','Fraktionen','Ausweis','Fly & Nametag','Sticky','Feedback','Aufgaben','Database','Abmeldung','Giveaway','Suggest','Interview','IC Panel','IC Moderation','Embeds & Say','Status & RP'])
 ],
 tickets:[
   S('Modul','Tickets an/aus.',['Tickets']),
-  F('Panel & Kanäle','Ticket-Panel und Logs.',['Ticket-Panel-Kanal|tickets|select','Ticket-Log|ticket-logs|select','Ticket-Kategorie|Support|select','Support-Rolle|Support|select','Ticket-Blacklist-Rolle|Ticket-Blacklist|select','Ticket-Panel-Titel|Erstelle hier ein Ticket','Ticket-Panel-Text|Klicke auf den Button, um ein Ticket zu öffnen.']),
-  L('Ticket-Arten','Neue Ticket-Art mit Rollen, Kategorie und Embeds.',['ticketTypes']),
+  K('Ticket-Panels','Erst ein Panel erstellen, dann öffnest du es und stellst Kanal, Titel, Text und Kategorien ein. Jedes Panel kann in einen eigenen Kanal.','ticketPanels'),
+  K('Kategorien','Die Themen, aus denen Mitglieder beim Öffnen wählen. Jede Kategorie hat eigene Rollen, Discord-Kategorie und Texte.','ticketTypes'),
+  F('Allgemein','Log, Support-Rolle und Sperre für alle Tickets.',['Ticket-Log|ticket-logs|select','Support-Rolle|Support|select','Ticket-Blacklist-Rolle|Ticket-Blacklist|select']),
+  F('Ticket-KI','Antwortet im Ticket auf Fragen der Person, die es geöffnet hat. Aus = die KI schreibt nie. Sobald das Team das Ticket übernimmt, hält sie sich raus. Der API-Key steht in der Bot-Konfiguration (.env). Pro Kategorie lässt sich die KI zusätzlich abschalten.',['Ticket-KI|Aus|enum']),
   L('Eröffnungsfragen','Frage vor dem Öffnen',['ticketOpenQuestions']),
   F('Limits','',['Ticket-Limit pro User|3','Ticket-Limit Fenster Stunden|24']),
+  F('Standard-Panel','Nur nötig, wenn du oben kein eigenes Panel erstellst: Dieses Panel wird mit „Ticket-Panel senden“ verschickt.',['Ticket-Panel-Kanal|tickets|select','Ticket-Kategorie|Support|select','Ticket-Panel-Titel|Erstelle hier ein Ticket','Ticket-Panel-Text|Klicke auf den Button, um ein Ticket zu öffnen.']),
   B('Panel','',['Ticket-Panel senden'])
 ],
 warteraum:[
   S('Modul','',['Warteraum']),
+  K('Warteraum','Erst den Warteraum (Voice-Kanal) erstellen, dann erscheinen die weiteren Einstellungen: Support-Modus, Übernahme, Support-VCs und Musik.','warteraumList'),
   F('Support-Modus','',['Support-VC Modus|Bestehende Channels|enum']),
-  F('Warteraum & Übernahme','Der Support-Fall mit dem Übernehmen-Button erscheint im Übernahme-Kanal. Feste Support-VCs gelten bei „Bestehende Channels“.',['Warteraum Voice|Warteraum|select','Übernahme-Kanal|support-alerts|select','Support-VC Kategorie|Support VC|select']),
+  F('Übernahme & Support-VCs','Der Support-Fall mit dem Übernehmen-Button erscheint im Übernahme-Kanal. Feste Support-VCs gelten bei „Bestehende Channels“.',['Übernahme-Kanal|support-alerts|select','Support-VC Kategorie|Support VC|select']),
   R('Support VCs','Mehrere feste Support-VCs und XP-Räume.',['Feste Support-VCs','Support-Räume mit XP']),
   F('Join2Create','Nur bei Modus „Join2Create“.',['Support-VC Kategorie|Support VC|select','Join-to-Create Support-VCs|An|enum']),
-  F('Musik','Preset oder eigene Datei unten.',['Warteraum-Musik|An|enum','Musik-Preset|DE|enum']),
+  F('Musik','Preset oder eigene Datei. „Musik wiederholen“ An = Dauerschleife, Aus = einmal abspielen, dann verlässt der Bot den Kanal.',['Warteraum-Musik|An|enum','Musik wiederholen|An|enum','Musik-Preset|DE|enum']),
   F('Logs','',['Warteraum Claim-Log|warteraum-claim-logs|select'])
 ],
 admincall:[
@@ -152,7 +173,8 @@ admincall:[
 ],
 offices:[
   S('Modul','',['Büros']),
-  L('Büros','Büro anlegen: Name, Warteraum, Beitritts-Rolle, Büro-VC.',['officesList']),
+  F('Auswahl','Büros mit gleicher Kategorie werden im Warteraum zusammengefasst. Ohne Kategorien sehen Mitglieder direkt alle Büros.',['Kategorien mehrfach wählbar|An|enum']),
+  K('Büros','Erst ein Büro erstellen, dann öffnest du es und stellst Warteraum, Rolle und Büro-VC ein. Mehr als 25 Büros werden automatisch auf mehrere Auswahlmenüs verteilt.','officesList'),
   F('Log','',['Büro-Log|office-logs|select'])
 ],
 applications:[
@@ -219,9 +241,18 @@ factions:[
   L('Fraktions-Bewerbungsfragen','',['factionAppQuestions'])
 ],
 houses:[
-  F('Hausliste','',['Hausliste-Kanal|houses|select']),
+  S('Modul','Hausliste mit Kauf-Buttons für freie Häuser. Die Häuser selbst verwaltest du weiter unten unter „Häuser verwalten“.',['Häuser']),
+  F('Hausliste','Das Panel aktualisiert sich automatisch, sobald du unten ein Haus änderst.',['Hausliste-Kanal|houses|select','Hausliste Titel|Hausliste','Hausliste Text||area']),
   R('Rechte','',['Haus Manager']),
   B('Panel','',['Hausliste senden'])
+],
+icnames:[
+  S('Modul','Mitglieder tragen ihren IC-Namen über ein Panel ein, das Team sucht ihn. Gelöscht wird er nur automatisch, wenn jemand aus dem Team gekickt wurde.',['IC-Namen']),
+  F('Panel','',['IC-Namen-Panel-Kanal|ic-namen|select','IC-Namen-Panel Titel|IC-Name','IC-Namen-Panel Text||area']),
+  F('Regeln','Nach einem Teamkick wird der IC-Name nach dieser Zeit gelöscht. Wird die Person vorher wieder aufgenommen, bleibt er erhalten. Team-Mitglieder und Admins dürfen immer suchen.',['Löschung nach Teamkick (Stunden)|24','Namen selbst ändern|An|enum','Team darf suchen|An|enum']),
+  F('Log','Eintragen, Ändern, geplante Löschung, Abbruch und Löschung.',['IC-Namen-Log|ic-namen-logs|select']),
+  R('Zusätzliche Such-Rollen','',['IC-Namen Suche Rollen']),
+  B('Panel','',['IC-Namen-Panel senden'])
 ],
 moderation:[
   F('Logs','',['Mod-Log|mod-logs|select']),
@@ -241,17 +272,8 @@ security:[
     'Security-Log|security-logs|select',
     'Security Standard-Aktion|Strip roles|enum',
     'Security Timeout Minuten|10',
-    'Anti-Nuke Fenster Sekunden|10'
-  ]),
-  F('Externe Apps','Rollen + Channels. Alle Channels = überall sperren. Neue Channels werden automatisch gesperrt wenn „alle Channels“ an ist.',[
     'Externe Apps deaktivieren|An|enum',
-    'Externe Apps alle Channels|An|enum'
-  ]),
-  R('Externe Apps Rollen','Leer = @everyone',['Externe-Apps Rolle']),
-  R('Externe Apps Channels','Leer = alle Channels',['Externe-Apps Channels']),
-  B('Externe Apps anwenden','Einstellungen speichern und auf dem Server setzen',[
-    'Externe Apps jetzt sperren',
-    'Externe Apps wieder erlauben'
+    'Anti-Nuke Fenster Sekunden|10'
   ]),
   R('Whitelist','',['Security Whitelist Rolle']),
   F('Anti-Nuke','Pro Modul An/Aus, Limit und Aktion.',[
@@ -277,7 +299,7 @@ security:[
 welcome:[
   S('Modul','',['Welcome/Leave']),
   F('Kanäle','',['Welcome-Kanal|welcome|select','Leave-Kanal|leave|select']),
-  F('Texte','Platzhalter: {user} {server} {memberCount}',['Welcome-Nachricht|Willkommen {user}!','Leave-Nachricht|{user} hat den Server verlassen.','Welcome Ping|Aus|enum'])
+  F('Texte','Platzhalter: {user} (Erwähnung) {userName} {userId} {server} {memberCount}',['Welcome Titel|Willkommen!','Welcome Text||area','Leave Titel|Tschüss','Leave Text||area','Welcome Ping|An|enum'])
 ],
 verify:[
   S('Modul','',['Verify']),
@@ -302,22 +324,27 @@ giveaway:[
   R('Rechte','',['Giveaway Rolle'])
 ],
 xp:[
-  S('Modul','',['XP','XP Ticket übernehmen','XP Voice / Support','XP Feedback gut']),
-  F('Uprank','',['XP Uprank Kanal|xp-uprank|select'])
+  S('Modul','XP gibt es nur für Staff und nur für Staff-Aufgaben.',['XP']),
+  K('XP-Gruppen','Erst eine Gruppe erstellen (z. B. Supporter mit allen Support-Rollen, Highteam mit allen Highteam-Rollen), dann öffnest du sie und stellst Zeitraum und Top-Zahl ein. Ohne Gruppen zählt die ganze Ranglaufbahn als eine Gruppe.','xpGroups'),
+  F('Uprank & Kanäle','Wenn der Zeitraum einer Gruppe endet, bekommen die Besten einen Uprank in der Ranglaufbahn.',['XP Auto-Uprank|An|enum','XP Auswertungs-Kanal|xp-uprank|select','XP Rangliste Kanal|xp|select']),
+  F('XP für Staff-Aufgaben','XP pro erledigter Aufgabe. 0 = diese Aufgabe gibt keine XP.',['XP Ticket übernehmen|15|text','XP Ticket schließen|8|text','XP Aufgabe übernehmen|12|text','XP Admin Call übernehmen|20|text','XP Warteraum übernehmen|15|text','XP Bewerbung bearbeiten|10|text','XP Interview führen|10|text','XP Anträge prüfen|4|text','XP Moderation|5|text','XP Team-Verwaltung|6|text']),
+  F('Dienst & Support-Voice','Dienstzeit zählt beim Ausstempeln, Support-Voice beim Verlassen der Räume unter „Support-Räume mit XP“ (Warteraum-Seite).',['XP Dienst pro Stunde|10|text','XP Support-Voice pro Minute|2|text']),
+  F('Feedback','XP für den bewerteten Staff je Sterne. Negative Werte ziehen XP ab.',['XP Feedback 1 Stern|-15|text','XP Feedback 2 Sterne|-5|text','XP Feedback 3 Sterne|8|text','XP Feedback 4 Sterne|15|text','XP Feedback 5 Sterne|25|text']),
+  B('Panel','',['XP-Rangliste senden'])
 ],
 rp:[
-  F('Server Stats','Titel, Code, Owner, Online/Offline, Players.',[
-    'Server-Stats Kanal|server-stats|select',
-    'Stats Titel|Server Stats',
-    'Server Name|Server',
-    'Server Code|',
-    'Server Online|An|enum',
-    'Players|0',
-    'Max Players|',
-    'Owner Roblox|',
-    'RP Announce|rp-announce|select'
+  S('Modul','Schaltet /rp-start, /rp-stop und /stats ein oder aus.',['Status & RP']),
+  F('Server-Status-Panel','Das Panel zeigt Titel, Text, Owner, Spieler, Code und Online/Offline. Online/Offline und die Spielerzahl steuert das Team: /rp-start stellt auf Online, /rp-stop setzt die Spieler auf 0 und zeigt Offline, /stats players setzt die Spielerzahl.',[
+    'Status-Panel Kanal|server-stats|select',
+    'Status-Panel Titel|Server Stats',
+    'Status-Panel Text||area',
+    'Status-Panel Owner|',
+    'Status-Panel Max Spieler|',
+    'Server Code|'
   ]),
-  B('Panel','',['Stats-Panel senden'])
+  R('Wer darf die Spielerzahl setzen?','Leer lassen = jedes Teammitglied der Ranglaufbahn (und Admins). Mit Auswahl nur diese Rollen (und Admins).',['Stats-Rollen']),
+  F('RP-Ankündigung','Kanal für die Ankündigung bei /rp-start und /rp-stop.',['RP Announce|rp-announce|select']),
+  B('Panel','Sendet das Panel einmal in den Stats-Kanal. Danach aktualisiert es sich selbst.',['Stats-Panel senden'])
 ],
 partner:[
   S('Modul','',['Partner']),
@@ -339,6 +366,17 @@ unban:[
   L('Unban-Fragen','',['unbanQuestions']),
   R('Rechte','',['Unban Annehmen Rolle'])
 ],
+sticky:[
+  S('Modul','',['Sticky']),
+  L('Sticky-Nachrichten','Pro Kanal eine Nachricht, die nach jeder neuen Nachricht wieder ganz unten steht. Änderungen übernimmt der Bot innerhalb von 2 Minuten. Höchstens 10 Kanäle.',['stickyList'])
+],
+fly:[
+  S('Modul','',['Fly & Nametag']),
+  F('Kanäle','Anfragekanal = hier steht das Panel. Staff-Kanal = dort bearbeitet das Team die Anfragen. Abschluss-Kanal = fertige Anfragen.',['Fly-Anfragekanal|fly-nametag|select','Fly-Staff-Kanal|fly-staff|select','Fly-Abschluss-Kanal|fly-erledigt|select','Fly-Log|fly-logs|select']),
+  R('Rechte','Diese Rollen dürfen Anfragen übernehmen, abschließen oder ablehnen.',['Fly Staff-Rolle']),
+  F('Panel-Text','',['Fly-Panel-Titel|Fly & Nametag','Fly-Panel-Text|Wähle dein Modell und trage deinen IC-Namen ein.']),
+  B('Panel','',['Fly-Panel senden'])
+],
 dizzy:[
   S('Modul','',['Modul aktiv']),
   F('Kanal','',['Dizzy Control Kanal|dizzy|select','Dizzy Log|dizzy-logs|select']),
@@ -356,18 +394,25 @@ icmod:[
   B('Panel','',['IC-Mod-Panel senden'])
 ],
 logs:[
+  S('Modul','',['Audit-Log']),
+  F('Audit-Log','Sammelt Aufnahmen, Beförderungen, Teamkicks, Rollen- und Namensänderungen sowie Admin-Aktionen mit Akteur, Person und Zeit in einem Kanal. Ohne Kanal ist der Audit-Log aus.',['Audit-Log-Kanal|audit-logs|select','Rollenänderungen loggen|An|enum','Namensänderungen loggen|An|enum','Admin-Aktionen loggen|An|enum']),
   F('Zentrale Logs','',['Log-Kanal|system-logs|select','Mod-Log|mod-logs|select','Ticket-Log|ticket-logs|select','Security-Log|security-logs|select'])
 ]
 };
 
 const KEY_MAP = {
+  "Teamliste-Titel":"teamlistTitle","Team-Log":"teamLogChannelId","Team-Warns bis Auto-Kick":"teamWarnKickAt","Duty-Panel-Titel":"dutyPanelTitle","Duty-Panel-Text":"dutyPanelText","Duty Pflicht für Übernehmen":"requireDutyToClaim",
+  "Database-Log":"databaseLogChannelId","Security Timeout Minuten":"securityTimeoutMinutes","Interview Punkte Richtig":"interviewPointsCorrect","Interview Punkte Fast":"interviewPointsAlmost","Interview Punkte Falsch":"interviewPointsWrong",
+  "Suggest Einreichen Rolle":"suggestSubmitRoleIds","XP Uprank Kanal":"xpAnnounceChannelId","Server-Stats Kanal":"serverStatsChannelId","RP Announce":"rpAnnounceChannelId","Unban-Log":"unbanRequestChannelId",
+  "Dizzy Control Kanal":"ingameDizzyChannelId","Dizzy Log":"dizzyLogChannelId","Stats Tickets":"statsShowTickets","Stats Support":"statsShowSupport","Stats Duty":"statsShowDuty",
+  "Audit-Log-Kanal":"auditLogChannelId","Rollenänderungen loggen":"auditLogRoles","Namensänderungen loggen":"auditLogNicknames","Admin-Aktionen loggen":"auditLogAdmin","Alle Rollen loggen":"auditLogAllRoles",
   "Teamsperre-Rolle":"teamsperreRoleId","Teamsperre-Log":"teamsperreLogChannelId","Teamsperre Manager":"teamsperreManagerRoleIds",
   "Testphase-Rolle":"testphaseRoleId","Rolle nach Testphase":"testphasePassRoleId","Testphase Dauer (Tage)":"testphaseDays","Testphase Erinnerungen (Tage)":"testphaseReminderDays","Testphase Auto-Pass":"testphaseAutoPass","Testphase-Log":"testphaseLogChannelId","Testphase-Erinnerungs-Kanal":"testphaseNotifyChannelId","Testphase Manager":"testphaseManagerRoleIds",
   "Temp-Log":"tempRoleLogChannelId","Embed-Titel":"embedTitle","Embed-Text":"embedText","Embed-Farbe":"embedColor","Embed-Kanal":"embedChannelId","Temp-Rollen Manager":"tempRoleManagerRoleIds",
   "Honeypot-Kanal":"honeypotChannelId","Honeypot Strafe":"honeypotStrafe","Honeypot Timeout Minuten":"honeypotTimeoutMin","Honeypot DM":"honeypotDm","Honeypot-Log":"honeypotLogChannelId","Honeypot Ausnahme-Rolle":"honeypotIgnoreRoleIds",
   "Auswahl-Panel-Kanal":"rolePanelChannelId","Rollen-Panel Titel":"rolePanelTitle","Rollen-Panel Text":"rolePanelText","Rollen-Panel Modus":"rolePanelModus","Rollen-Panel Rollen":"rolePanelRoleIds",
 
-  "Stats Titel":"serverStatsTitle","Server Name":"serverStatsServerName","Server Online":"serverStatsOnline",
+  "Stats Titel":"serverStatsTitle","Status-Panel Kanal":"serverStatsChannelId","Status-Panel Titel":"serverStatsTitle","Status-Panel Text":"serverStatsDescription","Status-Panel Owner":"serverStatsOwner","Status-Panel Max Spieler":"serverStatsMaxPlayers","Stats-Rollen":"statsManageRoleIds","Server Name":"serverStatsServerName","Server Online":"serverStatsOnline",
   "Players":"serverStatsPlayers","Max Players":"serverStatsMaxPlayers","Owner Roblox":"serverStatsOwnerRoblox",
   "Ingame Webhook Log":"ingameWebhookChannelId",
   "Suggest Kategorien":"suggestCategories",
@@ -396,7 +441,8 @@ const KEY_MAP = {
   "Mention-Spam":"antiRaidMentionAction","Emoji-Spam":"antiRaidEmojiAction",
   "Security Standard-Aktion":"antiNukeAction",
 
-  "Team Suspend Rolle":"teamSuspendRoleIds","Frak Manager":"factionManagerRoleIds","Haus Manager":"houseManagerRoleIds",
+  "Team Suspend Rolle":"teamSuspendRoleIds","Frak Manager":"factionManagerRoleIds","Haus Manager":"houseManagerRoleIds","Hausliste Titel":"hauslistePanelTitle","Hausliste Text":"hauslistePanelText",
+  "IC-Namen-Panel-Kanal":"icNamePanelChannelId","IC-Namen-Panel Titel":"icNamePanelTitle","IC-Namen-Panel Text":"icNamePanelText","Löschung nach Teamkick (Stunden)":"icNameRemoveHours","Namen selbst ändern":"icNameSelfChange","Team darf suchen":"icNameSearchTeam","IC-Namen-Log":"icNameLogChannelId","IC-Namen Suche Rollen":"icNameSearchRoleIds",
   "Partner-Fragen":"partnerQuestions","IC-Mod Panel":"icModPanelChannelId","IC-Mod Log":"icModLogChannelId",
   "IC Log Remove Rolle":"icLogRemoveRoleIds","IC Moderation":"icModeration",
   "Aufgaben Manager":"tasksManagerRoleIds","Aufgaben Claim":"tasksClaimRoleIds",
@@ -405,8 +451,8 @@ const KEY_MAP = {
   "Warn Rolle":"warnRoleIds","Softban Rolle":"softbanRoleIds","Security Whitelist Rolle":"securityWhitelistRoleIds",
   "Verify Rolle geben":"verifyRoleIds","Unverified Rolle":"unverifiedRoleIds","Suggest Annehmen Rolle":"suggestAcceptRoleIds",
   "Giveaway Rolle":"giveawayRoleIds","Ausweis Annehmen Rolle":"ausweisAcceptRoleIds","Unban Annehmen Rolle":"unbanAcceptRoleIds",
-  "Büro-Log":"officeLogChannelId","Strafregister-Log":"recordsLogChannelId",
-  "Sprache":"language","System-Name":"systemName","Log-Kanal":"logChannelId","Zeitzone":"timezone",
+  "Büro-Log":"officeLogChannelId","Fly-Anfragekanal":"flyNametagChannelId","Fly-Staff-Kanal":"flyNametagStaffChannelId","Fly-Abschluss-Kanal":"flyNametagCompletedChannelId","Fly-Log":"flyNametagLogChannelId","Fly Staff-Rolle":"flyNametagStaffRoleIds","Fly-Panel-Titel":"flyNametagPanelTitle","Fly-Panel-Text":"flyNametagPanelText","Strafregister-Log":"recordsLogChannelId",
+  "Sprache":"language","Kategorien mehrfach wählbar":"officeCategoryMulti","System-Name":"systemName","Log-Kanal":"logChannelId","Zeitzone":"timezone",
   "Admin-Rolle":"adminRoleIds","Staff-Rolle":"staffRoleIds","Mod-Rolle":"modRoleIds",
   "IC Panel Zugriff":"ingameAccessRoleIds","IC Access Rolle":"ingameAccessRoleIds","IC Mod-Rolle":"ingameModRoleIds","IC Log":"ingameLogChannelId",
   "Database Manager":"databaseManagerRoleIds","Frak-Verwaltung":"factionManageRoleIds","Partner Manager":"partnerManagerRoleIds","HighTeam":"highTeamRoleIds",
@@ -414,7 +460,7 @@ const KEY_MAP = {
   "Support-Rolle":"ticketSupportRoleIds","Ticket-Blacklist-Rolle":"ticketBlacklistRoleIds",
   "Ticket-Limit pro User":"ticketLimitPerUser","Ticket-Limit Fenster Stunden":"ticketLimitWindowHours",
   "Warteraum Voice":"warteraumVoiceChannelId","Übernahme-Kanal":"supportTextChannelId",
-  "Warteraum-Musik":"warteraumMusicEnabled","Musik-Preset":"warteraumMusicPreset",
+  "Warteraum-Musik":"warteraumMusicEnabled","Musik wiederholen":"warteraumMusicRepeat","Musik-Preset":"warteraumMusicPreset",
   "Join-to-Create Support-VCs":"supportJoinToCreate","Support-VC Kategorie":"supportVcCategoryId",
   "Support-VC Modus":"supportVcMode","Feste Support-VCs":"supportFixedVoiceIds","Support-Räume mit XP":"supportXpVoiceIds",
   "Warteraum Claim-Log":"warteraumClaimLogChannelId",
@@ -440,7 +486,7 @@ const KEY_MAP = {
   "Warn Permission":"permWarnRoleIds","Kick Permission":"permKickRoleIds","Ban Permission":"permBanRoleIds",
   "Timeout Permission":"permTimeoutRoleIds","Softban Permission":"permSoftbanRoleIds","Note Permission":"permNoteRoleIds",
   "AutoMod-Log":"autoModLogChannelId","Strafregister-Log":"recordsLogChannelId","Security-Log":"securityLogChannelId",
-  "Externe Apps deaktivieren":"securityDisableExternalApps","Externe Apps alle Channels":"securityExternalAppsEveryChannel","Externe-Apps Rolle":"securityExternalAppsRoleIds","Externe-Apps Channels":"securityExternalAppsChannelIds",
+  "Externe Apps deaktivieren":"securityDisableExternalApps","Externe-Apps Rolle":"securityExternalAppsRoleIds",
   "Anti-Nuke":"antiNukeEnabled","Anti-Raid":"antiRaidEnabled","Backup Whitelist-Rolle":"backupWhitelistRoleIds",
   "Welcome-Kanal":"welcomeChannelId","Leave-Kanal":"leaveChannelId","Auto-Rolle":"autoRoleIds",
   "Welcome Titel":"welcomeTitle","Welcome Text":"welcomeText","Welcome Ping":"welcomePing",
@@ -458,19 +504,23 @@ const KEY_MAP = {
   "Ausweis Annehmen":"ausweisAcceptRoleIds","Max. Zusatz-Ausweise":"ausweisMaxExtra",
   "Appeals aktiv":"unbanRequestEnabled","Nur bei aktivem Ban":"unbanRequireActiveBan","Appeal-Log":"unbanRequestChannelId",
   "Appeal Manager":"unbanManagerRoleIds",
-  "Dizzy-Control-Kanal":"ingameDizzyChannelId","Dizzy-Log-Kanal":"ingameDizzyLogChannelId"
+  "Dizzy-Control-Kanal":"ingameDizzyChannelId","Dizzy-Log-Kanal":"ingameDizzyLogChannelId",
+  "Ticket-KI":"aiAssistEnabled","XP Ticket übernehmen":"xpTicketClaim",
+  "XP Auto-Uprank":"xpAutoUprank","XP Auswertungs-Kanal":"xpAnnounceChannelId","XP Rangliste Kanal":"xpUprankChannelId",
+  "XP Ticket schließen":"xpTicketClose","XP Aufgabe übernehmen":"xpTaskClaim","XP Admin Call übernehmen":"xpAdminCallClaim","XP Warteraum übernehmen":"xpWarteraumClaim",
+  "XP Bewerbung bearbeiten":"xpApplication","XP Interview führen":"xpInterview","XP Anträge prüfen":"xpReview","XP Moderation":"xpModAction","XP Team-Verwaltung":"xpTeamAction",
+  "XP Dienst pro Stunde":"xpPerDutyHour","XP Support-Voice pro Minute":"xpPerVcMinute",
+  "XP Feedback 1 Stern":"xpFeedbackStar1","XP Feedback 2 Sterne":"xpFeedbackStar2","XP Feedback 3 Sterne":"xpFeedbackStar3","XP Feedback 4 Sterne":"xpFeedbackStar4","XP Feedback 5 Sterne":"xpFeedbackStar5"
 };
 
 const MODULE_MAP = {
   "Embeds & Say":"embedBuilder","Status & RP":"statusPanel",
-  "Teamsperre":"teamsperre","Testphase":"testphase","Temp-Rollen":"tempRoles","Honeypot":"honeypot","Rollen-Panel":"rolePanel",
+  "Häuser":"houses","IC-Namen":"icNames","Teamsperre":"teamsperre","Testphase":"testphase","Temp-Rollen":"tempRoles","Honeypot":"honeypot","Rollen-Panel":"rolePanel",
   "Tickets":"tickets","Warteraum":"warteraum","Admin Call":"adminCall","Büros":"offices","Duty":"duty",
   "Bewerbungen":"applications","Teamverwaltung":"team","Security":"security","AutoMod":"automod","XP":"xp",
-  "Verify":"verify","Welcome/Leave":"welcomeLeave","Partner":"partner","Fraktionen":"factions","Ausweis":"ausweis",
+  "Verify":"verify","Welcome/Leave":"welcomeLeave","Audit-Log":"auditLog","Partner":"partner","Fraktionen":"factions","Ausweis":"ausweis","Fly & Nametag":"flyNametag","Sticky":"sticky",
   "Feedback":"feedback","Aufgaben":"tasks","Database":"database","Abmeldung":"abmeldung","Giveaway":"giveaway",
   "Suggest":"suggest","Interview":"interview","IC Panel":"icPanel","IC Moderation":"icModeration","Security Kick":"securityActionKick","Security Ban":"securityActionBan","Security Timeout":"securityActionTimeout","Security Warn":"securityActionWarn","Security Nachricht löschen":"securityActionDeleteMsg","Bots entfernen":"securityRemoveBots","Webhooks entfernen":"securityRemoveWebhooks","Integrationen entfernen":"securityRemoveIntegrations","Modul aktiv":"dizzy","XP aktiv":"xp",
-  "XP Ticket übernehmen":"xpTicketClaim","XP Voice / Support":"xpVoice","XP Feedback gut":"xpFeedback",
-  "Stats Tickets":"statsShowTickets","Stats Support":"statsShowSupport","Stats Duty":"statsShowDuty"
 };
 
 const PANEL_CHANNEL = {
@@ -482,20 +532,20 @@ const PANEL_CHANNEL = {
   "feedback":"feedbackChannelId","tasks":"tasksPanelChannelId",
   "database":"databasePanelChannelId","teamlist":"teamlistChannelId","team_list":"teamlistChannelId",
   "abmeldung":"abmeldungPanelChannelId","abmelden":"abmeldungPanelChannelId","abmeldenPanel":"abmeldenPanelChannelId",
-  "verify":"verifyChannelId","hausliste":"hauslisteChannelId",
+  "verify":"verifyChannelId","hausliste":"hauslisteChannelId","ic_names":"icNamePanelChannelId",
   "serverStats":"serverStatsChannelId","server_stats":"serverStatsChannelId","stats":"serverStatsChannelId",
-  "ausweis":"ausweisChannelId","dizzySticky":"ingameDizzyChannelId",
+  "ausweis":"ausweisChannelId","fly":"flyNametagChannelId","dizzySticky":"ingameDizzyChannelId",
   "icMod":"icModPanelChannelId","modpanel":"icModPanelChannelId",
   "partner":"partnerChannelId","suggest":"suggestChannelId","giveaway":"giveawayChannelId",
   "xp_panel":"xpUprankChannelId","interview":"interviewPanelChannelId","fraktionsliste":"fraktionslistePanelChannelId"
 };
 const PANEL_MAP = {
   "Embed senden":"embed","Honeypot-Hinweis senden":"honeypot","Rollen-Panel senden":"rollenpanel",
-  "Ticket-Panel senden":"tickets","Admin-Call-Panel senden":"adminCall","Bewerbungs-Panel senden":"applications",
+  "Ticket-Panel senden":"tickets","XP-Rangliste senden":"xp_panel","Admin-Call-Panel senden":"adminCall","Bewerbungs-Panel senden":"applications",
   "Sticky senden":"dizzySticky","Stats-Panel senden":"serverStats","Duty-Panel senden":"duty",
   "Feedback-Panel senden":"feedback","Aufgaben-Panel senden":"tasks","Database-Panel senden":"database",
   "Teamliste senden":"teamlist","Abmelde-Panel senden":"abmelden","Verify-Panel senden":"verify",
-  "Hausliste senden":"hausliste","Ausweis-Panel senden":"ausweis","Panel senden":"applications","IC-Mod-Panel senden":"modpanel","Ingame-Panel senden":"modpanel","IC-Panel senden":"modpanel","Mod-Panel senden":"modpanel"
+  "Hausliste senden":"hausliste","IC-Namen-Panel senden":"ic_names","Ausweis-Panel senden":"ausweis","Fly-Panel senden":"fly","Panel senden":"applications","IC-Mod-Panel senden":"modpanel","Ingame-Panel senden":"modpanel","IC-Panel senden":"modpanel","Mod-Panel senden":"modpanel"
 };
 
 
@@ -504,14 +554,28 @@ window.API = API;
 let state = {
   guildId: null, guilds: [], config: {}, settings: {},
   channels: [], roles: [], categories: [], user: null,
-  currentCat: null, currentRoleKey: null, _tempMulti: {}, modules: {}
+  currentCat: null, currentRoleKey: null, _tempMulti: {}, modules: {},
+  pending: {}, dirty: false, dirtyCats: new Set(), extraSavers: {}, extraDirty: {}, saving: false, saveError: false,
+  _health: null, _sys: null, _statusErr: ''
 };
+window.dashState = state;
 
-function toast(msg){
+let __toastTimer = null;
+function toast(msg, kind){
   const t=document.getElementById('toast');
   if(!t) return;
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2200);
+  let m = String(msg == null ? '' : msg), k = kind;
+  if (!k) {
+    if (m === 'Error') { m = 'Das hat nicht geklappt. Bitte Eingaben prüfen.'; k = 'err'; }
+    else if (m === 'OK') { m = 'Aktualisiert'; k = 'ok'; }
+    else if (m === '…' || /…$/.test(m)) { if (m === '…') m = 'Lade …'; k = 'busy'; }
+    else if (/^Sende/.test(m)) k = 'busy';
+    else if (/^(Gespeichert|Gesendet|Gesperrt|Sperre aufgehoben|Aufgehoben|Entfernt|Vergeben|Gestartet|Beendet|Neu ausgelost|Hochgeladen|Aktualisiert|Ranglaufbahn gespeichert|Testphase gestartet|Giveaway gestartet|Verworfen|Kanäle und Rollen aktualisiert|Serverliste aktualisiert)/.test(m)) k = 'ok';
+    else if (/(fehl|nicht |ungültig|error|zu groß|keine datei|mindestens|wählen|angeben)/i.test(m)) k = 'err';
+  }
+  t.textContent = m; t.dataset.kind = k || 'info'; t.classList.add('show');
+  clearTimeout(__toastTimer);
+  __toastTimer = setTimeout(()=>t.classList.remove('show'), k === 'busy' ? 20000 : k === 'err' ? 4600 : 2400);
 }
 function $(id){ return document.getElementById(id); }
 function escapeHtml(s){
@@ -521,6 +585,163 @@ function formatMembers(n){
   if (n == null || n === '' || isNaN(Number(n))) return '';
   return Number(n).toLocaleString('de-DE') + ' Mitglieder';
 }
+
+const ICON = {
+  refresh: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3M4 5v4h4"/><path d="M4 13a8 8 0 0 0 14.9 3M20 19v-4h-4"/></svg>',
+  home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+  server: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01"/></svg>',
+  support: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M5.6 5.6l3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/></svg>',
+  team: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14c2.5 0 4.5 2 4.5 4.5"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/></svg>',
+  chat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>',
+  chevron: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'
+};
+const GROUP_ICON = { 'Start': 'home', 'Server': 'server', 'Support': 'support', 'Team': 'team', 'Moderation': 'shield', 'Community': 'chat', 'RP & IC': 'star' };
+
+/* Linien-Icons der Seitenleiste (nur Dekoration, Beschriftung steht daneben) */
+const NAV_PATH = {
+  home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+  sliders: '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
+  grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+  layout: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/>',
+  pin: '<path d="M12 17v5"/><path d="M9 3h6l-1 6 3 3H7l3-3z"/>',
+  ticket: '<path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3z"/><path d="M14 6v12"/>',
+  headset: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>',
+  bell: '<path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  building: '<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M10 21v-4h4v4"/>',
+  clipboard: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h4"/>',
+  users: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14c2.5 0 4.5 2 4.5 4.5"/>',
+  trend: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  list: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  checks: '<path d="M4 6l2 2 3-3M4 14l2 2 3-3M13 7h7M13 15h7"/>',
+  database: '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  idcard: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.6 1.8-2.4 3-2.4s2.4.8 3 2.4M14 10h4M14 14h3"/>',
+  shield: '<path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/>',
+  book: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  heart: '<path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/>',
+  verify: '<path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+  gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v9h14v-9M12 8c-1.5-4-6-4-5 0M12 8c1.5-4 6-4 5 0"/>',
+  zap: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  radio: '<circle cx="12" cy="12" r="2"/><path d="M8 8a5.7 5.7 0 0 0 0 8M16 8a5.7 5.7 0 0 1 0 8M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  plane: '<path d="M3 11l18-8-8 18-2-8z"/>',
+  ban: '<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
+  eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  terminal: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 10l3 2-3 2M12 15h5"/>',
+  alert: '<path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17h.01"/>',
+  pause: '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>',
+  flask: '<path d="M9 3h6M10 3v6L5 19a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3L14 9V3"/>',
+  hourglass: '<path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/>',
+  drop: '<path d="M12 3c3 4 6 6 6 10a6 6 0 0 1-12 0c0-4 3-6 6-10z"/>',
+  tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'
+};
+const NAV_ICON = {
+  home:'home', ranglaufbahn:'trend', embeds:'layout', teamsperre:'pause', testphase:'flask', temprollen:'hourglass', honeypot:'drop', rollenpanel:'tag',
+  allgemein:'sliders', module:'grid', tickets:'ticket', warteraum:'headset', admincall:'bell', offices:'building', applications:'clipboard', teamlist:'list',
+  team:'users', duty:'clock', abmeldung:'calendar', feedback:'chat', tasks:'checks', database:'database', factions:'flag', houses:'home', icnames:'idcard',
+  moderation:'shield', records:'book', security:'lock', welcome:'heart', verify:'verify', interview:'mic', suggest:'bulb', giveaway:'gift', xp:'zap',
+  rp:'radio', partner:'link', ausweis:'idcard', fly:'plane', unban:'ban', dizzy:'eye', ic:'terminal', icmod:'alert', sticky:'pin', logs:'file'
+};
+function navIcon(id){
+  const p = NAV_PATH[NAV_ICON[id]];
+  return p ? `<span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24">${p}</svg></span>` : '<span class="nav-ico" aria-hidden="true"></span>';
+}
+
+/* ---------- Änderungen merken, anzeigen und sicher speichern ---------- */
+function isDirty(){ return !!state.dirty || Object.values(state.extraDirty || {}).some(Boolean); }
+function paintSaveState(force){
+  const dirty = isDirty();
+  const mode = force || (state.saving ? 'saving' : state.saveError ? 'error' : dirty ? 'dirty' : 'clean');
+  const text = { clean: 'Alles gespeichert', dirty: 'Ungespeicherte Änderungen', saving: 'Speichert …', error: 'Nicht gespeichert' }[mode];
+  document.querySelectorAll('.save-state').forEach(el => { el.dataset.state = mode; el.textContent = text; });
+  const d = $('discardAll'); if (d) d.hidden = !dirty;
+  document.querySelectorAll('.nav-link').forEach(x => x.classList.toggle('is-dirty', state.dirtyCats.has(x.dataset.cat)));
+}
+function markDirty(){
+  state.dirty = true; state.saveError = false;
+  if (state.currentCat) state.dirtyCats.add(state.currentCat);
+  paintSaveState();
+}
+function markClean(){
+  state.dirty = false; state.saveError = false; state.pending = {};
+  state.dirtyCats.clear();
+  Object.keys(state.extraDirty).forEach(k => { state.extraDirty[k] = false; });
+  paintSaveState('clean');
+}
+function setExtraDirty(name, on){
+  state.extraDirty[name] = !!on;
+  if (on) { state.saveError = false; if (state.currentCat) state.dirtyCats.add(state.currentCat); }
+  else if (!isDirty()) state.dirtyCats.clear();
+  paintSaveState();
+}
+function onPanelEdit(ev){
+  const el = ev.target;
+  if (!el || !el.getAttribute || (el.closest && el.closest('.rc-root, .live-block, .file-upload-block'))) return;
+  const k = el.getAttribute('data-key');
+  if (!k || !/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) return;
+  state.pending[k] = el.value === '' ? null : el.value;
+  markDirty();
+}
+window.addEventListener('beforeunload', (e) => { if (isDirty()) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- Aktualisieren ---------- */
+let __refreshArm = 0, __refreshTimer = null;
+function applyDiscord(disc){
+  const all = (disc && disc.channels) || [];
+  const isCat = (c) => { const t = c.type; return t === 4 || t === '4' || t === 'GUILD_CATEGORY' || Number(t) === 4; };
+  state.categories = all.filter(isCat);
+  state.channels = all.filter(c => !isCat(c));
+  state.roles = (disc && disc.roles) || [];
+}
+async function refreshDiscordData(){
+  if (!state.guildId) { toast('Zuerst Server wählen'); return false; }
+  try {
+    toast('Kanäle und Rollen werden geladen …', 'busy');
+    applyDiscord(await API.discord(state.guildId, true));
+    if (state.currentCat) openCategory(state.currentCat);
+    toast('Kanäle und Rollen aktualisiert', 'ok');
+    return true;
+  } catch (e) { toast((e && e.message) ? String(e.message).slice(0, 140) : 'Kanäle und Rollen konnten nicht geladen werden', 'err'); return false; }
+}
+async function refreshServers(){
+  try {
+    toast('Serverliste wird geladen …', 'busy');
+    const g = await API.guilds(true);
+    state.guilds = Array.isArray(g) ? g : ((g && (g.guilds || g.servers)) || []);
+    renderServerList();
+    toast('Serverliste aktualisiert', 'ok');
+  } catch (e) { toast((e && e.message) ? String(e.message).slice(0, 140) : 'Serverliste konnte nicht geladen werden', 'err'); }
+}
+async function refreshPage(){
+  if (!state.guildId) { await refreshServers(); return; }
+  if (isDirty() && Date.now() > __refreshArm) {
+    __refreshArm = Date.now() + 4500;
+    const b = $('refreshPage');
+    if (b) { b.dataset.armed = '1'; b.lastChild.textContent = ' Änderungen verwerfen?'; clearTimeout(__refreshTimer); __refreshTimer = setTimeout(() => { const x = $('refreshPage'); if (x) { delete x.dataset.armed; x.lastChild.textContent = ' Aktualisieren'; } }, 4500); }
+    toast('Du hast ungespeicherte Änderungen. Zum Verwerfen und Neuladen noch einmal klicken.', 'err');
+    return;
+  }
+  __refreshArm = 0;
+  const b = $('refreshPage'); if (b) b.classList.add('is-spinning');
+  try { await loadGuild(state.guildId, { refresh: true }); try { refreshStatus(); } catch (_) {} }
+  finally { const x = $('refreshPage'); if (x) x.classList.remove('is-spinning'); }
+}
+async function discardChanges(){
+  if (!state.guildId) return;
+  __refreshArm = Date.now() + 1000;
+  await loadGuild(state.guildId, { refresh: false, quiet: true });
+  toast('Verworfen', 'ok');
+}
+
 function setServerMeta(g){
   if (!g) return;
   const name = g.name || g.id || 'Server';
@@ -547,7 +768,53 @@ function setServerMeta(g){
     }
   }
   const hint = $('serverHint');
-  if (hint) hint.textContent = name + ' · Einstellungen gelten nur für diesen Server.';
+  if (hint) hint.textContent = name;
+}
+
+/* Pfad in der Kopfleiste: Server / Gruppe / Seite */
+function paintCrumbs(groupName, pageName){
+  const g = $('crumbGroup'), p = $('crumbPage');
+  if (g) g.textContent = groupName || '';
+  if (p) p.textContent = pageName || '';
+}
+
+/* Modul-Hinweis oben auf Modul-Seiten: zeigt den Zustand und schaltet das Modul um */
+function moduleKeyForCat(catId){
+  const key = CAT_MODULE[catId];
+  return key || '';
+}
+function paintModuleBanner(catId){
+  const panel = $('settingsPanel'); if (!panel) return;
+  const old = panel.querySelector('.mod-banner'); if (old) old.remove();
+  const key = moduleKeyForCat(catId);
+  const heading = panel.querySelector('.settings-heading');
+  if (!key || !heading) return;
+  const c = C.find(x => x[0] === catId);
+  const on = (state.modules || {})[key] !== false;
+  const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>';
+  const el = document.createElement('div');
+  el.className = 'mod-banner'; el.dataset.on = on ? '1' : '0'; el.dataset.module = key;
+  el.innerHTML = `<span class="mb-ico">${on ? CHECK : OFF}</span>` +
+    `<div class="mb-text"><b>${on ? 'Modul aktiviert' : 'Modul deaktiviert'}</b><p>${on ? 'Das Modul „' + escapeHtml(c ? c[1] : 'Dieses') + '“ ist auf diesem Server eingeschaltet.' : 'Der Bot nutzt diese Funktion erst, wenn du das Modul aktivierst.'}</p></div>` +
+    `<button type="button" class="btn ${on ? 'btn-danger' : 'btn-primary'}" id="modToggle">${on ? 'Deaktivieren' : 'Aktivieren'}</button>`;
+  heading.insertAdjacentElement('afterend', el);
+  // Die Karte „Modul“ mit genau diesem einen Schalter wäre doppelt: ausblenden, der Hinweis übernimmt sie
+  panel.querySelectorAll('.settings-card').forEach(card => {
+    const tg = card.querySelectorAll('.toggle');
+    if (tg.length === 1 && tg[0].getAttribute('data-switch') === key) card.classList.add('is-redundant');
+  });
+  const btn = el.querySelector('#modToggle');
+  btn.onclick = () => {
+    if (!state.modules) state.modules = {};
+    state.modules[key] = !on;
+    panel.querySelectorAll('.toggle[data-switch="' + key + '"]').forEach(t => t.classList.toggle('on', !on));
+    markDirty();
+    try { buildNav(); } catch (_) {}
+    paintModuleBanner(catId);
+    const nb = panel.querySelector('.mod-banner'); if (nb) { nb.classList.add('is-flip'); }
+    toast(!on ? 'Modul aktiviert. Mit „Speichern“ übernehmen.' : 'Modul deaktiviert. Mit „Speichern“ übernehmen.');
+  };
 }
 
 function getSetting(key, fallback){
@@ -577,7 +844,7 @@ function channelOptions(selected, filter){
 }
 function multiLabel(ids, kind){
   const arr = (Array.isArray(ids)?ids:[ids]).filter(Boolean).map(String);
-  if (!arr.length) return 'Auswählen ›';
+  if (!arr.length) return 'Auswählen';
   const src = kind === 'role' ? (state.roles||[]) : (state.channels||[]);
   const names = arr.map(id=>{
     const hit = src.find(x=>String(x.id)===id);
@@ -620,6 +887,7 @@ function detectFieldKind(label, typeHint){
 function fieldValueForLabel(label){
   const key = KEY_MAP[label];
   if (!key) return '';
+  if (state.pending && Object.prototype.hasOwnProperty.call(state.pending, key)) { const v = state.pending[key]; return v === null ? '' : v; }
   return getSetting(key, '');
 }
 function isOnLabel(label){
@@ -636,6 +904,354 @@ function isOnLabel(label){
     if (v === false || v === 'Aus' || v === 'off' || v === '0') return false;
   }
   return true;
+}
+
+function pickerKind(label, key){
+  return (/Support-VCs|Support-Räume|Voice|Warteraum|Feste Support|XP/.test(label || '') || /Voice|ChannelIds|supportFixed|supportXp/.test(key || '')) ? 'voice' : 'role';
+}
+/* ---------- Kategorien-System: Karten-Liste → „… erstellen“ → Einstellungen ----------
+   Seiten mit mehreren gleichartigen Einträgen (Ticket-Panels, Kategorien, Büros, XP-Gruppen) zeigen zuerst
+   eine Liste aus Karten mit einer „… erstellen“-Karte. Die Einstellungen eines Eintrags erscheinen erst,
+   wenn man ihn öffnet (neu erstellte Einträge öffnen sich sofort). Gespeichert wird mit „Speichern“. */
+const PENCIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>';
+const collNewId = (p) => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+const collChan = (id) => { const c = (state.channels || []).find(x => String(x.id) === String(id)); return c ? c.name : ''; };
+const collCat = (id) => { const c = (state.categories || []).find(x => String(x.id) === String(id)); return c ? c.name : ''; };
+const collCount = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+
+const COLL = {
+  ticketPanels: {
+    noun: 'Panel', plural: 'Panels', create: 'Neues Panel erstellen', max: 10,
+    name: (r) => r.name || 'Panel',
+    meta: (r) => (r.channelId ? '#' + (collChan(r.channelId) || 'Kanal') : 'Noch kein Kanal') + ' · ' + ((r.typeIds || []).length ? collCount(r.typeIds.length, 'Kategorie', 'Kategorien') : 'alle Kategorien'),
+    make: () => ({ id: collNewId('tp'), name: 'Neues Panel', channelId: '', title: 'Erstelle hier ein Ticket', description: 'Wähle unten das passende Thema aus, um ein Support-Ticket zu eröffnen.', typeIds: [], showLoad: true }),
+    sections: [
+      { title: 'Panel', desc: 'Wo und wie das Panel erscheint.', fields: [
+        { k: 'name', label: 'Name', hint: 'Nur für dich im Dashboard', type: 'text', max: 50 },
+        { k: 'channelId', label: 'Kanal', type: 'channel', kind: 'text' },
+        { k: 'title', label: 'Titel', type: 'text', max: 100 },
+        { k: 'description', label: 'Text', type: 'area', max: 1500, rows: 5 },
+        { k: 'showLoad', label: 'Auslastung im Panel anzeigen', type: 'bool', def: true }
+      ] },
+      { title: 'Kategorien', desc: 'Diese Kategorien stehen im Auswahlmenü des Panels. Ohne Haken erscheinen alle.', fields: [
+        { k: 'typeIds', label: 'Kategorien', type: 'checks', source: 'ticketTypes' }
+      ] }
+    ],
+    actions: [{ label: 'Panel senden', run: (row, btn) => collSendTicketPanel(row, btn) }]
+  },
+  ticketTypes: {
+    noun: 'Kategorie', plural: 'Kategorien', create: 'Kategorie erstellen', max: 25,
+    name: (r) => ((r.emoji ? r.emoji + ' ' : '') + (r.name || 'Kategorie')).trim(),
+    meta: (r) => ((r.supportRoleIds || []).length ? collCount(r.supportRoleIds.length, 'Rolle', 'Rollen') : 'Keine Rollen') + ' · ' + (collCat(r.categoryId) || 'Keine Discord-Kategorie'),
+    make: () => ({ id: collNewId('tt'), name: 'Neue Kategorie', emoji: '', description: '', supportRoleIds: [], supportRoleId: '', staffRoleId: '', pingRoleIds: [], pingRoleId: '', categoryId: '', openQuestion: '', preQuestion: '', openEmbed: '', closeEmbed: '', maxLoad: 10, aiEnabled: true }),
+    sync: (r) => {
+      const sr = r.supportRoleIds || []; r.supportRoleId = sr[0] || ''; r.staffRoleId = sr[0] || '';
+      const pr = r.pingRoleIds || []; r.pingRoleId = pr[0] || '';
+      r.preQuestion = r.openQuestion || '';
+    },
+    onDelete: (row) => { (state.settings.ticketPanels || []).forEach(p => { if (p && Array.isArray(p.typeIds)) p.typeIds = p.typeIds.filter(x => String(x) !== String(row.id) && String(x) !== String(row.name)); }); },
+    sections: [
+      { title: 'Allgemein', desc: 'So erscheint die Kategorie im Auswahlmenü.', fields: [
+        { k: 'name', label: 'Name', type: 'text', max: 60 },
+        { k: 'emoji', label: 'Emoji', hint: 'Optional', type: 'text', max: 60 },
+        { k: 'description', label: 'Beschreibung', hint: 'Kurzer Text unter dem Namen im Menü', type: 'text', max: 100 }
+      ] },
+      { title: 'Zuständigkeit', desc: 'Wer Tickets dieser Kategorie bearbeitet und wo sie angelegt werden.', fields: [
+        { k: 'supportRoleIds', label: 'Zuständige Rollen', type: 'roles', kind: 'role' },
+        { k: 'pingRoleIds', label: 'Rollen anpingen', type: 'roles', kind: 'role' },
+        { k: 'categoryId', label: 'Discord-Kategorie', type: 'channel', kind: 'category' },
+        { k: 'maxLoad', label: 'Auslastung', hint: 'Ab so vielen offenen Tickets gilt die Kategorie als voll', type: 'number', min: 1, max: 999, def: 10 }
+      ] },
+      { title: 'Texte', desc: 'Fragen und Nachrichten dieser Kategorie.', fields: [
+        { k: 'openQuestion', label: 'Frage vor dem Öffnen', hint: 'Optional', type: 'text', max: 45 },
+        { k: 'openEmbed', label: 'Text im Ticket beim Öffnen', type: 'area', max: 1500, rows: 4 },
+        { k: 'closeEmbed', label: 'Text beim Schließen', type: 'area', max: 1500, rows: 3 }
+      ] },
+      { title: 'Verhalten', desc: '', fields: [
+        { k: 'aiEnabled', label: 'Ticket-KI in dieser Kategorie', hint: 'Gilt nur, wenn die Ticket-KI auf der Seite eingeschaltet ist', type: 'bool', def: true }
+      ] }
+    ]
+  },
+  officesList: {
+    noun: 'Büro', plural: 'Büros', create: 'Büro erstellen', max: 100,
+    name: (r) => r.name || 'Büro',
+    meta: (r) => (r.category ? r.category + ' · ' : '') + (r.waitingChannelId ? 'Warteraum: ' + (collChan(r.waitingChannelId) || 'gesetzt') : 'Kein Warteraum'),
+    make: () => ({ name: 'Neues Büro', category: '', waitingChannelId: '', pingRoleId: '', voiceChannelId: '' }),
+    sections: [
+      { title: 'Büro', desc: 'Büros mit gleicher Kategorie werden im Warteraum zusammengefasst.', fields: [
+        { k: 'name', label: 'Name', type: 'text', max: 60 },
+        { k: 'category', label: 'Kategorie', hint: 'Optional, z. B. Leitung', type: 'text', max: 40 }
+      ] },
+      { title: 'Kanäle & Rolle', desc: '', fields: [
+        { k: 'waitingChannelId', label: 'Warteraum', type: 'channel', kind: 'voice' },
+        { k: 'voiceChannelId', label: 'Büro-VC', type: 'channel', kind: 'voice' },
+        { k: 'pingRoleId', label: 'Rolle bei Beitritt', type: 'role' }
+      ] }
+    ]
+  },
+  warteraumList: {
+    noun: 'Warteraum', plural: 'Warteräume', create: 'Warteraum erstellen', max: 1,
+    name: (r) => r.name || 'Warteraum',
+    meta: (r) => r.channelId ? 'Voice: ' + (collChan(r.channelId) || 'Kanal') : 'Noch kein Voice-Kanal',
+    make: () => ({ id: collNewId('wr'), name: 'Warteraum', channelId: '' }),
+    sync: (r) => { collSetFlat('warteraumVoiceChannelId', r.channelId || ''); },
+    onDelete: () => { ['warteraumVoiceChannelId', 'warteraumChannelId', 'waitingRoomChannelId'].forEach(k => collSetFlat(k, '')); },
+    sections: [
+      { title: 'Warteraum', desc: 'Der Voice-Kanal, in dem Mitglieder auf den Support warten. Erst danach erscheinen die weiteren Einstellungen dieser Seite.', fields: [
+        { k: 'name', label: 'Name', hint: 'Nur für dich im Dashboard', type: 'text', max: 50 },
+        { k: 'channelId', label: 'Warteraum-VC', type: 'channel', kind: 'voice' }
+      ] }
+    ]
+  },
+  xpGroups: {
+    noun: 'Gruppe', plural: 'Gruppen', create: 'Gruppe erstellen', max: 12,
+    name: (r) => r.name || 'Gruppe',
+    meta: (r) => (r.enabled === false ? 'Aus · ' : '') + collCount(Number(r.periodDays) || 14, 'Tag', 'Tage') + ' · Top ' + (Number(r.topN) || 3) + ' · ' + collCount((r.roleIds || []).length, 'Rolle', 'Rollen'),
+    make: () => ({ id: collNewId('xg'), name: 'Neue Gruppe', roleIds: [], periodDays: 14, topN: 3, minXp: 1, capAtGroupTop: true, respectRequirements: false, enabled: true }),
+    sections: [
+      { title: 'Gruppe', desc: 'Wer zur Gruppe gehört: alle Mitglieder mit mindestens einer dieser Rollen.', fields: [
+        { k: 'name', label: 'Name', hint: 'z. B. Supporter oder Highteam', type: 'text', max: 40 },
+        { k: 'roleIds', label: 'Rollen der Gruppe', type: 'roles', kind: 'role' },
+        { k: 'enabled', label: 'Gruppe aktiv', type: 'bool', def: true }
+      ] },
+      { title: 'Zeitraum & Uprank', desc: '', fields: [
+        { k: 'periodDays', label: 'XP-Zeitraum in Tagen', hint: 'z. B. 14 = 2 Wochen. Danach wird ausgewertet und der Zeitraum beginnt neu', type: 'number', min: 1, max: 365, def: 14 },
+        { k: 'topN', label: 'Uprank für die Top', hint: 'So viele Plätze bekommen am Ende einen Uprank', type: 'number', min: 1, max: 25, def: 3 },
+        { k: 'minXp', label: 'Mindest-XP für einen Platz', hint: 'Wer weniger hat, bekommt keinen Platz', type: 'number', min: 0, max: 10000000, def: 1 },
+        { k: '_note', type: 'note', text: (r) => 'Nach ' + (Number(r.periodDays) || 14) + ' Tagen bekommen die besten ' + (Number(r.topN) || 3) + ' Mitglieder dieser Gruppe einen Uprank (mindestens ' + (Number(r.minXp) || 0) + ' XP). Danach beginnt der Zeitraum neu. Jede Gruppe wird für sich ausgewertet.' }
+      ] },
+      { title: 'Feinheiten', desc: '', fields: [
+        { k: 'capAtGroupTop', label: 'An der Spitze der Gruppe stoppen', hint: 'Aus = der Uprank darf auch über die höchste Rolle der Gruppe hinausführen', type: 'bool', def: true },
+        { k: 'respectRequirements', label: 'Rang-Anforderungen zusätzlich prüfen', hint: 'Aus = der Top-Platz reicht für den Uprank', type: 'bool', def: false }
+      ] }
+    ]
+  }
+};
+
+/* Einzelne Einstellung (kein Array) setzen und beim nächsten „Speichern“ mitschicken */
+function collSetFlat(key, val) {
+  state.settings[key] = val;
+  if (!state.pending) state.pending = {};
+  state.pending[key] = val === '' ? null : val;
+}
+
+/* Gate: Seiten, auf denen erst etwas erstellt werden muss, bevor die übrigen Einstellungen erscheinen */
+const COLL_GATE = {
+  tickets: {
+    coll: 'ticketPanels',
+    ok: (st) => (Array.isArray(st.ticketPanels) && st.ticketPanels.length > 0) || !!st.ticketPanelChannelId, // alte Einrichtung bleibt erreichbar
+    hint: 'Erstelle zuerst ein Ticket-Panel. Danach erscheinen Kategorien und alle weiteren Einstellungen.'
+  },
+  warteraum: {
+    coll: 'warteraumList',
+    ok: (st) => (Array.isArray(st.warteraumList) && st.warteraumList.some(r => r && r.channelId)),
+    hint: 'Erstelle zuerst einen Warteraum und wähle seinen Voice-Kanal. Danach erscheinen alle weiteren Einstellungen.'
+  },
+  offices: {
+    coll: 'officesList',
+    ok: (st) => Array.isArray(st.officesList) && st.officesList.length > 0,
+    hint: 'Erstelle zuerst ein Büro. Danach erscheinen alle weiteren Einstellungen.'
+  }
+};
+/* Alte Einrichtung übernehmen: ein bereits gesetzter Warteraum-VC wird als Eintrag angezeigt (ohne etwas zu ändern) */
+function collMigrateLegacy() {
+  const st = state.settings || {};
+  if (!Array.isArray(st.warteraumList)) st.warteraumList = [];
+  const legacy = st.warteraumVoiceChannelId || st.warteraumChannelId || st.waitingRoomChannelId;
+  if (!st.warteraumList.length && legacy) st.warteraumList = [{ id: 'wr_main', name: 'Warteraum', channelId: String(legacy) }];
+}
+function collGateLocked(catId) {
+  const g = COLL_GATE[catId];
+  if (!g) return null;
+  try { collMigrateLegacy(); } catch (_) {}
+  return g.ok(state.settings || {}) ? null : g;
+}
+
+function collFindField(def, k) {
+  for (const sec of def.sections) for (const f of sec.fields) if (f.k === k) return f;
+  return null;
+}
+
+function collectionGridHtml(collId) {
+  const def = COLL[collId];
+  if (!def) return '';
+  const arr = Array.isArray(state.settings[collId]) ? state.settings[collId] : [];
+  const items = arr.map((r, i) => (r && typeof r === 'object')
+    ? `<button type="button" class="coll-item" data-coll="${collId}" data-i="${i}"><span class="coll-txt"><b>${escapeHtml(def.name(r))}</b><small>${escapeHtml(def.meta(r))}</small></span><span class="coll-edit">${PENCIL}</span></button>`
+    : '').join('');
+  const full = !!(def.max && arr.length >= def.max);
+  const create = full ? '' : `<button type="button" class="coll-item coll-new" data-coll="${collId}" data-new="1"><span class="coll-txt"><b>${escapeHtml(def.create)}</b></span><span class="coll-plus" aria-hidden="true">+</span></button>`;
+  const lock = collGateLocked(state.currentCat);
+  const hint = (lock && lock.coll === collId) ? `<p class="coll-hint">${escapeHtml(lock.hint)}</p>` : '';
+  return `<div class="coll-grid">${items}${create}</div>${hint}`;
+}
+
+function collFieldHtml(f, row) {
+  const k = escapeHtml(f.k);
+  const lab = escapeHtml(f.label || '');
+  const v = row[f.k];
+  const label = `<span>${lab}${f.hint ? `<small>${escapeHtml(f.hint)}</small>` : ''}</span>`;
+  if (f.type === 'note') return `<p class="coll-note">${escapeHtml(typeof f.text === 'function' ? f.text(row) : f.text)}</p>`;
+  if (f.type === 'text') return `<label class="setting-row">${label}<input data-f="${k}" value="${escapeHtml(v == null ? '' : v)}" maxlength="${f.max || 200}" placeholder="${escapeHtml(f.ph || '')}"></label>`;
+  if (f.type === 'area') return `<label class="setting-row">${label}<textarea data-f="${k}" rows="${f.rows || 4}" maxlength="${f.max || 1500}">${escapeHtml(v == null ? '' : v)}</textarea></label>`;
+  if (f.type === 'number') return `<label class="setting-row">${label}<input data-f="${k}" data-num="1" type="number" inputmode="numeric" step="1" min="${f.min == null ? '' : f.min}" max="${f.max == null ? '' : f.max}" value="${(v == null || v === '' || !Number.isFinite(Number(v))) ? (f.def == null ? '' : f.def) : Number(v)}"></label>`;
+  if (f.type === 'channel') return `<label class="setting-row">${label}<select data-f="${k}">${f.kind === 'category' ? categoryOptions(v) : channelOptions(v, f.kind)}</select></label>`;
+  if (f.type === 'role') return `<label class="setting-row">${label}<select data-f="${k}">${roleOptions(v)}</select></label>`;
+  if (f.type === 'roles') {
+    const arr = Array.isArray(v) ? v : [];
+    return `<div class="setting-row">${label}<button type="button" class="role-btn coll-multi${arr.length ? ' has-value' : ''}" data-f="${k}"><b>${lab}</b><span>${escapeHtml(multiLabel(arr, 'role'))}</span></button></div>`;
+  }
+  if (f.type === 'bool') {
+    const on = f.def === true ? !(v === false || v === 'Aus' || v === 'false') : (v === true || v === 'An' || v === 'true');
+    return `<div class="setting-row">${label}<button type="button" class="toggle${on ? ' on' : ''}" data-f="${k}" role="switch" aria-checked="${on}" aria-label="${lab}"><i></i></button></div>`;
+  }
+  if (f.type === 'checks') {
+    const sel = new Set((Array.isArray(v) ? v : []).map(String));
+    const src = Array.isArray(state.settings[f.source]) ? state.settings[f.source] : [];
+    const boxes = src.filter(t => t && typeof t === 'object').map(t => {
+      const id = String(t.id || t.name || '');
+      const on = sel.has(id) || sel.has(String(t.name || ''));
+      return `<label class="coll-check"><input type="checkbox" data-fc="${k}" value="${escapeHtml(id)}"${on ? ' checked' : ''}><span>${escapeHtml(((t.emoji ? t.emoji + ' ' : '') + (t.name || id)).trim())}</span></label>`;
+    }).join('');
+    return `<div class="setting-row coll-checks-row">${label}<div class="coll-checks">${boxes || '<p class="list-empty">Noch keine Kategorien. Erstelle sie auf der Seite „Tickets“ unter „Kategorien“. Ohne Auswahl erscheinen alle.</p>'}</div></div>`;
+  }
+  return '';
+}
+
+/** Detailansicht des geöffneten Eintrags (oder null, wenn es ihn nicht mehr gibt) */
+function collDetail(catId) {
+  const cs = state.coll;
+  if (!cs) return null;
+  const def = COLL[cs.id];
+  const arr = state.settings[cs.id];
+  if (!def || !Array.isArray(arr) || !arr[cs.i] || typeof arr[cs.i] !== 'object') return null;
+  const row = arr[cs.i];
+  const sections = def.sections.map(sec =>
+    `<article class="settings-card glass coll-form"><div class="card-head"><div><h3>${escapeHtml(sec.title)}</h3>${sec.desc ? `<p>${escapeHtml(sec.desc)}</p>` : ''}</div></div><div class="card-body">${sec.fields.map(f => collFieldHtml(f, row)).join('')}</div></article>`
+  ).join('');
+  const actions = (def.actions || []).length
+    ? `<article class="settings-card glass coll-form"><div class="card-head"><div><h3>Aktionen</h3></div></div><div class="card-body"><div class="action-row">${def.actions.map((a, j) => `<button type="button" class="btn btn-primary coll-act" data-j="${j}">${escapeHtml(a.label)}</button>`).join('')}</div></div></article>`
+    : '';
+  return {
+    html: sections + actions,
+    title: def.name(row),
+    desc: def.noun + ' bearbeiten. Änderungen übernimmst du oben mit „Speichern“.',
+    back: `<button type="button" class="btn btn-ghost btn-sm coll-back">← Alle ${escapeHtml(def.plural)}</button>`,
+    tools: `<button type="button" class="btn btn-danger btn-sm coll-del">${escapeHtml(def.noun)} löschen</button>`
+  };
+}
+
+async function collSendTicketPanel(row, btn) {
+  if (!row.channelId) { toast('Wähle zuerst einen Kanal für dieses Panel', 'err'); return; }
+  if (btn) btn.disabled = true;
+  try {
+    const ok = await saveCurrent();
+    if (ok === false) { toast('Erst speichern, dann senden', 'err'); return; }
+    toast('Sende …', 'busy');
+    await API.sendPanel(state.guildId, 'tickets', row.channelId, { panelId: row.id });
+    toast('Panel gesendet', 'ok');
+  } catch (e) {
+    toast((e && e.message) ? String(e.message).slice(0, 120) : 'Senden fehlgeschlagen', 'err');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function wireCollection(panel, catId) {
+  panel.querySelectorAll('.coll-item').forEach(b => {
+    b.onclick = () => {
+      const cid = b.dataset.coll, def = COLL[cid];
+      if (!def) return;
+      const arr = Array.isArray(state.settings[cid]) ? state.settings[cid].slice() : [];
+      if (b.dataset.new) {
+        if (def.max && arr.length >= def.max) { toast('Maximal ' + def.max + ' ' + def.plural, 'err'); return; }
+        arr.push(def.make());
+        state.settings[cid] = arr;
+        markDirty();
+        state.coll = { cat: catId, id: cid, i: arr.length - 1 };
+      } else {
+        state.coll = { cat: catId, id: cid, i: Number(b.dataset.i) };
+      }
+      openCategory(catId);
+      try { window.scrollTo(0, 0); const m = document.getElementById('main'); if (m) m.scrollTop = 0; } catch (_) {}
+    };
+  });
+  const cs = state.coll;
+  if (!cs || cs.cat !== catId) return;
+  const def = COLL[cs.id];
+  const row = (state.settings[cs.id] || [])[cs.i];
+  if (!def || !row) return;
+  const noteFields = [];
+  def.sections.forEach(sec => sec.fields.forEach(f => { if (f.type === 'note' && typeof f.text === 'function') noteFields.push(f); }));
+  const paintNotes = () => { const els = panel.querySelectorAll('.coll-note'); noteFields.forEach((f, i) => { if (els[i]) els[i].textContent = f.text(row); }); };
+  const touch = () => { if (def.sync) def.sync(row); paintNotes(); markDirty(); };
+
+  const back = panel.querySelector('.coll-back');
+  if (back) back.onclick = () => { state.coll = null; openCategory(catId); };
+
+  const del = panel.querySelector('.coll-del');
+  if (del) {
+    let armed = null;
+    del.onclick = () => {
+      if (!armed) {
+        del.textContent = 'Wirklich löschen?'; del.classList.add('is-armed');
+        armed = setTimeout(() => { armed = null; del.textContent = def.noun + ' löschen'; del.classList.remove('is-armed'); }, 4000);
+        return;
+      }
+      clearTimeout(armed);
+      const arr = state.settings[cs.id].slice();
+      arr.splice(cs.i, 1);
+      state.settings[cs.id] = arr;
+      if (def.onDelete) def.onDelete(row);
+      markDirty();
+      state.coll = null;
+      openCategory(catId);
+      toast(def.noun + ' gelöscht – mit „Speichern“ übernehmen');
+    };
+  }
+
+  panel.querySelectorAll('[data-f]').forEach(el => {
+    const k = el.dataset.f;
+    const f = collFindField(def, k) || {};
+    if (el.classList.contains('toggle')) {
+      el.onclick = () => { const on = !el.classList.contains('on'); el.classList.toggle('on', on); el.setAttribute('aria-checked', String(on)); row[k] = on; touch(); };
+      return;
+    }
+    if (el.classList.contains('coll-multi')) {
+      el.onclick = () => openPickerDrawer({
+        title: f.label, kind: f.kind || 'role', sourceBtn: el,
+        getCurrent: () => row[k] || [],
+        onChange: (arr) => { row[k] = arr; el.classList.toggle('has-value', arr.length > 0); touch(); }
+      });
+      return;
+    }
+    const handler = () => {
+      if (el.dataset.num) {
+        const n = Number(el.value);
+        const lo = f.min == null ? -Infinity : f.min, hi = f.max == null ? Infinity : f.max;
+        row[k] = (el.value === '' || !Number.isFinite(n)) ? (f.def == null ? 0 : f.def) : Math.min(hi, Math.max(lo, Math.round(n)));
+      } else {
+        row[k] = el.value;
+      }
+      if (k === 'name') {
+        const h = panel.querySelector('.settings-heading h1'); if (h) h.textContent = def.name(row);
+        const cr = document.getElementById('crumbPage'); const cc = C.find(x => x[0] === catId);
+        if (cr && cc) cr.textContent = cc[1] + ' / ' + def.name(row);
+      }
+      touch();
+    };
+    el.oninput = handler;
+    el.onchange = handler;
+    if (el.dataset.num) el.onblur = () => { el.value = row[k]; };
+  });
+  panel.querySelectorAll('[data-fc]').forEach(el => {
+    el.onchange = () => {
+      const k = el.dataset.fc;
+      row[k] = [...panel.querySelectorAll('[data-fc="' + k + '"]')].filter(b => b.checked).map(b => b.value);
+      touch();
+    };
+  });
+  panel.querySelectorAll('.coll-act').forEach(b => { b.onclick = () => def.actions[Number(b.dataset.j)].run(row, b); });
 }
 
 function renderCard([title,desc,type,items]){
@@ -668,15 +1284,19 @@ function renderCard([title,desc,type,items]){
           opts = ['Log only','Warn','Kick','Ban','Timeout','Remove','Delete'];
         }
         if (label === 'Musik-Preset' || key === 'warteraumMusicPreset') opts = ['DE','EN'];
-        else if (/^(Warteraum-Musik|Appeals aktiv|Nur bei aktivem Ban|Feedback als Sticky|Abmeldung muss bestätigt werden|Häuser auf Ausweis anzeigen|Externe Apps deaktivieren|Externe Apps alle Channels|Anti-Nuke|Anti-Raid|Welcome Ping|Join-to-Create Support-VCs|Stats Tickets|Stats Support|Stats Duty)$/.test(label)) opts = ['An','Aus'];
+        else if (/^(Warteraum-Musik|Musik wiederholen|Namen selbst ändern|Team darf suchen|Kategorien mehrfach wählbar|Rollenänderungen loggen|Namensänderungen loggen|Admin-Aktionen loggen|Alle Rollen loggen|Appeals aktiv|Nur bei aktivem Ban|Feedback als Sticky|Abmeldung muss bestätigt werden|Häuser auf Ausweis anzeigen|Externe Apps deaktivieren|Anti-Nuke|Anti-Raid|Welcome Ping|Join-to-Create Support-VCs|Stats Tickets|Stats Support|Stats Duty|Ticket-KI|XP Auto-Uprank)$/.test(label)) opts = ['An','Aus'];
         if (label === 'Testphase Auto-Pass' || label === 'Honeypot DM') opts = ['An','Aus'];
         if (label === 'Honeypot Strafe') opts = ['Ban','Softban','Kick','Timeout','Nur löschen'];
         if (label === 'Rollen-Panel Modus') opts = ['Mehrfach','Einzeln'];
         if (!opts.length) opts = [def||'—'].filter(Boolean);
-        const cur = String(val||'');
-        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}"><option value="">—</option>${opts.map(o=>`<option value="${escapeHtml(o)}"${cur===o?' selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
+        const isOnOff = opts.length === 2 && opts[0] === 'An' && opts[1] === 'Aus';
+        // An/Aus: der Bot speichert true/false – hier wieder als „An“/„Aus“ anzeigen
+        const cur = isOnOff
+          ? ((val === false || /^(aus|off|false|0|nein)$/i.test(String(val))) ? 'Aus' : 'An')
+          : String(val||'');
+        control = `<select data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}">${isOnOff ? '' : '<option value="">—</option>'}${opts.map(o=>`<option value="${escapeHtml(o)}"${cur===o?' selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
       } else if (hint === 'area') {
-        control = `<textarea data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}" rows="5" style="width:100%;min-height:110px;background:#111;color:#ddd;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px">${escapeHtml(val)}</textarea>`;
+        control = `<textarea data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}" rows="5">${escapeHtml(val)}</textarea>`;
       } else {
         control = `<input data-key="${escapeHtml(key)}" data-label="${escapeHtml(label)}" value="${escapeHtml(val)}" placeholder="${escapeHtml(def)}">`;
       }
@@ -693,7 +1313,9 @@ function renderCard([title,desc,type,items]){
   if(type==='roles'){
     body = items.map(label=>{
       const key = KEY_MAP[label] || '';
-      return `<button type="button" class="role-btn" data-role="${escapeHtml(label)}" data-key="${escapeHtml(key)}"><b>${escapeHtml(label)}</b><span>Rollen wählen ›</span></button>`;
+      const cur = key ? getSetting(key, []) : [];
+      const has = (Array.isArray(cur) ? cur : (cur ? [cur] : [])).filter(Boolean).length;
+      return `<button type="button" class="role-btn${has ? ' has-value' : ''}" data-role="${escapeHtml(label)}" data-key="${escapeHtml(key)}"><b>${escapeHtml(label)}</b><span>${escapeHtml(multiLabel(cur, pickerKind(label, key) === 'voice' ? 'channel' : 'role'))}</span></button>`;
     }).join('');
   }
   if(type==='buttons'||type==='actions'){
@@ -708,7 +1330,14 @@ function renderCard([title,desc,type,items]){
       if (storeKey === 'officesList' && row && typeof row === 'object') {
         return `<div class="list-card" data-i="${i}">
           <div class="list-card-head"><b>${escapeHtml(row.name||'Büro')}</b><button type="button" class="btn listedit-rm" data-i="${i}">Entfernen</button></div>
-          <div class="list-card-meta">Warteraum: ${escapeHtml(row.waitingChannelId||'—')} · Rolle: ${escapeHtml(row.pingRoleId||'—')} · VC: ${escapeHtml(row.voiceChannelId||'—')}</div>
+          <div class="list-card-meta">Kategorie: ${escapeHtml(row.category||'—')} · Warteraum: ${escapeHtml(row.waitingChannelId||'—')} · Rolle: ${escapeHtml(row.pingRoleId||'—')} · VC: ${escapeHtml(row.voiceChannelId||'—')}</div>
+        </div>`;
+      }
+      if (storeKey === 'stickyList' && row && typeof row === 'object') {
+        const chName = ((state.channels||[]).find(c=>String(c.id)===String(row.channelId))||{}).name;
+        return `<div class="list-card" data-i="${i}">
+          <div class="list-card-head"><b>${escapeHtml(row.title||'Sticky')}</b><button type="button" class="btn listedit-rm" data-i="${i}">Entfernen</button></div>
+          <div class="list-card-meta">Kanal: ${escapeHtml(chName?('#'+chName):(row.channelId||'—'))} · ${escapeHtml(String(row.text||'').slice(0,90))}</div>
         </div>`;
       }
       if (storeKey === 'ticketTypes' && row && typeof row === 'object') {
@@ -726,10 +1355,19 @@ function renderCard([title,desc,type,items]){
       form = `<div class="structured-form" data-form="officesList">
         <div class="form-title">Büro hinzufügen</div>
         <label class="setting-row"><span>Name</span><input class="sf-name" placeholder="z.B. Highteam Büro"></label>
+        <label class="setting-row"><span>Kategorie (optional)</span><input class="sf-ocat" maxlength="40" placeholder="z.B. Leitung"></label>
         <label class="setting-row"><span>Warteraum</span><select class="sf-wait">${channelOptions('','voice')}</select></label>
         <label class="setting-row"><span>Rolle bei Beitritt</span><select class="sf-role">${roleOptions('')}</select></label>
         <label class="setting-row"><span>Büro VC</span><select class="sf-voice">${channelOptions('','voice')}</select></label>
         <button type="button" class="btn btn-primary listedit-add-btn" style="margin-top:8px">Büro hinzufügen</button>
+      </div>`;
+    } else if (storeKey === 'stickyList') {
+      form = `<div class="structured-form" data-form="stickyList">
+        <div class="form-title">Sticky hinzufügen</div>
+        <label class="setting-row"><span>Kanal</span><select class="sf-chan">${channelOptions('','text')}</select></label>
+        <label class="setting-row"><span>Titel (optional)</span><input class="sf-title" maxlength="100" placeholder="z.B. Hinweis"></label>
+        <label class="setting-row"><span>Text</span><textarea class="sf-text" maxlength="1500" rows="4" placeholder="Der Text, der ganz unten im Kanal stehen bleibt"></textarea></label>
+        <button type="button" class="btn btn-primary listedit-add-btn" style="margin-top:8px">Sticky hinzufügen</button>
       </div>`;
     } else if (storeKey === 'customAusweise') {
       form = `<div class="structured-form" data-form="customAusweise">
@@ -747,10 +1385,10 @@ function renderCard([title,desc,type,items]){
         <label class="setting-row"><span>Emoji</span><input class="sf-emoji" placeholder="🎫" style="max-width:80px"></label>
         <label class="setting-row"><span>Beschreibung</span><input class="sf-desc" placeholder="Kurze Beschreibung"></label>
         <label class="setting-row"><span>Staff-Rollen</span>
-          <button type="button" class="btn role-btn sf-staff-btn" data-temp="sfStaffRoles"><b>Staff-Rollen</b><span class="sf-staff-lbl">Auswählen ›</span></button>
+          <button type="button" class="btn role-btn sf-staff-btn" data-temp="sfStaffRoles"><b>Staff-Rollen</b><span class="sf-staff-lbl">Auswählen</span></button>
         </label>
         <label class="setting-row"><span>Ping-Rollen</span>
-          <button type="button" class="btn role-btn sf-ping-btn" data-temp="sfPingRoles"><b>Ping-Rollen</b><span class="sf-ping-lbl">Auswählen ›</span></button>
+          <button type="button" class="btn role-btn sf-ping-btn" data-temp="sfPingRoles"><b>Ping-Rollen</b><span class="sf-ping-lbl">Auswählen</span></button>
         </label>
         <label class="setting-row"><span>Kategorie</span><select class="sf-cat">${categoryOptions('')}</select></label>
         <label class="setting-row"><span>Eröffnungsfrage</span><input class="sf-preq" placeholder="Optional: Frage vor dem Öffnen"></label>
@@ -770,9 +1408,10 @@ function renderCard([title,desc,type,items]){
       ${form}
     </div>`;
   }
+  if(type==='collection') body = collectionGridHtml(items[0]);
   if(type==='table') body=`<div class="table-wrap"><table><thead><tr><th>Member</th><th>XP</th><th>Tickets</th><th>Duty</th></tr></thead><tbody><tr><td colspan="4">—</td></tr></tbody></table></div>`;
   if(type==='chart') body=`<div class="chart-bars">${[42,68,51,79,63,88,71,94,77,83,69,98].map(v=>`<i style="height:${v}%"></i>`).join('')}</div>`;
-  return `<article class="settings-card glass"><div class="card-head"><div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(desc)}</p></div><span class="card-chevron">›</span></div><div class="card-body">${body}</div></article>`;
+  return `<article class="settings-card glass${type==='switches'?' card-switches':''}"><div class="card-head"><div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(desc)}</p></div><span class="card-chevron">›</span></div><div class="card-body">${body}</div></article>`;
 }
 
 
@@ -780,17 +1419,19 @@ function renderCard([title,desc,type,items]){
     const panel = document.getElementById('settingsPanel');
     if (!panel || !state.guildId) return;
     panel.querySelectorAll('.file-upload-block').forEach(n => n.remove());
+    if (state.coll && state.coll.cat === catId) return; // Detailansicht eines Eintrags: nur dessen Einstellungen
+    if (collGateLocked(catId)) return; // noch gesperrte Seite: erst den Eintrag erstellen
 
     function addBlock(title, hint, accept, maxMB, onFile) {
-      const card = document.createElement('div');
+      const card = document.createElement('article');
       card.className = 'settings-card glass file-upload-block';
-      card.innerHTML = `<div class="card-head"><div><h3>${title}</h3><p>${hint}</p></div></div>
+      card.innerHTML = `<div class="card-head"><div><h3>${title} <span class="chip-live">Sofort aktiv</span></h3><p>${hint}</p></div></div>
         <div class="card-body"><div class="setting-row">
           <span>Datei (max. ${maxMB} MB)</span>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <input type="file" accept="${accept}" class="fu-input" style="max-width:220px;background:#111;color:#ddd;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px">
+          <div class="mp-row">
+            <input type="file" accept="${accept}" class="fu-input">
             <button type="button" class="btn btn-primary fu-btn">Hochladen</button>
-            <span class="fu-status" style="font-size:12px;color:#9aa3b8"></span>
+            <span class="fu-status" role="status"></span>
           </div>
         </div></div>`;
       const inp = card.querySelector('.fu-input');
@@ -798,22 +1439,22 @@ function renderCard([title,desc,type,items]){
       const st = card.querySelector('.fu-status');
       btn.onclick = async () => {
         const f = inp.files && inp.files[0];
-        if (!f) { st.textContent = 'Bitte zuerst eine Datei wählen.'; st.style.color = '#f87171'; toast('Keine Datei gewählt'); return; }
+        if (!f) { st.textContent = 'Bitte zuerst eine Datei wählen.'; st.dataset.state = 'err'; toast('Keine Datei gewählt'); return; }
         if (f.size > maxMB * 1024 * 1024) {
-          st.textContent = 'Zu groß (' + (f.size / 1048576).toFixed(1) + ' MB, max. ' + maxMB + ' MB)'; st.style.color = '#f87171'; toast('Datei zu groß'); return;
+          st.textContent = 'Zu groß (' + (f.size / 1048576).toFixed(1) + ' MB, max. ' + maxMB + ' MB)'; st.dataset.state = 'err'; toast('Datei zu groß'); return;
         }
-        btn.disabled = true; st.style.color = '#9aa3b8'; st.textContent = 'Lade hoch…';
+        btn.disabled = true; st.dataset.state = ''; st.textContent = 'Lade hoch …';
         try {
           const r = await onFile(f);
-          st.textContent = (r && r.message) || 'Gespeichert ✓'; st.style.color = '#4ade80';
+          st.textContent = (r && r.message) || 'Gespeichert ✓'; st.dataset.state = 'ok';
           toast('Hochgeladen');
         } catch (e) {
           const m = (e && e.message) ? String(e.message).slice(0, 140) : 'Upload fehlgeschlagen';
-          st.textContent = m; st.style.color = '#f87171'; toast(m);
+          st.textContent = m; st.dataset.state = 'err'; toast(m, 'err');
           console.warn('[upload]', e);
         } finally { btn.disabled = false; }
       };
-      panel.appendChild(card);
+      (panel.querySelector('.settings-grid') || panel).appendChild(card);
     }
 
     function readAsDataURL(file) {
@@ -837,7 +1478,7 @@ function renderCard([title,desc,type,items]){
         const data = await readAsDataURL(f);
         const r = await API.uploadMusic(state.guildId, f.name, data);
         if (r && r.error) throw new Error(r.error);
-        return { message: 'Gespeichert ✓ – wird beim nächsten Beitritt gespielt' };
+        return { message: 'Gespeichert ✓ – wird beim nächsten Beitritt gespielt. Wiederholen oben unter „Musik wiederholen“ einstellen.' };
       });
     }
     if (catId === 'tickets') {
@@ -849,10 +1490,12 @@ function renderCard([title,desc,type,items]){
 
   function openCategory(id){
   // file uploads after render
-  const __after = () => { try { wireFileUploads(id); } catch (e) {} try { wireLive(id); } catch (e) { console.warn('[live]', e); } try { wireRank(id); } catch (e) { console.warn('[rank]', e); } };
+  const __after = () => { try { wireFileUploads(id); } catch (e) {} try { wireLive(id); } catch (e) { console.warn('[live]', e); } try { wireRank(id); } catch (e) { console.warn('[rank]', e); } try { wireHome(id); } catch (e) { console.warn('[home]', e); } try { paintWebhookCard(); } catch (e) {} };
   const c=C.find(x=>x[0]===id);
   if(!c) return;
+  if (state.coll && state.coll.cat !== id) state.coll = null; // anderer Bereich: wieder die Karten-Liste
   state.currentCat = id;
+  state.extraSavers = {}; state.extraDirty = {}; state.navWarn = null;
   document.querySelectorAll('[data-cat]').forEach(x=>x.classList.toggle('active',x.dataset.cat===id));
   const empty=$('empty');
   if(empty){ empty.classList.add('hidden'); empty.style.display='none'; }
@@ -868,14 +1511,26 @@ function renderCard([title,desc,type,items]){
     banner = `<div class="login-banner glass"><div><b>Server wählen</b><p>Wähle links oben deinen Server, damit Kanäle und Rollen geladen werden.</p></div><button type="button" class="btn btn-primary" id="bannerServer">Server wählen</button></div>`;
   }
 
-  const cards = (templates[id]||[]).map(renderCard).join('');
+  const cd = (state.coll && state.coll.cat === id) ? collDetail(id) : null;
+  if (state.coll && state.coll.cat === id && !cd) state.coll = null;
+  const gateLock = cd ? null : collGateLocked(id);
+  const tplCards = gateLock
+    ? (templates[id] || []).filter(cc => cc[2] === 'switches' || (cc[2] === 'collection' && cc[3][0] === gateLock.coll))
+    : (templates[id] || []);
+  const cards = cd ? cd.html : tplCards.map(renderCard).join('');
   const emptyHint = cards
     ? ''
-    : '<div class="settings-card glass" style="padding:20px"><h3>Keine Settings in dieser Kategorie</h3><p>Wähle eine andere Kategorie in der Sidebar oder speichere zuerst Module.</p></div>';
-  panel.innerHTML = banner + `<div class="settings-heading"><div><div class="breadcrumb">Server Control <span>/</span> ${escapeHtml(c[1])}</div><h2>${escapeHtml(c[1])}</h2><p>${escapeHtml(c[2])}</p></div><button class="btn btn-primary" id="saveAll" type="button">Speichern</button></div><div class="settings-grid">${cards || emptyHint}</div>`;
+    : '<div class="settings-card glass"><div class="card-head"><div><h3>Keine Einstellungen hier</h3><p>Wähle links eine andere Seite. Ist das Modul ausgeschaltet, aktiviere es unter „Module“.</p></div></div></div>';
+  const groupName = ((GROUPS.find(g => g[1].includes(id)) || [])[0]) || 'Dashboard';
+  const tools = id === 'home'
+    ? `<button class="btn" id="refreshPage" type="button" title="Status, Einstellungen, Kanäle und Rollen neu laden">${ICON.refresh}<span> Aktualisieren</span></button>`
+    : `<span class="save-state" data-state="clean" role="status"></span><button class="btn btn-ghost" id="discardAll" type="button" hidden>Verwerfen</button><button class="btn" id="refreshPage" type="button" title="Einstellungen, Kanäle und Rollen vom Server neu laden">${ICON.refresh}<span> Aktualisieren</span></button><button class="btn btn-primary" id="saveAll" type="button">Speichern</button>`;
+  panel.innerHTML = banner + `<div class="settings-heading"><div class="sh-text"><div class="breadcrumb">${escapeHtml(groupName)} <span>/</span> ${escapeHtml(c[1])}</div>${cd ? cd.back : ''}<h1>${escapeHtml(cd ? cd.title : c[1])}</h1><p>${escapeHtml(cd ? cd.desc : c[2])}</p></div><div class="sh-actions">${cd ? cd.tools : ''}${tools}</div></div><div class="settings-grid">${id === 'home' ? '' : (cards || emptyHint)}</div>`;
   panel.style.display = 'block';
   panel.style.visibility = 'visible';
   panel.style.opacity = '1';
+  paintCrumbs(id === 'home' ? '' : groupName, cd ? c[1] + ' / ' + cd.title : c[1]);
+  try { paintModuleBanner(id); } catch (e) { console.warn('[module-banner]', e); }
 
   const bl = $('bannerLogin');
   if(bl) bl.onclick = ()=> API.login(location.origin + '/dashboard/');
@@ -884,6 +1539,9 @@ function renderCard([title,desc,type,items]){
 
   const saveBtn = $('saveAll');
   if(saveBtn) saveBtn.onclick = () => saveCurrent();
+  const rfBtn = $('refreshPage'); if (rfBtn) rfBtn.onclick = () => refreshPage();
+  const dcBtn = $('discardAll'); if (dcBtn) dcBtn.onclick = () => discardChanges();
+  paintSaveState();
   panel.querySelectorAll('.toggle').forEach(t=>{
     t.onclick = () => {
       t.classList.toggle('on');
@@ -896,16 +1554,20 @@ function renderCard([title,desc,type,items]){
         state.modules[k] = on;
       } else if (KEY_MAP[t.getAttribute('data-label')]) {
         state.settings[KEY_MAP[t.getAttribute('data-label')]] = on;
+        state.pending[KEY_MAP[t.getAttribute('data-label')]] = on;
       } else {
         state.modules[k] = on;
       }
+      markDirty();
       // rebuild nav to hide disabled modules
       try { buildNav(); } catch(e) {}
+      try { paintModuleBanner(id); } catch(e) {}
     };
   });
   panel.querySelectorAll('.action-btn').forEach(b=>{ b.onclick = () => handleAction(b.dataset.action, id); });
   panel.querySelectorAll('.role-btn').forEach(b=>{ b.onclick = () => openRoleDrawer(b); });
   __after(); // Upload-Blöcke (Ticket-Bilder, Warteraum-Musik) einhängen – wurde vorher nie aufgerufen
+  try { wireCollection(panel, id); } catch (e) { console.warn('[coll]', e); } // überschreibt die allgemeinen Handler für Karten-Listen und Detailansicht
   panel.querySelectorAll('.listedit').forEach(box=>{
     const key = box.getAttribute('data-store');
     box.querySelectorAll('.listedit-rm').forEach(btn=>{
@@ -931,13 +1593,22 @@ function renderCard([title,desc,type,items]){
           const description = (box.querySelector('.sf-desc')||{}).value || '';
           if (!name.trim()) { toast('Error'); return; }
           arr.push({ id: 'aw_'+Date.now().toString(36), name: name.trim(), emoji: emoji.trim(), description: description.trim() });
+        } else if (key === 'stickyList') {
+          const channelId = (box.querySelector('.sf-chan')||{}).value || '';
+          const title = ((box.querySelector('.sf-title')||{}).value || '').trim().slice(0, 100);
+          const text = ((box.querySelector('.sf-text')||{}).value || '').trim().slice(0, 1500);
+          if (!channelId || !text) { toast('Error'); return; }
+          if (arr.length >= 10) { toast('Error'); return; }
+          if (arr.some(x => x && String(x.channelId) === String(channelId))) { toast('Error'); return; }
+          arr.push({ id: 'st_'+Date.now().toString(36), channelId, title, text });
         } else if (key === 'officesList') {
           const name = (box.querySelector('.sf-name')||{}).value || '';
           const waitingChannelId = (box.querySelector('.sf-wait')||{}).value || '';
           const pingRoleId = (box.querySelector('.sf-role')||{}).value || '';
           const voiceChannelId = (box.querySelector('.sf-voice')||{}).value || '';
           if (!name.trim()) { toast('Error'); return; }
-          arr.push({ name: name.trim(), waitingChannelId, pingRoleId, voiceChannelId });
+          const category = ((box.querySelector('.sf-ocat')||{}).value || '').trim().slice(0, 40);
+          arr.push({ name: name.trim(), category, waitingChannelId, pingRoleId, voiceChannelId });
         } else if (key === 'ticketTypes') {
           const name = (box.querySelector('.sf-name')||{}).value || '';
           const emoji = (box.querySelector('.sf-emoji')||{}).value || '';
@@ -1014,42 +1685,6 @@ function renderCard([title,desc,type,items]){
 async function handleAction(label, catId){
   if(!state.guildId){ toast('Error'); return; }
   try { await saveCurrent(); } catch (e) {}  // erst speichern, dann senden
-
-  // Externe Apps sofort anwenden
-  const L0 = String(label||'').toLowerCase();
-  if (L0.includes('externe apps jetzt sperren') || L0.includes('externe apps wieder erlauben')) {
-    try {
-      const enable = L0.includes('sperren');
-      const roleIds = getSetting('securityExternalAppsRoleIds', []) || [];
-      const channelIds = getSetting('securityExternalAppsChannelIds', []) || [];
-      const every = isOnLabel('Externe Apps alle Channels') || getSetting('securityExternalAppsEveryChannel', true) !== false;
-      if (typeof API.externalApps === 'function') {
-        const r = await API.externalApps(state.guildId, {
-          enabled: enable,
-          roleIds: Array.isArray(roleIds) ? roleIds : [],
-          channelIds: every ? [] : (Array.isArray(channelIds) ? channelIds : []),
-          everyChannel: every,
-          forceAll: every
-        });
-        toast(enable
-          ? `Externe Apps gesperrt (${(r&&r.ok)||0}/${(r&&r.total)||0} Channels)`
-          : `Externe Apps erlaubt (${(r&&r.ok)||0} Channels)`);
-      } else {
-        await API.post('/api/guilds/' + state.guildId + '/security/external-apps', {
-          enabled: enable,
-          roleIds: Array.isArray(roleIds) ? roleIds : [],
-          channelIds: every ? [] : (Array.isArray(channelIds) ? channelIds : []),
-          everyChannel: every,
-          forceAll: every
-        });
-        toast(enable ? 'Externe Apps gesperrt' : 'Externe Apps erlaubt');
-      }
-    } catch (e) {
-      toast('Error: ' + (e.message || e));
-    }
-    return;
-  }
-
   let panel = PANEL_MAP[label];
   if(!panel){
     const L = String(label||'').toLowerCase();
@@ -1064,6 +1699,7 @@ async function handleAction(label, catId){
     else if (L.includes('teamlist') || L.includes('teamliste')) panel = 'teamlist';
     else if (L.includes('abmeld')) panel = 'abmelden';
     else if (L.includes('verify')) panel = 'verify';
+    else if (L.includes('ic-namen')) panel = 'ic_names';
     else if (L.includes('haus')) panel = 'hausliste';
     else if (L.includes('bewerb') || L.includes('application')) panel = 'bewerbung';
     else if (L.includes('ausweis')) panel = 'ausweis';
@@ -1077,7 +1713,7 @@ async function handleAction(label, catId){
       const mapCat = {
         tickets:'tickets', applications:'bewerbung', team:'duty', ausweis:'ausweis',
         tasks:'tasks', database:'database', rp:'server_stats', dizzy:'dizzySticky',
-        verify:'verify', factions:'fraktionsliste', houses:'hausliste', feedback:'feedback',
+        verify:'verify', factions:'fraktionsliste', houses:'hausliste', icnames:'ic_names', feedback:'feedback',
         abmeldung:'abmelden', teamlist:'teamlist', admincall:'admincall', partner:'partner',
         icmod:'modpanel', suggest:'suggest', giveaway:'giveaway', xp:'xp_panel', interview:'interview'
       };
@@ -1140,14 +1776,12 @@ function openPickerDrawer(opts){
   state._pickerTemp = opts.tempStore || null;
   const titleEl = $('drawerTitle');
   if (titleEl) titleEl.textContent = opts.title || 'Auswahl';
-  let current = [];
-  if (opts.tempStore && state._tempMulti && state._tempMulti[opts.tempStore]) {
-    current = state._tempMulti[opts.tempStore];
-  } else {
-    current = getSetting(key, []);
-  }
-  if (!Array.isArray(current)) current = current ? [current] : [];
-  const selSet = new Set(current.map(String));
+  const readCurrent = () => {
+    let cur = opts.getCurrent ? opts.getCurrent() : ((opts.tempStore && state._tempMulti && state._tempMulti[opts.tempStore]) ? state._tempMulti[opts.tempStore] : getSetting(key, []));
+    if (!Array.isArray(cur)) cur = cur ? [cur] : [];
+    return cur.map(String);
+  };
+  const selSet = new Set(readCurrent());
   let items = [];
   if (opts.kind === 'role') {
     items = (state.roles||[]).filter(r=>r && r.managed !== true).map(r=>({id:r.id,name:r.name,prefix:'@ '}));
@@ -1157,13 +1791,15 @@ function openPickerDrawer(opts){
     else if (opts.kind === 'text') list = list.filter(isTextChannel);
     items = list.map(c=>({id:c.id,name:c.name,prefix:isVoiceChannel(c)?'🔊 ':'# '}));
   }
-  const searchHtml = `<input type="search" id="drawerSearch" placeholder="Suchen…" style="width:100%;margin-bottom:10px;padding:10px;border-radius:10px;background:#111;border:1px solid rgba(255,255,255,.08);color:#eee">`;
   const body = items.map(it=>{
     const on = selSet.has(String(it.id));
-    return `<button type="button" class="setting-row role-pick" data-id="${it.id}" data-name="${escapeHtml(it.name||'')}" style="width:100%;text-align:left;${on?'border-color:#805dff;':''}"><b>${it.prefix}${escapeHtml(it.name||it.id)}</b>${on?' <span>✓</span>':''}</button>`;
-  }).join('') || '<p style="color:#f87171">Nichts geladen — Server neu wählen oder Rollen aktualisieren.</p>';
-  $('drawerBody').innerHTML = searchHtml + '<div id="drawerList">'+body+'</div>';
+    return `<button type="button" class="setting-row role-pick${on?' is-on':''}" data-id="${it.id}" data-name="${escapeHtml(it.name||'')}" aria-pressed="${on}"><b>${it.prefix}${escapeHtml(it.name||it.id)}</b></button>`;
+  }).join('') || '<p class="list-empty">Nichts geladen. Tippe auf „Neu laden“, falls du gerade etwas in Discord angelegt hast.</p>';
+  $('drawerBody').innerHTML = `<input type="search" id="drawerSearch" placeholder="Suchen" aria-label="Suchen" autocomplete="off"><div id="drawerList" class="action-list">${body}</div>` +
+    `<div class="drawer-foot"><span class="dh-count" id="drawerCount"></span><span class="mp-row"><button type="button" class="btn btn-sm" id="drawerReload">${ICON.refresh}<span> Neu laden</span></button><button type="button" class="btn btn-primary btn-sm" id="drawerDone">Fertig</button></span></div>`;
   d.classList.add('open');
+  const count = () => { const n = $('drawerList').querySelectorAll('.role-pick.is-on').length; $('drawerCount').textContent = n === 1 ? '1 ausgewählt' : n + ' ausgewählt'; };
+  count();
   const applySearch = ()=>{
     const q = (($('drawerSearch')||{}).value||'').toLowerCase();
     $('drawerList').querySelectorAll('.role-pick').forEach(b=>{
@@ -1171,50 +1807,57 @@ function openPickerDrawer(opts){
       b.style.display = !q || n.includes(q) ? '' : 'none';
     });
   };
-  if ($('drawerSearch')) $('drawerSearch').oninput = applySearch;
+  if ($('drawerSearch')) { $('drawerSearch').oninput = applySearch; setTimeout(()=>{ try { $('drawerSearch').focus(); } catch (_) {} }, 60); }
+  $('drawerDone').onclick = () => d.classList.remove('open');
+  $('drawerReload').onclick = async () => {
+    const b = $('drawerReload'); if (b) b.classList.add('is-spinning');
+    try { applyDiscord(await API.discord(state.guildId, true)); toast('Kanäle und Rollen aktualisiert', 'ok'); openPickerDrawer(opts); }
+    catch (e) { toast((e && e.message) ? String(e.message).slice(0, 120) : 'Konnte nicht neu laden', 'err'); if (b) b.classList.remove('is-spinning'); }
+  };
   $('drawerList').querySelectorAll('.role-pick').forEach(btn2=>{
     btn2.onclick = () => {
       const id = btn2.dataset.id;
-      let arr;
-      if (opts.tempStore) {
-        if (!state._tempMulti) state._tempMulti = {};
-        arr = state._tempMulti[opts.tempStore] || [];
-      } else {
-        arr = getSetting(state.currentRoleKey, []);
-      }
-      if (!Array.isArray(arr)) arr = arr ? [arr] : [];
-      arr = arr.map(String);
-      if (arr.includes(id)) arr = arr.filter(x=>x!==id);
-      else arr.push(id);
-      if (opts.tempStore) {
-        state._tempMulti[opts.tempStore] = arr;
-        // update label on form button
+      let arr = readCurrent();
+      if (arr.includes(id)) arr = arr.filter(x=>x!==id); else arr.push(id);
+      const kindForLabel = opts.kind==='role'?'role':'channel';
+      if (opts.onChange) {
+        opts.onChange(arr);
         if (opts.sourceBtn) {
           const sp = opts.sourceBtn.querySelector('span');
-          if (sp) sp.textContent = multiLabel(arr, opts.kind==='role'?'role':'channel');
+          if (sp) sp.textContent = multiLabel(arr, kindForLabel);
+        }
+      } else if (opts.tempStore) {
+        if (!state._tempMulti) state._tempMulti = {};
+        state._tempMulti[opts.tempStore] = arr;
+        if (opts.sourceBtn) {
+          const sp = opts.sourceBtn.querySelector('span');
+          if (sp) sp.textContent = multiLabel(arr, kindForLabel);
         }
       } else {
         state.settings[state.currentRoleKey] = arr;
+        if (opts.sourceBtn) {
+          const sp = opts.sourceBtn.querySelector('span');
+          if (sp) sp.textContent = multiLabel(arr, kindForLabel);
+          opts.sourceBtn.classList.toggle('has-value', arr.length > 0);
+        }
+        markDirty();
       }
-      openPickerDrawer(opts);
+      const on = arr.includes(id);
+      btn2.classList.toggle('is-on', on); btn2.setAttribute('aria-pressed', String(on));
+      count();
     };
   });
 }
 function openRoleDrawer(btn){
   const label = btn.dataset.role || '';
   const key = btn.dataset.key || KEY_MAP[label] || '';
-  let kind = 'role';
-  if (/Support-VCs|Support-Räume|Voice|Warteraum|Feste Support|XP/.test(label) || /Voice|ChannelIds|supportFixed|supportXp/.test(key)) {
-    kind = 'voice';
-  }
-  if (/Externe-Apps Channels|Externe Apps Channels/.test(label) || /externalAppsChannelIds|securityExternalAppsChannelIds/.test(key)) {
-    kind = 'channel';
-  }
+  const kind = pickerKind(label, key);
   openPickerDrawer({ key, title: label || 'Auswahl', kind, sourceBtn: btn });
 }
 
 async function saveCurrent(){
-  if(!state.guildId){ toast('Error'); return; }
+  if(!state.guildId){ toast('Zuerst Server wählen'); return false; }
+  if (state.saving) return false;
   const panel = $('settingsPanel');
   const partial = {};
   if (panel) {
@@ -1228,15 +1871,17 @@ async function saveCurrent(){
       }
     });
   }
+  // Änderungen von Seiten, die du zwischendurch verlassen hast
+  Object.keys(state.pending || {}).forEach(k => { if (partial[k] === undefined) partial[k] = state.pending[k]; });
   // always persist arrays / multi-selects from state
   const arrayKeys = [
-    'ticketTypes','ticketOpenQuestions','adminCallQuestions','officesList','applicationsList',
+    'ticketTypes','ticketOpenQuestions','adminCallQuestions','officesList','stickyList','applicationsList',
     'applicationQuestions','modReasons','interviewQuestions','factionAppQuestions','customAusweise',
     'unbanQuestions','partnerQuestions','teamlistRoleIds','supportFixedVoiceIds','supportXpVoiceIds',
     'ticketSupportRoleIds','adminRoleIds','staffRoleIds','modRoleIds','ingameAccessRoleIds',
     'ingameModRoleIds','teamInviteRoleIds','teamKickRoleIds','teamWarnRoleIds','teamSuspendRoleIds',
     'factionManageRoleIds','factionManagerRoleIds','houseManagerRoleIds','databaseManagerRoleIds',
-    'tasksManagerRoleIds','tasksClaimRoleIds','securityWhitelistRoleIds','securityExternalAppsRoleIds','securityExternalAppsChannelIds','verifyRoleIds','unverifiedRoleIds',
+    'tasksManagerRoleIds','tasksClaimRoleIds','securityWhitelistRoleIds','verifyRoleIds','unverifiedRoleIds',
     'banRoleIds','kickRoleIds','timeoutRoleIds','warnRoleIds','softbanRoleIds','highTeamRoleIds',
     'partnerManagerRoleIds','ausweisAcceptRoleIds','unbanAcceptRoleIds','giveawayRoleIds','suggestAcceptRoleIds'
   ];
@@ -1250,17 +1895,34 @@ async function saveCurrent(){
 
   const modules = Object.assign({}, state.modules || {});
   const tasks = [];
+  state.saving = true; state.saveError = false; paintSaveState();
+  const sb = $('saveAll'); if (sb) sb.disabled = true;
+  let ok = true;
   try {
     if (Object.keys(partial).length) tasks.push(API.patchSettings(state.guildId, partial));
     if (Object.keys(modules).length) tasks.push(API.patchModules(state.guildId, modules));
     await Promise.all(tasks);
     // merge back
     Object.assign(state.settings, partial);
-    toast('Gespeichert');
+    state.pending = {}; state.dirty = false;
+    // Zusatz-Speicher der Seite (z. B. Ranglaufbahn mit eigener Prüfung)
+    const extras = Object.values(state.extraSavers || {});
+    if (extras.length) {
+      const res = await Promise.all(extras.map(fn => Promise.resolve(fn()).catch(() => false)));
+      if (res.some(r => r === false)) ok = false;
+    }
+    if (ok) { state.dirtyCats.clear(); toast('Gespeichert'); }
+    else { state.saveError = true; toast('Teile der Seite sind nicht gespeichert. Details siehe Meldungen auf der Seite.', 'err'); }
   } catch (e) {
+    ok = false; state.saveError = true; state.dirty = true;
     console.error('save', e);
-    toast(e && e.message ? String(e.message).slice(0, 140) : 'Speichern fehlgeschlagen');
+    toast(e && e.message ? String(e.message).slice(0, 140) : 'Speichern fehlgeschlagen', 'err');
+  } finally {
+    state.saving = false;
+    const sb2 = $('saveAll'); if (sb2) sb2.disabled = false;
+    paintSaveState();
   }
+  return ok;
 }
 
 async function loadGuild(gid, opts){
@@ -1269,8 +1931,9 @@ async function loadGuild(gid, opts){
   state.guildId = String(gid);
   const gmeta = (state.guilds || []).find(x => String(x.id) === String(gid));
   if (gmeta) setServerMeta(gmeta);
+  document.body.classList.add('is-loading');
   try {
-    toast('…');
+    if (!opts.quiet) toast('Lade …', 'busy');
     const [cfg, disc] = await Promise.all([
       API.config(gid),
       API.discord(gid, !!opts.refresh)
@@ -1283,25 +1946,16 @@ async function loadGuild(gid, opts){
     Object.entries({ team:'teamverwaltung', warteraum:'warteraumSupport', adminCall:'adminCalls', duty:'dutyPanel', applications:'bewerbungen', automod:'autoMod', abmeldung:'abmelden' }).forEach(([dash, bot]) => {
       if (state.modules[bot] !== undefined) { state.modules[dash] = state.modules[bot]; delete state.modules[bot]; }
     });
-    state.channels = (disc && disc.channels) || [];
-    state.roles = (disc && disc.roles) || [];
-    // categories: type 4
-    state.categories = state.channels.filter(c => {
-      const t = c.type;
-      return t === 4 || t === '4' || t === 'GUILD_CATEGORY' || Number(t) === 4;
-    });
-    state.channels = (state.channels||[]).filter(c => {
-      const t = c.type;
-      // keep text, announce, voice, stage — drop categories only
-      return !(t === 4 || t === '4' || t === 'GUILD_CATEGORY' || Number(t) === 4);
-    });
-    // Prefer text/announce for panel channel selects still includes voice for warteraum
-    if (state.currentCat) openCategory(state.currentCat);
-    else openCategory('allgemein');
+    applyDiscord(disc);
+    markClean();
+    buildNav();
+    openCategory(state.currentCat || 'home');
     try { ensureWebhookSetup(gid); } catch (_) {}
-    toast('OK');
+    if (!opts.quiet) toast('Aktualisiert', 'ok');
   } catch (e) {
-    toast('Error');
+    toast((e && e.message) ? 'Server-Daten konnten nicht geladen werden: ' + String(e.message).slice(0, 110) : 'Server-Daten konnten nicht geladen werden', 'err');
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 }
 
@@ -1310,10 +1964,10 @@ function renderServerList(){
   if(!list) return;
   const guilds = state.guilds || [];
   if(!guilds.length){
-    list.innerHTML = '<p style="padding:12px;color:#9aa">Keine Server gefunden.</p>';
+    list.innerHTML = '<p class="list-empty">Keine Server gefunden. Ist der Bot auf deinem Server und hast du dort Verwaltungsrechte?</p>';
     return;
   }
-  list.innerHTML = guilds.map((g)=>{
+  list.innerHTML = guilds.map((g, i)=>{
     const name = g.name || g.id;
     const letter = (name||'S').charAt(0).toUpperCase();
     const sel = String(state.guildId) === String(g.id) ? ' selected' : '';
@@ -1321,7 +1975,9 @@ function renderServerList(){
     const iconHtml = g.icon
       ? `<img src="${escapeHtml(g.icon)}" alt="" style="width:100%;height:100%;border-radius:inherit;object-fit:cover">`
       : escapeHtml(letter);
-    return `<button type="button" class="server-row${sel}" data-id="${escapeHtml(String(g.id))}" data-server="${escapeHtml(name)}"><span class="server-icon">${iconHtml}</span><span class="grow"><b>${escapeHtml(name)}</b><small>${escapeHtml(members)}</small></span><span class="check">✓</span></button>`;
+    // Banner-Farbe aus dem Servernamen: gleicher Server, gleiche Farbe
+    let hue = 0; for (const ch of String(g.id || name)) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
+    return `<button type="button" class="server-row${sel}" style="--h:${hue};--i:${Math.min(i, 12)}" data-id="${escapeHtml(String(g.id))}" data-server="${escapeHtml(name)}"><span class="sr-banner" aria-hidden="true"></span><span class="server-icon">${iconHtml}</span><span class="grow"><b>${escapeHtml(name)}</b><small>${escapeHtml(members)}</small></span><span class="sr-foot">${sel ? '<span class="sr-pill">Ausgewählt</span>' : '<span></span>'}<span class="sr-go">Verwalten</span></span></button>`;
   }).join('');
   list.querySelectorAll('.server-row').forEach(x=>{
     x.onclick = async ()=>{
@@ -1336,52 +1992,67 @@ function renderServerList(){
   });
 }
 
+const CAT_MODULE = {
+  tickets:'tickets', warteraum:'warteraum', admincall:'adminCall', offices:'offices', rp:'statusPanel',
+  applications:'applications', team:'team', duty:'duty', abmeldung:'abmeldung',
+  feedback:'feedback', tasks:'tasks', database:'database', factions:'factions',
+  houses:'houses', icnames:'icNames', security:'security',
+  welcome:'welcomeLeave', verify:'verify', interview:'interview', suggest:'suggest',
+  giveaway:'giveaway', xp:'xp', partner:'partner', ausweis:'ausweis', fly:'flyNametag', sticky:'sticky',
+  dizzy:'dizzy', ic:'icPanel', icmod:'icModeration',
+  ranglaufbahn:'team', teamsperre:'teamsperre', testphase:'testphase', temprollen:'tempRoles', honeypot:'honeypot', rollenpanel:'rolePanel', embeds:'embedBuilder'
+};
 function moduleEnabledForCat(catId){
   // always show server/meta categories
-  if (['allgemein','module','logs'].includes(catId)) return true;
-  const map = {
-    tickets:'tickets', warteraum:'warteraum', admincall:'adminCall', offices:'offices',
-    applications:'applications', team:'team', duty:'duty', abmeldung:'abmeldung',
-    feedback:'feedback', tasks:'tasks', database:'database', factions:'factions',
-    houses:'houses', moderation:null, records:null, stats:null, security:'security',
-    welcome:'welcomeLeave', verify:'verify', interview:'interview', suggest:'suggest',
-    giveaway:'giveaway', xp:'xp', rp:null, partner:'partner', ausweis:'ausweis',
-    unban:null, dizzy:'dizzy', ic:'icPanel', icmod:'icModeration', teamlist:null,
-    ranglaufbahn:'team', teamsperre:'teamsperre', testphase:'testphase', temprollen:'tempRoles', honeypot:'honeypot', rollenpanel:'rolePanel', embeds:'embedBuilder'
-  };
-  const mod = map[catId];
+  if (['home','allgemein','module','logs'].includes(catId)) return true;
+  const mod = CAT_MODULE[catId];
   if (!mod) return true;
   const mods = state.modules || {};
   if (mods[mod] === false || mods[mod] === 0 || mods[mod] === 'off') return false;
   return true;
 }
+function navGo(catId){
+  // Ranglaufbahn hat eigene, noch ungespeicherte Änderungen: erst warnen, beim zweiten Klick verwerfen
+  if (state.currentCat === 'ranglaufbahn' && state.extraDirty.rank && catId !== 'ranglaufbahn' && state.navWarn !== catId) {
+    state.navWarn = catId;
+    toast('Die Ranglaufbahn ist nicht gespeichert. Noch einmal klicken, um sie zu verwerfen.', 'err');
+    return;
+  }
+  state.coll = null;
+  openCategory(catId);
+  try { document.body.classList.remove('nav-open'); } catch (_) {}
+}
 function buildNav(){
   const nav = $('categories');
   if(!nav) return;
+  const link = (c) => `<button type="button" class="nav-link${state.currentCat===c[0]?' active':''}" data-cat="${c[0]}">${navIcon(c[0])}<span class="nav-label">${escapeHtml(c[1])}</span></button>`;
   if (typeof GROUPS !== 'undefined' && GROUPS.length) {
     nav.innerHTML = GROUPS.map(([gname, ids])=>{
       const links = ids.map(id=>{
         const c = C.find(x=>x[0]===id);
         if(!c) return '';
         if (!moduleEnabledForCat(id)) return '';
-        return `<button type="button" class="nav-link" data-cat="${c[0]}"><span class="nav-label">${escapeHtml(c[1])}</span></button>`;
+        return link(c);
       }).join('');
       if (!links.replace(/\s/g,'')) return '';
-      return `<div class="nav-group"><div class="nav-group-title">${escapeHtml(gname)}</div>${links}</div>`;
+      return `<div class="nav-group"><div class="nav-group-title">${ICON[GROUP_ICON[gname]] || ''}<span>${escapeHtml(gname)}</span></div>${links}</div>`;
     }).join('');
   } else {
-    nav.innerHTML = C.filter(c=>moduleEnabledForCat(c[0])).map(c=>`<button type="button" class="nav-link" data-cat="${c[0]}"><span class="nav-label">${escapeHtml(c[1])}</span></button>`).join('');
+    nav.innerHTML = C.filter(c=>moduleEnabledForCat(c[0])).map(link).join('');
   }
   nav.querySelectorAll('[data-cat]').forEach(x=>{
-    x.onclick = ()=> openCategory(x.dataset.cat);
+    x.onclick = ()=> navGo(x.dataset.cat);
   });
+  paintSaveState();
 }
 
 function bindUi(){
   buildNav();
   const picker = $('serverPicker');
   const btn = $('serverButton');
-  if(btn && picker) btn.onclick = ()=> picker.classList.toggle('open');
+  if(btn && picker) btn.onclick = ()=> { picker.classList.toggle('open'); if (picker.classList.contains('open')) { const si = $('serverSearch'); if (si) setTimeout(()=>si.focus(), 30); } };
+  const pr = $('pickerRefresh');
+  if (pr) { pr.innerHTML = ICON.refresh; pr.onclick = () => refreshServers(); }
   const search = $('serverSearch');
   if(search){
     search.oninput = e=>{
@@ -1405,6 +2076,9 @@ function bindUi(){
   }
   const dc = $('drawerClose');
   if(dc) dc.onclick = ()=> $('drawer').classList.remove('open');
+  // Änderungen an Feldern mitverfolgen (eine Stelle für alle Seiten)
+  const sp = $('settingsPanel');
+  if (sp && !sp.__editBound) { sp.__editBound = true; sp.addEventListener('input', onPanelEdit); sp.addEventListener('change', onPanelEdit); }
 }
 
 function forceDiscordLogin(returnUrl){
@@ -1460,7 +2134,7 @@ async function boot(){
           : `https://cdn.discordapp.com/avatars/${uid}/${avatarHash}.png?size=64`;
         avHtml = `<span class="avatar" style="background-image:url(${url});background-size:cover"></span>`;
       }
-      su.innerHTML = `${avHtml}<span class="grow"><b>${escapeHtml(name)}</b><small>eingeloggt</small></span><button type="button" class="btn" id="logoutBtn" style="padding:6px 10px;font-size:11px">Logout</button>`;
+      su.innerHTML = `${avHtml}<span class="grow"><b>${escapeHtml(name)}</b><small>eingeloggt</small></span><button type="button" class="btn btn-sm btn-ghost" id="logoutBtn">Abmelden</button>`;
       const lo = $('logoutBtn');
       if(lo) lo.onclick = ()=>{ API.logout(); forceDiscordLogin(location.origin + '/dashboard/'); };
     }
@@ -1482,9 +2156,9 @@ async function boot(){
       $('serverPicker') && $('serverPicker').classList.remove('open');
     } else if(state.guilds.length > 1){
       $('serverPicker') && $('serverPicker').classList.add('open');
-      openCategory(state.currentCat || 'allgemein');
+      openCategory(state.currentCat || 'home');
     } else {
-      openCategory(state.currentCat || 'allgemein');
+      openCategory(state.currentCat || 'home');
       toast('Error');
     }
   } catch(e){
@@ -1495,7 +2169,7 @@ async function boot(){
       return;
     }
     toast('Error');
-    openCategory(state.currentCat || 'allgemein');
+    openCategory(state.currentCat || 'home');
   }
 }
 
@@ -1529,6 +2203,7 @@ function rcValidate(cfg){
 }
 
 function rcInjectStyle(){
+  return; /* Die Stile liegen jetzt in dashboard.css */
   if (document.getElementById('rc-style')) return;
   const st = document.createElement('style'); st.id = 'rc-style';
   st.textContent = `
@@ -1591,6 +2266,8 @@ async function wireRank(catId){
   const open = new Set(cfg.groups.length <= 4 ? cfg.groups.map(g => g.id) : []);
   let dirty = !!data.legacy, saving = false, messages = [];
   if (data.legacy) messages = [{ level: 'warn', text: 'Es wird noch die alte Rangliste verwendet. Speichere einmal, um sie in Gruppen umzuwandeln.' }];
+  state.extraSavers.rank = async () => { if (!dirty) return true; await save(); return !dirty; };
+  setExtraDirty('rank', dirty);
   const q = (sel) => host.querySelector(sel);
   const say = (m) => toast(String(m || '').slice(0, 140));
 
@@ -1662,7 +2339,7 @@ async function wireRank(catId){
   }
 
   const find = (gid) => cfg.groups.find(g => g.id === gid);
-  const mark = () => { if (!dirty) { dirty = true; const bar = q('.rc-bar'); if (bar && !bar.querySelector('.rc-badge')) bar.insertAdjacentHTML('beforeend', ' <span class="rc-badge">Ungespeicherte Änderungen</span>'); } };
+  const mark = () => { setExtraDirty('rank', true); if (!dirty) { dirty = true; const bar = q('.rc-bar'); if (bar && !bar.querySelector('.rc-badge')) bar.insertAdjacentHTML('beforeend', ' <span class="rc-badge">Ungespeicherte Änderungen</span>'); } };
 
   async function save(){
     const errs = rcValidate(cfg);
@@ -1672,7 +2349,7 @@ async function wireRank(catId){
       const r = await API.put(base, cfg);
       cfg.groups = r.config.groups; cfg.baseRoleIds = r.config.baseRoleIds; cfg.suspendRoleIds = r.config.suspendRoleIds; cfg.requirements = r.config.requirements;
       cfg.adminBypassRequirements = r.config.adminBypassRequirements; cfg.legacyFallback = r.config.legacyFallback;
-      dirty = false; messages = (r.warnings || []).map(t => ({ level: 'warn', text: t })); if (!messages.length) messages = [{ level: 'ok', text: 'Gespeichert.' }];
+      dirty = false; setExtraDirty('rank', false); messages = (r.warnings || []).map(t => ({ level: 'warn', text: t })); if (!messages.length) messages = [{ level: 'ok', text: 'Gespeichert.' }];
       say('Ranglaufbahn gespeichert');
     } catch (e) {
       const list = (e && e.data && e.data.errors) || null;
@@ -1777,16 +2454,18 @@ function wireLive(catId){
   const panel = $('settingsPanel');
   if (!panel) return;
   panel.querySelectorAll('.live-block').forEach(n => n.remove());
-  if (!['teamsperre','testphase','temprollen','giveaway'].includes(catId)) return;
+  if (!['teamsperre','testphase','temprollen','giveaway','houses','icnames'].includes(catId)) return;
   if (!state.guildId || !API || !API.getToken()) return;
   const gid = state.guildId, base = '/api/guilds/' + gid;
-  const css = 'background:#111;color:#ddd;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px;min-width:140px';
   const say = (m) => toast(String(m || '').slice(0, 140));
-  const mk = (title, hint, inner) => {
+  const gridHost = panel.querySelector('.settings-grid') || panel;
+  const mk = (title, hint, inner, withRefresh) => {
     const el = document.createElement('article');
     el.className = 'settings-card glass live-block';
-    el.innerHTML = '<div class="card-head"><div><h3>' + title + '</h3><p>' + hint + '</p></div></div><div class="card-body">' + inner + '</div>';
-    panel.appendChild(el);
+    el.innerHTML = '<div class="card-head"><div><h3>' + title + ' <span class="chip-live">Sofort aktiv</span></h3><p>' + hint + '</p></div>' +
+      (withRefresh ? '<button type="button" class="icon-btn live-refresh" title="Liste aktualisieren" aria-label="Liste aktualisieren">' + ICON.refresh + '</button>' : '') +
+      '</div><div class="card-body">' + inner + '</div>';
+    gridHost.appendChild(el);
     return el;
   };
   const left = (ts) => {
@@ -1796,16 +2475,22 @@ function wireLive(catId){
     return (d ? d + 'd ' : '') + (h ? h + 'h ' : '') + (d ? '' : m + 'm');
   };
   const row = (label, control) => '<div class="setting-row"><span>' + label + '</span>' + control + '</div>';
-  const input = (cls, ph, extra) => '<input class="' + cls + '" placeholder="' + ph + '" style="' + css + '" ' + (extra || '') + '>';
+  const input = (cls, ph, extra) => '<input class="' + cls + '" placeholder="' + ph + '" ' + (extra || '') + '>';
   const btn = (cls, label, data) => '<button type="button" class="btn ' + cls + '" ' + (data || '') + '>' + label + '</button>';
-  const empty = (t) => '<span style="color:#9aa3b8;font-size:13px">' + t + '</span>';
-  const listRow = (text, buttons) => '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.04)"><span>' + text + '</span><span style="display:flex;gap:6px;flex-wrap:wrap">' + buttons + '</span></div>';
-  const listBox = (title, hint) => mk(title, hint, '<div class="live-list" style="display:flex;flex-direction:column;gap:8px">' + empty('Lade…') + '</div>').querySelector('.live-list');
+  const empty = (t) => '<span class="live-empty">' + t + '</span>';
+  const listRow = (text, buttons) => '<div class="live-row"><span>' + text + '</span><span class="lr-actions">' + buttons + '</span></div>';
+  const listBox = (title, hint) => mk(title, hint, '<div class="live-list">' + empty('Lade …') + '</div>', true).querySelector('.live-list');
+  // Aktualisieren-Knopf der Liste mit der Lade-Funktion verbinden
+  const bindRefresh = (list, load) => {
+    const b = list.closest('.live-block').querySelector('.live-refresh');
+    if (!b) return;
+    b.onclick = async () => { b.classList.add('is-spinning'); try { await load(); } finally { b.classList.remove('is-spinning'); } };
+  };
   const act = async (fn, okMsg, reload) => {
     try { await fn(); say(okMsg); if (reload) reload(); }
     catch (e) { say(e && e.message ? e.message : 'Fehlgeschlagen'); }
   };
-  const picker = () => row('Mitglied', '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + input('mp-q', 'Name oder ID') + btn('mp-go', 'Suchen') + '<select class="mp-sel" style="' + css + '"><option value="">— zuerst suchen —</option></select></div>');
+  const picker = () => row('Mitglied', '<div class="mp-row">' + input('mp-q', 'Name oder ID') + btn('mp-go', 'Suchen') + '<select class="mp-sel"><option value="">— zuerst suchen —</option></select></div>');
   const wirePicker = (el) => {
     const q = el.querySelector('.mp-q'), sel = el.querySelector('.mp-sel');
     const go = async () => {
@@ -1821,6 +2506,127 @@ function wireLive(catId){
     q.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); go(); } });
     return () => sel.value || (/^\d{15,22}$/.test(q.value.trim()) ? q.value.trim() : '');
   };
+
+  if (catId === 'houses') {
+    const STATUS = [['frei','Frei'],['reserviert','Reserviert'],['gemietet','Gemietet'],['verkauft','Verkauft']];
+    const stOpts = (cur) => STATUS.map(([v, l]) => '<option value="' + v + '"' + (cur === v ? ' selected' : '') + '>' + l + '</option>').join('');
+    let editId = null;
+    const f = mk('Haus anlegen oder bearbeiten', 'Freie Häuser bekommen im Panel einen Kauf-Button. Änderungen erscheinen sofort in der Hausliste.',
+      row('Name', input('hs-name', 'z. B. Villa am Hang', 'maxlength="80"')) +
+      row('Adresse', input('hs-addr', 'optional', 'maxlength="120"')) +
+      row('Preis', input('hs-price', 'z. B. 250.000 $', 'maxlength="40"')) +
+      row('Status', '<select class="hs-status">' + stOpts('frei') + '</select>') +
+      row('Inhaber (Text)', input('hs-owner', 'Ingame-Name, optional', 'maxlength="80"')) +
+      row('Inhaber (Discord-ID)', input('hs-did', 'optional', 'inputmode="numeric" maxlength="22"')) +
+      row('Notiz', input('hs-notes', 'optional', 'maxlength="300"')) +
+      '<div class="action-row">' + btn('btn-primary hs-go', 'Haus hinzufügen') + btn('hs-cancel', 'Abbrechen', 'hidden') + '</div>');
+    const list = listBox('Häuser verwalten', '');
+    const field = (c) => f.querySelector('.' + c);
+    const resetForm = () => {
+      editId = null;
+      ['hs-name','hs-addr','hs-price','hs-owner','hs-did','hs-notes'].forEach(c => field(c).value = '');
+      field('hs-status').value = 'frei';
+      field('hs-go').textContent = 'Haus hinzufügen';
+      field('hs-cancel').hidden = true;
+    };
+    let cache = [];
+    const render = () => {
+      list.innerHTML = cache.length ? cache.map(h => listRow(
+        '<b>' + escapeHtml(h.name) + '</b>' + (h.address ? ' · ' + escapeHtml(h.address) : '') + (h.price ? ' · ' + escapeHtml(h.price) : '') +
+          (h.ownerDiscordId || h.owner ? ' · Inhaber: ' + escapeHtml(h.owner || h.ownerDiscordId) : ''),
+        '<select class="hs-st" data-id="' + escapeHtml(h.id) + '" aria-label="Status">' + stOpts(h.status) + '</select>' +
+          btn('hs-edit', 'Bearbeiten', 'data-id="' + escapeHtml(h.id) + '"') + btn('hs-del', 'Löschen', 'data-id="' + escapeHtml(h.id) + '"')
+      )).join('') : empty('Noch keine Häuser angelegt.');
+      list.querySelectorAll('.hs-st').forEach(sel => sel.onchange = () => act(() => API.patch(base + '/hausliste/' + sel.dataset.id, { status: sel.value }), 'Status gespeichert', load));
+      list.querySelectorAll('.hs-del').forEach(b => b.onclick = () => {
+        if (!confirm('Dieses Haus wirklich löschen?')) return;
+        act(() => API.del(base + '/hausliste/' + b.dataset.id), 'Haus gelöscht', load);
+      });
+      list.querySelectorAll('.hs-edit').forEach(b => b.onclick = () => {
+        const h = cache.find(x => String(x.id) === String(b.dataset.id)); if (!h) return;
+        editId = h.id;
+        field('hs-name').value = h.name || ''; field('hs-addr').value = h.address || ''; field('hs-price').value = h.price || '';
+        field('hs-status').value = h.status || 'frei'; field('hs-owner').value = h.owner || ''; field('hs-did').value = h.ownerDiscordId || ''; field('hs-notes').value = h.notes || '';
+        field('hs-go').textContent = 'Änderungen speichern'; field('hs-cancel').hidden = false;
+        f.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    };
+    const load = async () => {
+      try { const r = await API.get(base + '/hausliste'); cache = (r && r.houses) || []; render(); }
+      catch (e) { list.innerHTML = empty(escapeHtml(e.message)); }
+    };
+    field('hs-cancel').onclick = resetForm;
+    field('hs-go').onclick = () => {
+      const body = {
+        name: field('hs-name').value.trim(), address: field('hs-addr').value.trim(), price: field('hs-price').value.trim(),
+        status: field('hs-status').value, owner: field('hs-owner').value.trim(), notes: field('hs-notes').value.trim(),
+        ownerDiscordId: field('hs-did').value.trim() || null
+      };
+      if (!body.name) { say('Bitte einen Namen eingeben'); return; }
+      if (body.ownerDiscordId && !/^\d{15,22}$/.test(body.ownerDiscordId)) { say('Die Discord-ID ist ungültig'); return; }
+      const wasEdit = !!editId;
+      act(() => wasEdit ? API.patch(base + '/hausliste/' + editId, body) : API.post(base + '/hausliste', body), wasEdit ? 'Haus gespeichert' : 'Haus hinzugefügt', () => { resetForm(); load(); });
+    };
+    bindRefresh(list, load);
+    load();
+  }
+
+  if (catId === 'icnames') {
+    const f = mk('IC-Namen suchen und bearbeiten', 'Suche nach Name, Teil des Namens oder Discord-ID. Änderungen und Löschungen werden protokolliert.',
+      '<div class="setting-row"><span>Suche</span><div class="mp-row">' + input('ic-q', 'Name, Teilname oder ID') + btn('ic-go', 'Suchen') + btn('ic-all', 'Alle zeigen') + '</div></div>' +
+      '<div class="live-list ic-results">' + empty('Noch keine Suche.') + '</div>' +
+      '<div class="action-row ic-pager" hidden>' + btn('ic-prev', 'Zurück') + '<span class="live-empty ic-pageinfo"></span>' + btn('ic-next', 'Weiter') + '</div>' +
+      '<div class="setting-row"><span>Eintragen / ändern</span><div class="mp-row">' + input('ic-uid', 'Discord-ID', 'inputmode="numeric" maxlength="22"') + input('ic-newname', 'IC-Name', 'maxlength="32"') + btn('btn-primary ic-save', 'Speichern') + '</div></div>');
+    const results = f.querySelector('.ic-results'), pager = f.querySelector('.ic-pager'), info = f.querySelector('.ic-pageinfo');
+    let query = '', page = 0, pages = 1;
+    const search = async (pg) => {
+      page = Math.max(0, pg || 0);
+      try {
+        const r = await API.get(base + '/ic-names?q=' + encodeURIComponent(query) + '&page=' + page);
+        pages = r.pages || 1; page = r.page || 0;
+        const it = r.items || [];
+        results.innerHTML = it.length ? it.map(x => listRow(
+          '<b>' + escapeHtml(x.name) + '</b> · ' + (x.inGuild ? escapeHtml(x.displayName || x.tag || x.userId) : 'nicht mehr auf dem Server') + ' · ' + escapeHtml(x.userId) +
+            (x.removeAt ? ' · wird in ' + left(x.removeAt) + ' gelöscht' : ''),
+          btn('ic-edit', 'Ändern', 'data-id="' + escapeHtml(x.userId) + '" data-name="' + escapeHtml(x.name) + '"') + btn('ic-del', 'Entfernen', 'data-id="' + escapeHtml(x.userId) + '"')
+        )).join('') : empty(r.total ? 'Keine Treffer auf dieser Seite.' : (query ? 'Kein IC-Name gefunden.' : 'Es sind noch keine IC-Namen eingetragen.'));
+        pager.hidden = pages <= 1;
+        info.textContent = 'Seite ' + (page + 1) + ' von ' + pages + ' · ' + r.total + ' Einträge';
+        f.querySelector('.ic-prev').disabled = page <= 0; f.querySelector('.ic-next').disabled = page >= pages - 1;
+        results.querySelectorAll('.ic-del').forEach(b => b.onclick = () => {
+          if (!confirm('Diesen IC-Namen wirklich entfernen?')) return;
+          act(() => API.del(base + '/ic-names/' + b.dataset.id), 'Entfernt', () => { search(page); loadJobs(); });
+        });
+        results.querySelectorAll('.ic-edit').forEach(b => b.onclick = () => { f.querySelector('.ic-uid').value = b.dataset.id; f.querySelector('.ic-newname').value = b.dataset.name; f.querySelector('.ic-newname').focus(); });
+      } catch (e) { results.innerHTML = empty(escapeHtml(e.message)); }
+    };
+    const runSearch = () => { query = f.querySelector('.ic-q').value.trim(); search(0); };
+    f.querySelector('.ic-go').onclick = runSearch;
+    f.querySelector('.ic-q').addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); runSearch(); } });
+    f.querySelector('.ic-all').onclick = () => { f.querySelector('.ic-q').value = ''; query = ''; search(0); };
+    f.querySelector('.ic-prev').onclick = () => search(page - 1);
+    f.querySelector('.ic-next').onclick = () => search(page + 1);
+    f.querySelector('.ic-save').onclick = () => {
+      const uid = f.querySelector('.ic-uid').value.trim(), name = f.querySelector('.ic-newname').value.trim();
+      if (!/^\d{15,22}$/.test(uid)) { say('Bitte eine gültige Discord-ID eintragen'); return; }
+      if (!name) { say('Bitte einen IC-Namen eintragen'); return; }
+      act(() => API.put(base + '/ic-names/' + uid, { name }), 'Gespeichert', () => { f.querySelector('.ic-uid').value = ''; f.querySelector('.ic-newname').value = ''; search(page); });
+    };
+    const jobs = listBox('Geplante Löschungen nach Teamkick', 'Diese Personen wurden aus dem Team gekickt. Ihr IC-Name wird zur angezeigten Zeit gelöscht – außer sie werden vorher wieder aufgenommen.');
+    const loadJobs = async () => {
+      try {
+        const r = await API.get(base + '/ic-names/removals');
+        const it = (r && r.items) || [];
+        jobs.innerHTML = it.length ? it.map(x => listRow(
+          '<b>' + escapeHtml(x.name) + '</b> · ' + escapeHtml(x.displayName || x.userId) + ' · wird in ' + left(x.dueAt) + ' gelöscht',
+          btn('ic-cancel', 'Löschung abbrechen', 'data-id="' + escapeHtml(x.userId) + '"')
+        )).join('') : empty('Keine geplanten Löschungen.');
+        jobs.querySelectorAll('.ic-cancel').forEach(b => b.onclick = () => act(() => API.post(base + '/ic-names/removals/' + b.dataset.id + '/cancel', {}), 'Löschung abgebrochen', () => { loadJobs(); search(page); }));
+      } catch (e) { jobs.innerHTML = empty(escapeHtml(e.message)); }
+    };
+    bindRefresh(jobs, loadJobs);
+    loadJobs();
+  }
 
   if (catId === 'teamsperre') {
     const f = mk('Teamsperre setzen', 'Das Mitglied kann sich nicht mehr bewerben.',
@@ -1843,6 +2649,7 @@ function wireLive(catId){
       const uid = getUser(); if (!uid) { say('Mitglied wählen'); return; }
       act(() => API.post(base + '/teamsperre', { userId: uid, duration: f.querySelector('.ts-dur').value.trim(), reason: f.querySelector('.ts-reason').value.trim() }), 'Gesperrt', load);
     };
+    bindRefresh(list, load);
     load();
   }
 
@@ -1868,12 +2675,13 @@ function wireLive(catId){
       const days = f.querySelector('.tp-days').value.trim();
       act(() => API.post(base + '/testphases', { userId: uid, days: days ? Number(days) : undefined }), 'Testphase gestartet', load);
     };
+    bindRefresh(list, load);
     load();
   }
 
   if (catId === 'temprollen') {
     const f = mk('Temp-Rolle vergeben', 'Die Rolle wird nach Ablauf automatisch entfernt.',
-      picker() + row('Rolle', '<select class="tr-role" style="' + css + '">' + roleOptions('') + '</select>') +
+      picker() + row('Rolle', '<select class="tr-role">' + roleOptions('') + '</select>') +
       row('Dauer', input('tr-dur', 'z. B. 30m, 12h, 7d, 2w')) + row('Grund', input('tr-reason', 'optional')) +
       '<div class="action-row">' + btn('btn-primary tr-go', 'Vergeben') + '</div>');
     const getUser = wirePicker(f);
@@ -1895,6 +2703,7 @@ function wireLive(catId){
       if (!dur) { say('Dauer angeben'); return; }
       act(() => API.post(base + '/temp-roles', { userId: uid, roleId, duration: dur, reason: f.querySelector('.tr-reason').value.trim() }), 'Vergeben', load);
     };
+    bindRefresh(list, load);
     load();
   }
 
@@ -1902,7 +2711,7 @@ function wireLive(catId){
     const f = mk('Giveaway starten', '',
       row('Preis', input('gw-prize', 'z. B. Nitro')) + row('Gewinner', input('gw-win', '1', 'type="number" min="1" max="20" value="1"')) +
       row('Dauer', input('gw-dur', 'z. B. 1h, 1d', 'value="1h"')) +
-      row('Kanal', '<select class="gw-ch" style="' + css + '">' + channelOptions(getSetting('giveawayChannelId', ''), 'text') + '</select>') +
+      row('Kanal', '<select class="gw-ch">' + channelOptions(getSetting('giveawayChannelId', ''), 'text') + '</select>') +
       '<div class="action-row">' + btn('btn-primary gw-go', 'Starten') + '</div>');
     const list = listBox('Giveaways', '');
     const load = async () => {
@@ -1923,41 +2732,128 @@ function wireLive(catId){
       if (!channelId) { say('Kanal wählen'); return; }
       act(() => API.post(base + '/giveaways/start', { prize, winners: f.querySelector('.gw-win').value, duration: f.querySelector('.gw-dur').value.trim(), channelId }), 'Giveaway gestartet', load);
     };
+    bindRefresh(list, load);
     load();
   }
 }
 
 /* ---------- Verbindungsstatus Website ↔ Bot ---------- */
 async function refreshStatus(){
-  let box = document.getElementById('conn-banner');
-  if(!box){
-    box = document.createElement('div');
-    box.id = 'conn-banner';
-    box.style.cssText = 'position:fixed;left:14px;bottom:14px;z-index:60;max-width:340px;font-size:12px;line-height:1.45;padding:9px 12px;border-radius:12px;background:rgba(10,14,28,.92);border:1px solid rgba(255,255,255,.1);color:#cbd5e1;backdrop-filter:blur(8px);cursor:pointer';
-    box.title = 'Klicken für Details';
-    box.onclick = function(){ box.dataset.open = box.dataset.open === '1' ? '0' : '1'; paint(); };
-    document.body.appendChild(box);
-  }
+  const pill = $('statusPill');
+  if (pill && pill.dataset.state === 'idle') { const t = $('statusText'); if (t) t.textContent = 'Prüfe …'; }
   let health = null, sys = null, err = '';
   try { health = await API.ping(); } catch(e){ err = (e && e.message) || 'nicht erreichbar'; }
   if (health && state.guildId && API.getToken && API.getToken()) {
     try { sys = await API.systemStatus(state.guildId); } catch(e){ /* Rechte/Server fehlen – nur Basisstatus zeigen */ }
     if (!sys || !Array.isArray(sys.system) || !sys.ai) sys = null;
   }
-  function paint(){
-    const dot = (c)=>'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+c+';margin-right:7px"></span>';
-    if(!health){ box.innerHTML = dot('#f87171') + '<b>Bot nicht erreichbar</b><br>' + escapeHtml(err); return; }
-    const botOk = health.bot !== false;
-    const issues = sys ? sys.system.filter(x=>!x.ok).concat(sys.ai && !sys.ai.ok ? [sys.ai] : []) : [];
-    const color = !botOk ? '#f87171' : issues.length ? '#fbbf24' : '#4ade80';
-    let html = dot(color) + (botOk ? 'Bot online · ' + (health.guilds||0) + ' Server' : '<b>API online, Bot offline</b>');
-    if (issues.length) html += ' · <b>' + issues.length + ' Hinweis(e)</b>';
-    if (box.dataset.open === '1' && sys) {
-      html += '<div style="margin-top:7px">' + sys.system.map(x=>(x.ok?'✅ ':'❌ ')+escapeHtml(x.text)).join('<br>') + '<br>' + (sys.ai.ok?'✅ ':'❌ ') + 'KI: ' + escapeHtml(sys.ai.text) + '</div>';
-    }
-    box.innerHTML = html;
-  }
-  paint();
+  state._health = health; state._sys = sys; state._statusErr = err;
+  paintStatus();
+  if (state.currentCat === 'home') { try { paintHome(); } catch (_) {} }
 }
+function statusIssues(){
+  const sys = state._sys;
+  return sys ? sys.system.filter(x=>!x.ok).concat(sys.ai && !sys.ai.ok ? [{ ok: false, text: 'KI: ' + sys.ai.text }] : []) : [];
+}
+function paintStatus(){
+  const pill = $('statusPill'), txt = $('statusText'), pop = $('statusPop');
+  if (!pill || !txt) return;
+  const health = state._health, sys = state._sys, issues = statusIssues();
+  let mode, label;
+  if (!health) { mode = 'bad'; label = 'Bot nicht erreichbar'; }
+  else if (health.bot === false) { mode = 'bad'; label = 'Bot offline'; }
+  else if (issues.length) { mode = 'warn'; label = issues.length === 1 ? '1 Hinweis' : issues.length + ' Hinweise'; }
+  else { mode = 'ok'; label = 'Bot online'; }
+  pill.dataset.state = mode; txt.textContent = label;
+  if (!pop) return;
+  let html = '<h3>' + (mode === 'ok' ? 'Alles in Ordnung' : mode === 'warn' ? 'Das solltest du prüfen' : 'Verbindung gestört') + '</h3><ul class="status-list">';
+  if (!health) html += '<li class="bad">' + escapeHtml(state._statusErr || 'Der Bot antwortet nicht.') + '</li>';
+  else {
+    html += '<li>' + (health.bot === false ? 'API erreichbar, Bot offline' : 'Bot online, ' + (health.guilds || 0) + ' Server') + '</li>';
+    if (sys) {
+      html += sys.system.map(x => '<li class="' + (x.ok ? '' : 'bad') + '">' + escapeHtml(x.text) + '</li>').join('');
+      html += '<li class="' + (sys.ai.ok ? '' : 'bad') + '">KI: ' + escapeHtml(sys.ai.text) + '</li>';
+    } else if (!state.guildId) html += '<li class="warn">Wähle einen Server, um die Systemprüfung zu sehen.</li>';
+  }
+  html += '</ul><button type="button" class="btn btn-sm" id="statusRecheck">' + ICON.refresh + '<span> Erneut prüfen</span></button>';
+  pop.innerHTML = html;
+  const rb = $('statusRecheck');
+  if (rb) rb.onclick = async () => { rb.classList.add('is-spinning'); try { await refreshStatus(); } finally { const x = $('statusRecheck'); if (x) x.classList.remove('is-spinning'); } };
+}
+
+/* ---------- Übersicht (Startseite) ---------- */
+function wireHome(catId){
+  if (catId !== 'home') return;
+  const panel = $('settingsPanel'); if (!panel) return;
+  const grid = panel.querySelector('.settings-grid'); if (!grid) return;
+  grid.innerHTML = '<div class="home-status" id="homeStatus" data-state="ok"></div>' +
+    '<div class="home-grid" id="homeTiles"></div>' +
+    '<article class="settings-card glass home-wide" id="homeModules"></article>' +
+    '<article class="settings-card glass" id="homeNotes"></article>' +
+    '<article class="settings-card glass" id="homeQuick"></article>';
+  paintHome();
+}
+function paintHome(){
+  const tiles = $('homeTiles'); if (!tiles) return;
+  const h = state._health, issues = statusIssues();
+  const g = (state.guilds || []).find(x => String(x.id) === String(state.guildId));
+  const mods = Object.entries(CAT_MODULE).filter(([id]) => C.some(c => c[0] === id));
+  const seen = new Set(), list = [];
+  mods.forEach(([id, key]) => { if (seen.has(key)) return; seen.add(key); list.push([id, key]); });
+  const on = list.filter(([, key]) => (state.modules || {})[key] !== false).length;
+  const groups = (((state.settings || {}).rankConfig || {}).groups || []).length;
+  const hsEl = $('homeStatus');
+  if (hsEl) {
+    const down = !h || h.bot === false;
+    const mode = down ? 'bad' : issues.length ? 'warn' : 'ok';
+    const ico = {
+      ok: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+      warn: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 17h.01"/></svg>',
+      bad: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>'
+    }[mode];
+    const title = mode === 'ok' ? (state._sys ? 'Alles erledigt' : 'Bot online') : mode === 'warn' ? (issues.length === 1 ? '1 Hinweis offen' : issues.length + ' Hinweise offen') : (!h ? 'Bot nicht erreichbar' : 'Bot offline');
+    const sub = mode === 'ok' ? (state._sys ? 'Der Bot ist online und die Systemprüfung meldet nichts.' : 'Wähle einen Server, um die Systemprüfung zu sehen.')
+      : mode === 'warn' ? statusIssues().map(x => x.text).slice(0, 1).join('') + (issues.length > 1 ? ' (und ' + (issues.length - 1) + ' weitere)' : '')
+      : (state._statusErr || 'Die API antwortet, aber der Bot ist nicht verbunden.');
+    if (hsEl.dataset.state !== mode || !hsEl.firstChild) {
+      hsEl.dataset.state = mode;
+      hsEl.innerHTML = '<span class="hs-ico">' + ico + '</span><div class="hs-text"><b></b><p></p></div><button type="button" class="btn" id="homeRecheck">' + ICON.refresh + '<span> Erneut prüfen</span></button>';
+      const rc = $('homeRecheck');
+      if (rc) rc.onclick = async () => { rc.classList.add('is-spinning'); try { await refreshStatus(); } finally { const x = $('homeRecheck'); if (x) x.classList.remove('is-spinning'); } };
+    }
+    hsEl.querySelector('b').textContent = title;
+    hsEl.querySelector('p').textContent = sub;
+  }
+  const tile = (label, value, sub, st) => '<div class="home-tile glass" data-state="' + (st || '') + '"><div class="ht-label">' + escapeHtml(label) + '</div><div class="ht-value">' + escapeHtml(String(value)) + '</div><div class="ht-sub">' + escapeHtml(sub) + '</div></div>';
+  tiles.innerHTML =
+    tile('Bot', !h ? 'Offline' : h.bot === false ? 'Offline' : 'Online', h ? (h.guilds || 0) + ' Server verbunden' : 'Keine Antwort', !h || h.bot === false ? 'bad' : 'ok') +
+    tile('Server', g ? (g.name || 'Server') : '—', g && g.memberCount != null ? formatMembers(g.memberCount) : (state.guildId ? 'Geladen' : 'Noch nicht gewählt'), '') +
+    tile('Module aktiv', on + ' von ' + list.length, 'Unter „Module“ ein- und ausschalten', '') +
+    tile('Hinweise', issues.length, issues.length ? 'Siehe unten' : 'Nichts zu tun', issues.length ? 'warn' : 'ok');
+
+  const modEl = $('homeModules');
+  if (modEl) {
+    modEl.innerHTML = '<div class="card-head"><div><h3>Module</h3><p>Ein Klick öffnet die Einstellungen des Moduls.</p></div></div><div class="card-body"><div class="mod-grid">' +
+      list.map(([id, key]) => { const c = C.find(x => x[0] === id); const isOn = (state.modules || {})[key] !== false; return '<button type="button" class="mod-chip' + (isOn ? '' : ' off') + '" data-go="' + id + '" title="' + (isOn ? 'Aktiv' : 'Ausgeschaltet') + '"><span>' + escapeHtml(c[1]) + '</span></button>'; }).join('') + '</div></div>';
+  }
+  const notes = $('homeNotes');
+  if (notes) {
+    notes.innerHTML = '<div class="card-head"><div><h3>Hinweise</h3><p>Ergebnis der Systemprüfung von Bot und Server.</p></div></div><div class="card-body">' +
+      (issues.length ? '<ul class="status-list">' + issues.map(x => '<li class="bad">' + escapeHtml(x.text) + '</li>').join('') + '</ul>' : '<span class="live-empty">' + (h ? 'Keine Hinweise. Alles läuft.' : 'Der Bot ist gerade nicht erreichbar.') + '</span>') + '</div>';
+  }
+  const quick = $('homeQuick');
+  if (quick) {
+    quick.innerHTML = '<div class="card-head"><div><h3>Schnellzugriff</h3><p>Häufige Aufgaben auf einen Blick.</p></div></div><div class="card-body"><div class="quick-actions">' +
+      '<button type="button" class="btn btn-primary" data-go="ranglaufbahn">Ranglaufbahn' + (groups ? ' (' + groups + ' Gruppen)' : ' einrichten') + '</button>' +
+      '<button type="button" class="btn" data-go="tickets">Tickets</button>' +
+      '<button type="button" class="btn" data-go="warteraum">Warteraum</button>' +
+      '<button type="button" class="btn" data-go="houses">Häuser</button>' +
+      '<button type="button" class="btn" id="homeDiscord">' + ICON.refresh + '<span> Kanäle und Rollen laden</span></button>' +
+      '</div></div>';
+    const d = $('homeDiscord'); if (d) d.onclick = () => refreshDiscordData();
+  }
+  $('settingsPanel').querySelectorAll('[data-go]').forEach(b => { b.onclick = () => navGo(b.dataset.go); });
+}
+
 setInterval(function(){ try{ refreshStatus(); }catch(e){} }, 60000);
 window.addEventListener('load', function(){ setTimeout(function(){ try{ refreshStatus(); }catch(e){} }, 1200); });
