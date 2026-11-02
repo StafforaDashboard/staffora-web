@@ -3,86 +3,62 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Datenschutz — Staffora</title>
-<link rel="stylesheet" href="/styles.css?v=dark3">
-<style>
-.legal-page{max-width:820px;margin:0 auto;padding:100px 24px 80px;color:#e8eaf2;line-height:1.65}
-.legal-page h1{font-size:1.75rem;margin:0 0 8px}
-.legal-page .meta{color:#8994b2;font-size:13px;margin-bottom:28px}
-.legal-page h2{font-size:1.15rem;margin:28px 0 10px;color:#c4b5fd}
-.legal-page p,.legal-page li{color:#c5cbe0;font-size:14px}
-.legal-page ul{padding-left:1.2em}
-.legal-page a{color:#a78bfa}
-.legal-page .box{background:rgba(12,16,32,.8);border:1px solid rgba(117,91,255,.25);border-radius:14px;padding:16px 18px;margin:18px 0}
-</style>
+<title>Datenschutz – Staffora</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#06060c">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/site.css?v=scene1">
 </head>
-<body class="site">
-<nav class="nav">
-  <a class="brand" href="/"><span class="brand-mark">S</span><span>Staffora</span></a>
-  <div class="nav-links">
-    <a href="/">Home</a>
-    <a href="/dashboard/">Dashboard</a>
-    <a href="/terms/">Nutzungsbedingungen</a>
-    <a href="/privacy/">Datenschutz</a>
-  </div>
-  <a class="btn btn-primary" href="/dashboard/">Dashboard <span>↗</span></a>
-</nav>
-<main class="legal-page">
+<body data-required="operatorName,street,city,email">
+<div class="sky" aria-hidden="true"></div>
+<div class="page">
+<header class="nav">
+  <a class="brand" href="/" aria-label="Staffora – Startseite"><span class="brand-mark" aria-hidden="true">S</span><span>Staffora</span></a>
+  <div class="nav-actions"><a class="btn btn-sm" href="/">Zur Startseite</a></div>
+</header>
+<main class="wrap legal">
+  <span class="eyebrow">Rechtliches</span>
+  <h1>Datenschutzerklärung</h1>
+  <div class="banner" id="legalBanner" role="note" hidden><strong>Angaben zum Verantwortlichen fehlen.</strong> Der Betreiber muss sie in <code>site-config.json</code> (Bereich <code>legal</code>) eintragen und den Text rechtlich prüfen. Dieser Text beschreibt, welche Daten die Software verarbeitet, und ist keine Rechtsberatung.</div>
 
-<h1>Datenschutzerklärung</h1>
-<p class="meta">Stand: 3. Oktober 2026 · Staffora Discord Bot &amp; Website (staffora.info)</p>
+  <h2>1. Verantwortlicher</h2>
+  <dl>
+    <dt>Name</dt><dd data-legal="operatorName" data-label="Name des Betreibers"></dd>
+    <dt>Anschrift</dt><dd><span data-legal="street" data-label="Straße und Hausnummer"></span>, <span data-legal="city" data-label="PLZ und Ort"></span></dd>
+    <dt>E-Mail</dt><dd data-legal="email" data-label="E-Mail-Adresse"></dd>
+  </dl>
 
-<div class="box">
-<strong>Kurz:</strong> Staffora verarbeitet Daten nur, soweit es für den Betrieb des Discord-Bots und der Website nötig ist.
-Wir verkaufen keine Daten. Server-Admins konfigurieren, welche Funktionen auf ihrem Discord-Server laufen.
-</div>
+  <h2>2. Besuch dieser Website</h2>
+  <p>Beim Aufruf dieser Seite übermittelt dein Browser technisch notwendige Daten an den Server, der die Seite ausliefert, zum Beispiel IP-Adresse, Zeitpunkt, aufgerufene Adresse und Browser-Angaben. Sie werden vom jeweiligen Hosting-Anbieter zur Auslieferung und zur Abwehr von Missbrauch verarbeitet. Die Startseite lädt Schriften und Skripte von der eigenen Domain und bindet keine Werbe- oder Analyse-Dienste ein.</p>
 
-<h2>1. Verantwortlicher</h2>
-<p>Verantwortlich für die Datenverarbeitung im Zusammenhang mit dem Staffora-Bot und der Website staffora.info ist der Betreiber von Staffora.
-Kontakt über den Support-Discord: <a href="https://discord.gg/zkgzrPXWwT" rel="noopener">discord.gg/zkgzrPXWwT</a></p>
+  <h2>3. Anmeldung mit Discord (Dashboard)</h2>
+  <p>Für das Dashboard meldest du dich über Discord (OAuth2) an. Wir fragen die Bereiche <code>identify</code> und <code>guilds</code> ab und erhalten dadurch deine Discord-ID, deinen Benutzernamen, dein Profilbild und die Liste deiner Server mit deinen Rechten dort. Damit prüfen wir, welche Server du verwalten darfst.</p>
+  <ul>
+    <li>Das Discord-Zugriffstoken wird nur auf dem Server der Anwendung gespeichert (Sitzung, höchstens 12 Stunden) und nicht an den Browser gesendet.</li>
+    <li>Im Browser liegt ein signiertes Sitzungs-Token (lokaler Speicher). Für die kurze Anmeldung wird zusätzlich ein technisch notwendiges Cookie gesetzt (<code>staffora_oauth</code>, 10 Minuten, nur zur Absicherung des Anmelde-Vorgangs).</li>
+    <li>Beim Abmelden wird die Sitzung auf dem Server gelöscht.</li>
+  </ul>
 
-<h2>2. Welche Daten wir verarbeiten</h2>
-<p>Je nach Nutzung können verarbeitet werden:</p>
-<ul>
-  <li><strong>Discord-Kontodaten:</strong> User-ID, Username, Avatar, Server-Mitgliedschaften (über OAuth „identify“ und „guilds“), Rollen-IDs auf Servern, auf denen der Bot ist</li>
-  <li><strong>Server-Konfiguration:</strong> Einstellungen, die Admins im Dashboard speichern (Kanäle, Rollen, Module, Panel-Texte)</li>
-  <li><strong>Moderations- und Systemdaten:</strong> z. B. Warns, Bans, Tickets, Logs, Duty-Zeiten, Bewerbungen – soweit Module auf dem jeweiligen Server aktiviert sind</li>
-  <li><strong>Roblox-bezogene Daten:</strong> von Nutzern angegebene Roblox-Namen/IDs und damit verknüpfte Anzeigen (z. B. Lookup), wenn Funktionen genutzt werden</li>
-  <li><strong>Technische Daten:</strong> IP-Adresse und Zeitstempel in Server-Logs in üblichem Umfang, Cookies/Local Storage für Login-Session (Token)</li>
-</ul>
+  <h2>4. Daten, die der Bot auf Servern verarbeitet</h2>
+  <p>Der Bot speichert Einstellungen und Protokolle des jeweiligen Discord-Servers, je nach eingeschalteten Modulen zum Beispiel Tickets, Bewerbungen, Ausweis-Angaben, Dienstzeiten, Abmeldungen, XP, Moderations- und Audit-Protokolle. Welche Module genutzt werden und welche Angaben Mitglieder dort machen, bestimmt das Team des jeweiligen Servers. Es kann deshalb eine eigene Verantwortung des Server-Betreibers gegenüber seinen Mitgliedern bestehen.</p>
 
-<h2>3. Zwecke der Verarbeitung</h2>
-<ul>
-  <li>Betrieb und Sicherheit des Bots und der Website</li>
-  <li>Anmeldung (Discord OAuth) und Anzeige des Dashboards / IC-Panels</li>
-  <li>Ausführung der vom Server-Admin konfigurierten Funktionen (Tickets, Moderation, Team, Security usw.)</li>
-  <li>Fehlerbehebung und Missbrauchsprävention</li>
-</ul>
+  <h2>5. Empfänger und Drittanbieter</h2>
+  <ul>
+    <li>Discord Inc. (Anmeldung, Betrieb des Bots auf Discord).</li>
+    <li>Hosting-Anbieter der Website und des Bots.</li>
+    <li>Optional und nur, wenn der Bot-Betreiber es eingerichtet hat: ein KI-Dienst für Ticket-Antwortvorschläge. Dabei werden Ticket-Texte an diesen Dienst gesendet.</li>
+  </ul>
 
-<h2>4. Rechtsgrundlagen</h2>
-<p>Soweit die DSGVO gilt: Art. 6 Abs. 1 lit. b (Vertrag/Nutzung des Dienstes), lit. f (berechtigtes Interesse am sicheren Betrieb) sowie – wo erforderlich – Einwilligung (z. B. optionale Verknüpfungen).</p>
+  <h2>6. Speicherdauer</h2>
+  <p>Sitzungen laufen nach spätestens 12 Stunden ab. Server-Daten bleiben gespeichert, solange der Bot auf dem Server genutzt wird oder bis der Betreiber sie löscht. Konkrete Fristen legt der Betreiber fest.</p>
 
-<h2>5. Speicherung und Löschung</h2>
-<p>Konfigurations- und Moderationsdaten werden serverseitig gespeichert, solange der Bot auf dem Server genutzt wird bzw. bis der Admin Daten löscht oder den Bot entfernt.
-Session-Tokens sind zeitlich begrenzt. Logs können für Sicherheit und Support vorübergehend aufbewahrt werden.</p>
+  <h2>7. Deine Rechte</h2>
+  <p>Du hast – soweit gesetzlich vorgesehen – das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch sowie das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren. Wende dich dafür an die oben genannte Kontaktadresse.</p>
 
-<h2>6. Weitergabe</h2>
-<p>Keine Weitergabe zu Werbezwecken. Daten können an Infrastruktur-Anbieter (Hosting, Discord API) gehen, soweit technisch nötig.
-Discord Inc. verarbeitet Daten gemäß eigener Richtlinien, wenn du Discord nutzt.</p>
-
-<h2>7. Discord OAuth</h2>
-<p>Beim Login wirst du zu Discord weitergeleitet. Wir erhalten nur die freigegebenen Scopes (typisch: identify, guilds). Du kannst den Zugriff in den Discord-Einstellungen widerrufen.</p>
-
-<h2>8. Rechte der betroffenen Personen</h2>
-<p>Du kannst Auskunft, Berichtigung, Löschung und Einschränkung verlangen sowie der Verarbeitung widersprechen, soweit gesetzlich vorgesehen.
-Anfragen über den Support-Discord. Server-spezifische Moderationsdaten verantwortet in der Regel der jeweilige Server-Admin mit.</p>
-
-<h2>9. Minderjährige</h2>
-<p>Der Dienst richtet sich an Nutzer, die Discord gemäß den Discord-Nutzungsbedingungen nutzen dürfen.</p>
-
-<h2>10. Änderungen</h2>
-<p>Diese Erklärung kann angepasst werden. Es gilt die jeweils auf staffora.info/privacy veröffentlichte Fassung.</p>
-
+  <p>Stand: <span id="legalUpdated"></span></p>
 </main>
-<footer><span>© 2026 Staffora</span><span><a href="/terms/">Nutzungsbedingungen</a> · <a href="/privacy/">Datenschutz</a></span></footer>
-</body></html>
+<footer class="footer"><div class="wrap"><span>© <span id="year">2026</span> Staffora</span><nav aria-label="Fußzeile"><a href="/">Startseite</a><a href="/impressum.html">Impressum</a></nav></div></footer>
+</div>
+<script src="/legal.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "_hinweis": "Hier trägst du echte Angaben ein. Leere Felder zeigen auf der Seite einen klaren Platzhalter oder blenden den Bereich aus – es wird nichts erfunden. Adressen müssen mit https:// beginnen.",
+  "apiBase": "",
+  "supportServerUrl": "",
+  "upcore": {
+    "enabled": true,
+    "name": "Upcore",
+    "url": "",
+    "text": "",
+    "buttonLabel": "Zu Upcore"
+  },
+  "legal": {
+    "operatorName": "",
+    "street": "",
+    "city": "",
+    "country": "",
+    "email": "",
+    "phone": "",
+    "responsible": "",
+    "vatId": "",
+    "updated": ""
+  }
+}

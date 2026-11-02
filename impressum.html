@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Impressum – Staffora</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#06060c">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/site.css?v=scene1">
+</head>
+<body data-required="operatorName,street,city,email">
+<div class="sky" aria-hidden="true"></div>
+<div class="page">
+<header class="nav">
+  <a class="brand" href="/" aria-label="Staffora – Startseite"><span class="brand-mark" aria-hidden="true">S</span><span>Staffora</span></a>
+  <div class="nav-actions"><a class="btn btn-sm" href="/">Zur Startseite</a></div>
+</header>
+<main class="wrap legal">
+  <span class="eyebrow">Rechtliches</span>
+  <h1>Impressum</h1>
+  <div class="banner" id="legalBanner" role="note" hidden><strong>Pflichtangaben fehlen.</strong> Der Betreiber muss Name, Anschrift und eine E-Mail-Adresse in <code>site-config.json</code> (Bereich <code>legal</code>) eintragen. Bis dahin ist dieses Impressum unvollständig.</div>
+
+  <h2>Angaben gemäß § 5 DDG</h2>
+  <dl>
+    <dt>Betreiber</dt><dd data-legal="operatorName" data-label="Name des Betreibers"></dd>
+    <dt>Straße</dt><dd data-legal="street" data-label="Straße und Hausnummer"></dd>
+    <dt>Ort</dt><dd data-legal="city" data-label="PLZ und Ort"></dd>
+    <dt>Land</dt><dd data-legal="country" data-label="Land"></dd>
+  </dl>
+
+  <h2>Kontakt</h2>
+  <dl>
+    <dt>E-Mail</dt><dd data-legal="email" data-label="E-Mail-Adresse"></dd>
+    <dt>Telefon</dt><dd data-legal="phone" data-label="Telefon (optional)"></dd>
+  </dl>
+
+  <h2>Verantwortlich für den Inhalt</h2>
+  <p data-legal="responsible" data-label="verantwortliche Person (falls abweichend vom Betreiber)"></p>
+
+  <h2>Umsatzsteuer-ID</h2>
+  <p data-legal="vatId" data-label="USt-IdNr. (nur falls vorhanden)"></p>
+
+  <h2>Hinweis</h2>
+  <p>Diese Seite ist eine Vorlage. Sie enthält nur Angaben, die der Betreiber selbst einträgt. Ob und welche Angaben im Einzelfall Pflicht sind, hängt vom Betreiber und vom Angebot ab und ist vom Betreiber selbst zu prüfen. Es handelt sich nicht um Rechtsberatung.</p>
+  <p>Stand: <span id="legalUpdated"></span></p>
+</main>
+<footer class="footer"><div class="wrap"><span>© <span id="year">2026</span> Staffora</span><nav aria-label="Fußzeile"><a href="/">Startseite</a><a href="/datenschutz.html">Datenschutz</a></nav></div></footer>
+</div>
+<script src="/legal.js"></script>
+</body>
+</html>

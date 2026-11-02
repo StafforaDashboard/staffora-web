@@ -56,7 +56,7 @@ const C=[
 ['teamlist','Teamliste','Rollen und Panel'],
 ['team','Teamverwaltung','Invite, Kick, Warns, Suspend, Logs'],
 ['duty','Duty & Clock','Duty-Panel, Rolle, Zeittracking'],
-['abmeldung','Abmeldung','Panel, Log, Bestätigung'],
+['abmeldung','Abmeldung','Dauer, Gründe, Rollen, Bestätigung'],
 ['feedback','Feedback','Panel, Log, Sticky'],
 ['tasks','Aufgaben','Panel, Manager, Permissions'],
 ['database','Database','Panel und Manager'],
@@ -107,7 +107,6 @@ ranglaufbahn:[
 teamsperre:[
   S('Modul','',['Teamsperre']),
   F('Rolle & Log','Wer diese Rolle hat, kann sich nicht für das Team bewerben. Die Bewerbungs-Blacklist-Rolle zählt ebenfalls.',['Teamsperre-Rolle||select','Teamsperre-Log|teamsperre-logs|select']),
-  R('Verwalter','Admins dürfen immer.',['Teamsperre Manager'])
 ],
 testphase:[
   S('Modul','',['Testphase']),
@@ -119,7 +118,6 @@ testphase:[
 temprollen:[
   S('Modul','',['Temp-Rollen']),
   F('Log','',['Temp-Log|temprollen-logs|select']),
-  R('Verwalter','Admins dürfen immer.',['Temp-Rollen Manager'])
 ],
 embeds:[
   S('Modul','Schaltet die Embed-Seite und den Slash-Command /say an oder aus.',['Embeds & Say']),
@@ -139,7 +137,7 @@ rollenpanel:[
   B('Panel','',['Rollen-Panel senden'])
 ],
 allgemein:[
-  F('Grunddaten','Sprache und Zeitzone.',['Sprache|de|select','Zeitzone|Europe/Berlin','Log-Kanal|system-logs|select'])
+  F('Grunddaten','Sprache, Zeitzone und der Name in den Titeln der Panels und Protokolle (leer oder „Staffora“ = Staffora Bot).',['Sprache|de|select','System-Name|Staffora Bot','Zeitzone|Europe/Berlin','Log-Kanal|system-logs|select'])
 ],
 module:[
   S('Module','Aus = Feature läuft nicht, die Kategorie wird ausgeblendet und die zugehörigen Slash-Commands verschwinden vom Server.',['Tickets','Warteraum','Admin Call','Büros','Duty','Bewerbungen','Teamverwaltung','Security','AutoMod','XP','Verify','Welcome/Leave','Partner','Fraktionen','Ausweis','Fly & Nametag','Sticky','Feedback','Aufgaben','Database','Abmeldung','Giveaway','Suggest','Interview','IC Panel','IC Moderation','Embeds & Say','Status & RP'])
@@ -150,7 +148,6 @@ tickets:[
   K('Kategorien','Die Themen, aus denen Mitglieder beim Öffnen wählen. Jede Kategorie hat eigene Rollen, Discord-Kategorie und Texte.','ticketTypes'),
   F('Allgemein','Log, Support-Rolle und Sperre für alle Tickets.',['Ticket-Log|ticket-logs|select','Support-Rolle|Support|select','Ticket-Blacklist-Rolle|Ticket-Blacklist|select']),
   F('Ticket-KI','Antwortet im Ticket auf Fragen der Person, die es geöffnet hat. Aus = die KI schreibt nie. Sobald das Team das Ticket übernimmt, hält sie sich raus. Der API-Key steht in der Bot-Konfiguration (.env). Pro Kategorie lässt sich die KI zusätzlich abschalten.',['Ticket-KI|Aus|enum']),
-  L('Eröffnungsfragen','Frage vor dem Öffnen',['ticketOpenQuestions']),
   F('Limits','',['Ticket-Limit pro User|3','Ticket-Limit Fenster Stunden|24']),
   F('Standard-Panel','Nur nötig, wenn du oben kein eigenes Panel erstellst: Dieses Panel wird mit „Ticket-Panel senden“ verschickt.',['Ticket-Panel-Kanal|tickets|select','Ticket-Kategorie|Support|select','Ticket-Panel-Titel|Erstelle hier ein Ticket','Ticket-Panel-Text|Klicke auf den Button, um ein Ticket zu öffnen.']),
   B('Panel','',['Ticket-Panel senden'])
@@ -161,14 +158,12 @@ warteraum:[
   F('Support-Modus','',['Support-VC Modus|Bestehende Channels|enum']),
   F('Übernahme & Support-VCs','Der Support-Fall mit dem Übernehmen-Button erscheint im Übernahme-Kanal. Feste Support-VCs gelten bei „Bestehende Channels“.',['Übernahme-Kanal|support-alerts|select','Support-VC Kategorie|Support VC|select']),
   R('Support VCs','Mehrere feste Support-VCs und XP-Räume.',['Feste Support-VCs','Support-Räume mit XP']),
-  F('Join2Create','Nur bei Modus „Join2Create“.',['Support-VC Kategorie|Support VC|select','Join-to-Create Support-VCs|An|enum']),
   F('Musik','Preset oder eigene Datei. „Musik wiederholen“ An = Dauerschleife, Aus = einmal abspielen, dann verlässt der Bot den Kanal.',['Warteraum-Musik|An|enum','Musik wiederholen|An|enum','Musik-Preset|DE|enum']),
   F('Logs','',['Warteraum Claim-Log|warteraum-claim-logs|select'])
 ],
 admincall:[
   S('Modul','',['Admin Call']),
   F('Panel & Log','',['Admin-Call-Panel|admin-call|select','Admin-Call-Log|admin-call-logs|select','Admin-Call Support-Rolle|Admin|select','Admin-Call Blacklist-Rolle|']),
-  L('Admin-Call Fragen','',['adminCallQuestions']),
   B('Panel','',['Admin-Call-Panel senden'])
 ],
 offices:[
@@ -180,8 +175,7 @@ offices:[
 applications:[
   S('Modul','',['Bewerbungen']),
   F('Panel & Log','',['Bewerbungs-Panel|applications|select','Bewerbungs-Log|application-logs|select','Bewerbungs-Blacklist-Rolle|']),
-  L('Bewerbungen','Format: Name | Accept-Rollen-ID',['applicationsList']),
-  L('Fragen','',['applicationQuestions']),
+  K('Bewerbungs-Arten','Jede Art hat eigene Fragen, Log-Kanal und Rollen. Erst eine Art erstellen, dann öffnest du sie und stellst alles ein.','bewerbungTypes'),
   B('Panel','',['Bewerbungs-Panel senden'])
 ],
 teamlist:[
@@ -195,7 +189,7 @@ teamlist:[
 team:[
   S('Modul','',['Teamverwaltung']),
   F('Logs','',['Team-Log|team-logs|select']),
-  R('Rechte','',['Team Invite Rolle','Team Kick Rolle','Team Warn Rolle','Team Suspend Rolle']),
+  R('Rechte','Wer einladen und kicken darf. Warnen und Sperren richten sich nach der Ranglaufbahn.',['Team Invite Rolle','Team Kick Rolle']),
   F('Warns bis Kick','',['Team-Warns bis Auto-Kick|3'])
 ],
 duty:[
@@ -214,11 +208,17 @@ duty:[
 abmeldung:[
   S('Modul','',['Abmeldung']),
   F('Panel & Log','',['Abmelde-Panel|abmeldung|select','Abmelde-Log|abmeldung-logs|select','Abmeldung muss bestätigt werden|An|enum']),
+  F('Panel-Text','Überschrift und Text des Panels. Leer = Standardtext.',['Abmelde-Panel Titel|Abmeldung','Abmelde-Panel Text||area']),
+  F('Dauer','Mitglieder geben die Dauer frei ein, z. B. 12h, 3d oder 2w. Hier legst du die Grenzen fest.',['Mindestdauer (Stunden)|1','Maximaldauer (Tage)|90']),
+  L('Abmelde-Gründe','Ein Grund pro Zeile. Mitglieder wählen einen davon. Ohne Einträge gibt es nur das Freitext-Feld.',['abmeldenReasons']),
+  F('Freitext','Zusätzliches optionales Textfeld im Formular.',['Freitext erlauben|An|enum']),
+  R('Rollen','Rollen, die für die Zeit der Abmeldung entfernt bzw. vergeben werden (ohne Auswahl: Staff-Rollen). Der Manager darf Anfragen annehmen oder ablehnen.',['Abmelde-Rolle entfernen','Abmelde-Rolle geben','Abmelde-Manager']),
+  F('Nickname','Wird dem Namen vorangestellt, solange jemand abgemeldet ist.',['Abmelde-Nickname-Präfix|Abgemeldet']),
   B('Panel','',['Abmelde-Panel senden'])
 ],
 feedback:[
   S('Modul','',['Feedback']),
-  F('Panel & Log','',['Feedback-Kanal|feedback|select','Feedback-Log|feedback-logs|select','Feedback als Sticky|Aus|enum']),
+  F('Panel & Log','',['Feedback-Kanal|feedback|select','Feedback-Log|feedback-logs|select']),
   B('Panel','',['Feedback-Panel senden'])
 ],
 tasks:[
@@ -237,7 +237,7 @@ database:[
 factions:[
   S('Modul','',['Fraktionen']),
   F('Kanäle','',['Fraktions-Announce|faction-announce|select','Fraktions-Log|faction-logs|select']),
-  R('Rechte','',['Frak-Verwaltung','Frak Manager']),
+  R('Rechte','',['Frak Manager']),
   L('Fraktions-Bewerbungsfragen','',['factionAppQuestions'])
 ],
 houses:[
@@ -256,8 +256,7 @@ icnames:[
 ],
 moderation:[
   F('Logs','',['Mod-Log|mod-logs|select']),
-  R('Command Rechte','',['Ban Rolle','Kick Rolle','Timeout Rolle','Warn Rolle','Softban Rolle']),
-  B('Panel','Discord Mod-Panel senden',['Mod-Panel senden'])
+  R('Command Rechte','',['Ban Rolle','Kick Rolle','Timeout Rolle','Warn Rolle','Softban Rolle'])
 ],
 records:[
   L('Strafgründe','Format: VDM | 1:warn,2:kick,3:ban',['modReasons']),
@@ -328,6 +327,10 @@ xp:[
   K('XP-Gruppen','Erst eine Gruppe erstellen (z. B. Supporter mit allen Support-Rollen, Highteam mit allen Highteam-Rollen), dann öffnest du sie und stellst Zeitraum und Top-Zahl ein. Ohne Gruppen zählt die ganze Ranglaufbahn als eine Gruppe.','xpGroups'),
   F('Uprank & Kanäle','Wenn der Zeitraum einer Gruppe endet, bekommen die Besten einen Uprank in der Ranglaufbahn.',['XP Auto-Uprank|An|enum','XP Auswertungs-Kanal|xp-uprank|select','XP Rangliste Kanal|xp|select']),
   F('XP für Staff-Aufgaben','XP pro erledigter Aufgabe. 0 = diese Aufgabe gibt keine XP.',['XP Ticket übernehmen|15|text','XP Ticket schließen|8|text','XP Aufgabe übernehmen|12|text','XP Admin Call übernehmen|20|text','XP Warteraum übernehmen|15|text','XP Bewerbung bearbeiten|10|text','XP Interview führen|10|text','XP Anträge prüfen|4|text','XP Moderation|5|text','XP Team-Verwaltung|6|text']),
+  F('Level & Level-Up','Aus allen gesammelten XP entsteht das Level (Level 1 bei der Basis, Level 2 bei 3× Basis, Level 3 bei 6× Basis …). Beim Aufstieg erscheint eine Nachricht im Staffora-Design, ohne dass jemand gepingt wird. Ohne eigenen Kanal wird nichts gepostet.',['XP Level-Up Nachrichten|An|enum','XP Level-Up Kanal|xp-levelup|select','XP Level-Basis|100|text']),
+  F('Missbrauchsschutz','Verhindert XP-Farming: gleiche Aufgabe nur alle paar Sekunden, und pro Person nur bis zum Tageslimit (24 Stunden). 0 schaltet die jeweilige Sperre aus. Manuell im Dashboard vergebene XP sind ausgenommen.',['XP Cooldown (Sekunden)|15|text','XP Tageslimit|2500|text']),
+  R('Von XP ausgeschlossene Rollen','Mitglieder mit einer dieser Rollen bekommen keine XP.',['XP Ausgeschlossene Rollen']),
+  R('Von XP ausgeschlossene Support-Räume','Zeit in diesen Voice-Kanälen zählt nicht für Support-Voice-XP.',['XP Ausgeschlossene Voice-Kanäle']),
   F('Dienst & Support-Voice','Dienstzeit zählt beim Ausstempeln, Support-Voice beim Verlassen der Räume unter „Support-Räume mit XP“ (Warteraum-Seite).',['XP Dienst pro Stunde|10|text','XP Support-Voice pro Minute|2|text']),
   F('Feedback','XP für den bewerteten Staff je Sterne. Negative Werte ziehen XP ab.',['XP Feedback 1 Stern|-15|text','XP Feedback 2 Sterne|-5|text','XP Feedback 3 Sterne|8|text','XP Feedback 4 Sterne|15|text','XP Feedback 5 Sterne|25|text']),
   B('Panel','',['XP-Rangliste senden'])
@@ -343,21 +346,26 @@ rp:[
     'Server Code|'
   ]),
   R('Wer darf die Spielerzahl setzen?','Leer lassen = jedes Teammitglied der Ranglaufbahn (und Admins). Mit Auswahl nur diese Rollen (und Admins).',['Stats-Rollen']),
-  F('RP-Ankündigung','Kanal für die Ankündigung bei /rp-start und /rp-stop.',['RP Announce|rp-announce|select']),
+  F('RP-Ankündigung','Kanal für die Ankündigung bei /rp-start und /rp-stop, beim Dashboard-Knopf und beim Zeitplan. Ohne Kanal wird nichts gesendet.',['RP Announce|rp-announce|select']),
+  F('Start-Nachricht','Leer = Standardtext. {code} wird durch den Servercode ersetzt.',['RP Start Titel|','RP Start Text||area']),
+  F('Stopp-Nachricht','Leer = Standardtext.',['RP Stop Titel|','RP Stop Text||area']),
+  F('Ping','Mit „Aus“ wird bei der Ankündigung niemand erwähnt, auch wenn unten Rollen eingestellt sind.',['RP Ping aktiv|An|enum']),
+  R('Ping-Rollen','Diese Rollen werden bei Start bzw. Stopp erwähnt. Leer = kein Ping.',['RP Ping-Rolle (Start)','RP Ping-Rolle (Stopp)']),
+  R('Wer darf /rp-start und /rp-stop?','Leer lassen = Staff und Admins. Mit Auswahl nur diese Rollen (und Admins).',['RP Manager']),
+  F('Zeitplan (optional)','Kündigt automatisch zur Uhrzeit an (HH:MM, 24 Stunden). Leer = kein Zeitplan. Zeitzone: Minuten Unterschied zu UTC, z. B. 120 für Sommerzeit in Deutschland.',['RP Start-Zeit|','RP Stop-Zeit|','RP Zeitzone (Minuten zu UTC)|0']),
   B('Panel','Sendet das Panel einmal in den Stats-Kanal. Danach aktualisiert es sich selbst.',['Stats-Panel senden'])
 ],
 partner:[
   S('Modul','',['Partner']),
   F('Kanal','',['Partner-Kanal|partners|select']),
   R('Rechte','',['Partner Manager']),
-  L('Partner-Fragen','',['partnerQuestions']),
   B('Panel','',['Panel senden'])
 ],
 ausweis:[
   S('Modul','',['Ausweis']),
   F('Kanäle','',['Ausweis-Kanal|ausweis|select','Ausweis-Log|ausweis-logs|select','Ausweis Request-Kanal|ausweis-request|select']),
   R('Rechte','',['Ausweis Annehmen Rolle']),
-  L('Custom Ausweise','Eigene Ausweis-Arten mit Vorschau.',['customAusweise']),
+  K('Ausweis-Arten','Jede Art hat eigene Felder (höchstens 5). Der Personalausweis bleibt immer erhalten.','ausweisTypes'),
   B('Panel','',['Ausweis-Panel senden'])
 ],
 unban:[
@@ -384,7 +392,7 @@ dizzy:[
 ],
 ic:[
   S('Modul','',['IC Panel']),
-  R('Zugriff','',['IC Panel Zugriff','IC Mod-Rolle']),
+  R('Zugriff','',['IC Panel Zugriff']),
   F('Log','',['IC Log|ic-logs|select'])
 ],
 icmod:[
@@ -406,9 +414,9 @@ const KEY_MAP = {
   "Suggest Einreichen Rolle":"suggestSubmitRoleIds","XP Uprank Kanal":"xpAnnounceChannelId","Server-Stats Kanal":"serverStatsChannelId","RP Announce":"rpAnnounceChannelId","Unban-Log":"unbanRequestChannelId",
   "Dizzy Control Kanal":"ingameDizzyChannelId","Dizzy Log":"dizzyLogChannelId","Stats Tickets":"statsShowTickets","Stats Support":"statsShowSupport","Stats Duty":"statsShowDuty",
   "Audit-Log-Kanal":"auditLogChannelId","Rollenänderungen loggen":"auditLogRoles","Namensänderungen loggen":"auditLogNicknames","Admin-Aktionen loggen":"auditLogAdmin","Alle Rollen loggen":"auditLogAllRoles",
-  "Teamsperre-Rolle":"teamsperreRoleId","Teamsperre-Log":"teamsperreLogChannelId","Teamsperre Manager":"teamsperreManagerRoleIds",
+  "Teamsperre-Rolle":"teamsperreRoleId","Teamsperre-Log":"teamsperreLogChannelId",
   "Testphase-Rolle":"testphaseRoleId","Rolle nach Testphase":"testphasePassRoleId","Testphase Dauer (Tage)":"testphaseDays","Testphase Erinnerungen (Tage)":"testphaseReminderDays","Testphase Auto-Pass":"testphaseAutoPass","Testphase-Log":"testphaseLogChannelId","Testphase-Erinnerungs-Kanal":"testphaseNotifyChannelId","Testphase Manager":"testphaseManagerRoleIds",
-  "Temp-Log":"tempRoleLogChannelId","Embed-Titel":"embedTitle","Embed-Text":"embedText","Embed-Farbe":"embedColor","Embed-Kanal":"embedChannelId","Temp-Rollen Manager":"tempRoleManagerRoleIds",
+  "Temp-Log":"tempRoleLogChannelId","Embed-Titel":"embedTitle","Embed-Text":"embedText","Embed-Farbe":"embedColor","Embed-Kanal":"embedChannelId",
   "Honeypot-Kanal":"honeypotChannelId","Honeypot Strafe":"honeypotStrafe","Honeypot Timeout Minuten":"honeypotTimeoutMin","Honeypot DM":"honeypotDm","Honeypot-Log":"honeypotLogChannelId","Honeypot Ausnahme-Rolle":"honeypotIgnoreRoleIds",
   "Auswahl-Panel-Kanal":"rolePanelChannelId","Rollen-Panel Titel":"rolePanelTitle","Rollen-Panel Text":"rolePanelText","Rollen-Panel Modus":"rolePanelModus","Rollen-Panel Rollen":"rolePanelRoleIds",
 
@@ -441,27 +449,27 @@ const KEY_MAP = {
   "Mention-Spam":"antiRaidMentionAction","Emoji-Spam":"antiRaidEmojiAction",
   "Security Standard-Aktion":"antiNukeAction",
 
-  "Team Suspend Rolle":"teamSuspendRoleIds","Frak Manager":"factionManagerRoleIds","Haus Manager":"houseManagerRoleIds","Hausliste Titel":"hauslistePanelTitle","Hausliste Text":"hauslistePanelText",
+  "Frak Manager":"factionManagerRoleIds","Haus Manager":"houseManagerRoleIds","Hausliste Titel":"hauslistePanelTitle","Hausliste Text":"hauslistePanelText",
   "IC-Namen-Panel-Kanal":"icNamePanelChannelId","IC-Namen-Panel Titel":"icNamePanelTitle","IC-Namen-Panel Text":"icNamePanelText","Löschung nach Teamkick (Stunden)":"icNameRemoveHours","Namen selbst ändern":"icNameSelfChange","Team darf suchen":"icNameSearchTeam","IC-Namen-Log":"icNameLogChannelId","IC-Namen Suche Rollen":"icNameSearchRoleIds",
-  "Partner-Fragen":"partnerQuestions","IC-Mod Panel":"icModPanelChannelId","IC-Mod Log":"icModLogChannelId",
-  "IC Log Remove Rolle":"icLogRemoveRoleIds","IC Moderation":"icModeration",
+  "IC-Mod Panel":"icModPanelChannelId","IC-Mod Log":"icModLogChannelId",
+  "IC Log Remove Rolle":"modPanelRemoveRoleIds","IC Moderation":"icModeration",
   "Aufgaben Manager":"tasksManagerRoleIds","Aufgaben Claim":"tasksClaimRoleIds",
   "Teamliste-Rollen":"teamlistRoleIds","Team Invite Rolle":"teamInviteRoleIds","Team Kick Rolle":"teamKickRoleIds",
-  "Team Warn Rolle":"teamWarnRoleIds","Ban Rolle":"banRoleIds","Kick Rolle":"kickRoleIds","Timeout Rolle":"timeoutRoleIds",
+  "Ban Rolle":"banRoleIds","Kick Rolle":"kickRoleIds","Timeout Rolle":"timeoutRoleIds",
   "Warn Rolle":"warnRoleIds","Softban Rolle":"softbanRoleIds","Security Whitelist Rolle":"securityWhitelistRoleIds",
-  "Verify Rolle geben":"verifyRoleIds","Unverified Rolle":"unverifiedRoleIds","Suggest Annehmen Rolle":"suggestAcceptRoleIds",
-  "Giveaway Rolle":"giveawayRoleIds","Ausweis Annehmen Rolle":"ausweisAcceptRoleIds","Unban Annehmen Rolle":"unbanAcceptRoleIds",
+  "Verify Rolle geben":"verifyRoleIds","Unverified Rolle":"unverifiedRoleIds","Suggest Annehmen Rolle":"suggestReviewRoleIds",
+  "Giveaway Rolle":"giveawayRoleIds","Ausweis Annehmen Rolle":"ausweisStaffRoleIds","Unban Annehmen Rolle":"unbanAcceptRoleIds",
   "Büro-Log":"officeLogChannelId","Fly-Anfragekanal":"flyNametagChannelId","Fly-Staff-Kanal":"flyNametagStaffChannelId","Fly-Abschluss-Kanal":"flyNametagCompletedChannelId","Fly-Log":"flyNametagLogChannelId","Fly Staff-Rolle":"flyNametagStaffRoleIds","Fly-Panel-Titel":"flyNametagPanelTitle","Fly-Panel-Text":"flyNametagPanelText","Strafregister-Log":"recordsLogChannelId",
   "Sprache":"language","Kategorien mehrfach wählbar":"officeCategoryMulti","System-Name":"systemName","Log-Kanal":"logChannelId","Zeitzone":"timezone",
   "Admin-Rolle":"adminRoleIds","Staff-Rolle":"staffRoleIds","Mod-Rolle":"modRoleIds",
   "IC Panel Zugriff":"ingameAccessRoleIds","IC Access Rolle":"ingameAccessRoleIds","IC Mod-Rolle":"ingameModRoleIds","IC Log":"ingameLogChannelId",
-  "Database Manager":"databaseManagerRoleIds","Frak-Verwaltung":"factionManageRoleIds","Partner Manager":"partnerManagerRoleIds","HighTeam":"highTeamRoleIds",
+  "Database Manager":"databaseManagerRoleIds","Partner Manager":"partnerManagerRoleIds","HighTeam":"highTeamRoleIds",
   "Ticket-Panel-Titel":"ticketPanelTitle","Ticket-Panel-Text":"ticketPanelText","Ticket-Panel-Kanal":"ticketPanelChannelId","Ticket-Log":"ticketLogChannelId","Ticket-Kategorie":"ticketCategoryId",
   "Support-Rolle":"ticketSupportRoleIds","Ticket-Blacklist-Rolle":"ticketBlacklistRoleIds",
   "Ticket-Limit pro User":"ticketLimitPerUser","Ticket-Limit Fenster Stunden":"ticketLimitWindowHours",
   "Warteraum Voice":"warteraumVoiceChannelId","Übernahme-Kanal":"supportTextChannelId",
   "Warteraum-Musik":"warteraumMusicEnabled","Musik wiederholen":"warteraumMusicRepeat","Musik-Preset":"warteraumMusicPreset",
-  "Join-to-Create Support-VCs":"supportJoinToCreate","Support-VC Kategorie":"supportVcCategoryId",
+  "Support-VC Kategorie":"supportVcCategoryId",
   "Support-VC Modus":"supportVcMode","Feste Support-VCs":"supportFixedVoiceIds","Support-Räume mit XP":"supportXpVoiceIds",
   "Warteraum Claim-Log":"warteraumClaimLogChannelId",
   "Admin-Call-Panel":"adminCallPanelChannelId","Admin-Call-Log":"adminCallLogChannelId",
@@ -474,8 +482,8 @@ const KEY_MAP = {
   "Rollen bei Invite":"teamInviteRoleIds","Rollen bei Kick entfernen":"teamKickRoleIds",
   "Team Invite/Kick Log":"teamLogChannelId","Team-Warns bis Kick":"teamWarnsUntilKick",
   "Abmelde-Panel":"abmeldungPanelChannelId","Abmelden-Panel":"abmeldenPanelChannelId","Abmelde-Log":"abmeldungLogChannelId",
-  "Abmeldung muss bestätigt werden":"abmeldungRequireApproval","Abmelde-Rolle":"abmeldungRoleIds",
-  "Feedback-Kanal":"feedbackChannelId","Feedback-Log":"feedbackLogChannelId","Feedback als Sticky":"feedbackSticky",
+  "Abmeldung muss bestätigt werden":"abmeldungRequireApproval","Abmelde-Panel Titel":"abmeldenPanelTitle","Abmelde-Panel Text":"abmeldenPanelText","Mindestdauer (Stunden)":"abmeldenMinHours","Maximaldauer (Tage)":"abmeldenMaxDays","Freitext erlauben":"abmeldenFreeText","Abmelde-Rolle entfernen":"abmeldenRoleIds","Abmelde-Rolle geben":"abmeldenGiveRoleIds","Abmelde-Manager":"abmeldenManagerRoleIds","Abmelde-Nickname-Präfix":"abmeldenNickPrefix",
+  "Feedback-Kanal":"feedbackChannelId","Feedback-Log":"feedbackLogChannelId",
   "Activity-Check-Kanal":"activityCheckChannelId","Activity-Check Dauer":"activityCheckDurationMin","Activity-Check Text":"activityCheckText",
   "Aufgaben-Panel":"tasksPanelChannelId","Aufgaben-Log":"tasksLogChannelId",
   "Aufgaben-Manager":"tasksManagerRoleIds","Aufgaben Claim-Rolle":"tasksClaimRoleIds",
@@ -498,10 +506,10 @@ const KEY_MAP = {
   "Partner-Kanal":"partnerChannelId","Partner-Log":"partnerLogChannelId","Boost-Kanal":"boostChannelId",
   "XP Uprank Announce":"xpUprankChannelId","XP für Uprank":"xpUprankThreshold",
   "RP-Announce-Kanal":"rpAnnounceChannelId","RP Start Titel":"rpStartTitle","RP Start Text":"rpStartText",
-  "RP Stop Titel":"rpStopTitle","RP Stop Text":"rpStopText",
+  "RP Stop Titel":"rpStopTitle","RP Ping aktiv":"rpPingEnabled","RP Ping-Rolle (Start)":"rpPingRoleIds","RP Ping-Rolle (Stopp)":"rpStopPingRoleIds","RP Manager":"rpManagerRoleIds","RP Start-Zeit":"rpScheduleStart","RP Stop-Zeit":"rpScheduleStop","RP Zeitzone (Minuten zu UTC)":"rpScheduleUtcOffsetMin","RP Stop Text":"rpStopText",
   "Stats-Panel-Kanal":"serverStatsChannelId","Stats-Kanal":"teamStatsChannelId","Server Code":"serverStatsCode","Server Name":"serverStatsServerName",
   "Ausweis-Kanal":"ausweisChannelId","Ausweis-Log":"ausweisLogChannelId","Ausweis Request-Kanal":"ausweisRequestChannelId",
-  "Ausweis Annehmen":"ausweisAcceptRoleIds","Max. Zusatz-Ausweise":"ausweisMaxExtra",
+  "Ausweis Annehmen":"ausweisStaffRoleIds","Max. Zusatz-Ausweise":"ausweisMaxExtra",
   "Appeals aktiv":"unbanRequestEnabled","Nur bei aktivem Ban":"unbanRequireActiveBan","Appeal-Log":"unbanRequestChannelId",
   "Appeal Manager":"unbanManagerRoleIds",
   "Dizzy-Control-Kanal":"ingameDizzyChannelId","Dizzy-Log-Kanal":"ingameDizzyLogChannelId",
@@ -509,6 +517,8 @@ const KEY_MAP = {
   "XP Auto-Uprank":"xpAutoUprank","XP Auswertungs-Kanal":"xpAnnounceChannelId","XP Rangliste Kanal":"xpUprankChannelId",
   "XP Ticket schließen":"xpTicketClose","XP Aufgabe übernehmen":"xpTaskClaim","XP Admin Call übernehmen":"xpAdminCallClaim","XP Warteraum übernehmen":"xpWarteraumClaim",
   "XP Bewerbung bearbeiten":"xpApplication","XP Interview führen":"xpInterview","XP Anträge prüfen":"xpReview","XP Moderation":"xpModAction","XP Team-Verwaltung":"xpTeamAction",
+  "XP Level-Up Nachrichten":"xpLevelUpEnabled","XP Level-Up Kanal":"xpLevelUpChannelId","XP Level-Basis":"xpLevelBase","XP Cooldown (Sekunden)":"xpCooldownSec","XP Tageslimit":"xpDailyCap",
+  "XP Ausgeschlossene Rollen":"xpExcludedRoleIds","XP Ausgeschlossene Voice-Kanäle":"xpExcludedChannelIds",
   "XP Dienst pro Stunde":"xpPerDutyHour","XP Support-Voice pro Minute":"xpPerVcMinute",
   "XP Feedback 1 Stern":"xpFeedbackStar1","XP Feedback 2 Sterne":"xpFeedbackStar2","XP Feedback 3 Sterne":"xpFeedbackStar3","XP Feedback 4 Sterne":"xpFeedbackStar4","XP Feedback 5 Sterne":"xpFeedbackStar5"
 };
@@ -907,6 +917,7 @@ function isOnLabel(label){
 }
 
 function pickerKind(label, key){
+  if (/RoleIds?$/.test(key || '')) return 'role'; // Rollen-Schlüssel gewinnen immer (Beschriftungen mit „XP“/„Voice“ sind sonst Kanal-Auswahlen)
   return (/Support-VCs|Support-Räume|Voice|Warteraum|Feste Support|XP/.test(label || '') || /Voice|ChannelIds|supportFixed|supportXp/.test(key || '')) ? 'voice' : 'role';
 }
 /* ---------- Kategorien-System: Karten-Liste → „… erstellen“ → Einstellungen ----------
@@ -1003,6 +1014,75 @@ const COLL = {
       ] }
     ]
   },
+  bewerbungTypes: {
+    noun: 'Bewerbungs-Art', plural: 'Bewerbungs-Arten', create: 'Bewerbungs-Art erstellen', max: 12,
+    name: (r) => ((r.emoji ? r.emoji + ' ' : '') + (r.name || 'Bewerbung')).trim(),
+    meta: (r) => collCount((r.questions || []).length, 'Frage', 'Fragen') + ' · ' + (r.logChannelId ? '#' + (collChan(r.logChannelId) || 'Kanal') : 'Kein Log-Kanal'),
+    make: () => ({ id: collNewId('bw'), name: 'Neue Bewerbung', emoji: '', description: '', questions: [{ id: 'q0', label: 'Warum möchtest du dich bewerben?', type: 'long', required: true }], logChannelId: '', acceptRoleIds: [], reviewRoleIds: [], panelTitle: '', panelText: '' }),
+    sections: [
+      { title: 'Allgemein', desc: 'So erscheint die Art im Auswahlmenü der Bewerbung.', fields: [
+        { k: 'name', label: 'Name', type: 'text', max: 60 },
+        { k: 'emoji', label: 'Emoji', hint: 'Optional', type: 'text', max: 60 },
+        { k: 'description', label: 'Beschreibung', type: 'text', max: 100 }
+      ] },
+      { title: 'Fragen', desc: 'Eine Frage pro Zeile.', fields: [
+        { k: 'questions', label: 'Fragen', hint: 'Zusätze nach „|“: lang (langer Text), optional, ja/nein, auswahl: A, B, C', type: 'objlines', rows: 8,
+          format: (q) => String(q.label || '') + (q.type === 'long' ? ' | lang' : q.type === 'yesno' ? ' | ja/nein' : q.type === 'select' ? ' | auswahl: ' + (q.options || []).join(', ') : '') + (q.required === false ? ' | optional' : ''),
+          parse: (lines, old) => lines.map((ln, i) => {
+            const parts = String(ln).split('|').map(s => s.trim());
+            const label = parts.shift();
+            if (!label) return null;
+            const q = { id: (old[i] && old[i].id) || 'q' + i, label: label.slice(0, 200), type: 'text', required: true, options: [] };
+            parts.forEach(p => {
+              const l = p.toLowerCase();
+              if (l === 'lang' || l === 'long') q.type = 'long';
+              else if (l === 'ja/nein' || l === 'yesno') q.type = 'yesno';
+              else if (l === 'optional') q.required = false;
+              else if (/^auswahl\s*:/.test(l)) { q.type = 'select'; q.options = p.replace(/^[^:]*:/, '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 20); }
+            });
+            return q;
+          }).filter(Boolean) }
+      ] },
+      { title: 'Bearbeitung', desc: 'Wo Bewerbungen ankommen und wer sie entscheiden darf.', fields: [
+        { k: 'logChannelId', label: 'Log-Kanal', type: 'channel', kind: 'text' },
+        { k: 'reviewRoleIds', label: 'Rollen, die entscheiden dürfen', type: 'roles', kind: 'role' },
+        { k: 'acceptRoleIds', label: 'Rollen bei Annahme', hint: 'Werden dem Bewerber beim Annehmen vergeben', type: 'roles', kind: 'role' }
+      ] },
+      { title: 'Panel-Text', desc: 'Optional. Leer = Standardtext.', fields: [
+        { k: 'panelTitle', label: 'Titel', type: 'text', max: 100 },
+        { k: 'panelText', label: 'Text', type: 'area', max: 1500, rows: 4 }
+      ] }
+    ]
+  },
+  ausweisTypes: {
+    noun: 'Ausweis-Art', plural: 'Ausweis-Arten', create: 'Ausweis-Art erstellen', max: 12,
+    name: (r) => r.name || 'Ausweis',
+    meta: (r) => (r.enabled === false ? 'Aus · ' : '') + collCount((r.fields || []).length, 'Feld', 'Felder') + (r.deletable === false ? ' · Standard' : ''),
+    make: () => ({ id: collNewId('aw'), name: 'Neuer Ausweis', enabled: true, deletable: true, fields: [{ key: 'name', label: 'Name', required: true }, { key: 'roblox', label: 'Roblox Username', required: true }] }),
+    canDelete: (r) => r.deletable !== false && r.id !== 'personalausweis',
+    sections: [
+      { title: 'Ausweis', desc: 'Name und ob Mitglieder ihn beantragen können.', fields: [
+        { k: 'name', label: 'Name', type: 'text', max: 45 },
+        { k: 'enabled', label: 'Aktiv', hint: 'Aus = steht im Panel nicht zur Auswahl', type: 'bool', def: true }
+      ] },
+      { title: 'Felder', desc: 'Eine Zeile pro Feld, höchstens 5 (mehr erlauben Discord-Formulare nicht).', fields: [
+        { k: 'fields', label: 'Felder', hint: 'Mit „| optional“ ist ein Feld kein Pflichtfeld', type: 'objlines', rows: 6,
+          format: (f) => String(f.label || f.key || '') + (f.required === false ? ' | optional' : ''),
+          parse: (lines, old) => {
+            const res = lines.slice(0, 5).map(ln => {
+              const parts = String(ln).split('|').map(s => s.trim());
+              const label = parts[0];
+              if (!label) return null;
+              return { label: label.slice(0, 45), required: !parts.slice(1).some(p => p.toLowerCase() === 'optional') };
+            }).filter(Boolean);
+            const used = new Set();
+            res.forEach(f => { const o = old.find(x => !used.has(x.key) && String(x.label || '').toLowerCase() === f.label.toLowerCase()); if (o) { f.key = o.key; used.add(o.key); } });
+            res.forEach((f, i) => { if (!f.key && old[i] && !used.has(old[i].key)) { f.key = old[i].key; used.add(old[i].key); } });
+            return res;
+          } }
+      ] }
+    ]
+  },
   xpGroups: {
     noun: 'Gruppe', plural: 'Gruppen', create: 'Gruppe erstellen', max: 12,
     name: (r) => r.name || 'Gruppe',
@@ -1093,6 +1173,7 @@ function collFieldHtml(f, row) {
   const label = `<span>${lab}${f.hint ? `<small>${escapeHtml(f.hint)}</small>` : ''}</span>`;
   if (f.type === 'note') return `<p class="coll-note">${escapeHtml(typeof f.text === 'function' ? f.text(row) : f.text)}</p>`;
   if (f.type === 'text') return `<label class="setting-row">${label}<input data-f="${k}" value="${escapeHtml(v == null ? '' : v)}" maxlength="${f.max || 200}" placeholder="${escapeHtml(f.ph || '')}"></label>`;
+  if (f.type === 'objlines') return `<label class="setting-row">${label}<textarea data-f="${k}" data-ol="1" rows="${f.rows || 6}" spellcheck="false">${escapeHtml((Array.isArray(v) ? v : []).map(f.format).join('\n'))}</textarea></label>`;
   if (f.type === 'area') return `<label class="setting-row">${label}<textarea data-f="${k}" rows="${f.rows || 4}" maxlength="${f.max || 1500}">${escapeHtml(v == null ? '' : v)}</textarea></label>`;
   if (f.type === 'number') return `<label class="setting-row">${label}<input data-f="${k}" data-num="1" type="number" inputmode="numeric" step="1" min="${f.min == null ? '' : f.min}" max="${f.max == null ? '' : f.max}" value="${(v == null || v === '' || !Number.isFinite(Number(v))) ? (f.def == null ? '' : f.def) : Number(v)}"></label>`;
   if (f.type === 'channel') return `<label class="setting-row">${label}<select data-f="${k}">${f.kind === 'category' ? categoryOptions(v) : channelOptions(v, f.kind)}</select></label>`;
@@ -1137,7 +1218,7 @@ function collDetail(catId) {
     title: def.name(row),
     desc: def.noun + ' bearbeiten. Änderungen übernimmst du oben mit „Speichern“.',
     back: `<button type="button" class="btn btn-ghost btn-sm coll-back">← Alle ${escapeHtml(def.plural)}</button>`,
-    tools: `<button type="button" class="btn btn-danger btn-sm coll-del">${escapeHtml(def.noun)} löschen</button>`
+    tools: (def.canDelete && !def.canDelete(row)) ? '' : `<button type="button" class="btn btn-danger btn-sm coll-del">${escapeHtml(def.noun)} löschen</button>`
   };
 }
 
@@ -1226,6 +1307,11 @@ function wireCollection(panel, catId) {
       return;
     }
     const handler = () => {
+      if (el.dataset.ol) {
+        row[k] = f.parse(String(el.value || '').split('\n').filter(s => s.trim()), Array.isArray(row[k]) ? row[k] : []);
+        touch();
+        return;
+      }
       if (el.dataset.num) {
         const n = Number(el.value);
         const lo = f.min == null ? -Infinity : f.min, hi = f.max == null ? Infinity : f.max;
@@ -1284,7 +1370,7 @@ function renderCard([title,desc,type,items]){
           opts = ['Log only','Warn','Kick','Ban','Timeout','Remove','Delete'];
         }
         if (label === 'Musik-Preset' || key === 'warteraumMusicPreset') opts = ['DE','EN'];
-        else if (/^(Warteraum-Musik|Musik wiederholen|Namen selbst ändern|Team darf suchen|Kategorien mehrfach wählbar|Rollenänderungen loggen|Namensänderungen loggen|Admin-Aktionen loggen|Alle Rollen loggen|Appeals aktiv|Nur bei aktivem Ban|Feedback als Sticky|Abmeldung muss bestätigt werden|Häuser auf Ausweis anzeigen|Externe Apps deaktivieren|Anti-Nuke|Anti-Raid|Welcome Ping|Join-to-Create Support-VCs|Stats Tickets|Stats Support|Stats Duty|Ticket-KI|XP Auto-Uprank)$/.test(label)) opts = ['An','Aus'];
+        else if (/^(Warteraum-Musik|Musik wiederholen|Namen selbst ändern|Team darf suchen|Kategorien mehrfach wählbar|Rollenänderungen loggen|Namensänderungen loggen|Admin-Aktionen loggen|Alle Rollen loggen|Appeals aktiv|Nur bei aktivem Ban|Abmeldung muss bestätigt werden|Freitext erlauben|RP Ping aktiv|Häuser auf Ausweis anzeigen|Externe Apps deaktivieren|Anti-Nuke|Anti-Raid|Welcome Ping|Join-to-Create Support-VCs|Stats Tickets|Stats Support|Stats Duty|Ticket-KI|XP Auto-Uprank|XP Level-Up Nachrichten)$/.test(label)) opts = ['An','Aus'];
         if (label === 'Testphase Auto-Pass' || label === 'Honeypot DM') opts = ['An','Aus'];
         if (label === 'Honeypot Strafe') opts = ['Ban','Softban','Kick','Timeout','Nur löschen'];
         if (label === 'Rollen-Panel Modus') opts = ['Mehrfach','Einzeln'];
@@ -1737,17 +1823,16 @@ async function handleAction(label, catId){
       panel === 'abmelden' ? 'abmeldungPanelChannelId' : null,
       panel === 'abmelden' ? 'abmeldenPanelChannelId' : null,
       panel === 'modpanel' ? 'icModPanelChannelId' : null,
-      panel === 'modpanel' ? 'modPanelChannelId' : null,
-      panel === 'modpanel' ? 'ingameLogChannelId' : null
+      panel === 'modpanel' ? 'modPanelChannelId' : null
     ].filter(Boolean);
     let channelId = null;
     for (const k of chKeys) {
       if (state.settings[k]) { channelId = state.settings[k]; break; }
     }
-    // fallback: any selected channel on page
+    // Fallback: nur die Auswahl dieses Panels auf der Seite (noch nicht übernommener Wert) – nie ein beliebiger anderer Kanal (z. B. Log-Kanal)
     if (!channelId) {
-      const sels = document.querySelectorAll('#settingsPanel select[data-key$="ChannelId"], #settingsPanel select[data-key*="Panel"], #settingsPanel select[data-key*="Channel"]');
-      for (const sel of sels) {
+      for (const k of chKeys) {
+        const sel = document.querySelector('#settingsPanel select[data-key="' + k + '"]');
         if (sel && sel.value && /^\d{15,22}$/.test(String(sel.value))) { channelId = sel.value; break; }
       }
     }
@@ -1875,15 +1960,15 @@ async function saveCurrent(){
   Object.keys(state.pending || {}).forEach(k => { if (partial[k] === undefined) partial[k] = state.pending[k]; });
   // always persist arrays / multi-selects from state
   const arrayKeys = [
-    'ticketTypes','ticketOpenQuestions','adminCallQuestions','officesList','stickyList','applicationsList',
-    'applicationQuestions','modReasons','interviewQuestions','factionAppQuestions','customAusweise',
-    'unbanQuestions','partnerQuestions','teamlistRoleIds','supportFixedVoiceIds','supportXpVoiceIds',
+    'ticketTypes','officesList','stickyList','bewerbungTypes','ausweisTypes',
+    'applicationQuestions','modReasons','interviewQuestions','factionAppQuestions',
+    'unbanQuestions','abmeldenReasons','teamlistRoleIds','supportFixedVoiceIds','supportXpVoiceIds',
     'ticketSupportRoleIds','adminRoleIds','staffRoleIds','modRoleIds','ingameAccessRoleIds',
-    'ingameModRoleIds','teamInviteRoleIds','teamKickRoleIds','teamWarnRoleIds','teamSuspendRoleIds',
-    'factionManageRoleIds','factionManagerRoleIds','houseManagerRoleIds','databaseManagerRoleIds',
+    'ingameModRoleIds','modPanelRemoveRoleIds','abmeldenRoleIds','abmeldenGiveRoleIds','abmeldenManagerRoleIds','rpPingRoleIds','rpStopPingRoleIds','rpManagerRoleIds','teamInviteRoleIds','teamKickRoleIds',
+    'factionManagerRoleIds','houseManagerRoleIds','databaseManagerRoleIds',
     'tasksManagerRoleIds','tasksClaimRoleIds','securityWhitelistRoleIds','verifyRoleIds','unverifiedRoleIds',
-    'banRoleIds','kickRoleIds','timeoutRoleIds','warnRoleIds','softbanRoleIds','highTeamRoleIds',
-    'partnerManagerRoleIds','ausweisAcceptRoleIds','unbanAcceptRoleIds','giveawayRoleIds','suggestAcceptRoleIds'
+    'banRoleIds','kickRoleIds','timeoutRoleIds','warnRoleIds','softbanRoleIds','highTeamRoleIds','xpExcludedRoleIds','xpExcludedChannelIds',
+    'partnerManagerRoleIds','ausweisStaffRoleIds','unbanAcceptRoleIds','giveawayRoleIds','suggestReviewRoleIds'
   ];
   arrayKeys.forEach(k=>{
     if (state.settings[k] !== undefined) partial[k] = state.settings[k];
@@ -1963,23 +2048,43 @@ function renderServerList(){
   const list = $('serverList');
   if(!list) return;
   const guilds = state.guilds || [];
+  const usable = (g) => g.installed !== false && g.canManage !== false;
+  const groups = [
+    { key: 'ok', title: '', items: guilds.filter(usable) },
+    { key: 'add', title: 'Bot noch nicht hinzugefügt', note: 'Auf diesen Servern darfst du den Bot hinzufügen. Discord fragt dich dort noch einmal, ob du es wirklich möchtest.', items: guilds.filter(g => g.installed === false) },
+    { key: 'lock', title: 'Ohne Zugriff', note: 'Der Bot ist hier, aber dir fehlt das Recht „Server verwalten“ oder eine Dashboard-Rolle.', items: guilds.filter(g => g.installed !== false && g.canManage === false) }
+  ];
   if(!guilds.length){
-    list.innerHTML = '<p class="list-empty">Keine Server gefunden. Ist der Bot auf deinem Server und hast du dort Verwaltungsrechte?</p>';
+    list.innerHTML = '<p class="list-empty">Keine Server gefunden. Du brauchst auf dem Server das Recht „Server verwalten“, um den Bot hinzuzufügen oder das Dashboard zu öffnen. Wenn du den Bot gerade eingeladen hast, lade die Liste oben neu.</p>';
     return;
   }
-  list.innerHTML = guilds.map((g, i)=>{
+  const hueOf = (g, name) => { let hue = 0; for (const ch of String(g.id || name)) hue = (hue * 31 + ch.charCodeAt(0)) % 360; return hue; };
+  const iconOf = (g, name) => g.icon
+    ? `<img src="${escapeHtml(g.icon)}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;height:100%;border-radius:inherit;object-fit:cover">`
+    : escapeHtml((name || 'S').charAt(0).toUpperCase());
+  let n = 0;
+  const card = (g, grp) => {
     const name = g.name || g.id;
-    const letter = (name||'S').charAt(0).toUpperCase();
-    const sel = String(state.guildId) === String(g.id) ? ' selected' : '';
-    const members = g.memberCount != null ? formatMembers(g.memberCount) : 'Mitglieder werden geladen…';
-    const iconHtml = g.icon
-      ? `<img src="${escapeHtml(g.icon)}" alt="" style="width:100%;height:100%;border-radius:inherit;object-fit:cover">`
-      : escapeHtml(letter);
-    // Banner-Farbe aus dem Servernamen: gleicher Server, gleiche Farbe
-    let hue = 0; for (const ch of String(g.id || name)) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
-    return `<button type="button" class="server-row${sel}" style="--h:${hue};--i:${Math.min(i, 12)}" data-id="${escapeHtml(String(g.id))}" data-server="${escapeHtml(name)}"><span class="sr-banner" aria-hidden="true"></span><span class="server-icon">${iconHtml}</span><span class="grow"><b>${escapeHtml(name)}</b><small>${escapeHtml(members)}</small></span><span class="sr-foot">${sel ? '<span class="sr-pill">Ausgewählt</span>' : '<span></span>'}<span class="sr-go">Verwalten</span></span></button>`;
-  }).join('');
-  list.querySelectorAll('.server-row').forEach(x=>{
+    const i = n++;
+    const members = g.memberCount != null ? formatMembers(g.memberCount) : '';
+    const head = `style="--h:${hueOf(g, name)};--i:${Math.min(i, 12)}"`;
+    const body = `<span class="sr-banner" aria-hidden="true"></span><span class="server-icon">${iconOf(g, name)}</span><span class="grow"><b>${escapeHtml(name)}</b><small>${escapeHtml(members)}</small></span>`;
+    if (grp === 'ok') {
+      const sel = String(state.guildId) === String(g.id) ? ' selected' : '';
+      return `<button type="button" class="server-row${sel}" ${head} data-id="${escapeHtml(String(g.id))}" data-server="${escapeHtml(name)}">${body}<span class="sr-foot">${sel ? '<span class="sr-pill">Ausgewählt</span>' : '<span class="sr-pill sr-ok">Bot aktiv</span>'}<span class="sr-go">Verwalten</span></span></button>`;
+    }
+    if (grp === 'add') {
+      const ok = /^https:\/\/discord\.com\/oauth2\/authorize\?/.test(String(g.inviteUrl || ''));
+      return `<div class="server-row is-missing" ${head} data-server="${escapeHtml(name)}">${body}<span class="sr-foot"><span class="sr-pill sr-warn">Bot nicht hinzugefügt</span>${ok ? `<a class="sr-go sr-add" href="${escapeHtml(g.inviteUrl)}" target="_blank" rel="noopener noreferrer">Bot hinzufügen</a>` : '<span class="sr-pill">Einladung nicht verfügbar</span>'}</span></div>`;
+    }
+    return `<div class="server-row is-locked" ${head} data-server="${escapeHtml(name)}" title="${escapeHtml(g.reason || '')}">${body}<span class="sr-foot"><span class="sr-pill sr-lock">Keine Berechtigung</span></span></div>`;
+  };
+  list.innerHTML = groups.filter(gr => gr.items.length).map(gr =>
+    (gr.title ? `<div class="sl-head"><b>${escapeHtml(gr.title)}</b><small>${escapeHtml(gr.note)}</small></div>` : '') +
+    gr.items.map(g => card(g, gr.key)).join('')
+  ).join('');
+  if (!groups[0].items.length) list.insertAdjacentHTML('afterbegin', '<p class="list-empty sl-head">Auf keinem deiner Server kannst du das Dashboard öffnen. Füge den Bot unten zu einem Server hinzu oder bitte jemanden mit „Server verwalten“ um Zugriff.</p>');
+  list.querySelectorAll('.server-row[data-id]').forEach(x=>{
     x.onclick = async ()=>{
       list.querySelectorAll('.server-row').forEach(y=>y.classList.remove('selected'));
       x.classList.add('selected');
@@ -2149,17 +2254,21 @@ async function boot(){
     const g = await API.guilds(true);
     state.guilds = Array.isArray(g) ? g : ((g && (g.guilds || g.servers)) || []);
     renderServerList();
-    if(state.guilds.length === 1){
-      const g0 = state.guilds[0];
+    const usableGuilds = state.guilds.filter(x => x.installed !== false && x.canManage !== false);
+    // Nach dem Hinzufügen des Bots (Rücksprung mit ?installed=ID): Hinweis anzeigen
+    try { const ins = new URLSearchParams(location.search).get('installed'); if (ins) { toast('Bot wurde hinzugefügt – der Server erscheint jetzt in der Liste.', 'ok'); history.replaceState({}, '', location.pathname); } } catch(_){}
+    if(usableGuilds.length === 1 && state.guilds.length === 1){
+      const g0 = usableGuilds[0];
       setServerMeta(g0);
       await loadGuild(g0.id, { refresh: true });
       $('serverPicker') && $('serverPicker').classList.remove('open');
-    } else if(state.guilds.length > 1){
+    } else if(state.guilds.length >= 1){
       $('serverPicker') && $('serverPicker').classList.add('open');
       openCategory(state.currentCat || 'home');
     } else {
+      // Keine Server: Auswahl mit der Erklärung („Server verwalten“ nötig) zeigen statt einer leeren Seite mit Fehlermeldung
+      $('serverPicker') && $('serverPicker').classList.add('open');
       openCategory(state.currentCat || 'home');
-      toast('Error');
     }
   } catch(e){
     const msg = String((e && e.message) || '');

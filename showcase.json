@@ -1,0 +1,4 @@
+{
+  "_hinweis": "Bis zu 6 Server für das Karussell auf der Startseite. Echte Daten (Name, Symbol, Mitgliederzahl) kommen automatisch vom Bot, wenn die Server-ID in der .env des Bots unter SHOWCASE_GUILD_IDS steht (Server-ID hier bei guildId eintragen). Ohne Eintrag erscheinen klar gekennzeichnete Platzhalter. Nichts davon wird erfunden.",
+  "servers": []
+}

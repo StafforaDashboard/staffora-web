@@ -641,3 +641,20 @@ body.dashboard-page input:focus-visible,body.dashboard-page select:focus-visible
 .coll-form .card-body{padding-bottom:4px}
 @media (max-width:640px){.coll-grid{grid-template-columns:1fr}}
 .coll-hint{margin:2px 0 14px;padding:10px 12px;border-radius:10px;background:var(--warn-soft);border:1px solid rgba(245,183,59,.35);color:#ffe3a0;font-size:13px;line-height:1.5}
+
+/* Server ohne Bot / ohne Zugriff */
+.server-list .sl-head{grid-column:1/-1;display:flex;flex-direction:column;gap:2px;margin-top:14px}
+.server-list .sl-head b{font:600 15px/1.3 var(--font-display);letter-spacing:-.01em}
+.server-list .sl-head small{color:var(--muted);font-size:13px}
+.server-row.is-missing,.server-row.is-locked{cursor:default}
+.server-row.is-missing:hover,.server-row.is-locked:hover{transform:none;border-color:var(--line)}
+.server-row.is-locked{opacity:.62}
+.server-row.is-locked .server-icon img,.server-row.is-missing .server-icon img{filter:saturate(.85)}
+.sr-pill.sr-ok{color:#8fe3b0;background:rgba(52,199,120,.14)}
+.sr-pill.sr-warn{color:#f3c97a;background:rgba(243,175,60,.14)}
+.sr-pill.sr-lock{color:var(--muted)}
+a.sr-add{text-decoration:none;color:#fff;background:var(--accent)}
+a.sr-add:hover,a.sr-add:focus-visible{background:var(--accent-hover)}
+@media (max-width:640px),(pointer:coarse){a.sr-add{height:40px;padding:0 16px;font-size:14px}}
+.server-row .sr-foot{flex-wrap:wrap}
+.sr-pill{white-space:nowrap}

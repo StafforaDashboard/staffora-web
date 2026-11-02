@@ -96,13 +96,17 @@ window.StafforaAPI = (function () {
     location.href = API.replace(/\/$/, "") + "/auth/login?return=" + ru;
   }
   function readTokenFromUrl() {
+    // Neu: Token steht im #Fragment (gelangt weder in Server-Logs noch in den Referrer). Alte Links mit ?token= gehen noch.
+    var changed = false;
+    var h = new URLSearchParams((location.hash || "").replace(/^#/, ""));
     var q = new URLSearchParams(location.search);
-    var t = q.get("token") || q.get("access_token");
+    var t = h.get("token") || q.get("token") || q.get("access_token");
     if (t) {
       setToken(t);
-      q.delete("token"); q.delete("access_token");
-      history.replaceState({}, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+      h.delete("token"); q.delete("token"); q.delete("access_token");
+      changed = true;
     }
+    if (changed) history.replaceState({}, "", location.pathname + (q.toString() ? "?" + q : "") + (h.toString() ? "#" + h : ""));
   }
   return {
     getToken: token, setToken: setToken, readToken: readTokenFromUrl,
